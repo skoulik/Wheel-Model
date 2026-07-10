@@ -25,6 +25,24 @@ Open modeling and writing issues, from the 2026-07-10 review of the initial draf
    - Position sizing: the model sells exactly one put per period regardless of capital. A practitioner-facing subsection on sizing against total capital (and how the capital bound interacts with m) is needed.
    - Premium-example consistency: keep c_p/c_c examples derived from the same Black–Scholes parameters as the probability examples (script enforces c_p ≈ 0.005 for the monthly k=0.95 put; the old draft's c_p = 0.02 belonged to a different implicit horizon).
 
+## From comparison with live trading records (2026-07-10)
+
+Source: `drafts/2026-07-10-statement-vs-model-observations.txt`, an analysis of a year of real wheel operation against the tier-1 model. The queue architecture matched practice well; the following did not.
+
+7. **Duty cycle: split cadence from tenor.** The model assumes one put always running (period = option lifetime τ_p). In practice the operator sells short-tenor options on a longer cadence (e.g., a 3-day put sold weekly), so the stock is covered by a live put only ~40–50% of calendar time. Introduce cadence period T and tenor τ_p ≤ T; premium accrues per T but prices off τ_p; annualizations change by τ_p/T. The current model is the special case τ_p = T. Biggest structural miss found.
+
+8. **Realistic base-case parameters.** Observed assignment rates run ~8–9% per put, not the article's ~18% running example; observed recycling (for lots that recycle) is ~16%/month, not the stress example's 16%/quarter. Re-run the section 08 economics with a low-p\* regime (p\* ≈ 5–10%, weekly cadence, monthly-ish calls) as base case, keeping p\* = 20% as the aggressive variant. Reinforces #3 (derived d, not d = 0.15, as base).
+
+9. **Censoring-aware calibration; heavy-tailed holding times.** Completed lots recycle fast (median ~1 month), but a persistent minority of open lots ages past 200+ days — dead strata, empirically visible. Statistics on completed lots alone wildly overstate the exit rate (survivorship/right-censoring); calibration of q needs survival analysis. A single q cannot produce the observed fast-lane/trapped-tail mixture — supports depth-dependent q_i or an explicit two-regime mixture as the tier-2 parameterization.
+
+10. **Call strike K_c as a policy variable.** The model fixes K_c at the entry strike; in practice the operator moves the call strike down to exit stuck lots (buying q at a realized-loss cost) or up in recoveries (extra gain, lower q). "Call strike vs. basis" is the operator's main tool against dead strata and the natural control knob of the tier-2 phase diagram.
+
+11. **Common-shock arrivals.** Assignments across a portfolio of wheels cluster on market-wide drawdown dates. Exits diversify across names; arrivals do not. A portfolio-level model needs a systematic component in p — bursts arrive exactly when capital is scarcest (direct evidence for section 09's reflexivity).
+
+12. **Transaction-cost haircut as a function of tenor.** Commissions eat a few percent of premium on short-tenor cheap options (vs. negligible on monthly). Without a friction term the model has no reason not to prefer ever-shorter tenors; the haircut belongs in any τ_p/T optimization.
+
+13. **Permanent-impairment hazard.** "Fundamentally sound" fails occasionally in real portfolios (bankruptcies, permanent collapses): the lot enters an absorbing state with q = 0, premium ≈ 0, capital loss ≈ 100%. Even a small per-year hazard adds an expected cost that can rival annual premium income. Model it as an explicit per-lot death hazard in tier 2, not a verbal disclaimer.
+
 ## Writing / infrastructure
 
 - Prior-work section (`sections/03-prior-work.md`) is a stub; do a real literature pass before assembly (PUT/BXM indices, volatility risk premium, Whaley, Israelov & Nielsen; verify novelty claim for the queueing framing).
