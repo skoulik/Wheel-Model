@@ -28,7 +28,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 | τ_c | Lifetime of each covered call sold; τ_c ≥ τ_p |
 | n | The clock ratio τ_c / τ_p ≥ 1 (e.g., monthly puts with quarterly calls give n = 3) |
 | k | Put strike as a fraction of current price, k = K/S₀ (k = 0.95 is a 5% out-of-the-money put) |
-| p\* | Target assignment probability, when the strike is chosen by inverting for it |
+| p\* | Target assignment probability. The operator has two equivalent ways to set the put strike: pick k directly, or pick the desired assignment probability p\* and compute the strike k\* that delivers it (the inversion formula in the assignment-probability section). We generally use the second, so k floats with volatility while p\* stays fixed. |
 | m | Margin fraction the broker requires on a short put position |
 
 ## Derived quantities
