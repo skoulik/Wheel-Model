@@ -1,5 +1,7 @@
 # The Wheel Strategy as a Stochastic Inventory System
 
+*Sergei Kulik*
+
 > **⚠️ Working draft.** This is an article in active development. Formulas, numbers, and conclusions may change as open issues are resolved — see [TODO.md](TODO.md) for what is known to be incomplete. Nothing here is investment advice.
 
 A mathematical model of the "wheel" options strategy — repeatedly selling cash-secured puts on fundamentally sound assets, taking assignment when it comes, and selling covered calls until the stock is called away — framed as a stochastic inventory system. Put assignments are arrivals into an inventory of stock lots; call-aways are departures; the machinery of queueing theory answers how much stock the strategy really holds, how much capital it consumes, and when it stops being self-recycling.

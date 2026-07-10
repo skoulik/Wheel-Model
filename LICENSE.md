@@ -9,7 +9,7 @@ This repository contains two kinds of material, licensed separately:
 
 ## Article text: CC BY 4.0
 
-Copyright (c) 2026 Sergey (https://github.com/skoulik)
+Copyright (c) 2026 Sergei Kulik (https://github.com/skoulik)
 
 You are free to share (copy and redistribute the material in any medium or format) and adapt (remix, transform, and build upon the material) for any purpose, even commercially, under the following terms: you must give appropriate credit, provide a link to the license, and indicate if changes were made.
 
@@ -19,7 +19,7 @@ The full legal text is available at: https://creativecommons.org/licenses/by/4.0
 
 ## Code: MIT License
 
-Copyright (c) 2026 Sergey (https://github.com/skoulik)
+Copyright (c) 2026 Sergei Kulik (https://github.com/skoulik)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
