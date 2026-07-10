@@ -1,0 +1,5 @@
+# Abstract
+
+> **Status: placeholder.** To be written last, once the technical sections are stable.
+
+We model the "wheel" options strategy — repeatedly selling cash-secured puts on fundamentally sound assets, taking assignment when it comes, and selling covered calls until the stock is called away — as a stochastic inventory system. Put assignments are arrivals into an inventory of stock lots; call-aways are departures. Under a homogeneous approximation the inventory follows a birth–death process whose steady state is approximately Poisson with mean I\* = p·(τ_c/τ_p)/q, where p is the per-period assignment probability and q the per-call-period recovery probability. In steady state the system acquires and sheds inventory at exactly the same rate, and the realized income run rate takes a simple closed form. We derive the capital committed in equilibrium, a convergence bound on capital under geometric price decline, and identify the conditions under which the homogeneous approximation fails — heterogeneous exit rates across inventory layers acquired at different price levels — which motivates the depth-dependent extension developed in the sequel (tier 2).
