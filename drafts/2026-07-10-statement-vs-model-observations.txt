@@ -1,0 +1,149 @@
+# Real Statement vs. Model: Observations from a Year of Live Wheel Trading
+
+Source: statements/USD.csv (private, gitignored) — an Interactive Brokers cash-flow
+statement covering roughly 2025-05 through 2026-05. Parsed: 1,064 closed option
+positions (plus 65 still open), 142 stock transactions. Analysis excluded a "junk"
+universe (~30 low-priced legacy/meme/bankruptcy tickers: BLNK, FOSL, BYND, PLUG, NIO,
+MPW, CLOV, ...) identified by share price < $8; those positions are mostly covered
+calls used to liquidate dead legacy stock, plus bankruptcy remnants — interesting as a
+cautionary tale (see #9) but not wheel data. The remaining "quality" universe is ~40
+names (ABT, ACN, ADP, BMY, CLX, CMCSA, ELV, GPC, HPQ, KMB, LOW, MDT, MRK, MSFT, NVO,
+PFE, PYPL, SLB, TGT, UNH, ZTS, ...): 703 closed puts, 233 closed calls, 34 completed
+inventory lots, 24 lots still open.
+
+Headline: the model's *architecture* (queue of lots, put arrivals, call departures,
+self-recycling) matches the practice well. The parameter conventions and several
+simplifying assumptions do not. Numbered findings below, each with the model
+implication.
+
+---
+
+## 1. The duty-cycle gap: option tenor ≠ cadence period  [biggest structural miss]
+
+The model assumes one put always running: period = option lifetime τ_p. Reality: the
+dominant pattern (496 of 703 puts) is a **2–4 day option sold on a weekly cadence** —
+sold Tuesday (525 of 703 opens are Tuesdays), expiring Friday. The stock is "covered"
+by a live put only ~40–50% of calendar time.
+
+Model implication: introduce two separate parameters — cadence period T (how often a
+put is sold) and tenor τ_p ≤ T (how long it lives). Premium accrues once per T but is
+priced off τ_p; assignment probability per cadence period is that of a τ_p-day option,
+which for 3 days is far smaller than a weekly-tenor put. All annualizations change by
+the factor τ_p/T. The current model is the special case τ_p = T.
+
+## 2. Realized put assignment rate is ~8–9%, not ~18–20%
+
+Across 703 quality puts: 57 assigned = 8.1% (weekly bucket 8.7%, monthly bucket 12.9%).
+The article's running example targets p ≈ 17.6%. The operator in practice runs much
+further out of the money (median premium 0.26% of strike on 3-day puts) — and the
+risk-neutral→real-world gap (p_rw < p) plus put skew push realized frequency down
+further. Empirically validates the draft's conservatism claim, but the *examples*
+should feature a low-p* regime (p* ≈ 5–10%) as the realistic base case, with p* = 20%
+as the aggressive variant.
+
+## 3. Recycling is much faster than the stress example — for lots that recycle
+
+Realized call-away rate per call position: 29% for ≤1-week calls, ~16% for monthly
+calls. Note the model's *stress* example (d = 0.15) gives q ≈ 16% per QUARTER; reality
+shows ~16% per MONTH. Median completed-lot holding time: 27 days; median call tenor 17
+days (so realized n = τ_c/τ_p ≈ 3–6 against weekly puts). Consistent with the derived
+E[d | assignment] ≈ 8% picture (TODO #3), not with d = 0.15 as base case.
+
+## 4. Dead strata are real, visible, and censored out of naive statistics  [tier 2 in the flesh]
+
+While completed lots recycle in a median of 27 days (max 161), the OPEN inventory tells
+the tier-2 story: 24 unresolved lots, 10 of them older than 200 days — BEKE 384 days,
+NVO 344, HRL 314, a cluster of STRF lots at 110–115 (230–324 days), PYPL, ZTS, ADP ×2,
+MSFT @ 370, UNH @ 260. Capital sits precisely where the homogeneous model says it
+shouldn't: in old, high-strike layers that no longer recycle.
+
+Two model implications:
+  a) **Survivorship/censoring**: statistics computed on completed lots (median 27d)
+     wildly overstate the true exit rate; the stuck tail is right-censored. Any
+     empirical calibration of q must handle censoring (survival analysis, not sample
+     averages of completed spells).
+  b) The distribution of holding times is heavy-tailed: most lots exit in ~1 month,
+     a persistent minority effectively never do. A single q cannot produce this; a
+     depth-dependent q_i (tier 2) or a two-regime mixture (fast lane / trapped) can.
+     The mixture might be the cleaner tier-2 parameterization.
+
+## 5. The call-strike policy is an active lever, not a constant
+
+Model: call strike = original put strike, always. Reality (calls matched to held
+inventory): 102 at basis, 26 above basis, 16 below basis; of 34 completed lots, 26
+exited at entry strike, 6 above (strike improvement — extra capital gain), 2 below
+(deliberate exit at a realized loss, e.g. KVUE assigned at 20, called away at 18).
+The operator manages stuck lots by moving the call strike down (raising q, giving up
+basis) or up in recoveries (raising gain, lowering q).
+
+Model implication: K_c becomes a policy variable; "call strike vs. basis" is the
+natural control knob in the tier-2 phase diagram — it is exactly the operator's tool
+for preventing dead strata, at a quantifiable realized-loss cost. This deserves to be
+a first-class part of tier 2, arguably the operator's main degree of freedom.
+
+## 6. Arrivals are cross-sectionally clustered (common shocks)
+
+Assignments cluster on dates: 2026-04-25 alone assigned ABT, ACN, MDT and TSCO;
+2026-03-28 assigned MSFT and UNH. Running ~40 concurrent wheels diversifies
+idiosyncratic moves (supporting the "portfolio" resolution of TODO #1 for exits), but
+arrivals are driven by market-wide drawdowns and land in bursts. A portfolio-level
+model should treat p as having a common systematic component — arrival bursts are
+exactly when capital is scarcest (reflexivity, section 09, now with direct evidence).
+
+## 7. Transaction costs are not negligible at weekly cadence
+
+Commission on the dominant weekly puts: median 3.6% of premium collected (cheap
+options, fixed per-contract fees). On monthly puts: ~0.1–0.2%. Assignment/delivery
+commissions are trivial (cents). Model implication: a friction haircut on c_p that
+grows as tenor shrinks — it directly counteracts the higher annualized premium of
+short cadences and belongs in any τ_p optimization (the model currently has no reason
+not to prefer ever-shorter tenors).
+
+## 8. Early management exists but is minor
+
+~4% of puts and calls are bought back before expiry (puts typically repurchased at
+~11% of the premium received — locking profit and freeing margin early). A refinement,
+not a structural gap; note it and move on.
+
+## 9. The "fundamentally sound" assumption fails in the field — and has an absorbing state
+
+The junk universe (excluded above) is a graveyard: covered calls at $1–$3 strikes
+grinding out exits from collapsed legacy positions, bankruptcy remnants (FibroGen
+contra rights, Walgreens tender odd lots, reverse-split fragments). Once a stock
+collapses permanently, its lot exits the wheel mathematics entirely: q = 0 forever,
+premium ≈ 0, capital loss ~100%. The model's asset-quality assumption hides a
+tail term: even a small per-year probability of permanent impairment adds a
+non-recycling absorbing state whose expected cost can rival the annual premium
+income. Worth an explicit term in tier 2 (a per-lot hazard of "death") rather than
+a verbal disclaimer — the statement shows real portfolios accumulate these.
+
+## 10. Encouraging confirmations
+
+- Call premium contributed 62% as much gross income as put premium ($17.5k vs $28k in
+  closed quality positions) — strikingly close to the corrected model's decomposition,
+  where the call term p·c_c/q is ~63% of the put term in the section-08 stress example.
+- Median monthly-put premium 0.72% of strike vs. the model's Black–Scholes 0.5% at
+  k = 0.95 — the right ballpark, gap consistent with IV > RV plus skew (TODO #4).
+- Exit-at-entry-strike is indeed the dominant mode (26 of 34) — the self-recycling
+  accounting (gain = original premium) describes the majority of completed cycles.
+- The operator sells puts continuously while holding inventory, including on the same
+  names (layering), exactly as the queue model assumes.
+
+---
+
+## Suggested additions to TODO.md (for the parent session to fold in)
+
+  7.  Duty cycle: split cadence period T from option tenor τ_p (finding #1).
+  8.  Realistic base-case parameters: p* ≈ 5–10%, weekly cadence, monthly calls;
+      re-run section 08 economics (findings #2, #3).
+  9.  Calibration must be censoring-aware; model holding-time heavy tail via
+      depth-dependent q_i or fast/trapped mixture (finding #4).
+  10. Call-strike policy K_c as a control variable (strike-down = buy q with realized
+      loss); make it the operator lever in the tier-2 phase diagram (finding #5).
+  11. Common-shock arrivals across a portfolio of wheels (finding #6).
+  12. Transaction-cost haircut as a function of tenor (finding #7).
+  13. Permanent-impairment hazard: absorbing "dead lot" state (finding #9).
+
+Note on privacy: this file summarizes aggregates from a private statement. The raw
+statement is gitignored; review this file before committing/pushing it to the public
+repository.
