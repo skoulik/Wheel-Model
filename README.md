@@ -25,6 +25,10 @@ python code/verify_examples.py
 
 Python 3.8+, standard library only.
 
+## License
+
+The article text is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); the code under `code/` is licensed under MIT. See [LICENSE.md](LICENSE.md).
+
 ## Status
 
 Tier 1 (the homogeneous approximation — all inventory lots share one recovery rate) is drafted. Tier 2 — depth-dependent recovery rates, the true stability condition, and the stable/metastable/unstable phase diagram — is planned; see `sections/10-outlook.md`.
