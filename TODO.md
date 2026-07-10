@@ -43,6 +43,10 @@ Source: `drafts/2026-07-10-statement-vs-model-observations.txt`, an analysis of 
 
 13. **Permanent-impairment hazard.** "Fundamentally sound" fails occasionally in real portfolios (bankruptcies, permanent collapses): the lot enters an absorbing state with q = 0, premium ≈ 0, capital loss ≈ 100%. Even a small per-year hazard adds an expected cost that can rival annual premium income. Model it as an explicit per-lot death hazard in tier 2, not a verbal disclaimer.
 
+14. **Symmetry of CC and CSP** in the Introduction add a detour about the equivalence in outcome of a covered call and a cash secured put.
+
+15. **Attractive price disclaimer** in addition to "a large, dividend-paying company unlikely to collapse permanently" add "trading at an attractive price" and state that thecdefinition of "attractive" is out of scope of this article.
+
 ## Writing / infrastructure
 
 - Prior-work section (`sections/03-prior-work.md`) is a stub; do a real literature pass before assembly (PUT/BXM indices, volatility risk premium, Whaley, Israelov & Nielsen; verify novelty claim for the queueing framing).
