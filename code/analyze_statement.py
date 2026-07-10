@@ -22,10 +22,13 @@ Caveats baked into the analysis:
   * "Junk" filter: any symbol that ever traded (stock or strike) below
     JUNK_PRICE_CUTOFF is excluded from the quality universe — these are legacy
     losers / bankruptcy remnants being liquidated, not wheel positions.
-  * Lot matching is FIFO per symbol. Shares are fungible, so when a call is
-    exercised below an older lot's basis, FIFO attributes the exit to the OLDEST
-    lot (a "capitulation" exit) and keeps the newer cheap lot open. The
-    broker/operator may account differently; the economics are identical.
+  * Lot matching: a sale is first matched to an open lot whose entry price
+    equals the sale price (the wheel's default exit — the call struck at that
+    lot's basis was exercised), then to remaining lots FIFO. Plain FIFO
+    misreads layered names: ADP held lots at 240 and 217.5, and the exit at
+    217.5 is the LOWER layer resolving at its own strike while the 240 layer
+    stays held — not the 240 lot capitulating. Shares are fungible, so any
+    attribution is a convention; this one matches the operator's intent.
   * Completed-lot statistics are right-censored: lots still open (often the
     oldest, highest-basis ones) never enter them. Read them as "fast lane"
     numbers, not unconditional averages.
@@ -42,6 +45,9 @@ from datetime import date, datetime
 
 STATEMENTS_GLOB = "statements/*.csv"
 JUNK_PRICE_CUTOFF = 8.0  # USD; discretionary, see module docstring
+# Manual additions to the junk universe: names the operator does not consider
+# wheel-grade regardless of price (BEKE: speculative, not a hold-forever asset).
+JUNK_EXTRA = {"BEKE"}
 
 OPT_OPEN = re.compile(
     r"^-(\d+) (\S+) (\d{2}[A-Z]{3}\d{2}) ([\d.]+) ([PC]) price: ([\d.]+)(?: comm: (-?[\d.]+))?$")
@@ -116,6 +122,7 @@ def _exp(s):
 def junk_symbols(positions, stock_tx):
     junk = {sym for _, sym, _, px, _ in stock_tx if px < JUNK_PRICE_CUTOFF}
     junk |= {p["sym"] for p in positions if p["strike"] < JUNK_PRICE_CUTOFF}
+    junk |= JUNK_EXTRA
     return junk
 
 
@@ -169,24 +176,29 @@ def inventory_report(stock_tx, junk, today):
             buys[sym].append([day, qty, px])
         else:
             remaining = -qty
-            while remaining > 0 and buys[sym]:  # FIFO, see docstring caveat
-                b_day, b_qty, b_px = buys[sym][0]
+            # Price-match first, then FIFO — see docstring caveat.
+            while remaining > 0 and buys[sym]:
+                lot = next((l for l in buys[sym] if abs(l[2] - px) < 1e-9),
+                           buys[sym][0])
+                b_day, b_qty, b_px = lot
                 take = min(remaining, b_qty)
                 completed.append(dict(sym=sym, in_day=b_day, out_day=day,
                                       in_px=b_px, out_px=px, qty=take))
-                b_qty -= take
+                lot[1] -= take
                 remaining -= take
-                if b_qty == 0:
-                    buys[sym].pop(0)
-                else:
-                    buys[sym][0][1] = b_qty
+                if lot[1] == 0:
+                    buys[sym].remove(lot)
             # remaining > 0 here means legacy shares bought before the
             # statement window were sold; not a wheel lot, ignore.
     hold = sorted((l["out_day"] - l["in_day"]).days for l in completed)
     same = sum(1 for l in completed if abs(l["out_px"] - l["in_px"]) < 1e-9)
     above = sum(1 for l in completed if l["out_px"] > l["in_px"] + 1e-9)
     below = sum(1 for l in completed if l["out_px"] < l["in_px"] - 1e-9)
-    print(f"\n=== inventory lots (quality universe, FIFO) ===")
+    print(f"\n=== inventory lots (quality universe, price-match-then-FIFO) ===")
+    below_lots = [l for l in completed if l["out_px"] < l["in_px"] - 1e-9]
+    for l in below_lots:
+        print(f"  below-basis exit: {l['sym']} {l['qty']} in @{l['in_px']} "
+              f"{l['in_day']} -> out @{l['out_px']} {l['out_day']}")
     print(f"completed: {len(completed)}  holding days median {median(hold)}, "
           f"max {hold[-1] if hold else '-'}  "
           f"exit vs entry strike same/above/below: {same}/{above}/{below}")

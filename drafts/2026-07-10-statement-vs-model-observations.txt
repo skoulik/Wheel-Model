@@ -4,13 +4,18 @@ Source: statements/USD.csv + statements/USD1.csv (private, gitignored) — Inter
 Brokers cash-flow statements covering 2025-05 through 2026-07-10. Parser and
 aggregate reports: code/analyze_statement.py. Parsed: 1,123 closed option positions
 (75 still open), 161 stock transactions. A "junk" universe (~30 low-priced
-legacy/meme/bankruptcy tickers: BLNK, FOSL, BYND, PLUG, NIO, MPW, CLOV, ...) is
-excluded — those are mostly covered calls liquidating dead legacy stock plus
-bankruptcy remnants; interesting as a cautionary tale (see #9) but not wheel data.
-The remaining "quality" universe is ~45 names (ABT, ACN, ADP, BMY, CLX, CMCSA, CTSH,
-DPZ, ELV, GPC, HD, HPQ, INTU, JKHY, KMB, LOW, MDT, MRK, MSFT, NVO, PFE, PYPL, SLB,
-TGT, UNH, ZTS, ...): 763 closed puts, 281 closed calls, 41 completed inventory lots,
-29 lots still open.
+legacy/meme/bankruptcy tickers: BLNK, FOSL, BYND, PLUG, NIO, MPW, CLOV, ...; plus
+BEKE by operator judgment) is excluded — those are mostly covered calls liquidating
+dead legacy stock plus bankruptcy remnants; interesting as a cautionary tale (see
+#9) but not wheel data. The remaining "quality" universe is ~45 names (ABT, ACN,
+ADP, BMY, CLX, CMCSA, CTSH, DPZ, ELV, GPC, HD, HPQ, INTU, JKHY, KMB, LOW, MDT, MRK,
+MSFT, NVO, PFE, PYPL, SLB, TGT, UNH, ZTS, ...): 760 closed puts, 271 closed calls,
+41 completed inventory lots, 27 lots still open.
+
+Lot-attribution note: a share sale is matched to the open lot whose basis equals
+the sale price (the wheel's default exit — the call was struck at that lot's
+basis), falling back to FIFO only when no basis matches. Plain FIFO misreads
+layered names as capitulations; see #4.
 
 Headline: the model's *architecture* (queue of lots, put arrivals, call departures,
 self-recycling) matches the practice well. The parameter conventions and several
@@ -22,7 +27,7 @@ implication.
 ## 1. The duty-cycle gap: option tenor ≠ cadence period  [biggest structural miss]
 
 The model assumes one put always running: period = option lifetime τ_p. Reality: the
-dominant pattern (527 of 763 puts) is a **2–4 day option sold on a weekly cadence** —
+dominant pattern (525 of 760 puts) is a **2–4 day option sold on a weekly cadence** —
 sold Tuesday (~70% of opens), expiring Friday. The stock is "covered" by a live put
 only ~40–50% of calendar time.
 
@@ -34,7 +39,7 @@ the factor τ_p/T. The current model is the special case τ_p = T.
 
 ## 2. Realized put assignment rate is ~9%, not ~18–20%
 
-Across 763 quality puts: 67 assigned = 8.8% (weekly bucket 8.9%, monthly bucket
+Across 760 quality puts: 66 assigned = 8.7% (weekly bucket 9.0%, monthly bucket
 11.8%). The article's running example targets p ≈ 17.6%. The operator in practice
 runs much further out of the money (median premium 0.26% of strike on 3-day puts) —
 and the risk-neutral→real-world gap (p_rw < p) plus put skew push realized frequency
@@ -44,9 +49,9 @@ with p* = 20% as the aggressive variant.
 
 ## 3. Recycling is much faster than the stress example — for lots that recycle
 
-Realized call-away rate per call position: 29% for ≤1-week calls, 17% for monthly
+Realized call-away rate per call position: 29% for ≤1-week calls, 18% for monthly
 calls. The model's *stress* example (d = 0.15) gives q ≈ 16% per QUARTER; reality
-shows ~17% per MONTH. Median completed-lot holding time: 30 days. Median call tenor
+shows ~18% per MONTH. Median completed-lot holding time: 28 days. Median call tenor
 ~2.5 weeks, so realized n = τ_c/τ_p ≈ 3–6 against weekly puts. Consistent with the
 derived E[d | assignment] ≈ 8% picture (TODO #3), not with d = 0.15 as base case.
 
@@ -57,17 +62,19 @@ The extended window is a natural experiment: several lots flagged as "stuck" in 
 resolved by July, and HOW they resolved matters. Three regimes are now visible:
 
   * **Fast lane** (most lots): recycle in ~2–6 weeks at entry strike. Median
-    completed-lot holding: 30 days. HD did a full cycle (assigned @300 May 16,
+    completed-lot holding: 28 days. HD did a full cycle (assigned @300 May 16,
     called away @300 Jun 19) in 34 days.
   * **Metastable**: months-long limbo that DOES resolve at entry strike. MSFT @370
     and UNH @260 exited at strike after ~49 days; HPQ (600 sh @22) after 151 days;
-    max completed holding now 293 days. Patience worked — these are the lots the
+    max completed holding 168 days. Patience worked — these are the lots the
     homogeneous model averages into the fast lane, wrongly but not fatally.
-  * **Trapped / capitulated**: ADP (oldest lot, basis 240) exited at 217.5 — a
-    realized ~9% capital loss taken to force recycling (strike-down policy, see #5);
-    the old ZTS @130 capital is still effectively stuck behind a re-entry at 75.
-    Still open and aging: BEKE 384d, NVO 344d, STRF ×5 (230–324d), HRL@26 314d,
-    PYPL 237d, TRI 142d. Roughly a third of open lots are older than 200 days.
+  * **Trapped**: old high-basis layers that neither recycle nor get abandoned —
+    the operator holds them while cycling fresh layers beneath (see #6): ADP @240
+    (153d) held while its 217.5 layer resolved at strike; ZTS @130 (231d) held
+    while a 75 layer cycled underneath. Still open and aging: NVO 344d, STRF ×5
+    (230–324d), HRL@26 314d, PYPL 237d, TRI 142d — a third of open lots are older
+    than 200 days. Genuine capitulation (exit below basis) is RARE: 2 of 41
+    completed lots (KVUE 20→18, a −10% realized exit; NVO 74→71, a scratch).
 
 Model implications:
   a) **Censoring**: statistics on completed lots overstate q — the aging tail never
@@ -78,28 +85,34 @@ Model implications:
 
 ## 5. The call-strike policy is an active lever, not a constant
 
-Model: call strike = original put strike, always. Reality: of matched calls, ~70% at
-basis, ~18% above, ~11% below; of 41 completed lots, 30 exited at entry strike, 6
-above (strike improvement — extra capital gain), 5 below (deliberate realized-loss
-exits; ADP 240→217.5 the clearest case). The operator manages stuck lots by moving
-the call strike down (buying q at the cost of realized loss) or up in recoveries.
+Model: call strike = original put strike, always. Reality: of 41 completed lots, 34
+exited at entry strike, 5 above (strike improvement — extra capital gain), 2 below
+(realized-loss exits: KVUE 20→18 the clear case). Calls are also observed struck
+below a deep layer's basis while it waits (a standing offer to exit at a loss), but
+executed capitulation is rare — the dominant response to a trapped layer is
+patience plus layering new entries beneath it (#6), not forcing the exit.
 
-Model implication: K_c becomes a policy variable and the natural control knob in the
-tier-2 phase diagram — it is exactly the operator's tool for converting "trapped"
-into "capitulated" at a quantifiable cost. Arguably the operator's main degree of
-freedom.
+Model implication: K_c is a policy variable, and the phase-diagram lever works in
+both directions — strike-up harvests recoveries, strike-down buys q at a
+quantifiable realized-loss cost. The observed policy uses it asymmetrically:
+freely upward, reluctantly downward. Tier 2 should model K_c policy explicitly and
+ask whether the observed reluctance is optimal or a behavioral artifact
+(loss-realization aversion) — a genuinely interesting question the model can answer.
 
 ## 6. New layers form under old ones, exactly as tier 2 assumes
 
 The extended window shows explicit layering on half a dozen names — a second lot
 assigned well below the first while the first is still held: NVO 67→52, PYPL 63→53,
-HRL 26→20, KWEB 29→27, TSCO 41→34, ACN 185→148, ZTS 130→75. The strike ladder that
-tier 2 models (deep old strata under fresh shallow ones) is not hypothetical; it is
-the normal operating condition of the live account.
+HRL 26→20, KWEB 29→27, TSCO 41→34, ACN 185→148, ZTS 130→75, ADP 240→217.5. Lower
+layers demonstrably recycle while upper ones wait (ADP's 217.5 layer completed at
+strike in 120 days; the 240 layer is still held). The strike ladder that tier 2
+models (deep old strata under fresh shallow ones, with depth-dependent exit rates)
+is not hypothetical; it is the normal operating condition of the live account, and
+the bottom-up order of resolution is exactly what depth-dependent q_i predicts.
 
 ## 7. Arrivals are cross-sectionally clustered (common shocks)
 
-Assignments cluster on dates: 2025-06-21 assigned six quality names at once;
+Assignments cluster on dates: 2025-06-21 assigned five quality names at once;
 2026-04-25 four (ABT, ACN, MDT, TSCO); 2026-05-15/16 six across two days (CTSH, DPZ,
 JKHY, HD, HRL, ZTS). Running ~45 concurrent wheels diversifies idiosyncratic exits
 (supporting the "portfolio" resolution of TODO #1), but arrivals are driven by
@@ -129,13 +142,14 @@ disclaimer — real portfolios demonstrably accumulate these.
 
 ## 10. Encouraging confirmations
 
-- Call premium now contributes 90% as much gross income as put premium ($28.6k vs
+- Call premium now contributes 90% as much gross income as put premium ($28.5k vs
   $31.6k) — and the ratio ROSE from 0.62 to 0.90 as inventory accumulated over the
   extra months, consistent with the model's call-income term scaling with I*.
 - Median monthly-put premium 0.72% of strike vs. the model's Black–Scholes 0.5% at
   k = 0.95 — right ballpark, gap consistent with IV > RV plus skew (TODO #4).
-- Exit-at-entry-strike is the dominant mode (30 of 41) — the self-recycling
-  accounting (gain = original premium) describes the majority of completed cycles.
+- Exit-at-entry-strike is the dominant mode (34 of 41) — the self-recycling
+  accounting (gain = original premium) describes the large majority of completed
+  cycles.
 - The operator sells puts continuously while holding inventory, including on the
   same names (layering), exactly as the queue model assumes.
 
@@ -150,7 +164,9 @@ disclaimer — real portfolios demonstrably accumulate these.
       trapped regimes — as an alternative or complement to depth-dependent q_i
       (finding #4).
   10. Call-strike policy K_c as a control variable (strike-down = buying q with
-      realized loss); the operator lever in the tier-2 phase diagram (finding #5).
+      realized loss); the operator lever in the tier-2 phase diagram. Include the
+      optimality question: is the observed reluctance to strike down rational or
+      loss-aversion? (finding #5).
   11. Common-shock arrivals across a portfolio of wheels (finding #7).
   12. Transaction-cost haircut as a function of tenor (finding #8).
   13. Permanent-impairment hazard: absorbing "dead lot" state (finding #9).
