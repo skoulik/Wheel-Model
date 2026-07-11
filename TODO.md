@@ -4,6 +4,7 @@ Open modeling and writing issues, from the 2026-07-10 review of the initial draf
 
 ## Done
 
+- ✅ **Symmetry of CC and CSP** (was #14). The introduction now introduces *cash-secured put* and glosses "covered", and a detour presents the payoff diagrams of both legs, states their payoff equivalence at the same strike (put–call parity, Hull pointer), recasts the wheel's two phases as one trade with alternating collateral, and notes the volatility skew as the pricing asymmetry we set aside. See `sections/02-introduction.md`.
 - ✅ **Attractive price disclaimer** (was #15). The asset qualifier now reads "fundamentally sound *and* entered at an attractive price" in both places it appears; the definition of "attractive" is explicitly declared out of scope (valuation is the operator's job, the model takes the entry level as given). See `sections/02-introduction.md` and `sections/04-strategy.md`.
 - ✅ **P&L formula corrected.** The draft's E[Π]/S = c_p(1+p) + p·c_c/q − p(k−1+d) double-counted the put premium (once as income at entry, once as the "recycled capital gain" at exit under the net-basis convention) and booked a mark-to-market drag into Track A. Corrected Track A run rate: **E[Π]/S = c_p + p·c_c/q** per put period. See `sections/08-returns-and-capital.md`, including the "pitfall worth naming" box documenting the error class.
 
@@ -44,10 +45,9 @@ Source: `drafts/2026-07-10-statement-vs-model-observations.txt`, an analysis of 
 
 13. **Permanent-impairment hazard.** "Fundamentally sound" fails occasionally in real portfolios (bankruptcies, permanent collapses): the lot enters an absorbing state with q = 0, premium ≈ 0, capital loss ≈ 100%. Even a small per-year hazard adds an expected cost that can rival annual premium income. Model it as an explicit per-lot death hazard in tier 2, not a verbal disclaimer.
 
-14. **Symmetry of CC and CSP** in the Introduction add a detour about the equivalence in outcome of a covered call and a cash secured put.
-
 ## Writing / infrastructure
 
 - Prior-work section (`sections/03-prior-work.md`) is a stub; do a real literature pass before assembly (PUT/BXM indices, volatility risk premium, Whaley, Israelov & Nielsen; verify novelty claim for the queueing framing).
 - Abstract to be rewritten last.
 - LaTeX assembly pipeline (Unicode-math → LaTeX conversion) — decide tooling when sections stabilize.
+- Figures: the ASCII payoff diagrams in the section 02 detour are placeholders — redraw as proper vector figures (TikZ or similar) at assembly time.

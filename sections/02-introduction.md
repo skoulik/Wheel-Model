@@ -2,9 +2,31 @@
 
 ## The strategy, informally
 
-Among retail and semi-professional option traders there is a popular income strategy known as **the wheel**. In its simplest telling: pick a stock you would not mind owning — a large, dividend-paying company unlikely to collapse permanently, trading at an attractive price — and sell a put option on it. (What makes a price "attractive" is a question of valuation, and answering it is beyond the scope of this article; we assume the operator has a defensible answer.) Selling a put means accepting an obligation: if the stock falls below a chosen level (the *strike price*) by the option's expiration, you must buy the stock at that strike. In exchange, you collect a cash payment upfront (the *premium*).
+Among retail and semi-professional option traders there is a popular income strategy known as **the wheel**. In its simplest telling: pick a stock you would not mind owning — a large, dividend-paying company unlikely to collapse permanently, trading at an attractive price — and sell a put option on it. (What makes a price "attractive" is a question of valuation, and answering it is beyond the scope of this article; we assume the operator has a defensible answer.) Selling a put means accepting an obligation: if the stock falls below a chosen level (the *strike price*) by the option's expiration, you must buy the stock at that strike. In exchange, you collect a cash payment upfront (the *premium*). Done prudently — with enough cash set aside to honor the purchase in full — the position is called a *cash-secured put*.
 
-Each period there are two outcomes. If the stock stays above the strike, the put expires worthless, you keep the premium, and you sell another put. If the stock falls below the strike, you are *assigned*: you buy the shares at the strike, paying more than they are now worth. How often each outcome occurs is not a matter of luck but of choice — the further below the current price you set the strike, the rarer assignment becomes and the smaller the premium you are paid. A practitioner of the wheel typically sets the strike so that assignment is the exception rather than the rule (a probability around one in five per period is a common calibration, and the one we use in examples); making that trade-off precise is one of the first tasks of the model. The wheel's answer to this is not to sell in a panic but to turn around and sell a *covered call* against the newly acquired shares — the mirror-image obligation, promising to sell the stock at a chosen strike if it recovers there, again collecting a premium. Should the stock eventually recover and the shares be *called away*, the cycle — the wheel — begins again.
+Each period there are two outcomes. If the stock stays above the strike, the put expires worthless, you keep the premium, and you sell another put. If the stock falls below the strike, you are *assigned*: you buy the shares at the strike, paying more than they are now worth. How often each outcome occurs is not a matter of luck but of choice — the further below the current price you set the strike, the rarer assignment becomes and the smaller the premium you are paid. A practitioner of the wheel typically sets the strike so that assignment is the exception rather than the rule (a probability around one in five per period is a common calibration, and the one we use in examples); making that trade-off precise is one of the first tasks of the model. The wheel's answer to this is not to sell in a panic but to turn around and sell a *covered call* against the newly acquired shares — the mirror-image obligation: promising to sell the stock at a chosen strike if it recovers there ("covered" because the shares to be delivered are already in hand), again collecting a premium. Should the stock eventually recover and the shares be *called away*, the cycle — the wheel — begins again.
+
+> **Detour: payoff diagrams, and two names for one trade.** The standard picture for an option position is its *payoff diagram*: the horizontal axis is the stock price when the option expires, the vertical axis is the position's profit. Here are the wheel's two building blocks side by side (K is the strike, c the premium collected):
+>
+> ```
+>      cash-secured put                     covered call
+>   (cash + short put at K)          (shares + short call at K)
+>
+>  profit                            profit
+>    │                                 │
+>  +c┤ ·····┌────────────            +c┤ ·····┌────────────
+>    │     /                           │     /
+>   0┼────/─┴───────────→             0┼────/─┴───────────→
+>    │   /  K                          │   /  K
+>    │  /                              │  /
+>    │ /                               │ /
+>
+>          (horizontal axis: stock price at expiration)
+> ```
+>
+> Each picture reads the same way: end below the strike and the position loses dollar-for-dollar with the stock, cushioned only by the premium; end anywhere above and the profit is capped at c. The two pictures are identical, and that is the point: **at the same strike, a cash-secured put and a covered call have the same payoff.** Holding cash you have promised to spend at K is the same bet as holding shares you have promised to sell at K — either way, you keep the downside below the strike, give away the upside above it, and are paid a premium for the pair. (The formal version of this statement is *put–call parity*; any derivatives text covers it — Hull's *Options, Futures, and Other Derivatives* is the standard reference.)
+>
+> This symmetry recasts the wheel: its two phases are one trade in two costumes. Whether waiting to buy (short put, cash in reserve) or waiting to sell (short call, shares in hand), the operator holds the same payoff shape and re-sells the same promise each period; what alternates is only the collateral. The equivalence is about payoffs, not prices — the market does not pay equally for the two legs, because option buyers bid up downside strikes relative to upside ones (the *volatility skew*), making puts typically the richer side to sell. We set the skew aside in this detour.
 
 Practitioners describe the strategy in comfortable terms: "you get paid to wait," "assignment just means buying a good company at a discount." These slogans contain truth, but they are not a model. They give no way to answer quantitative questions: How often will I be assigned? How much stock will I end up holding in a falling market? How much capital does this strategy really consume? What is the actual return once opportunity cost is charged? Under what market conditions does the comfortable picture break down?
 

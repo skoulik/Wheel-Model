@@ -45,6 +45,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 | q_p | The same exit probability converted to the put-period clock: q_p = 1 − (1−q)^(1/n) ≈ q/n |
 | c_p | Put premium received, as a fraction of S₀ |
 | c_c | Call premium received, as a fraction of S₀ |
+| c | Generic option premium, used in qualitative diagrams where the put/call distinction is irrelevant (specific legs always use c_p, c_c) |
 | I | Number of inventory lots (assigned stock positions) currently held — a random variable |
 | I\* | Steady-state mean of I: I\* = p/q_p ≈ p·n/q |
 | B_j | Cost basis of the j-th inventory lot |
