@@ -1,7 +1,7 @@
 """Wheel-strategy statistics from Interactive Brokers cash-flow statements.
 
 Reads every CSV under statements/ (private, gitignored — see .gitignore) and
-prints the aggregates cited in drafts/2026-07-10-statement-vs-model-observations.txt:
+prints the aggregates cited in drafts/2026-07-10-statement-vs-model-observations.md:
 option outcome rates by tenor bucket, premium levels, inventory lot lifecycles,
 aging open inventory, and assignment-date clustering.
 
@@ -17,6 +17,13 @@ Statement row format (columns: Date, Amount, Payee, Description, Reference):
     "+100 ABT (assigned) price: 94"                shares delivered by put assignment
     "-100 ACN (assigned) price: 240 comm: -0.02"   shares called away
     "-5 CHPT price: 6.02 comm: -0.3"               plain sale (legacy cleanup)
+  DIVIDEND rows (Reference column empty)
+    "TGT(US87612E1064) Cash Dividend USD 1.12 per Share (Ordinary Dividend)"
+    "TLT(US4642874329) Payment in Lieu of Dividend (Ordinary Dividend)"   lent-out shares
+    "SLB(...) Cash Dividend USD 0.285 per Share (Ordinary Div - NRA Withholding Exempt)"
+    "EMLC(...) Cash Dividend USD 0.1206 per Share - US Tax"   withholding (both signs:
+                                                   negative = withheld, positive = refund)
+    "NVO(...) Cash Dividend USD 0.58432 per Share - FEE"      ADR/handling fee
 
 Caveats baked into the analysis:
   * "Junk" filter: any symbol that ever traded (stock or strike) below
@@ -56,18 +63,24 @@ OPT_CLOSE = re.compile(
     r"(?:\((expired|assigned)\)|price: ([\d.]+)(?: comm: (-?[\d.]+))?)$")
 STOCK = re.compile(
     r"^([+-])(\d+) (\S+)(?: \((assigned)\))? price: ([\d.]+)(?: comm: (-?[\d.]+))?$")
+DIV = re.compile(r"^(\S+?) ?\((\S+)\) (.*)$")  # optional space: "TRI (CA...)"
+DIV_PER_SHARE = re.compile(r"USD ([\d.]+) per Share")
+DIV_TAX = re.compile(r"- ([A-Z]{2}) Tax$")
 
 
 def parse(paths):
-    """Return (option_positions, stock_transactions).
+    """Return (option_positions, stock_transactions, dividend_rows).
 
     Option positions are open/close pairs matched FIFO per contract
     (symbol, expiry, strike, right). Closes without a matching open (contract
-    opened before the statement window) are dropped.
+    opened before the statement window) are dropped. Dividend rows keep every
+    dividend-related cash flow (receipt, payment in lieu, withholding tax,
+    fee) tagged by kind.
     """
     opens = {}
     positions = []
     stock_tx = []
+    divs = []
     for path in paths:
         with open(path, newline="") as f:
             reader = csv.reader(f)
@@ -105,10 +118,26 @@ def parse(paths):
                                          float(m[5]), m[4] == "assigned"))
                     else:
                         print("UNPARSED STOCK ROW:", desc, file=sys.stderr)
+                elif ref == "" and "ividend" in desc:
+                    m = DIV.match(desc)
+                    if not m:
+                        print("UNPARSED DIVIDEND ROW:", desc, file=sys.stderr)
+                        continue
+                    sym, rest = m[1], m[3]
+                    tax = DIV_TAX.search(rest)
+                    per_share = DIV_PER_SHARE.search(rest)
+                    divs.append(dict(
+                        day=_d(day), sym=sym, amount=float(row[1]),
+                        kind=("fee" if rest.endswith("FEE")
+                              else "tax" if tax else "recv"),
+                        country=tax[1] if tax else None,
+                        pil="in Lieu" in rest or "IN LIEU" in rest,
+                        per_share=float(per_share[1]) if per_share else None))
     still_open = sum(len(v) for v in opens.values())
     print(f"parsed: {len(positions)} closed option positions "
-          f"({still_open} still open), {len(stock_tx)} stock transactions")
-    return positions, stock_tx
+          f"({still_open} still open), {len(stock_tx)} stock transactions, "
+          f"{len(divs)} dividend-related cash flows")
+    return positions, stock_tx, divs
 
 
 def _d(s):
@@ -209,6 +238,79 @@ def inventory_report(stock_tx, junk, today):
         print(f"  {sym:6s} {q:5d} @ {px:8.2f}  since {d}  ({(today - d).days}d)")
 
 
+def dividend_report(divs, positions, stock_tx, junk):
+    """Dividend flows split by universe, with withholding and wheel attribution.
+
+    Attribution caveat: a receipt is credited to wheel inventory when the
+    reconstructed wheel position (from statement stock rows) is > 0 on the
+    PAYMENT date; the entitlement actually fixes on the record date a few
+    days to weeks earlier, so lots assigned or called away in between can be
+    mis-bucketed. Receipts on wheel names with zero reconstructed position
+    are legacy shares held from before the statement window.
+    """
+    wheel = {p["sym"] for p in positions} | {t[1] for t in stock_tx}
+    quality = wheel - junk
+
+    def bucket(sym):
+        return ("junk" if sym in junk
+                else "wheel-quality" if sym in quality else "non-wheel")
+
+    agg = defaultdict(lambda: defaultdict(float))
+    for r in divs:
+        kind = ("pil" if r["kind"] == "recv" and r["pil"]
+                else "cash" if r["kind"] == "recv" else r["kind"])
+        agg[bucket(r["sym"])][kind] += r["amount"]
+    print(f"\n=== dividend flows ({min(r['day'] for r in divs)} .. "
+          f"{max(r['day'] for r in divs)}) ===")
+    for b in ("wheel-quality", "non-wheel", "junk"):
+        a = agg[b]
+        gross = a["cash"] + a["pil"]
+        if not gross:
+            continue
+        print(f"  {b:13s} gross ${gross:8,.0f} (cash {a['cash']:,.0f} "
+              f"+ in-lieu {a['pil']:,.0f})  net tax {a['tax']:,.0f} "
+              f"({-a['tax'] / gross:.1%})  fees {a['fee']:,.0f}  "
+              f"net ${gross + a['tax'] + a['fee']:,.0f}")
+
+    # Wheel-inventory attribution: reconstructed position on payment date.
+    events = defaultdict(list)
+    for day, sym, qty, _, _ in sorted(stock_tx):
+        events[sym].append((day, qty))
+
+    def held(sym, day):
+        return sum(q for d, q in events[sym] if d <= day)
+
+    per_sym = defaultdict(lambda: defaultdict(float))
+    for r in divs:
+        if r["sym"] not in quality:
+            continue
+        key = "recv" if r["kind"] == "recv" else r["kind"]
+        on_wheel = held(r["sym"], r["day"]) > 0
+        per_sym[r["sym"]][key] += r["amount"]
+        per_sym[r["sym"]]["recv_wheel" if on_wheel else "recv_legacy"] += (
+            r["amount"] if r["kind"] == "recv" else 0)
+        if r["kind"] == "recv" and on_wheel:
+            per_sym[r["sym"]]["n_wheel"] += 1
+    tot_wheel = sum(s["recv_wheel"] for s in per_sym.values())
+    tot_legacy = sum(s["recv_legacy"] for s in per_sym.values())
+    print(f"quality-name receipts on wheel inventory ${tot_wheel:,.0f} vs "
+          f"legacy shares ${tot_legacy:,.0f}; by symbol (wheel part only):")
+    for sym in sorted(per_sym, key=lambda s: -per_sym[s]["recv_wheel"]):
+        s = per_sym[sym]
+        if not s["recv_wheel"]:
+            continue
+        rate = -s["tax"] / s["recv"] if s["recv"] else 0
+        print(f"  {sym:6s} {s['n_wheel']:2.0f} receipt rows  "
+              f"gross ${s['recv_wheel']:7,.0f}  "
+              f"(symbol-level tax rate {rate:.1%})")
+    premium = {r: sum(p["open_px"] * 100 for p in positions
+                      if p["right"] == r and p["sym"] not in junk)
+               for r in "PC"}
+    print(f"wheel-inventory dividends vs gross quality premium: "
+          f"${tot_wheel:,.0f} / ${premium['P'] + premium['C']:,.0f} = "
+          f"{tot_wheel / (premium['P'] + premium['C']):.1%}")
+
+
 def cluster_report(stock_tx, junk):
     clusters = Counter(day for day, sym, qty, _, assigned in stock_tx
                        if qty > 0 and assigned and sym not in junk)
@@ -222,12 +324,13 @@ def main():
         sys.exit(f"no statement files found at {STATEMENTS_GLOB} "
                  "(they are private and not in the repository)")
     print("reading:", ", ".join(paths))
-    positions, stock_tx = parse(paths)
+    positions, stock_tx, divs = parse(paths)
     junk = junk_symbols(positions, stock_tx)
     print(f"junk universe (excluded, price < {JUNK_PRICE_CUTOFF}): {sorted(junk)}")
     option_report(positions, junk)
     inventory_report(stock_tx, junk, date.today())
     cluster_report(stock_tx, junk)
+    dividend_report(divs, positions, stock_tx, junk)
 
 
 if __name__ == "__main__":

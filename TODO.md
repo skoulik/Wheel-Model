@@ -12,7 +12,7 @@ Open modeling and writing issues, from the 2026-07-10 review of the initial draf
 
 1. **Correlated exits vs. the Poisson independence assumption.** On a single underlying, all lots share one price path: a recovery through a strike level calls away every lot at or below it simultaneously. The mean I\* survives (rate balance only), but the distribution is burstier than Poisson — P(I=0) and the ±√I\* fluctuation claims are idealized. Decide the framing: (a) Poisson claims apply across a diversified portfolio of names, (b) single-name idealization with means-only trust, or both. Affects sections 07 and 09.
 
-2. **Dividends.** The strategy targets dividend payers, yet dividends are absent. Three effects: (a) dividend yield δ belongs in the probability formulas (d₂ uses r − δ − σ²/2; the price drift in q is total-return μ minus δ); (b) dividends collected on held inventory are a material Track A income stream (I\* lots × yield); (c) dividends drive early exercise of ITM covered calls (see #5) — which actually helps by recycling lots sooner. Affects sections 05, 06, 08.
+2. **Dividends.** The strategy targets dividend payers, yet dividends are absent. Three effects: (a) dividend yield δ belongs in the probability formulas (d₂ uses r − δ − σ²/2; the price drift in q is total-return μ minus δ); (b) dividends collected on held inventory are a material Track A income stream (I\* lots × yield); (c) dividends drive early exercise of ITM covered calls (see #5) — which actually helps by recycling lots sooner. Affects sections 05, 06, 08. *Empirics from the statements (draft finding #11):* (b) ran at ~4% of gross premium for ordinary equity names (typical yields 1.5–4.5%); δ must be net of withholding, which is country-dependent (15% US treaty, 27% Denmark, 0% exempt cases — 6.4% blended); (c) is untestable from cash statements (payment dates, not ex-dates). See also #16 for the carry side.
 
 3. **Derive d instead of assuming it.** Conditional on assignment, the drop d has a distribution implied by the same lognormal model. E[d | assignment] ≈ 7.9% for the monthly k=0.95, σ=20% example — versus the draft's assumed 0.15, a ~2.5σ event. Closed form is a standard truncated-lognormal expectation (implemented in `code/verify_examples.py`). Plan: derive E[d | assignment] in section 06, use it as base case, keep d = 0.15 as a labeled stress scenario. Materially moves q, I\*, c_c, and the excess return (−0.1%/yr vs +9.9%/yr in the section 08 example).
 
@@ -29,7 +29,7 @@ Open modeling and writing issues, from the 2026-07-10 review of the initial draf
 
 ## From comparison with live trading records (2026-07-10)
 
-Source: `drafts/2026-07-10-statement-vs-model-observations.txt`, an analysis of a year of real wheel operation against the tier-1 model. The queue architecture matched practice well; the following did not.
+Source: `drafts/2026-07-10-statement-vs-model-observations.md`, an analysis of a year of real wheel operation against the tier-1 model. The queue architecture matched practice well; the following did not.
 
 7. **Duty cycle: split cadence from tenor.** The model assumes one put always running (period = option lifetime τ_p). In practice the operator sells short-tenor options on a longer cadence (e.g., a 3-day put sold weekly), so the stock is covered by a live put only ~40–50% of calendar time. Introduce cadence period T and tenor τ_p ≤ T; premium accrues per T but prices off τ_p; annualizations change by τ_p/T. The current model is the special case τ_p = T. Biggest structural miss found.
 
@@ -44,6 +44,8 @@ Source: `drafts/2026-07-10-statement-vs-model-observations.txt`, an analysis of 
 12. **Transaction-cost haircut as a function of tenor.** Commissions eat a few percent of premium on short-tenor cheap options (vs. negligible on monthly). Without a friction term the model has no reason not to prefer ever-shorter tenors; the haircut belongs in any τ_p/T optimization.
 
 13. **Permanent-impairment hazard.** "Fundamentally sound" fails occasionally in real portfolios (bankruptcies, permanent collapses): the lot enters an absorbing state with q = 0, premium ≈ 0, capital loss ≈ 100%. Even a small per-year hazard adds an expected cost that can rival annual premium income. Model it as an explicit per-lot death hazard in tier 2, not a verbal disclaimer.
+
+16. **Dividend carry in the cost of patience.** (Draft finding #11, added 2026-07-11.) A held lot's annual waiting cost is opportunity cost + impairment hazard − net dividend yield. Carry accrues per unit holding time, so it concentrates exactly on the metastable/trapped lots of #9 — the observed patience policy is partly carry-financed, which makes the strike-down reluctance of #10 more rational than loss-aversion alone. Tier 2's phase diagram should carry δ_net per lot. Out-of-scope outliers, noted for honesty rather than modeled: bond-like securities deliberately wheeled (the live account's STRF preferred, ~9%/yr on basis, its five oldest "trapped" lots — they skew any aging-tail statistic they enter), and securities-lending income on lent-out inventory (two-thirds of observed dividend flow arrived as payments in lieu).
 
 ## Writing / infrastructure
 

@@ -11,7 +11,7 @@ A quantitative finance modeling project: a mathematical model of the "wheel" opt
 - `sections/` — the article, one `.md` file per section, numbered in reading order. `sections/00-notation.md` is the **single source of truth for all symbols and conventions**; update it whenever a symbol is introduced or changed.
 - `code/` — all scripts. `code/verify_examples.py` recomputes every worked numerical example quoted in the sections. **Run it after touching any formula or example**: `python code/verify_examples.py` (stdlib only). When adding a worked example to the text, add a corresponding check.
 - `TODO.md` — open modeling/writing issues; sections reference them as "TODO #n". Resolve an item by fixing the sections, moving it to the Done list, and removing the in-text flag.
-- `drafts/` — historical drafts, named `YYYY-MM-DD-<description>.txt`. The initial draft summarizes a prior modeling discussion; it contains a known-wrong P&L formula (see TODO.md Done list) — the sections, not the draft, are authoritative.
+- `drafts/` — historical drafts, named `YYYY-MM-DD-<description>.md`. The initial draft summarizes a prior modeling discussion; it contains a known-wrong P&L formula (see TODO.md Done list) — the sections, not the draft, are authoritative.
 
 ## Writing Workflow
 

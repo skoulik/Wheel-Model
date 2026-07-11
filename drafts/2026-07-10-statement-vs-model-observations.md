@@ -3,7 +3,8 @@
 Source: statements/USD.csv + statements/USD1.csv (private, gitignored) — Interactive
 Brokers cash-flow statements covering 2025-05 through 2026-07-10. Parser and
 aggregate reports: code/analyze_statement.py. Parsed: 1,123 closed option positions
-(75 still open), 161 stock transactions. A "junk" universe (~30 low-priced
+(75 still open), 161 stock transactions, 332 dividend-related cash flows (these
+extend back to 2025-02, earlier than the option activity). A "junk" universe (~30 low-priced
 legacy/meme/bankruptcy tickers: BLNK, FOSL, BYND, PLUG, NIO, MPW, CLOV, ...; plus
 BEKE by operator judgment) is excluded — those are mostly covered calls liquidating
 dead legacy stock plus bankruptcy remnants; interesting as a cautionary tale (see
@@ -153,6 +154,59 @@ disclaimer — real portfolios demonstrably accumulate these.
 - The operator sells puts continuously while holding inventory, including on the
   same names (layering), exactly as the queue model assumes.
 
+## 11. Dividends: minor income on ordinary names, structural carry for the aging
+    tail  [added 2026-07-11; dividend/withholding parsing in analyze_statement.py]
+
+The statements carry 332 dividend-related cash flows (receipts, payments in lieu,
+withholding tax, fees) over 2025-02 .. 2026-07. Matching receipts to the
+reconstructed wheel position on the payment date (caveat: entitlement fixes on the
+earlier record date, so lots that turned over in between can be mis-bucketed):
+
+  * Wheel inventory collected **$7,104 gross — 11.8% of the $60.1k gross option
+    premium**. But $4,750 of that is a single name, STRF; ex-STRF the ordinary
+    equity names contributed ~$2,350 ≈ **3.9% of premium** — real, second-order.
+    (Another $6,254 landed on legacy shares of quality names held from before the
+    window, and $6,023 on non-wheel holdings; both excluded from wheel economics.)
+  * **Carry concentrates on the aging tail.** Dividends accrue per unit holding
+    time, so the trapped/metastable lots of finding #4 collect disproportionately:
+    HRL (315d open) 5 receipts, ADP $510, and NVO, PYPL, ZTS, TRI, DPZ all paid
+    while stuck. The patience policy of findings #4/#5 is partly carry-financed:
+    a trapped lot's annual cost is opportunity + impairment hazard MINUS net
+    dividend yield, which for a 2–4.5% payer meaningfully softens the trap and for
+    a high-yielder can erase it. This feeds the #5/#10 optimality question — for
+    dividend payers, the option value of waiting comes with positive carry, so the
+    observed reluctance to strike down is more rational than it first looks.
+  * **STRF is a remarkable outlier, not a category to model**: a fixed-coupon
+    preferred ($2.50/quarter, ~9%/yr on the ~110 basis) deliberately wheeled. Its
+    five aged lots (230–325d) are the draft's biggest "trapped" block, yet they
+    out-earn most fast-lane equity lots while waiting — bond-like securities break
+    the "trapped = dead capital" reading. Out of scope for the model (the article
+    is about equity wheels); worth keeping in mind when reading the aging-tail
+    statistics, since STRF alone is 5 of the 27 open lots and 2/3 of the wheel
+    dividend flow.
+  * **Withholding is a real, country-dependent haircut**: 15% on US names (treaty
+    rate), 27% on NVO (Denmark), 0% on SLB (NRA-exempt) and effectively 0% on STRF
+    (withheld then refunded; one payment reclassified Return of Capital). Blended:
+    6.4% of gross. Any dividend term in the model (δ in the formulas, income on
+    I* lots) should be net-of-withholding for Track A.
+  * **Two-thirds of the quality flow arrived as Payment in Lieu** — the broker
+    lends out the inventory. Gross-equivalent economically, different tax
+    mechanics, and it flags an unmodeled side-channel: wheel inventory earns
+    securities-lending income precisely on the hard-to-borrow names. Even the junk
+    graveyard drips: $2.1k of PIL, mostly the collapsed REIT MPW — finding #9's
+    absorbing state has q = 0 but not always yield = 0.
+  * What the cash statement CANNOT test: the dividend-capture early-exercise
+    channel (TODO #2c/#5) — payment dates, not ex-dates, are recorded, so
+    "call assigned the day before ex-div" is invisible here.
+
+Model implication: TODO #2's three dividend effects get empirical magnitudes —
+(a) δ in the probability formulas: typical wheel-name yields 1.5–4.5%;
+(b) income on held inventory: ~4% of premium for ordinary names — worth a term,
+not a rewrite; (c) untestable from this data. New: net-of-withholding δ, and
+dividend carry as an offset in the trapped-lot economics (tier 2's
+cost-of-patience). Bond-like names (STRF) are excluded outliers, noted only as
+a caveat on the aging-tail statistics.
+
 ---
 
 ## Suggested additions to TODO.md (for the main session to fold in)
@@ -170,6 +224,12 @@ disclaimer — real portfolios demonstrably accumulate these.
   11. Common-shock arrivals across a portfolio of wheels (finding #7).
   12. Transaction-cost haircut as a function of tenor (finding #8).
   13. Permanent-impairment hazard: absorbing "dead lot" state (finding #9).
+  16. [added 2026-07-11] Dividend carry in the cost of patience: a held lot's
+      waiting cost is opportunity + impairment − net dividend yield; carry
+      partially rationalizes the strike-down reluctance of #10. Bond-like
+      outliers (STRF) noted but out of scope. Also fold finding #11's empirics
+      into existing TODO #2: δ net of withholding (0–27% by country, 15%
+      typical), inventory dividend income ≈ 4% of premium for ordinary names.
 
 Note on privacy: this file summarizes aggregates from private statements. The raw
 statements are gitignored; the parser (code/analyze_statement.py) contains no data.
