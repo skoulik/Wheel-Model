@@ -28,6 +28,10 @@ A quantitative finance modeling project: a mathematical model of the "wheel" opt
 - **Central result:** inventory of assigned lots is an M/M/∞-style queue, ~Poisson steady state with mean I\* = p·n/q; in equilibrium arrival rate = departure rate ("self-recycling"). Track A run rate per put period: E[Π]/S = c_p + p·c_c/q.
 - **Tier structure:** Tier 1 (current sections) uses the homogeneous approximation — uniform q across inventory layers. Tier 2 (planned, `sections/10-outlook.md`) makes q_i depth-dependent, derives the true stability condition, and maps the stable/metastable/unstable phase diagram. Failure modes motivating it: dead strata of trapped capital, p↑/q↓ reflexivity in stress, crash-then-flatline breaking the capital-convergence bound.
 
+## Semantic Search (ChunkHound)
+
+A ChunkHound MCP server is registered for this repo (`search`, `code_research` tools). Use semantic search for *conceptual* queries where the wording is unknown — "is this idea already explained somewhere?" — e.g. duplication/consistency checks before writing a new section. Grep still wins for symbols/exact strings; trust only the top 1–2 hits. Requires the local llama-server (manual start; on connection errors ask Sergei to launch it). Details, quirks, and the full setup: memory file `chunkhound-ollama-setup.md`.
+
 ## Cautions
 
 - **Sign errors have happened before** (both d₂ and the q formula had inverted signs in early drafts; the P&L formula double-counted the put premium). The defense is `code/verify_examples.py` — keep it in sync with the text and re-run it after any formula change.
