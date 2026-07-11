@@ -46,6 +46,8 @@ Source: `drafts/2026-07-10-statement-vs-model-observations.md`, an analysis of a
 
 16. **Dividend carry in the cost of patience.** (Draft finding #11, added 2026-07-11.) A held lot's annual waiting cost is opportunity cost + impairment hazard − net dividend yield. Carry accrues per unit holding time, so it concentrates exactly on the metastable/trapped lots of #9 — the observed patience policy is partly carry-financed, which makes the strike-down reluctance of #10 more rational than loss-aversion alone. Tier 2's phase diagram should carry δ_net per lot. Out-of-scope outliers, noted for honesty rather than modeled: bond-like securities deliberately wheeled (the live account's STRF preferred, ~9%/yr on basis, its five oldest "trapped" lots — they skew any aging-tail statistic they enter), and securities-lending income on lent-out inventory (two-thirds of observed dividend flow arrived as payments in lieu).
 
+17. **Formulas numbering and cross-rerefence** Explicitly number all formulas and reference them directly rather then via sections' references.
+
 ## Writing / infrastructure
 
 - Prior-work section (`sections/03-prior-work.md`) is a stub; do a real literature pass before assembly (PUT/BXM indices, volatility risk premium, Whaley, Israelov & Nielsen; verify novelty claim for the queueing framing).
