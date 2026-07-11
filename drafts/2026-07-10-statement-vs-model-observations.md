@@ -54,7 +54,8 @@ Realized call-away rate per call position: 29% for ≤1-week calls, 18% for mont
 calls. The model's *stress* example (d = 0.15) gives q ≈ 16% per QUARTER; reality
 shows ~18% per MONTH. Median completed-lot holding time: 28 days. Median call tenor
 ~2.5 weeks, so realized n = τ_c/τ_p ≈ 3–6 against weekly puts. Consistent with the
-derived E[d | assignment] ≈ 8% picture (TODO #3), not with d = 0.15 as base case.
+derived E[d | assignment] ≈ 8% picture (TODO #3, since resolved), not with d = 0.15
+as base case — see #12 for the direct measurement.
 
 ## 4. Holding times come in three regimes, and naive statistics only see the first
    [tier 2 in the flesh — updated with the May–July 2026 window]
@@ -207,6 +208,35 @@ dividend carry as an offset in the trapped-lot economics (tier 2's
 cost-of-patience). Bond-like names (STRF) are excluded outliers, noted only as
 a caveat on the aging-tail statistics.
 
+## 12. Assignments land just under the strike — the derived E[d | assignment]
+    checks out  [added 2026-07-11; assignment_depth_report in analyze_statement.py]
+
+Direct empirical test of the article's newly derived E[d | assignment] (TODO #3).
+The statements record no market prices, but 57 of the 66 assigned quality puts had
+a covered call sold at the lot's basis within days (median lag 3 days), and an
+at-basis call's premium prices the market's distance below the strike. Inverting
+Black–Scholes on each call's premium/strike/tenor:
+
+  * Implied gap below strike: median −0.6% (σ = 20%) to +0.7% (σ = 30%), IQR
+    roughly −1.5% to +3%. NOT ONE assignment implies a gap deeper than 10% at
+    σ = 20% (9% of them do at σ = 30%).
+  * The model, fed the operator's actual regime (2–4 day puts, ~9% assignment
+    rate), predicts E[gap] ≈ +1.0% to +1.5% — inside the empirical band. The
+    d = 0.15 assumption would predict ≈ +11%: cleanly rejected. The shallow-
+    landing picture behind the derived base case (d ≈ 0.08 for the article's
+    monthly example, scaling with σ·√τ_p) is what the account actually shows.
+  * The σ = 30% tail (a few implied gaps past 10%) matches the article's framing
+    of d = 0.15 as the distribution's tail, kept as a labeled stress case.
+  * Caveats: the ~3-day lag between Friday-expiry assignment and the call sale
+    lets the market bounce (hence implied spots slightly above strike in ~half
+    the cases — some calls were sold after partial recovery), and the inversion
+    assumes a flat σ. Read it as "overshoot is of order 1%, bounded far away
+    from 15%," not a precise estimate.
+
+Model implication: none needed — this one is a confirmation. The derivation that
+replaced the assumed d (TODO #3) survives contact with 14 months of live data in
+a regime far from the one it was calibrated on.
+
 ---
 
 ## Suggested additions to TODO.md (for the main session to fold in)
@@ -230,6 +260,8 @@ a caveat on the aging-tail statistics.
       outliers (STRF) noted but out of scope. Also fold finding #11's empirics
       into existing TODO #2: δ net of withholding (0–27% by country, 15%
       typical), inventory dividend income ≈ 4% of premium for ordinary names.
+  (Finding #12 adds no new item — it empirically confirms resolved TODO #3 and is
+  recorded in that item's Done entry.)
 
 Note on privacy: this file summarizes aggregates from private statements. The raw
 statements are gitignored; the parser (code/analyze_statement.py) contains no data.

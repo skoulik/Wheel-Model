@@ -1,4 +1,4 @@
-# Stability: When Does the System Stay Bounded?
+# Stability: When Does the System Stay Bounded? {#sec:stability}
 
 ## The homogeneous case is always stable — which should worry you
 
@@ -8,7 +8,7 @@ A result this comforting, derived from an approximation this strong, should be t
 
 ## Heterogeneity: dead strata
 
-Recall the caveat from the recovery section: q is not actually uniform across inventory. A lot's call strike is frozen at the price level where it was assigned. In a falling market, old lots carry strikes far above the current price; their individual recovery probabilities q_i are much smaller than the q of a freshly assigned lot. The homogeneous model averages this away. Reality does not.
+Recall the caveat from [the recovery section](#sec:recovery): q is not actually uniform across inventory. A lot's call strike is frozen at the price level where it was assigned. In a falling market, old lots carry strikes far above the current price; their individual recovery probabilities q_i are much smaller than the q of a freshly assigned lot. The homogeneous model averages this away. Reality does not.
 
 The failure mode: if q_i declines fast enough with the layer's depth — the gap between its strike and the current price — the *effective* average exit rate across the standing inventory can fall below the arrival rate p. Then old layers stop unwinding on any relevant horizon while new lots keep arriving on top. Capital becomes trapped in **dead strata**: lots that are technically still in the conveyor but whose exit dates have receded toward infinity. Track A still shows premium income; Track B quietly ratchets up; the self-recycling property — which held layer-by-layer in the homogeneous model — fails in aggregate.
 
@@ -23,7 +23,7 @@ The second danger is that p and q are treated as constants but are functions of 
 
 Both movements push I\* = p·n/q the same way, and their effect compounds multiplicatively: a market that doubles p and halves q *quadruples* equilibrium inventory. The system's response to stress is therefore convex — mild stress looks comfortably absorbed, severe stress deteriorates much faster than a linear extrapolation from mild stress suggests. An operator calibrated on calm markets will systematically underestimate how quickly the warehouse fills in a storm.
 
-Note also what reflexivity does to the operator's chosen strike policy: if strikes are set by target probability p\* (the inversion of the assignment formula), rising volatility pushes the strike k\* lower rather than letting p rise — trading assignment frequency for deeper out-of-the-money entries. The model as stated holds k fixed; the strike-policy feedback belongs to the parameter studies of tier 2.
+Note also what reflexivity does to the operator's chosen strike policy: if strikes are set by target probability p\* (the inversion formula of [the assignment section](#sec:assignment)), rising volatility pushes the strike k\* lower rather than letting p rise — trading assignment frequency for deeper out-of-the-money entries. The model as stated holds k fixed; the strike-policy feedback belongs to the parameter studies of tier 2.
 
 ## Summary of tier 1's verdict
 

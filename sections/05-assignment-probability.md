@@ -1,4 +1,4 @@
-# The Assignment Probability
+# The Assignment Probability {#sec:assignment}
 
 ## Detour: Bernoulli trials
 

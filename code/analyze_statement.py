@@ -50,6 +50,9 @@ import sys
 from collections import Counter, defaultdict
 from datetime import date, datetime
 
+# Model formulas shared with the article's verification script (same directory).
+from verify_examples import bs_call, expected_drop_given_assignment, k_star
+
 STATEMENTS_GLOB = "statements/*.csv"
 JUNK_PRICE_CUTOFF = 8.0  # USD; discretionary, see module docstring
 # Manual additions to the junk universe: names the operator does not consider
@@ -238,6 +241,72 @@ def inventory_report(stock_tx, junk, today):
         print(f"  {sym:6s} {q:5d} @ {px:8.2f}  since {d}  ({(today - d).days}d)")
 
 
+def _implied_spot(c_over_k, tau, sigma, r):
+    """Invert the Black-Scholes call price (strike = 1) for spot, by bisection."""
+    lo, hi = 0.3, 1.5
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if bs_call(mid, 1.0, tau, sigma, r) < c_over_k:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
+def assignment_depth_report(positions, junk, r=0.05):
+    """How deep below the strike do assignments land? (draft finding #12)
+
+    Empirical check of the article's derived E[d | assignment]. The statements
+    record no market prices, but the first covered call sold at the lot's
+    basis prices the gap: inverting Black-Scholes on its premium/strike/tenor
+    implies the spot at the moment the call was sold. Caveats: a few days pass
+    between expiry-assignment and the call sale (the market can bounce, so
+    implied spots slightly ABOVE the strike are common and expected), and a
+    volatility must be assumed - results are bracketed with sigma 20%/30%.
+    """
+    quality = [p for p in positions if p["sym"] not in junk]
+    assigned = [p for p in quality if p["right"] == "P" and p["how"] == "assigned"]
+    calls = [p for p in quality if p["right"] == "C"]
+    rows = []
+    for ap in assigned:
+        cands = [c for c in calls
+                 if c["sym"] == ap["sym"]
+                 and abs(c["strike"] - ap["strike"]) < 1e-9
+                 and 0 <= (c["open"] - ap["close"]).days <= 21]
+        if not cands:
+            continue
+        c = min(cands, key=lambda c: (c["open"] - ap["close"]).days)
+        tau = (c["exp"] - c["open"]).days / 365
+        if tau > 0 and c["open_px"]:
+            rows.append((ap, c, tau))
+    lags = sorted((c["open"] - ap["close"]).days for ap, c, _ in rows)
+    print(f"\n=== assignment depth via first at-basis call "
+          f"(assigned quality puts: {len(assigned)}, usable: {len(rows)}, "
+          f"median lag {median(lags)}d) ===")
+    for sigma in (0.20, 0.30):
+        gaps = sorted(1 - _implied_spot(c["open_px"] / c["strike"], tau, sigma, r)
+                      for _, c, tau in rows)
+        m = len(gaps)
+        deep = sum(1 for g in gaps if g > 0.10)
+        neg = sum(1 for g in gaps if g < 0)
+        print(f"  implied gap below strike (sigma={sigma:.0%}): quartiles "
+              f"{gaps[m // 4]:+.3f} / {gaps[m // 2]:+.3f} / {gaps[3 * m // 4]:+.3f}  "
+              f"mean {sum(gaps) / m:+.3f}  >10% deep: {deep / m:.0%}  "
+              f"above strike: {neg / m:.0%}")
+    print("  model-predicted E[gap] = 1 - (1 - E[d|A])/k at the observed "
+          "assignment rates (finding #2):")
+    for label, tau_p, p_emp in (("weekly-cadence 3d puts", 3 / 252, 0.09),
+                                ("monthly puts", 1 / 12, 0.118)):
+        for sigma in (0.20, 0.30):
+            k = k_star(p_emp, tau_p, sigma, r)
+            ed = expected_drop_given_assignment(k, tau_p, sigma, r)
+            print(f"    {label:24s} sigma={sigma:.0%}: k*={k:.3f}  E[d|A]={ed:.3f}  "
+                  f"E[gap]={1 - (1 - ed) / k:+.3f}")
+    ed = expected_drop_given_assignment(0.95, 1 / 12, 0.20, r)
+    print(f"    article example (k=0.95, monthly, sigma=20%): E[d|A]={ed:.3f}  "
+          f"E[gap]={1 - (1 - ed) / 0.95:+.3f}  (d=0.15 would put E[gap] near +0.11)")
+
+
 def dividend_report(divs, positions, stock_tx, junk):
     """Dividend flows split by universe, with withholding and wheel attribution.
 
@@ -331,6 +400,7 @@ def main():
     inventory_report(stock_tx, junk, date.today())
     cluster_report(stock_tx, junk)
     dividend_report(divs, positions, stock_tx, junk)
+    assignment_depth_report(positions, junk)
 
 
 if __name__ == "__main__":

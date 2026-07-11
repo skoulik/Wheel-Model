@@ -1,4 +1,4 @@
-# Abstract
+# Abstract {#sec:abstract}
 
 > **Status: placeholder.** To be written last, once the technical sections are stable.
 

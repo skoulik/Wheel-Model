@@ -1,8 +1,8 @@
-# The Strategy and Its Accounting
+# The Strategy and Its Accounting {#sec:strategy}
 
 ## Mechanics
 
-The strategy operates on assets considered fundamentally sound — large, dividend-paying companies unlikely to collapse permanently — and entered at an attractive price, a discount to what the asset is worth. The two halves of that requirement play different roles here. The price half we leave to the operator: deciding what counts as "attractive" is the discipline of valuation, and it is out of scope of this article — the model takes the entry level as given. The soundness half is not a throwaway qualifier; it is a load-bearing assumption. Everything that follows about recovery probabilities presumes an asset whose deep drawdowns are eventually bought back up. The model does not apply to speculative names, and we will return to what "fundamentally sound" buys us mathematically when we discuss the recovery probability.
+The strategy operates on assets considered fundamentally sound — large, dividend-paying companies unlikely to collapse permanently — and entered at an attractive price, a discount to what the asset is worth. The two halves of that requirement play different roles here. The price half we leave to the operator: deciding what counts as "attractive" is the discipline of valuation, and it is out of scope of this article — the model takes the entry level as given. The soundness half is not a throwaway qualifier; it is a load-bearing assumption. Everything that follows about recovery probabilities presumes an asset whose deep drawdowns are eventually bought back up. The model does not apply to speculative names, and we will return to what "fundamentally sound" buys us mathematically in [the recovery section](#sec:recovery).
 
 One full turn of the wheel:
 
@@ -39,4 +39,4 @@ The number that ultimately matters is the **true excess return**:
 
 (Track A − Track C) / Track B, annualized.
 
-Keeping the tracks separate is a discipline we enforce on every formula in this article: each result will be labeled with the track it belongs to. As we will see in the returns section, at least one natural-looking formula for the strategy's income turns out to mix tracks and silently double-count — the separation is not pedantry.
+Keeping the tracks separate is a discipline we enforce on every formula in this article: each result will be labeled with the track it belongs to. As we will see in [the returns section](#sec:returns), at least one natural-looking formula for the strategy's income turns out to mix tracks and silently double-count — the separation is not pedantry.

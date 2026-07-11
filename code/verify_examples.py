@@ -9,7 +9,7 @@ a sign error (this project's historical failure mode) will trip an assertion.
 Stdlib only (Python 3.8+).
 """
 
-from math import exp, log, sqrt
+from math import exp, log, pi, sqrt
 from statistics import NormalDist
 
 N = NormalDist().cdf
@@ -78,6 +78,25 @@ def expected_drop_given_assignment(k, tau_p, sigma, r):
     return 1 - exp(r * tau_p) * N(-_d1) / N(-_d2)
 
 
+def expected_drop_numint(k, tau, sigma, r, steps=20000):
+    """Same conditional expectation by direct trapezoidal integration.
+
+    Independent cross-check of the closed form above (the formula newly
+    derived in the recovery section): integrates (1 - e^x) against the
+    lognormal density of x = ln(S_T/S0) over x < ln k, then normalizes
+    by P(S_T < K) = N(-d2).
+    """
+    m_, s_ = (r - sigma**2 / 2) * tau, sigma * sqrt(tau)
+    lo, hi = log(k) - 12 * s_, log(k)
+    h = (hi - lo) / steps
+
+    def f(x):
+        return (1 - exp(x)) * exp(-((x - m_) / s_) ** 2 / 2) / (s_ * sqrt(2 * pi))
+
+    total = (f(lo) + f(hi)) / 2 + sum(f(lo + i * h) for i in range(1, steps))
+    return total * h / N(-d2(k, tau, sigma, r))
+
+
 # ----------------------------------------------------------------------
 # Checks
 # ----------------------------------------------------------------------
@@ -92,56 +111,68 @@ def check(label, got, expected, tol):
         FAILURES.append(label)
 
 
-# Baseline parameters used throughout the article
-k, tau_p, sigma, r, mu = 0.95, 1 / 12, 0.20, 0.05, 0.07
-n, tau_c = 3, 0.25
+def main():
+    # Baseline parameters used throughout the article
+    k, tau_p, sigma, r, mu = 0.95, 1 / 12, 0.20, 0.05, 0.07
+    n, tau_c = 3, 0.25
 
-print("--- Section 5: assignment probability ---")
-check("d2 (k=0.95, monthly)", d2(k, tau_p, sigma, r), 0.93, 0.01)
-check("p = N(-d2)", p_assign(k, tau_p, sigma, r), 0.176, 0.005)
-check("k* for p*=20%", k_star(0.20, tau_p, sigma, r), 0.955, 0.002)
-check("real-world p (mu=7%)", p_real_world(k, tau_p, sigma, r, mu), 0.166, 0.005)
-check("put delta N(-d1)", N(-(d2(k, tau_p, sigma, r) + sigma * sqrt(tau_p))), 0.161, 0.005)
+    print("--- Section 5: assignment probability ---")
+    check("d2 (k=0.95, monthly)", d2(k, tau_p, sigma, r), 0.93, 0.01)
+    check("p = N(-d2)", p_assign(k, tau_p, sigma, r), 0.176, 0.005)
+    check("k* for p*=20%", k_star(0.20, tau_p, sigma, r), 0.955, 0.002)
+    check("real-world p (mu=7%)", p_real_world(k, tau_p, sigma, r, mu), 0.166, 0.005)
+    check("put delta N(-d1)", N(-(d2(k, tau_p, sigma, r) + sigma * sqrt(tau_p))), 0.161, 0.005)
 
-print("--- Section 6: recovery probability ---")
-check("q (d=0.15, quarterly)", q_recover(k, 0.15, tau_c, sigma, mu), 0.162, 0.005)
-check("required recovery %", k / (1 - 0.15) - 1, 0.118, 0.002)
-check("q (d=0.08, quarterly)", q_recover(k, 0.08, tau_c, sigma, mu), 0.422, 0.005)
-check("E[d | assignment] (monthly)", expected_drop_given_assignment(k, tau_p, sigma, r), 0.079, 0.003)
+    print("--- Section 6: recovery probability ---")
+    e_d = expected_drop_given_assignment(k, tau_p, sigma, r)
+    check("E[d | assignment] (monthly)", e_d, 0.079, 0.003)
+    check("E[d | A] closed form vs num. integration", e_d,
+          expected_drop_numint(k, tau_p, sigma, r), 1e-4)
+    check("E[d | A] under real-world drift (< 0.1pp shift)",
+          expected_drop_given_assignment(k, tau_p, sigma, mu), e_d, 0.001)
+    check("d1 (k=0.95, monthly)", d2(k, tau_p, sigma, r) + sigma * sqrt(tau_p), 0.99, 0.01)
+    check("required recovery % (base d=0.08)", k / (1 - 0.08) - 1, 0.033, 0.002)
+    check("q (base d=0.08, quarterly)", q_recover(k, 0.08, tau_c, sigma, mu), 0.422, 0.005)
+    check("required recovery % (stress d=0.15)", k / (1 - 0.15) - 1, 0.118, 0.002)
+    check("q (stress d=0.15, quarterly)", q_recover(k, 0.15, tau_c, sigma, mu), 0.162, 0.005)
 
-print("--- Section 7: inventory queue ---")
-p = p_assign(k, tau_p, sigma, r)
-q15 = q_recover(k, 0.15, tau_c, sigma, mu)
-I_star_15 = p * n / q15
-check("q_p vs q/n approx (d=0.15)", q_per_put_period(q15, n), q15 / n, 0.004)
-check("I* (d=0.15)", I_star_15, 3.26, 0.05)
-check("P(I=0) for I*=1", exp(-1.0), 0.37, 0.005)
-check("P(I=0) for I*=2", exp(-2.0), 0.14, 0.005)
-check("P(I=0) for I*=3", exp(-3.0), 0.05, 0.003)
-check("self-recycling: exit rate = p", I_star_15 * q_per_put_period(q15, n), p, 0.02)
+    print("--- Section 7: inventory queue ---")
+    p = p_assign(k, tau_p, sigma, r)
+    q15 = q_recover(k, 0.15, tau_c, sigma, mu)
+    I_star_15 = p * n / q15
+    check("q_p vs q/n approx (d=0.15)", q_per_put_period(q15, n), q15 / n, 0.004)
+    check("I* (d=0.15)", I_star_15, 3.26, 0.05)
+    check("P(I=0) for I*=1", exp(-1.0), 0.37, 0.005)
+    check("P(I=0) for I*=2", exp(-2.0), 0.14, 0.005)
+    check("P(I=0) for I*=3", exp(-3.0), 0.05, 0.003)
+    check("self-recycling: exit rate = p", I_star_15 * q_per_put_period(q15, n), p, 0.02)
 
-print("--- Section 8: returns and capital ---")
-c_p = bs_put(k, tau_p, sigma, r)
-check("c_p (BS put premium)", c_p, 0.0050, 0.0005)
+    print("--- Section 8: returns and capital ---")
+    c_p = bs_put(k, tau_p, sigma, r)
+    check("c_p (BS put premium)", c_p, 0.0050, 0.0005)
 
-for d, q_d, cc_expect, run_expect, cap_expect in [
-    (0.15, q15, 0.0077, 0.0134, 3.27),
-    (0.08, q_recover(k, 0.08, tau_c, sigma, mu), 0.0286, 0.0169, 1.37),
-]:
-    c_c = bs_call(1 - d, k, tau_c, sigma, r)
-    I_star = p * n / q_d
-    run_rate = c_p + p * c_c / q_d                # Track A per put period, per S0
-    capital = 0.20 * k + I_star * (k - c_p)       # margin m=0.20 on live put + inventory basis
-    check(f"c_c (d={d})", c_c, cc_expect, 0.0005)
-    check(f"Track A run rate/period (d={d})", run_rate, run_expect, 0.0005)
-    check(f"E[Capital]/S0 (d={d})", capital, cap_expect, 0.02)
-    annual = run_rate / tau_p
-    excess = (annual - r * capital) / capital
-    print(f"      d={d}: annual Track A = {annual:.3f}, excess over risk-free = {excess:+.3f}/yr on capital")
+    for d, q_d, cc_expect, run_expect, cap_expect in [   # base case first, as in the text
+        (0.08, q_recover(k, 0.08, tau_c, sigma, mu), 0.0286, 0.0169, 1.37),
+        (0.15, q15, 0.0077, 0.0134, 3.27),
+    ]:
+        c_c = bs_call(1 - d, k, tau_c, sigma, r)
+        I_star = p * n / q_d
+        run_rate = c_p + p * c_c / q_d                # Track A per put period, per S0
+        capital = 0.20 * k + I_star * (k - c_p)       # margin m=0.20 on live put + inventory basis
+        check(f"c_c (d={d})", c_c, cc_expect, 0.0005)
+        check(f"Track A run rate/period (d={d})", run_rate, run_expect, 0.0005)
+        check(f"E[Capital]/S0 (d={d})", capital, cap_expect, 0.02)
+        annual = run_rate / tau_p
+        excess = (annual - r * capital) / capital
+        print(f"      d={d}: annual Track A = {annual:.3f}, excess over risk-free = {excess:+.3f}/yr on capital")
 
-check("capital bound (k-c_p)/d", (0.95 - 0.005) / 0.15, 6.3, 0.05)
+    check("capital bound (k-c_p)/d", (0.95 - 0.005) / 0.15, 6.3, 0.05)
 
-print()
-if FAILURES:
-    raise SystemExit(f"{len(FAILURES)} check(s) FAILED: {FAILURES}")
-print("All checks passed.")
+    print()
+    if FAILURES:
+        raise SystemExit(f"{len(FAILURES)} check(s) FAILED: {FAILURES}")
+    print("All checks passed.")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,4 +1,4 @@
-# Notation and Conventions
+# Notation and Conventions {#sec:notation}
 
 This file is the single source of truth for every symbol used in the article. When a section introduces a new symbol, it must be added here. When two sections disagree with this table, this table wins and the sections are wrong.
 
@@ -9,6 +9,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 - Rates (r, μ) and volatility (σ) are **annualized**.
 - Probabilities named p refer to the put leg; probabilities named q refer to the call leg.
 - Math is written in Unicode plain text in these drafts; conversion to LaTeX happens at assembly time.
+- **Cross-references:** every section's H1 carries a pandoc-style anchor (`# Title {#sec:name}`), and in-prose references are written as markdown links to those anchors — e.g. `[the recovery section](#sec:recovery)`. At assembly time these become `\label`/`\ref` pairs. Never refer to another section by bare prose or by number; always link. Current anchors: sec:notation, sec:abstract, sec:introduction, sec:prior-work, sec:strategy, sec:assignment, sec:recovery, sec:queue, sec:returns, sec:stability, sec:outlook.
 - Every worked numerical example in the text is recomputed by `code/verify_examples.py`. If you change a formula or an example, update and re-run the script.
 
 ## Market and asset parameters
@@ -28,7 +29,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 | τ_c | Lifetime of each covered call sold; τ_c ≥ τ_p |
 | n | The clock ratio τ_c / τ_p ≥ 1 (e.g., monthly puts with quarterly calls give n = 3) |
 | k | Put strike as a fraction of current price, k = K/S₀ (k = 0.95 is a 5% out-of-the-money put) |
-| p\* | Target assignment probability. The operator has two equivalent ways to set the put strike: pick k directly, or pick the desired assignment probability p\* and compute the strike k\* that delivers it (the inversion formula in the assignment-probability section). We generally use the second, so k floats with volatility while p\* stays fixed. |
+| p\* | Target assignment probability. The operator has two equivalent ways to set the put strike: pick k directly, or pick the desired assignment probability p\* and compute the strike k\* that delivers it (the inversion formula in [the assignment section](#sec:assignment)). We generally use the second, so k floats with volatility while p\* stays fixed. |
 | m | Margin fraction the broker requires on a short put position |
 
 ## Derived quantities
@@ -38,7 +39,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 | d₂, d₁ | The standard Black–Scholes intermediate quantities (defined where first used) |
 | p | Risk-neutral probability the put is assigned at expiration, p = N(−d₂) |
 | p_rw | Real-world assignment probability (uses μ instead of r); p_rw < p for equities |
-| d | Fractional price drop at the moment of assignment: the stock sits at S′ = S₀(1−d) |
+| d | Fractional price drop at the moment of assignment: the stock sits at S′ = S₀(1−d). Not a free input: E[d \| assignment] = 1 − e^(r·τ_p)·N(−d₁)/N(−d₂), derived in [the recovery section](#sec:recovery) (≈ 0.08 for the running example — the base case); d = 0.15 is the labeled ~2.5σ stress scenario |
 | S′ | Stock price just after assignment, S′ = S₀(1−d) |
 | K_c | Covered call strike; in the base model K_c equals the put strike, K_c = k·S₀ |
 | q | Probability the covered call finishes in the money within one call period τ_c |

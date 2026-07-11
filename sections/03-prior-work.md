@@ -1,4 +1,4 @@
-# Prior Work
+# Prior Work {#sec:prior-work}
 
 > **Status: stub.** Deliberately light for now; to be researched and expanded before assembly.
 

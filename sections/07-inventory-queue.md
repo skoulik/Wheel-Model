@@ -1,4 +1,4 @@
-# The Inventory Queue
+# The Inventory Queue {#sec:queue}
 
 ## The warehouse analogy
 
@@ -32,15 +32,15 @@ The approximation is exact in the continuous-time limit and very accurate whenev
 
 Consequences worth staring at:
 
-- **Average inventory: E[I] = I\*.** For the running stress example (p ≈ 0.176, n = 3, q ≈ 0.162): I\* ≈ 3.3 lots. With the more typical d ≈ 0.08 (so q ≈ 0.42): I\* ≈ 1.25 lots.
+- **Average inventory: E[I] = I\*.** For the running example at the base case (p ≈ 0.176, n = 3, d ≈ 0.08 so q ≈ 0.42): I\* ≈ 1.25 lots. In the stress case (d = 0.15, q ≈ 0.162): I\* ≈ 3.3 lots.
 - **The strategy is usually holding stock.** The probability of an empty warehouse is P(I=0) = e^(−I\*): about 37% for I\* = 1, 14% for I\* = 2, 5% for I\* = 3. The comfortable picture of "mostly selling puts, occasionally stuck with shares" is wrong at equilibrium — inventory is the normal condition, not the exception.
-- **The clock ratio is a direct multiplier.** Doubling τ_c at fixed p and q doubles I\*. Longer calls buy more premium per contract and higher per-call recovery odds, but pay for it linearly in average capital lockup. This is the quantitative form of the trade-off from the strategy section.
+- **The clock ratio is a direct multiplier.** Doubling τ_c at fixed p and q doubles I\*. Longer calls buy more premium per contract and higher per-call recovery odds, but pay for it linearly in average capital lockup. This is the quantitative form of the trade-off from [the strategy section](#sec:strategy).
 
 ## The self-recycling property
 
 In steady state, the average number of new assignments per put period is p. The average number of call-aways per put period is E[I] · q_p = (p/q_p) · q_p = p. **The two rates are identical** — not approximately, exactly, by the definition of equilibrium.
 
-In plain terms: in the long run the system returns inventory at precisely the rate it acquires it. New lots arrive, old lots depart, and the warehouse hums at its equilibrium occupancy. Moreover — as the returns section makes precise — each departing lot exits at the same strike at which it entered, so the round trip through inventory costs nothing at the price level and earns call premiums the whole way through. The wheel, at equilibrium, is a conveyor: stock in, stock out, premiums accumulating on both legs.
+In plain terms: in the long run the system returns inventory at precisely the rate it acquires it. New lots arrive, old lots depart, and the warehouse hums at its equilibrium occupancy. Moreover — as [the returns section](#sec:returns) makes precise — each departing lot exits at the same strike at which it entered, so the round trip through inventory costs nothing at the price level and earns call premiums the whole way through. The wheel, at equilibrium, is a conveyor: stock in, stock out, premiums accumulating on both legs.
 
 ## An honest caveat: the independence assumption
 

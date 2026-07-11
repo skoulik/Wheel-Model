@@ -17,6 +17,7 @@ A quantitative finance modeling project: a mathematical model of the "wheel" opt
 
 - Article sections are developed in Markdown, one file per section — not directly in `.tex`. Conversion to LaTeX happens at assembly time.
 - Math is written in **Unicode plain text** (τ, σ, N(−d₂)), not LaTeX markup — a deliberate decision for raw readability.
+- Cross-section references use pandoc-style anchors: each section H1 is `# Title {#sec:name}`, and prose references are markdown links like `[the recovery section](#sec:recovery)` (they become `\label`/`\ref` at assembly). The anchor list lives in `sections/00-notation.md` Conventions.
 - Target audience is the general public. Every modeling assumption must be justified in plain terms, not just stated.
 - Every parameter gets a proper explanation when first introduced (what it means, typical values, why it matters).
 - Before using a mathematical construct, include a short self-contained detour (blockquote style, see existing sections) explaining what it is with a pointer for further reading.

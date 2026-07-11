@@ -1,4 +1,4 @@
-# Expected Returns and Capital Commitment
+# Expected Returns and Capital Commitment {#sec:returns}
 
 Throughout this section we work in the homogeneous approximation — price levels roughly stable, all lots alike — and we are strict about accounting tracks. All quantities are per unit of underlying price (per S₀).
 
@@ -26,7 +26,7 @@ The second term can be read two equivalent ways, and the equivalence is a useful
 
 ## The mark-to-market view (Track B's ledger)
 
-Track A's serenity has a cost, and honesty requires displaying it. At any moment the standing inventory carries **unrealized losses**: each lot was bought at k against a market at 1−d, roughly (k − 1 + d) per lot at acquisition, healing as the stock climbs toward the strike. In steady state this pool of paper losses is a *level*, not a flow — of rough size I\* · (k−1+d) at its worst — and it never touches the realized run rate as long as lots eventually complete. But it is exactly what a mark-to-market observer (a broker, a nervous spouse) sees during the holding period, and it is what becomes real if the operator is ever forced to liquidate mid-cycle. The stability section is about when "lots eventually complete" fails.
+Track A's serenity has a cost, and honesty requires displaying it. At any moment the standing inventory carries **unrealized losses**: each lot was bought at k against a market at 1−d, roughly (k − 1 + d) per lot at acquisition, healing as the stock climbs toward the strike. In steady state this pool of paper losses is a *level*, not a flow — of rough size I\* · (k−1+d) at its worst — and it never touches the realized run rate as long as lots eventually complete. But it is exactly what a mark-to-market observer (a broker, a nervous spouse) sees during the holding period, and it is what becomes real if the operator is ever forced to liquidate mid-cycle. [The stability section](#sec:stability) is about when "lots eventually complete" fails.
 
 ## Capital committed (Track B)
 
@@ -40,11 +40,11 @@ with m the broker's margin fraction on the put.
 
 Running parameters: k = 0.95, monthly puts (τ_p = 1/12), quarterly calls (n = 3), σ = 20%, r = 5%, μ = 7%, m = 0.20. Black–Scholes prices the monthly put at c_p ≈ 0.005.
 
-**Stress case (d = 0.15):** q ≈ 0.162, so I\* ≈ 3.3 lots. The quarterly call on the depressed stock is worth c_c ≈ 0.008. Run rate: 0.005 + 0.176·0.008/0.162 ≈ 0.0133 per month ≈ **16.0% of S₀ per year** (Track A). Capital: 0.20·0.95 + 3.26·0.945 ≈ **3.27·S₀** (Track B). Charging r on that capital (Track C ≈ 0.163·S₀/yr) leaves a true excess return of roughly **−0.1% per year**. Read that again: with assignments always landing 15% deep, the wheel works furiously to approximately match T-bills.
+**Base case (d ≈ 0.08, the conditional expectation derived in [the recovery section](#sec:recovery)):** q ≈ 0.42, I\* ≈ 1.25 lots, and the call — struck only ~3% above the market — is worth c_c ≈ 0.029. Run rate: 0.005 + 0.176·0.029/0.42 ≈ 0.0170 per month ≈ **20.4% of S₀ per year** (Track A) on capital ≈ **1.37·S₀** (Track B), for a true excess return of roughly **+9.9% per year**.
 
-**Typical case (d = 0.08, the conditional-expectation figure from the recovery section):** q ≈ 0.42, I\* ≈ 1.25 lots, and the call — now struck only ~3% above the market — is worth c_c ≈ 0.029. Run rate ≈ 0.0170 per month ≈ **20.4% of S₀ per year** on capital ≈ **1.37·S₀**, for a true excess return of roughly **+9.9% per year**.
+**Stress case (d = 0.15, the ~2.5σ assignment):** q ≈ 0.162, so I\* ≈ 3.3 lots. The quarterly call on the depressed stock is worth only c_c ≈ 0.008. Run rate: 0.005 + 0.176·0.008/0.162 ≈ 0.0133 per month ≈ **16.0% of S₀ per year** (Track A). Capital: 0.20·0.95 + 3.26·0.945 ≈ **3.27·S₀** (Track B). Charging r on that capital (Track C ≈ 0.163·S₀/yr) leaves a true excess return of roughly **−0.1% per year**. Read that again: with assignments always landing 15% deep, the wheel works furiously to approximately match T-bills.
 
-The pair of numbers is the honest summary of the strategy: its economics live and die on how deep assignments land and how fast lots recycle — which is exactly why deriving d rather than assuming it (TODO #3), and modeling depth-dependent q (tier 2), are not refinements but the heart of the matter. (One further Track C caveat, flagged as TODO #6: cash collateral securing short puts typically itself earns near the risk-free rate at the broker, so Track C as computed here overcharges the put-margin component; the correction improves the excess return.)
+The pair of numbers is the honest summary of the strategy: its economics live and die on how deep assignments land and how fast lots recycle. The base case says the machine works; the stress case says a regime of persistently deep assignments erases the edge entirely — which is exactly why d had to be derived rather than assumed, and why modeling depth-dependent q (tier 2) is not a refinement but the heart of the matter. (One further Track C caveat, flagged as TODO #6: cash collateral securing short puts typically itself earns near the risk-free rate at the broker, so Track C as computed here overcharges the put-margin component; the correction improves the excess return.)
 
 ## Capital convergence under geometric decline
 
@@ -54,4 +54,4 @@ How bad can Track B get in a sustained fall? Suppose the price falls geometrical
 
 > **Detour: geometric series.** A sum a + a·x + a·x² + … with |x| < 1 converges to a/(1−x): each term is a fixed fraction of the last, so the tail shrinks fast enough to add up to something finite. Here each successive lot's basis is (1−d) times the previous one's.
 
-For k = 0.95, c_p = 0.005, d = 0.15 the bound is about **6.3·S₀** of total cost basis, no matter how many lots accumulate; with margin fraction m = 0.20, margin consumed by put-selling stays bounded as well. This is reassuring — but the reassurance leans entirely on the *geometric* structure: equal percentage drops each assignment, so that later lots are ever cheaper. Real markets often drop sharply and then **flatline**. A flatline stalls the geometric compression: assignments keep arriving near the same price level, cost bases stop shrinking, and capital accumulates without the convergence mechanism. This — not the smooth decline — is the primary practical failure mode, and it belongs to tier 2's agenda.
+For k = 0.95, c_p = 0.005, d = 0.15 (the stress value is the appropriate one here — the bound is about sustained decline) the total cost basis is bounded by about **6.3·S₀**, no matter how many lots accumulate; with margin fraction m = 0.20, margin consumed by put-selling stays bounded as well. This is reassuring — but the reassurance leans entirely on the *geometric* structure: equal percentage drops each assignment, so that later lots are ever cheaper. Real markets often drop sharply and then **flatline**. A flatline stalls the geometric compression: assignments keep arriving near the same price level, cost bases stop shrinking, and capital accumulates without the convergence mechanism. This — not the smooth decline — is the primary practical failure mode, and it belongs to tier 2's agenda.

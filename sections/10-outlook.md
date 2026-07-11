@@ -1,4 +1,4 @@
-# Outlook: What Tier 2 Addresses
+# Outlook: What Tier 2 Addresses {#sec:outlook}
 
 The homogeneous approximation — one q for every inventory layer — is simultaneously the model's greatest simplification and its most consequential one. Tier 2 replaces it.
 
