@@ -227,6 +227,55 @@ carry-financed, but the financing is partial. The stability condition of finding
 high-yield wheeling sits in the unstable region by construction. Tier 2's phase
 diagram gains δ as a first-class axis.
 
+## 10. First-passage analytics validated; the homogeneous gap fully decomposed  [added same day]
+
+`code/first_passage.py` implements the tier-2 formulation of finding 8 as
+deterministic analytics: the exact truncated-normal entry law for x₀, an
+integral-equation solver for the survival sequence P(J > j) (Gaussian step
+kernel on the positive half-line, geometric tail closure), the Siegmund
+closed form, and Little's law plus a finite-horizon transient integral.
+Everything cross-checks:
+
+- The IE survival curve matches the wheel simulation's Kaplan–Meier to
+  **three decimals at every horizon** in both configs, and matches a pure
+  random-walk Monte Carlo (400k walks, no wheel machinery) to four decimals
+  on survival and <0.5% on E[J]. The first-passage formulation *is* the
+  layered wheel, computed two independent ways.
+- Headline quantities (base / δ=2.5%): E[T] = **2.04y / 3.97y** vs the
+  homogeneous τ_c/q of 0.59y / 0.63y; stationary I\* = **4.70 / 9.14** vs
+  homogeneous 1.15 / 1.23. The Siegmund form (x₀ + βσ√τ_c)/(ν·τ_c) lands
+  within 9–12% of exact — good enough for prose, with the interpretable
+  decomposition: the call-grid tax βσ√τ_c is 1.8× the typical entry depth,
+  i.e. *the exit grid, not the entry overshoot, dominates holding time*.
+- **The discrepancy flagged when the closed form first overshot the 30y MC is
+  fully resolved: horizon truncation plus MC noise, no model error.** The
+  finite-horizon prediction integrated from the same survival curve
+  reproduces the 30y MC within 3% (3.55 vs 3.65; 4.67 vs 4.71); multi-seed
+  long-window MC brackets the window prediction (4.21–5.24 across seeds vs
+  4.63); a 120-path × 300y run gives 4.82 vs stationary 4.70.
+- New article-grade quantity: **time for E[I(t)] to reach 90% of stationary:
+  24 years at base, 88 years at δ = 2.5%.** At moderate yield the wheel never
+  sees its own equilibrium within an operator's lifetime — every 30y number
+  in findings 2 and 9 is a *transient* reading on the way to worse stationary
+  values, and the finite-horizon integral (not the stationary formula) is the
+  practically relevant capital number.
+- Unstable corner (ν < 0), now computed honestly: at σ = 40% (ν = −0.01) the
+  trapped-forever fraction is P(J = ∞) ≈ 2.2% per assignment — the dead
+  stratum grows at λ·P_trap ≈ 0.05 lots/year without bound. Methods note: the
+  first IE attempt used a sticky top boundary that let far-escaped walks
+  artificially return and destroyed the plateau; the pure-walk bisect caught
+  it, and the trapped fraction now comes from the analytic escape probability
+  with the Siegmund boundary shift, 1 − E[exp(−2|ν|(x₀+βσ√τ_c)/σ²)].
+
+Model implication: the tier-2 derivation chain is complete and verified —
+entry law → grid-sampled first passage (IE exact; Siegmund for prose) →
+Little's law for stationary I\*, transient integral for operator horizons,
+escape probability for the unstable phase. The homogeneous model is exactly
+the first-period truncation of this object (E[q(x₀)] = 0.425 vs q(E[d]) =
+0.423 — first-period behavior is homogeneous; everything after is not).
+What remains for #19 is writing: the tier-2 sections, with detours for
+Little's law and first-passage times.
+
 ---
 
 ## Caveats (what the simulator deliberately omits)
