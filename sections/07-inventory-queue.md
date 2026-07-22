@@ -32,7 +32,7 @@ The approximation is exact in the continuous-time limit and very accurate whenev
 
 Consequences worth staring at:
 
-- **Average inventory: E[I] = I\*.** For the running example at the base case (p ≈ 0.176, n = 3, d ≈ 0.08 so q ≈ 0.42): I\* ≈ 1.25 lots. In the stress case (d = 0.15, q ≈ 0.162): I\* ≈ 3.3 lots.
+- **Average inventory: E[I] = I\*.** For the running example at the base case (p ≈ 0.185, n = 3, d ≈ 0.08 so q ≈ 0.40): I\* ≈ 1.40 lots. In the stress case (d = 0.15, q ≈ 0.147): I\* ≈ 3.8 lots.
 - **The strategy is usually holding stock.** The probability of an empty warehouse is P(I=0) = e^(−I\*): about 37% for I\* = 1, 14% for I\* = 2, 5% for I\* = 3. The comfortable picture of "mostly selling puts, occasionally stuck with shares" is wrong at equilibrium — inventory is the normal condition, not the exception.
 - **The clock ratio is a direct multiplier.** Doubling τ_c at fixed p and q doubles I\*. Longer calls buy more premium per contract and higher per-call recovery odds, but pay for it linearly in average capital lockup. This is the quantitative form of the trade-off from [the strategy section](#sec:strategy).
 

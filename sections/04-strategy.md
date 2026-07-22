@@ -29,7 +29,7 @@ Why would an operator choose τ_c > τ_p at all? Longer-dated calls collect more
 
 Throughout, three parallel accounting tracks are maintained. They answer three different questions, and much confusion about strategies like this one comes from mixing them.
 
-**Track A — realized cash flows.** Premiums received and capital gains taken when lots are called away. Under Track A, assignment is *inventory acquisition, not a loss*: buying stock at the strike is recorded as an exchange of cash for an asset, at the operator's chosen basis. This is the operator's philosophy of the strategy, and it is internally consistent — but it is only one lens.
+**Track A — realized cash flows.** Premiums received, dividends collected on held inventory, and capital gains taken when lots are called away. Under Track A, assignment is *inventory acquisition, not a loss*: buying stock at the strike is recorded as an exchange of cash for an asset, at the operator's chosen basis. This is the operator's philosophy of the strategy, and it is internally consistent — but it is only one lens.
 
 **Track B — capital committed at market prices.** Whatever the operator's philosophy, the broker computes margin on live prices. Track B records the capital actually tied up: margin held against the open short put, plus the market-priced cost basis of all inventory. Track B is what limits how large the strategy can run and what determines whether it survives stress.
 

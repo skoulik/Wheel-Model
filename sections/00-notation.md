@@ -18,9 +18,12 @@ This file is the single source of truth for every symbol used in the article. Wh
 | Symbol | Meaning |
 |---|---|
 | S₀ | Price of the underlying stock at the moment of reference |
-| μ | Real-world (expected) annual drift of the stock's return |
+| μ | Real-world (expected) annual **total return** of the stock — price appreciation plus dividend yield. The price itself drifts at μ − δ |
 | r | Risk-free interest rate, annualized |
 | σ | Volatility of the stock's returns, annualized (currently a single number; see TODO on distinguishing implied vs realized) |
+| δ | Continuous dividend yield, annualized, gross of withholding (running example: 2.5%) |
+| w | Withholding tax fraction on dividends (running example: 15%, the common treaty rate) |
+| δ_net | Net dividend yield retained by the operator: δ_net = δ·(1−w) (running example: ≈ 2.1%) |
 
 ## Strategy parameters (chosen by the operator)
 
@@ -40,7 +43,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 | d₂, d₁ | The standard Black–Scholes intermediate quantities (defined where first used) |
 | p | Risk-neutral probability the put is assigned at expiration, p = N(−d₂) |
 | p_rw | Real-world assignment probability (uses μ instead of r); p_rw < p for equities |
-| d | Fractional price drop at the moment of assignment: the stock sits at S′ = S₀(1−d). Not a free input: E[d \| assignment] = 1 − e^(r·τ_p)·N(−d₁)/N(−d₂), derived as [eq:d-mean](#eq:d-mean) in [the recovery section](#sec:recovery) (≈ 0.08 for the running example — the base case); d = 0.15 is the labeled ~2.5σ stress scenario |
+| d | Fractional price drop at the moment of assignment: the stock sits at S′ = S₀(1−d). Not a free input: E[d \| assignment] = 1 − e^((r−δ)·τ_p)·N(−d₁)/N(−d₂), derived as [eq:d-mean](#eq:d-mean) in [the recovery section](#sec:recovery) (≈ 0.08 for the running example — the base case); d = 0.15 is the labeled ~2.5σ stress scenario |
 | S′ | Stock price just after assignment, S′ = S₀(1−d) |
 | K_c | Covered call strike; in the base model K_c equals the put strike, K_c = k·S₀ |
 | q | Probability the covered call finishes in the money within one call period τ_c |
@@ -64,7 +67,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 
 | Track | Question it answers |
 |---|---|
-| A | Realized cash flows only: premiums received plus capital gains at call-away. Assignment is inventory acquisition, not a loss. |
+| A | Realized cash flows only: premiums received, dividends collected on held inventory, plus capital gains at call-away. Assignment is inventory acquisition, not a loss. |
 | B | Capital committed at current market prices — what the broker margins, regardless of the operator's accounting philosophy. |
 | C | Opportunity cost: the risk-free rate charged against committed capital. |
 

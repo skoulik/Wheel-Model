@@ -39,7 +39,7 @@ from collections import Counter
 from dataclasses import dataclass
 from math import exp, log, sqrt
 
-from verify_examples import (N, Ninv, bs_call, bs_put,
+from verify_examples import (N, bs_call, bs_put,
                              expected_drop_given_assignment, k_star, p_assign,
                              p_real_world, q_per_put_period, q_recover)
 import random
@@ -50,71 +50,6 @@ PUTEXP, CALLEXP, SALE = 0, 1, 2
 
 DEPTH_EDGES = [0.0, 0.02, 0.04, 0.07, 0.10, 0.15, 0.22, 0.35, float("inf")]
 KM_HORIZONS_M = [3, 6, 9, 12, 24, 36, 60, 120]
-
-
-# ----------------------------------------------------------------------
-# Dividend-aware generalizations (TODO #2/#16). These reduce exactly to the
-# verify_examples.py imports at delta = 0 (asserted in main()); they live here
-# rather than in verify_examples.py because that script verifies what the
-# article currently says, and the article's dividend treatment has not landed
-# yet. Convention: mu is TOTAL return; the price drifts at mu - delta.
-# ----------------------------------------------------------------------
-
-def d2_div(k, tau, sigma, r, delta):
-    return (-log(k) + (r - delta - sigma**2 / 2) * tau) / (sigma * sqrt(tau))
-
-
-def p_assign_div(k, tau, sigma, r, delta):
-    return N(-d2_div(k, tau, sigma, r, delta))
-
-
-def p_real_world_div(k, tau, sigma, r, mu, delta):
-    # delta cancels in the measure shift: rn price drift r-delta vs rw mu-delta.
-    return N(-d2_div(k, tau, sigma, r, delta) + (r - mu) * sqrt(tau) / sigma)
-
-
-def k_star_div(p_target, tau, sigma, r, delta):
-    return exp(Ninv(p_target) * sigma * sqrt(tau) + (r - delta - sigma**2 / 2) * tau)
-
-
-def bs_put_div(k, tau, sigma, r, delta):
-    _d2 = d2_div(k, tau, sigma, r, delta)
-    _d1 = _d2 + sigma * sqrt(tau)
-    return k * exp(-r * tau) * N(-_d2) - exp(-delta * tau) * N(-_d1)
-
-
-def bs_call_div(s, k, tau, sigma, r, delta):
-    _d1 = (log(s / k) + (r - delta + sigma**2 / 2) * tau) / (sigma * sqrt(tau))
-    _d2 = _d1 - sigma * sqrt(tau)
-    return s * exp(-delta * tau) * N(_d1) - k * exp(-r * tau) * N(_d2)
-
-
-def q_recover_div(k, d, tau_c, sigma, mu, delta):
-    return N(((mu - delta - sigma**2 / 2) * tau_c - log(k / (1 - d)))
-             / (sigma * sqrt(tau_c)))
-
-
-def expected_drop_div(k, tau, sigma, r, delta):
-    _d2 = d2_div(k, tau, sigma, r, delta)
-    _d1 = _d2 + sigma * sqrt(tau)
-    return 1 - exp((r - delta) * tau) * N(-_d1) / N(-_d2)
-
-
-def selfcheck_delta_zero():
-    """The generalizations must reproduce the article formulas at delta = 0."""
-    k, tau, sig, r, mu = 0.95, 1 / 12, 0.20, 0.05, 0.07
-    pairs = [
-        (bs_put_div(k, tau, sig, r, 0.0), bs_put(k, tau, sig, r)),
-        (bs_call_div(0.92, k, 0.25, sig, r, 0.0), bs_call(0.92, k, 0.25, sig, r)),
-        (p_assign_div(k, tau, sig, r, 0.0), p_assign(k, tau, sig, r)),
-        (p_real_world_div(k, tau, sig, r, mu, 0.0), p_real_world(k, tau, sig, r, mu)),
-        (k_star_div(0.20, tau, sig, r, 0.0), k_star(0.20, tau, sig, r)),
-        (q_recover_div(k, 0.08, 0.25, sig, mu, 0.0), q_recover(k, 0.08, 0.25, sig, mu)),
-        (expected_drop_div(k, tau, sig, r, 0.0),
-         expected_drop_given_assignment(k, tau, sig, r)),
-    ]
-    for got, want in pairs:
-        assert abs(got - want) < 1e-12, (got, want)
 
 
 @dataclass
@@ -247,9 +182,9 @@ def run_path(P, rng, agg):
             agg.inv_by_idx[idx] += len(lots)
             agg.n_by_idx[idx] += 1
             # Sell the put: strike from the p* policy at prevailing IV.
-            kf = k_star_div(P.p_star, P.tau_p, sig_iv, P.r, P.delta)
+            kf = k_star(P.p_star, P.tau_p, sig_iv, P.r, P.delta)
             K = kf * S
-            c_p = S * bs_put_div(kf, P.tau_p, sig_iv, P.r, P.delta)
+            c_p = S * bs_put(kf, P.tau_p, sig_iv, P.r, P.delta)
             agg.puts += 1
             agg.prem_put += c_p / S
             capital = P.margin * K + sum(l.basis for l in lots)
@@ -268,7 +203,7 @@ def run_path(P, rng, agg):
                 lot = Lot(entry=t, strike=K, basis=K - c_p)
                 lots.append(lot)
                 # Sell the first covered call at the frozen strike.
-                c_c = bs_call_div(S, K, P.tau_c, sig_iv, P.r, P.delta)
+                c_c = bs_call(S, K, P.tau_c, sig_iv, P.r, P.delta)
                 agg.prem_call += c_c / S
                 lot.x = log(K / S)
                 push(t + P.tau_c, CALLEXP, lot)
@@ -285,7 +220,7 @@ def run_path(P, rng, agg):
                 agg.period_hist[lot.periods] += 1
                 exits_at[round(t, 9)] += 1
             else:
-                c_c = bs_call_div(S, lot.strike, P.tau_c, sig_iv, P.r, P.delta)
+                c_c = bs_call(S, lot.strike, P.tau_c, sig_iv, P.r, P.delta)
                 agg.prem_call += c_c / S
                 lot.x = log(lot.strike / S)
                 push(t + P.tau_c, CALLEXP, lot)
@@ -339,14 +274,14 @@ def km_survival(durations, horizons_m):
 
 def homogeneous_predictions(P):
     sig_iv = P.sigma + P.iv_spread
-    k = k_star_div(P.p_star, P.tau_p, sig_iv, P.r, P.delta)
-    p = p_assign_div(k, P.tau_p, sig_iv, P.r, P.delta)
-    p_rw = p_real_world_div(k, P.tau_p, sig_iv, P.r, P.mu, P.delta)
-    e_d = expected_drop_div(k, P.tau_p, sig_iv, P.r, P.delta)
-    q = q_recover_div(k, e_d, P.tau_c, P.sigma, P.mu, P.delta)
+    k = k_star(P.p_star, P.tau_p, sig_iv, P.r, P.delta)
+    p = p_assign(k, P.tau_p, sig_iv, P.r, P.delta)
+    p_rw = p_real_world(k, P.tau_p, sig_iv, P.r, P.mu, P.delta)
+    e_d = expected_drop_given_assignment(k, P.tau_p, sig_iv, P.r, P.delta)
+    q = q_recover(k, e_d, P.tau_c, P.sigma, P.mu, P.delta)
     q_p = q_per_put_period(q, P.n)
-    c_p = bs_put_div(k, P.tau_p, sig_iv, P.r, P.delta)
-    c_c = bs_call_div(1 - e_d, k, P.tau_c, sig_iv, P.r, P.delta)
+    c_p = bs_put(k, P.tau_p, sig_iv, P.r, P.delta)
+    c_c = bs_call(1 - e_d, k, P.tau_c, sig_iv, P.r, P.delta)
     return {
         "k": k, "p": p, "p_rw": p_rw, "E[d]": e_d, "q": q, "q_p": q_p,
         "c_p": c_p, "c_c": c_c,
@@ -520,8 +455,6 @@ def main():
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     args = ap.parse_args()
-
-    selfcheck_delta_zero()
 
     if args.scenario in ("base", "all"):
         P = Params(years=30.0, paths=args.paths or 200, seed=args.seed)

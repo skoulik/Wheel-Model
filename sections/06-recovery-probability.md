@@ -18,13 +18,13 @@ Before q can be computed we need d, and it is tempting to simply pick a scary-lo
 
 Assignment is the event S_T < k·S₀. The lognormal partial-expectation identity gives the average terminal price over exactly those scenarios:
 
-E[S_T | S_T < k·S₀] = S₀ · e^(r·τ_p) · N(−d₁) / N(−d₂)    {#eq:partial-expectation}
+E[S_T | S_T < k·S₀] = S₀ · e^((r−δ)·τ_p) · N(−d₁) / N(−d₂)    {#eq:partial-expectation}
 
 where d₁ = d₂ + σ·√τ_p — the same pair of quantities from [eq:p](#eq:p) in [the assignment section](#sec:assignment): N(−d₂) is the assignment probability itself, and N(−d₁) is the number that appeared there as the put's delta. Since the post-assignment price is S′ = S₀·(1−d), the expected drop conditional on assignment is
 
-**E[d | assignment] = 1 − e^(r·τ_p) · N(−d₁) / N(−d₂)**    {#eq:d-mean}
+**E[d | assignment] = 1 − e^((r−δ)·τ_p) · N(−d₁) / N(−d₂)**    {#eq:d-mean}
 
-**Numerical verification.** For the running example (k = 0.95, τ_p = 1/12, σ = 20%, r = 5%): d₂ ≈ 0.93, d₁ ≈ 0.99, and E[d | assignment] ≈ **7.9%**. The typical assignment lands just under the strike — about 3% below the strike level k = 0.95 — not deep below the reference price. (The formula inherits the risk-neutral convention adopted for p; recomputing with the real-world drift μ = 7% moves the figure by less than 0.1 percentage point. Conditioning on assignment does all the work — one month of drift is noise beside it.)
+**Numerical verification.** For the running example (k = 0.95, τ_p = 1/12, σ = 20%, r = 5%, δ = 2.5%): d₂ ≈ 0.90, d₁ ≈ 0.95, and E[d | assignment] ≈ **7.9%**. The typical assignment lands just under the strike — about 3% below the strike level k = 0.95 — not deep below the reference price. (The formula inherits the risk-neutral convention adopted for p; recomputing with the real-world total return μ = 7% moves the figure by less than 0.1 percentage point. Conditioning on assignment does all the work — one month of drift is noise beside it.)
 
 This fixes the convention for the rest of the article:
 
@@ -33,20 +33,21 @@ This fixes the convention for the rest of the article:
 
 ## The formula
 
-Under the same lognormal price model as before — but now using the real-world drift μ, since we are forecasting an actual price path rather than reading a probability out of option prices — the probability that the stock finishes at or above K_c after time τ_c is
+Under the same lognormal price model as before — but now using the real-world *price* drift μ − δ, total return minus the dividend paid out, since we are forecasting an actual price path rather than reading a probability out of option prices — the probability that the stock finishes at or above K_c after time τ_c is
 
-q = N( [ (μ − σ²/2) · τ_c − ln( k / (1−d) ) ] / (σ·√τ_c) )    {#eq:q}
+q = N( [ (μ − δ − σ²/2) · τ_c − ln( k / (1−d) ) ] / (σ·√τ_c) )    {#eq:q}
 
 The term ln(k/(1−d)) is the log-distance the stock must travel: from its post-assignment level (1−d) up to the strike level k.
 
-**Numerical verification.** For k = 0.95, μ = 7%, σ = 20%, quarterly calls (τ_c = 0.25). In the base case d = 0.08, the stock must climb about 3.3% to reach the call strike, and q ≈ 42% — recovery within any given quarter is nearly a coin flip. In the stress case d = 0.15, the required climb is 11.8% and q ≈ 16.2% — one quarter in six. The gap between those two numbers propagates into everything downstream: inventory, capital, returns.
+**Numerical verification.** For k = 0.95, μ = 7% (total), δ = 2.5%, σ = 20%, quarterly calls (τ_c = 0.25). In the base case d = 0.08, the stock must climb about 3.3% to reach the call strike, and q ≈ 40% — recovery within any given quarter is a bit worse than a coin flip. In the stress case d = 0.15, the required climb is 11.8% and q ≈ 14.7% — one quarter in seven. The gap between those two numbers propagates into everything downstream: inventory, capital, returns.
 
 ## Properties
 
-Three monotonicities, all intuitive and all consequential:
+Four monotonicities, all intuitive and all consequential:
 
 - **q increases with τ_c.** More time, more chance to recover. This is the argument for longer calls — but we will see it cuts both ways, since longer calls also multiply inventory.
-- **q increases with μ.** Stronger drift helps. This is where the "fundamentally sound asset" assumption does quantitative work: μ > 0 with confidence is exactly what that asset selection is meant to buy.
+- **q increases with μ.** Stronger total return helps. This is where the "fundamentally sound asset" assumption does quantitative work: μ > 0 with confidence is exactly what that asset selection is meant to buy.
+- **q decreases with δ.** At a fixed total return, the dividend is paid out of the very price growth the recovery relies on: every point of yield slows the climb back to the strike. The stock pays you to wait — and makes you wait longer *because* it pays. Whether the carry is worth the delay is a real trade-off, not a free lunch; we will quantify it once inventory and income are on the table.
 - **q decreases with d.** The deeper the assignment, the further the climb back. This is the strategy's soft spot, and the reason d was derived above rather than guessed — and why the stress case stays on the books next to the base case.
 
 ## Heterogeneity: the shadow of tier 2

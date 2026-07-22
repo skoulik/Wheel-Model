@@ -43,9 +43,8 @@ Stdlib only.  Run:  python code/first_passage.py   (~2 min, mostly MC)
 import argparse
 from math import exp, log, pi, sqrt
 
-from verify_examples import N, q_per_put_period
-from wheel_sim import (Params, homogeneous_predictions, k_star_div,
-                       km_survival, p_real_world_div, simulate)
+from verify_examples import N, k_star, p_real_world, q_per_put_period
+from wheel_sim import (Params, homogeneous_predictions, km_survival, simulate)
 
 BETA = 0.5826  # -zeta(1/2)/sqrt(2*pi), Siegmund's overshoot constant
 KM_MONTHS = [3, 6, 9, 12, 24, 36, 60, 120]
@@ -66,7 +65,7 @@ def entry_depth(P):
     Returns (E[x0], density function on x0 > 0, ln k, m_p, s_p).
     """
     sig_iv = P.sigma + P.iv_spread
-    k = k_star_div(P.p_star, P.tau_p, sig_iv, P.r, P.delta)
+    k = k_star(P.p_star, P.tau_p, sig_iv, P.r, P.delta)
     lnk = log(k)
     m_p = (P.mu - P.delta - P.sigma**2 / 2) * P.tau_p
     s_p = P.sigma * sqrt(P.tau_p)
@@ -187,7 +186,7 @@ def analyze(delta, args, sigma=0.20, mu=0.07, run_mc=True):
     H = homogeneous_predictions(P)
     nu = mu - delta - sigma**2 / 2
     mean_x0, dens, k, Z = entry_depth(P)
-    p_rw = p_real_world_div(k, P.tau_p, sigma, P.r, mu, delta)
+    p_rw = p_real_world(k, P.tau_p, sigma, P.r, mu, delta)
     assert abs(Z - p_rw) < 1e-12
     lam = p_rw / P.cadence  # arrivals per year
     sc = sigma * sqrt(P.tau_c)
