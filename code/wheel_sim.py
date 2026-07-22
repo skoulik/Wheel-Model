@@ -448,13 +448,77 @@ def dividend_sweep(args):
     print("   stacked convention, shown as a sensitivity check only)")
 
 
+def check_quoted(args):
+    """Assert every MC number quoted in sections/09-layered-inventory.md.
+
+    Runs the dividends scenario at the fixed seed and checks the quoted
+    statistics with tight tolerances. The analytic side of the section's
+    numbers is covered by verify_examples.py; this is the slow gate for the
+    simulation side. Exit code is nonzero on any failure.
+    """
+    P = Params(years=30.0, paths=200, seed=20260722, delta=0.025)
+    agg = simulate(P)
+    H = homogeneous_predictions(P)
+    fails = []
+
+    def ck(label, got, want, tol):
+        ok = abs(got - want) <= tol
+        print(f"{'PASS' if ok else 'FAIL'}  {label}: got {got:.4f}, quoted ~{want}")
+        if not ok:
+            fails.append(label)
+
+    n_samples = sum(agg.inv_hist.values())
+    mean_I = sum(k * v for k, v in agg.inv_hist.items()) / n_samples
+    var_I = sum((k - mean_I) ** 2 * v for k, v in agg.inv_hist.items()) / n_samples
+    run_emp = (agg.prem_put + agg.prem_call) / agg.puts
+    div_emp = agg.dividends / agg.puts
+    cap_emp = agg.cap_sum / agg.cap_n
+    excess = ((run_emp + div_emp) / P.cadence - P.r * cap_emp) / cap_emp
+    tot_per = sum(b[0] for b in agg.bins)
+    km = km_survival(agg.durations, [12, 36, 120])
+    tot_c = sum(agg.period_hist.values())
+
+    ck("assignment rate = p_rw", agg.assigned / agg.puts, 0.192, 0.001)
+    ck("mean d at assignment", agg.d_sum / agg.assigned, 0.076, 0.001)
+    ck("homogeneous I* (rw)", H["I*_rw"], 1.23, 0.01)
+    ck("mean inventory", mean_I, 4.71, 0.02)
+    ck("P(I=0)", agg.inv_hist[0] / n_samples, 0.139, 0.003)
+    ck("Var(I)/Mean(I)", var_I / mean_I, 4.83, 0.05)
+    ck("premium run rate/period", run_emp, 0.0181, 0.0003)
+    ck("predicted run rate (rw)", H["run_rw"], 0.0186, 0.0002)
+    ck("dividend carry/period", div_emp, 0.0081, 0.0002)
+    ck("predicted carry (rw I*)", H["div_rw"], 0.0022, 0.0002)
+    ck("capital (avg)", cap_emp, 7.71, 0.05)
+    ck("excess return/yr", excess, -0.009, 0.002)
+    ck("share of lot-quarters at depth > 0.35", agg.bins[-1][0] / tot_per, 0.39, 0.01)
+    ck("inventory-weighted mean q", sum(b[2] for b in agg.bins) / tot_per, 0.115, 0.003)
+    ck("completed share > 6 call periods",
+       sum(v for k_, v in agg.period_hist.items() if k_ > 6) / tot_c, 0.199, 0.005)
+    ck("still held at 12 months", km[0], 0.326, 0.005)
+    ck("still held at 36 months", km[1], 0.172, 0.005)
+    ck("still held at 120 months", km[2], 0.072, 0.005)
+    ck("censored share at 30y", sum(1 for _, c in agg.durations if not c)
+       / len(agg.durations), 0.091, 0.005)
+    multi = sum(v for k_, v in agg.batch_hist.items() if k_ >= 2)
+    ck("multi-exit date share", multi / sum(agg.batch_hist.values()), 0.143, 0.01)
+
+    print()
+    if fails:
+        raise SystemExit(f"{len(fails)} quoted number(s) FAILED: {fails}")
+    print("All quoted numbers reproduced.")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--scenario", default="all",
-                    choices=["base", "dividends", "stress", "sweep", "all"])
+                    choices=["base", "dividends", "stress", "sweep", "check", "all"])
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     args = ap.parse_args()
+
+    if args.scenario == "check":
+        check_quoted(args)
+        return
 
     if args.scenario in ("base", "all"):
         P = Params(years=30.0, paths=args.paths or 200, seed=args.seed)
