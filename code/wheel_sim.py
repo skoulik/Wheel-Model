@@ -20,7 +20,16 @@ verify_examples.py (single source of truth). The cadence/tenor split of
 TODO #7 is built in (cadence T >= tau_p; default T = tau_p, the article's
 special case).
 
-Stdlib only.  Run:  python code/wheel_sim.py  [--scenario base|stress|both]
+Dividends (TODO #2/#16) under the total-return convention: mu is the asset's
+TOTAL expected return, the price drifts at mu - delta, held lots accrue
+delta_net = delta*(1 - withholding) per year of holding (reported as a separate
+Track A line), and option pricing/probabilities use the dividend-yield
+Black-Scholes generalization. delta = 0 reproduces the no-dividend model
+exactly. The carry-vs-recovery trade-off: carry pays on held lots, but the
+depth drift nu = mu - delta - sigma^2/2 shrinks with delta, so lots recycle
+slower and inventory grows; nu > 0 is the stability boundary.
+
+Stdlib only.  Run:  python code/wheel_sim.py  [--scenario base|dividends|stress|sweep|all]
 """
 
 import argparse
@@ -30,9 +39,9 @@ from collections import Counter
 from dataclasses import dataclass
 from math import exp, log, sqrt
 
-from verify_examples import (N, bs_call, bs_put, expected_drop_given_assignment,
-                             k_star, p_assign, p_real_world, q_per_put_period,
-                             q_recover)
+from verify_examples import (N, Ninv, bs_call, bs_put,
+                             expected_drop_given_assignment, k_star, p_assign,
+                             p_real_world, q_per_put_period, q_recover)
 import random
 
 # Event priorities at equal timestamps: settle expiring options first, then
@@ -41,6 +50,71 @@ PUTEXP, CALLEXP, SALE = 0, 1, 2
 
 DEPTH_EDGES = [0.0, 0.02, 0.04, 0.07, 0.10, 0.15, 0.22, 0.35, float("inf")]
 KM_HORIZONS_M = [3, 6, 9, 12, 24, 36, 60, 120]
+
+
+# ----------------------------------------------------------------------
+# Dividend-aware generalizations (TODO #2/#16). These reduce exactly to the
+# verify_examples.py imports at delta = 0 (asserted in main()); they live here
+# rather than in verify_examples.py because that script verifies what the
+# article currently says, and the article's dividend treatment has not landed
+# yet. Convention: mu is TOTAL return; the price drifts at mu - delta.
+# ----------------------------------------------------------------------
+
+def d2_div(k, tau, sigma, r, delta):
+    return (-log(k) + (r - delta - sigma**2 / 2) * tau) / (sigma * sqrt(tau))
+
+
+def p_assign_div(k, tau, sigma, r, delta):
+    return N(-d2_div(k, tau, sigma, r, delta))
+
+
+def p_real_world_div(k, tau, sigma, r, mu, delta):
+    # delta cancels in the measure shift: rn price drift r-delta vs rw mu-delta.
+    return N(-d2_div(k, tau, sigma, r, delta) + (r - mu) * sqrt(tau) / sigma)
+
+
+def k_star_div(p_target, tau, sigma, r, delta):
+    return exp(Ninv(p_target) * sigma * sqrt(tau) + (r - delta - sigma**2 / 2) * tau)
+
+
+def bs_put_div(k, tau, sigma, r, delta):
+    _d2 = d2_div(k, tau, sigma, r, delta)
+    _d1 = _d2 + sigma * sqrt(tau)
+    return k * exp(-r * tau) * N(-_d2) - exp(-delta * tau) * N(-_d1)
+
+
+def bs_call_div(s, k, tau, sigma, r, delta):
+    _d1 = (log(s / k) + (r - delta + sigma**2 / 2) * tau) / (sigma * sqrt(tau))
+    _d2 = _d1 - sigma * sqrt(tau)
+    return s * exp(-delta * tau) * N(_d1) - k * exp(-r * tau) * N(_d2)
+
+
+def q_recover_div(k, d, tau_c, sigma, mu, delta):
+    return N(((mu - delta - sigma**2 / 2) * tau_c - log(k / (1 - d)))
+             / (sigma * sqrt(tau_c)))
+
+
+def expected_drop_div(k, tau, sigma, r, delta):
+    _d2 = d2_div(k, tau, sigma, r, delta)
+    _d1 = _d2 + sigma * sqrt(tau)
+    return 1 - exp((r - delta) * tau) * N(-_d1) / N(-_d2)
+
+
+def selfcheck_delta_zero():
+    """The generalizations must reproduce the article formulas at delta = 0."""
+    k, tau, sig, r, mu = 0.95, 1 / 12, 0.20, 0.05, 0.07
+    pairs = [
+        (bs_put_div(k, tau, sig, r, 0.0), bs_put(k, tau, sig, r)),
+        (bs_call_div(0.92, k, 0.25, sig, r, 0.0), bs_call(0.92, k, 0.25, sig, r)),
+        (p_assign_div(k, tau, sig, r, 0.0), p_assign(k, tau, sig, r)),
+        (p_real_world_div(k, tau, sig, r, mu, 0.0), p_real_world(k, tau, sig, r, mu)),
+        (k_star_div(0.20, tau, sig, r, 0.0), k_star(0.20, tau, sig, r)),
+        (q_recover_div(k, 0.08, 0.25, sig, mu, 0.0), q_recover(k, 0.08, 0.25, sig, mu)),
+        (expected_drop_div(k, tau, sig, r, 0.0),
+         expected_drop_given_assignment(k, tau, sig, r)),
+    ]
+    for got, want in pairs:
+        assert abs(got - want) < 1e-12, (got, want)
 
 
 @dataclass
@@ -58,8 +132,10 @@ class Params:
     cadence: float = None      # T >= tau_p; None -> T = tau_p
     r: float = 0.05
     margin: float = 0.20
-    mu: float = 0.07
+    mu: float = 0.07           # TOTAL expected return; price drifts at mu - delta
     sigma: float = 0.20
+    delta: float = 0.0         # gross dividend yield
+    withhold: float = 0.15     # withholding tax fraction on dividends
     iv_spread: float = 0.0     # sigma_iv = regime sigma + spread (TODO #4 hook)
     years: float = 30.0
     paths: int = 200
@@ -72,6 +148,7 @@ class Params:
         if self.regimes is None:
             self.regimes = [Regime(0.0, self.mu, self.sigma)]
         self.tau_c = self.n * self.tau_p
+        self.delta_net = self.delta * (1 - self.withhold)
         self._starts = [rg.start for rg in self.regimes]
 
 
@@ -96,6 +173,7 @@ class Agg:
         self.exits = 0
         self.prem_put = 0.0        # spot-normalized, summed
         self.prem_call = 0.0
+        self.dividends = 0.0       # spot-normalized net dividend carry
         self.inv_hist = Counter()  # inventory level at cadence dates
         self.cap_sum = 0.0
         self.cap_n = 0
@@ -131,7 +209,7 @@ def advance(S, t0, t1, P, rng):
         b = t1 if i + 1 >= len(P._starts) else min(t1, P._starts[i + 1])
         rg = P.regimes[i]
         dt = b - a
-        S *= exp((rg.mu - rg.sigma**2 / 2) * dt
+        S *= exp((rg.mu - P.delta - rg.sigma**2 / 2) * dt
                  + rg.sigma * sqrt(dt) * rng.gauss(0.0, 1.0))
         a = b
         i += 1
@@ -154,6 +232,7 @@ def run_path(P, rng, agg):
 
     while heap:
         te, prio, _, data = heapq.heappop(heap)
+        agg.dividends += len(lots) * P.delta_net * (min(te, P.years) - t)
         if te > P.years + 1e-9:
             break
         S = advance(S, t, te, P, rng)
@@ -168,9 +247,9 @@ def run_path(P, rng, agg):
             agg.inv_by_idx[idx] += len(lots)
             agg.n_by_idx[idx] += 1
             # Sell the put: strike from the p* policy at prevailing IV.
-            kf = k_star(P.p_star, P.tau_p, sig_iv, P.r)
+            kf = k_star_div(P.p_star, P.tau_p, sig_iv, P.r, P.delta)
             K = kf * S
-            c_p = S * bs_put(kf, P.tau_p, sig_iv, P.r)
+            c_p = S * bs_put_div(kf, P.tau_p, sig_iv, P.r, P.delta)
             agg.puts += 1
             agg.prem_put += c_p / S
             capital = P.margin * K + sum(l.basis for l in lots)
@@ -189,7 +268,7 @@ def run_path(P, rng, agg):
                 lot = Lot(entry=t, strike=K, basis=K - c_p)
                 lots.append(lot)
                 # Sell the first covered call at the frozen strike.
-                c_c = bs_call(S, K, P.tau_c, sig_iv, P.r)
+                c_c = bs_call_div(S, K, P.tau_c, sig_iv, P.r, P.delta)
                 agg.prem_call += c_c / S
                 lot.x = log(K / S)
                 push(t + P.tau_c, CALLEXP, lot)
@@ -198,7 +277,7 @@ def run_path(P, rng, agg):
             lot = data
             lot.periods += 1
             exited = S >= lot.strike
-            agg.record_call_period(lot.x, exited, rg.mu, rg.sigma, P.tau_c)
+            agg.record_call_period(lot.x, exited, rg.mu - P.delta, rg.sigma, P.tau_c)
             if exited:
                 agg.exits += 1
                 lots.remove(lot)
@@ -206,7 +285,7 @@ def run_path(P, rng, agg):
                 agg.period_hist[lot.periods] += 1
                 exits_at[round(t, 9)] += 1
             else:
-                c_c = bs_call(S, lot.strike, P.tau_c, sig_iv, P.r)
+                c_c = bs_call_div(S, lot.strike, P.tau_c, sig_iv, P.r, P.delta)
                 agg.prem_call += c_c / S
                 lot.x = log(lot.strike / S)
                 push(t + P.tau_c, CALLEXP, lot)
@@ -260,19 +339,21 @@ def km_survival(durations, horizons_m):
 
 def homogeneous_predictions(P):
     sig_iv = P.sigma + P.iv_spread
-    k = k_star(P.p_star, P.tau_p, sig_iv, P.r)
-    p = p_assign(k, P.tau_p, sig_iv, P.r)
-    p_rw = p_real_world(k, P.tau_p, sig_iv, P.r, P.mu)
-    e_d = expected_drop_given_assignment(k, P.tau_p, sig_iv, P.r)
-    q = q_recover(k, e_d, P.tau_c, P.sigma, P.mu)
+    k = k_star_div(P.p_star, P.tau_p, sig_iv, P.r, P.delta)
+    p = p_assign_div(k, P.tau_p, sig_iv, P.r, P.delta)
+    p_rw = p_real_world_div(k, P.tau_p, sig_iv, P.r, P.mu, P.delta)
+    e_d = expected_drop_div(k, P.tau_p, sig_iv, P.r, P.delta)
+    q = q_recover_div(k, e_d, P.tau_c, P.sigma, P.mu, P.delta)
     q_p = q_per_put_period(q, P.n)
-    c_p = bs_put(k, P.tau_p, sig_iv, P.r)
-    c_c = bs_call(1 - e_d, k, P.tau_c, sig_iv, P.r)
+    c_p = bs_put_div(k, P.tau_p, sig_iv, P.r, P.delta)
+    c_c = bs_call_div(1 - e_d, k, P.tau_c, sig_iv, P.r, P.delta)
     return {
         "k": k, "p": p, "p_rw": p_rw, "E[d]": e_d, "q": q, "q_p": q_p,
         "c_p": c_p, "c_c": c_c,
         "I*": p / q_p, "I*_rw": p_rw / q_p,
         "run": c_p + p * c_c / q, "run_rw": c_p + p_rw * c_c / q,
+        "div": (p / q_p) * P.delta_net * P.cadence,
+        "div_rw": (p_rw / q_p) * P.delta_net * P.cadence,
         "cap": P.margin * k + (p / q_p) * (k - c_p),
         "cap_rw": P.margin * k + (p_rw / q_p) * (k - c_p),
     }
@@ -285,7 +366,11 @@ def report(P, agg, name):
           f"({P.paths} paths x {P.years:g}y, tau_p={P.tau_p:.4f}, "
           f"T={P.cadence:.4f}, n={P.n}, p*={P.p_star:g}, seed={P.seed})")
     for rg in P.regimes:
-        print(f"  regime from t={rg.start:>5.2f}y: mu={rg.mu:+.3f}, sigma={rg.sigma:.2f}")
+        print(f"  regime from t={rg.start:>5.2f}y: mu={rg.mu:+.3f} (total), "
+              f"sigma={rg.sigma:.2f}, nu={rg.mu - P.delta - rg.sigma**2 / 2:+.3f}")
+    if P.delta:
+        print(f"  dividends: delta={P.delta:.3f} gross, withholding {P.withhold:.0%}, "
+              f"delta_net={P.delta_net:.4f}")
     print(line)
 
     print("\n-- Homogeneous-model predictions (eq:istar / eq:run-rate / eq:capital) --")
@@ -294,6 +379,8 @@ def report(P, agg, name):
     print(f"  I* = {H['I*']:.2f} (risk-neutral p) / {H['I*_rw']:.2f} (real-world p)")
     print(f"  run rate/period = {H['run']:.4f} (rn) / {H['run_rw']:.4f} (rw)   "
           f"capital = {H['cap']:.2f} (rn) / {H['cap_rw']:.2f} (rw)")
+    if P.delta:
+        print(f"  dividend carry/period = {H['div']:.4f} (rn I*) / {H['div_rw']:.4f} (rw I*)")
 
     n_samples = sum(agg.inv_hist.values())
     mean_I = sum(k * v for k, v in agg.inv_hist.items()) / n_samples
@@ -303,8 +390,9 @@ def report(P, agg, name):
     exits_per_period = agg.exits / n_samples
     eff_qp = exits_per_period / mean_I if mean_I > 0 else float("nan")
     run_emp = (agg.prem_put + agg.prem_call) / agg.puts
+    div_emp = agg.dividends / agg.puts
     cap_emp = agg.cap_sum / agg.cap_n
-    ann = run_emp / P.cadence
+    ann = (run_emp + div_emp) / P.cadence
     excess = (ann - P.r * cap_emp) / cap_emp
 
     print("\n-- Simulated (layered system on the common path) --")
@@ -318,8 +406,12 @@ def report(P, agg, name):
     print(f"  Var(I)/Mean(I)  = {var_I / mean_I:.2f}   (Poisson: 1.00)")
     print(f"  effective q_p   = {eff_qp:.3f}   (homogeneous q_p {H['q_p']:.3f})")
     print(f"  run rate/period = {run_emp:.4f}   (predicted {H['run']:.4f} rn / {H['run_rw']:.4f} rw)")
+    if P.delta:
+        print(f"  dividends/period= {div_emp:.4f}   (predicted {H['div']:.4f} rn / {H['div_rw']:.4f} rw)")
     print(f"  capital (avg)   = {cap_emp:.2f}   (predicted {H['cap']:.2f} rn / {H['cap_rw']:.2f} rw)")
-    print(f"  annualized: income {ann:.3f}, excess over risk-free {excess:+.3f}/yr on capital")
+    print(f"  annualized: income {ann:.3f} "
+          f"(premiums {run_emp / P.cadence:.3f} + dividends {div_emp / P.cadence:.3f}), "
+          f"excess over risk-free {excess:+.3f}/yr on capital")
 
     completed = sorted(m for m, c in agg.durations if c)
     censored = [m for m, c in agg.durations if not c]
@@ -390,18 +482,59 @@ def report_time_profile(P, agg, checkpoints):
 # Scenarios
 # ----------------------------------------------------------------------
 
+def dividend_sweep(args):
+    """Carry-vs-recovery trade-off: sweep the gross yield at fixed total return.
+
+    The 'alt' row holds the PRICE drift at 7% instead (total return 9.5%) --
+    the convention we argue against, included as a sensitivity check.
+    """
+    print("\n" + "=" * 72)
+    print("Dividend sweep (30y, total-return convention, withholding 15%)")
+    print("=" * 72)
+    print("  delta      nu    I*_rw   mean I   capital   prem/T   div/T   excess/yr")
+    rows = [("0.0%", 0.07, 0.000), ("1.0%", 0.07, 0.010), ("2.5%", 0.07, 0.025),
+            ("4.0%", 0.07, 0.040), ("6.0%", 0.07, 0.060), ("alt 2.5%", 0.095, 0.025)]
+    for label, mu, delta in rows:
+        P = Params(years=30.0, paths=args.paths or 200, seed=args.seed,
+                   mu=mu, delta=delta)
+        agg = simulate(P)
+        H = homogeneous_predictions(P)
+        n_samples = sum(agg.inv_hist.values())
+        mean_I = sum(k * v for k, v in agg.inv_hist.items()) / n_samples
+        cap = agg.cap_sum / agg.cap_n
+        prem = (agg.prem_put + agg.prem_call) / agg.puts
+        div = agg.dividends / agg.puts
+        ann = (prem + div) / P.cadence
+        excess = (ann - P.r * cap) / cap
+        nu = mu - delta - P.sigma**2 / 2
+        print(f"  {label:>8} {nu:+.3f}   {H['I*_rw']:>5.2f}   {mean_I:>6.2f}   "
+              f"{cap:>7.2f}   {prem:.4f}  {div:.4f}   {excess:+.4f}")
+    print("  (alt row: price drift held at 7%, i.e. total return 9.5% -- the")
+    print("   stacked convention, shown as a sensitivity check only)")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--scenario", choices=["base", "stress", "both"], default="both")
+    ap.add_argument("--scenario", default="all",
+                    choices=["base", "dividends", "stress", "sweep", "all"])
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     args = ap.parse_args()
 
-    if args.scenario in ("base", "both"):
+    selfcheck_delta_zero()
+
+    if args.scenario in ("base", "all"):
         P = Params(years=30.0, paths=args.paths or 200, seed=args.seed)
         report(P, simulate(P), "base (article running example: p*=20%, monthly/quarterly)")
 
-    if args.scenario in ("stress", "both"):
+    if args.scenario in ("dividends", "all"):
+        P = Params(years=30.0, paths=args.paths or 200, seed=args.seed, delta=0.025)
+        report(P, simulate(P), "base + dividends (delta=2.5%, total-return convention)")
+
+    if args.scenario in ("sweep", "all"):
+        dividend_sweep(args)
+
+    if args.scenario in ("stress", "all"):
         # Crash-then-flatline: 2y calm, 3-month crash (expected log-drop 30%),
         # 3y flatline (mu=0), then calm again. IV assumed to track regime sigma,
         # so the p* strike policy responds to the vol spike (k* drops).

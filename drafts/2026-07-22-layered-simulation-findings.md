@@ -179,12 +179,61 @@ diagram to properties of grid-sampled ABM passage times. The q_i-per-layer
 bookkeeping of the original tier-2 sketch becomes a derived object, not the
 primitive.
 
+## 9. Dividends: the carry does not pay for the deeper hole  [added same day]
+
+Dividends added under the total-return convention (TODO #2a): μ stays the asset's
+*total* expected return, the price drifts at μ − δ, held lots accrue
+δ_net = δ·(1 − 15% withholding) per year of holding, and pricing/probabilities use
+the dividend-yield Black–Scholes generalization (δ = 0 reproduces findings 1–8
+exactly; the generalized helpers live in wheel_sim.py and are asserted equal to
+the verify_examples.py formulas at δ = 0). Sweep at the base parameters:
+
+    delta      nu    I*_rw   mean I   capital   prem/T   div/T   excess/yr
+     0.0%   +0.050    1.15    3.65      5.29    0.0188   0.0000   -0.0073
+     1.0%   +0.040    1.18    4.01      6.09    0.0185   0.0028   -0.0081
+     2.5%   +0.025    1.23    4.71      7.71    0.0181   0.0081   -0.0092
+     4.0%   +0.010    1.29    5.51      9.95    0.0175   0.0152   -0.0105
+     6.0%   -0.010    1.36    6.76     14.31    0.0166   0.0282   -0.0124
+    alt 2.5% +0.050   1.09    3.46      5.01    0.0171   0.0059   +0.0052
+
+Three observations:
+
+- **The trade-off resolves against the wheel, monotonically.** Every percentage
+  point of yield taken out of the price drift deepens the strata (ν = μ − δ − σ²/2
+  falls; at δ = 2.5% mean inventory rises 3.65 → 4.71 and capital 5.3 → 7.7·S₀).
+  The carry is substantial — at δ = 2.5% dividends contribute 9.7%/yr of S₀,
+  a third of total income — but it recovers *most, not all* of the extra capital
+  charge and slower recycling: excess return declines smoothly from −0.7% to
+  −1.2%/yr across the sweep. No wash, no free lunch: under equal total return,
+  dividend yield is mildly negative for the wheel.
+- **Dividend carry scales with the dead strata, as #16 predicted.** Realized
+  carry per period is 0.0081 vs the homogeneous prediction 0.0022 — understated
+  by the same length-bias factor (~3.5×) as inventory itself, because carry
+  accrues per unit holding time and holding time concentrates on deep lots. The
+  trapped tail also deepens: KM survival at 10y rises 0.040 → 0.072, and lot-
+  quarters at q ≈ 0 depths go from 29% to 39%. The δ = 6% row has ν < 0 —
+  unstable; its 30y mean masks unbounded accumulation — which *derives* the live
+  account's STRF behavior (bond-like ~9% yielder, permanently trapped, held for
+  carry) rather than footnoting it as an outlier.
+- **The conclusion is convention-sensitive, and honestly so.** The alt row
+  (price drift held at 7%, δ stacked on top — total return 9.5%) is the only
+  positive-excess row. If high yield came with no price-drift sacrifice, carry
+  would help; under the equal-total-return null it hurts. The article should
+  state the convention and this sensitivity explicitly when TODO #2 lands.
+
+Model implication: #16 is quantified — the patience of deep lots is indeed
+carry-financed, but the financing is partial. The stability condition of finding
+8 generalizes to **ν = μ − δ − σ²/2 > 0**: yield moves the phase boundary, and
+high-yield wheeling sits in the unstable region by construction. Tier 2's phase
+diagram gains δ as a first-class axis.
+
 ---
 
 ## Caveats (what the simulator deliberately omits)
 
-- **No dividends** (TODO #2/#16): deep lots in reality earn carry while parked,
-  which softens finding 4; the omission is acceptable for now — the TODO stands.
+- **Dividends are continuous-accrual** (finding 9): no discrete ex-dates, no
+  dividend-driven early exercise (TODO #5/#2c — the latter *helps* the strategy,
+  so its omission is conservative here); withholding a single blended rate.
 - **No call-strike policy** (TODO #10): K_c frozen at entry forever. Real operators
   strike down to harvest dead strata; finding 4 quantifies the cost of *not*
   doing so, i.e. the value of that lever.
