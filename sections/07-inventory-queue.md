@@ -36,6 +36,8 @@ Consequences worth staring at:
 - **The strategy is usually holding stock.** The probability of an empty warehouse is P(I=0) = e^(−I\*): about 37% for I\* = 1, 14% for I\* = 2, 5% for I\* = 3. The comfortable picture of "mostly selling puts, occasionally stuck with shares" is wrong at equilibrium — inventory is the normal condition, not the exception.
 - **The clock ratio is a direct multiplier.** Doubling τ_c at fixed p and q doubles I\*. Longer calls buy more premium per contract and higher per-call recovery odds, but pay for it linearly in average capital lockup. This is the quantitative form of the trade-off from [the strategy section](#sec:strategy).
 
+> **[Flagged for revision — see TODO #18]** A layered Monte Carlo of this exact system (`code/wheel_sim.py`, per-lot frozen strikes on a common price path) puts mean inventory at ~3× the I\* of [eq:istar](#eq:istar) at the article's base parameters: standing inventory is length-biased toward deep, slow lots that the homogeneous q averages away. The rate-balance logic below survives; the numerical I\* and the Poisson shape (Var/Mean ≈ 4 simulated, P(I=0) far above Poisson) do not.
+
 ## The self-recycling property
 
 In steady state, the average number of new assignments per put period is p. The average number of call-aways per put period is E[I] · q_p = (p/q_p) · q_p = p. **The two rates are identical** — not approximately, exactly, by the definition of equilibrium.
