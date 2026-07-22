@@ -1,9 +1,5 @@
 # Private brokerage statements — never commit
 statements/
 
-# ChunkHound semantic-search index (local, regenerable) + local tool config
-.chunkhound/
-.chunkhound.json
-
 # Python bytecode cache (analyze_statement imports verify_examples)
 __pycache__/
