@@ -2,7 +2,7 @@
 
 ## The homogeneous case is always stable — which should worry you
 
-Under the homogeneous approximation with constant q, the system cannot run away: whenever q > 0, the equilibrium I\* = p·n/q is finite, and inventory mean-reverts toward it. Departures scale with inventory (q_p per lot), so the fuller the warehouse, the faster it drains. On paper, the wheel cannot be buried.
+Under the homogeneous approximation with constant q, the system cannot run away: whenever q > 0, the equilibrium I\* = p·n/q of [eq:istar](#eq:istar) is finite, and inventory mean-reverts toward it. Departures scale with inventory (q_p per lot), so the fuller the warehouse, the faster it drains. On paper, the wheel cannot be buried.
 
 A result this comforting, derived from an approximation this strong, should be treated as a description of the approximation rather than of the world. The interesting — and dangerous — behavior appears exactly where the approximation breaks.
 
@@ -23,7 +23,7 @@ The second danger is that p and q are treated as constants but are functions of 
 
 Both movements push I\* = p·n/q the same way, and their effect compounds multiplicatively: a market that doubles p and halves q *quadruples* equilibrium inventory. The system's response to stress is therefore convex — mild stress looks comfortably absorbed, severe stress deteriorates much faster than a linear extrapolation from mild stress suggests. An operator calibrated on calm markets will systematically underestimate how quickly the warehouse fills in a storm.
 
-Note also what reflexivity does to the operator's chosen strike policy: if strikes are set by target probability p\* (the inversion formula of [the assignment section](#sec:assignment)), rising volatility pushes the strike k\* lower rather than letting p rise — trading assignment frequency for deeper out-of-the-money entries. The model as stated holds k fixed; the strike-policy feedback belongs to the parameter studies of tier 2.
+Note also what reflexivity does to the operator's chosen strike policy: if strikes are set by target probability p\* (the inversion formula [eq:kstar](#eq:kstar) of [the assignment section](#sec:assignment)), rising volatility pushes the strike k\* lower rather than letting p rise — trading assignment frequency for deeper out-of-the-money entries. The model as stated holds k fixed; the strike-policy feedback belongs to the parameter studies of tier 2.
 
 ## Summary of tier 1's verdict
 

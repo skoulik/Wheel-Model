@@ -4,7 +4,7 @@
 
 Assignment has happened. The stock fell through the strike and the operator bought it at k·S₀; the market price now sits at
 
-S′ = S₀ · (1 − d)
+S′ = S₀ · (1 − d)    {#eq:s-prime}
 
 where d is the fractional drop from the pre-assignment reference price. The parameter d matters more than it first appears: assignment only tells us the stock finished *below* the strike, not how far below, and the depth of the overshoot is what the lot must climb back out of.
 
@@ -18,11 +18,11 @@ Before q can be computed we need d, and it is tempting to simply pick a scary-lo
 
 Assignment is the event S_T < k·S₀. The lognormal partial-expectation identity gives the average terminal price over exactly those scenarios:
 
-E[S_T | S_T < k·S₀] = S₀ · e^(r·τ_p) · N(−d₁) / N(−d₂)
+E[S_T | S_T < k·S₀] = S₀ · e^(r·τ_p) · N(−d₁) / N(−d₂)    {#eq:partial-expectation}
 
-where d₁ = d₂ + σ·√τ_p — the same pair of quantities from [the assignment section](#sec:assignment): N(−d₂) is the assignment probability itself, and N(−d₁) is the number that appeared there as the put's delta. Since the post-assignment price is S′ = S₀·(1−d), the expected drop conditional on assignment is
+where d₁ = d₂ + σ·√τ_p — the same pair of quantities from [eq:p](#eq:p) in [the assignment section](#sec:assignment): N(−d₂) is the assignment probability itself, and N(−d₁) is the number that appeared there as the put's delta. Since the post-assignment price is S′ = S₀·(1−d), the expected drop conditional on assignment is
 
-**E[d | assignment] = 1 − e^(r·τ_p) · N(−d₁) / N(−d₂)**
+**E[d | assignment] = 1 − e^(r·τ_p) · N(−d₁) / N(−d₂)**    {#eq:d-mean}
 
 **Numerical verification.** For the running example (k = 0.95, τ_p = 1/12, σ = 20%, r = 5%): d₂ ≈ 0.93, d₁ ≈ 0.99, and E[d | assignment] ≈ **7.9%**. The typical assignment lands just under the strike — about 3% below the strike level k = 0.95 — not deep below the reference price. (The formula inherits the risk-neutral convention adopted for p; recomputing with the real-world drift μ = 7% moves the figure by less than 0.1 percentage point. Conditioning on assignment does all the work — one month of drift is noise beside it.)
 
@@ -35,7 +35,7 @@ This fixes the convention for the rest of the article:
 
 Under the same lognormal price model as before — but now using the real-world drift μ, since we are forecasting an actual price path rather than reading a probability out of option prices — the probability that the stock finishes at or above K_c after time τ_c is
 
-q = N( [ (μ − σ²/2) · τ_c − ln( k / (1−d) ) ] / (σ·√τ_c) )
+q = N( [ (μ − σ²/2) · τ_c − ln( k / (1−d) ) ] / (σ·√τ_c) )    {#eq:q}
 
 The term ln(k/(1−d)) is the log-distance the stock must travel: from its post-assignment level (1−d) up to the strike level k.
 

@@ -19,7 +19,7 @@ Crucially, step 1 does not wait for steps 4–6 to finish. A new put is sold eve
 
 Two period lengths govern the strategy: τ_p, how long each put runs, and τ_c, how long each covered call runs, with τ_c ≥ τ_p. One can use weekly puts with monthly calls, or monthly puts with quarterly calls. The ratio
 
-n = τ_c / τ_p ≥ 1
+n = τ_c / τ_p ≥ 1    {#eq:n}
 
 turns out to matter considerably: as we will show, it acts as a direct multiplier on how much inventory the strategy holds at equilibrium.
 
@@ -37,6 +37,6 @@ Throughout, three parallel accounting tracks are maintained. They answer three d
 
 The number that ultimately matters is the **true excess return**:
 
-(Track A − Track C) / Track B, annualized.
+(Track A − Track C) / Track B, annualized    {#eq:excess-return}
 
 Keeping the tracks separate is a discipline we enforce on every formula in this article: each result will be labeled with the track it belongs to. As we will see in [the returns section](#sec:returns), at least one natural-looking formula for the strategy's income turns out to mix tracks and silently double-count — the separation is not pedantry.

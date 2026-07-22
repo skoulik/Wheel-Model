@@ -10,7 +10,7 @@ That is the wheel: deliveries are put assignments, pallets are stock lots, picku
 
 The recovery probability q is per *call* period. A lot surviving one call period has survived n put periods, so the per-put-period exit probability q_p satisfies (1−q_p)ⁿ = 1−q:
 
-q_p = 1 − (1−q)^(1/n) ≈ q/n    (accurate when q is not large)
+q_p = 1 − (1−q)^(1/n) ≈ q/n    (accurate when q is not large)    {#eq:qp}
 
 For n ≥ 2 or modest q the approximation q/n is comfortably accurate. (A pedantic footnote: real exits can only happen at call expirations, every n-th put period, so treating q_p as available every period smooths the timing. Means are unaffected; only the fine-grained dynamics are slightly idealized.)
 
@@ -22,11 +22,11 @@ For n ≥ 2 or modest q the approximation q/n is comfortably accurate. (A pedant
 
 Our inventory is a birth–death process: arrivals at constant rate p, departures at rate q_p per lot held, so total departure rate q_p·i when i lots are held. Departures accelerate as inventory grows — more pallets, more pickups — which is what pulls the system toward equilibrium. The equilibrium level is where the rates balance:
 
-p = q_p · I\*    ⟹    I\* = p / q_p ≈ p·n / q = p · (τ_c/τ_p) / q
+p = q_p · I\*    ⟹    I\* = p / q_p ≈ p·n / q = p · (τ_c/τ_p) / q    {#eq:istar}
 
 and the full steady-state distribution is well approximated by a Poisson with that mean:
 
-P(I = i) = e^(−I\*) · (I\*)^i / i!
+P(I = i) = e^(−I\*) · (I\*)^i / i!    {#eq:poisson}
 
 The approximation is exact in the continuous-time limit and very accurate whenever q_p is small (ensured by n not too small or q moderate). For n = 1 with large q it degrades somewhat — but the equilibrium *mean* I\* = p/q_p is exact regardless, since it needs only the rate balance, not the distributional shape.
 

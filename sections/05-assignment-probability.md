@@ -18,7 +18,7 @@ When you sell a put, you are running one Bernoulli trial per period: with probab
 
 Let k = K/S₀ be the strike expressed as a fraction of the current price, so k = 0.95 means a put struck 5% below the market. Under Black–Scholes, the probability that the stock finishes below the strike at expiration — the assignment probability — is
 
-p = N(−d₂),    d₂ = [−ln(k) + (r − σ²/2) · τ_p] / (σ·√τ_p)
+p = N(−d₂),    d₂ = [−ln(k) + (r − σ²/2) · τ_p] / (σ·√τ_p)    {#eq:p}
 
 where r is the risk-free rate and σ the volatility implied by the option's market price.
 
@@ -28,7 +28,7 @@ where r is the risk-free rate and σ the volatility implied by the option's mark
 
 In practice the operator often thinks in the opposite direction: "I want to be assigned about once every five periods — where should I set the strike?" Inverting the formula for a target probability p\*:
 
-k\*(τ_p) = exp( N⁻¹(p\*) · σ·√τ_p + (r − σ²/2) · τ_p )
+k\*(τ_p) = exp( N⁻¹(p\*) · σ·√τ_p + (r − σ²/2) · τ_p )    {#eq:kstar}
 
 For p\* = 20% (N⁻¹(0.20) ≈ −0.842) with the same parameters, k\* ≈ 0.955: a 20% monthly assignment probability corresponds to a strike about 4.5% below the current price.
 
@@ -38,7 +38,7 @@ This inversion is how the strategy's strike parameter is actually set in the res
 
 A subtlety that deserves honesty: the p above is the **risk-neutral** probability — the one embedded in option prices. It is not the best forecast of how often assignment actually happens. Real stocks — certainly the fundamentally sound, dividend-paying kind this strategy targets — drift upward over time at some rate μ that exceeds the risk-free rate r. The real-world assignment probability replaces r with μ, which after simplification gives
 
-p_rw = N( −d₂ + (r − μ) · √τ_p / σ )
+p_rw = N( −d₂ + (r − μ) · √τ_p / σ )    {#eq:p-rw}
 
 Since μ > r for equities, the correction term is negative and p_rw < p. The size of the gap is controlled by (μ − r)/σ — the asset's Sharpe ratio — times √τ_p. With μ = 7% in our running example, p_rw ≈ 16.8% versus the risk-neutral 17.6%.
 

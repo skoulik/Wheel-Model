@@ -16,7 +16,7 @@ Notice what the cancellation means: passage through inventory costs nothing at t
 
 In equilibrium, one put is sold per period and lots complete their lifecycle at rate p per period (the self-recycling property). The expected realized income per put period is therefore
 
-**E[Π] / S = c_p + p · c_c / q**
+**E[Π] / S = c_p + p · c_c / q**    {#eq:run-rate}
 
 The second term can be read two equivalent ways, and the equivalence is a useful consistency check: *by lifecycle*, completions at rate p each carrying c_c/q of accumulated call premium; or *by standing inventory*, I\* = pn/q lots each yielding c_c/n per put period, and (pn/q)·(c_c/n) = p·c_c/q. Annualizing: divide by τ_p.
 
@@ -32,7 +32,7 @@ Track A's serenity has a cost, and honesty requires displaying it. At any moment
 
 The capital tied up in steady state is margin on the live short put plus the cost basis of the standing inventory:
 
-E[Capital] / S₀ ≈ m·k + I\* · (k − c_p)
+E[Capital] / S₀ ≈ m·k + I\* · (k − c_p)    {#eq:capital}
 
 with m the broker's margin fraction on the put.
 
@@ -40,7 +40,7 @@ with m the broker's margin fraction on the put.
 
 Running parameters: k = 0.95, monthly puts (τ_p = 1/12), quarterly calls (n = 3), σ = 20%, r = 5%, μ = 7%, m = 0.20. Black–Scholes prices the monthly put at c_p ≈ 0.005.
 
-**Base case (d ≈ 0.08, the conditional expectation derived in [the recovery section](#sec:recovery)):** q ≈ 0.42, I\* ≈ 1.25 lots, and the call — struck only ~3% above the market — is worth c_c ≈ 0.029. Run rate: 0.005 + 0.176·0.029/0.42 ≈ 0.0170 per month ≈ **20.4% of S₀ per year** (Track A) on capital ≈ **1.37·S₀** (Track B), for a true excess return of roughly **+9.9% per year**.
+**Base case (d ≈ 0.08, the conditional expectation [eq:d-mean](#eq:d-mean) derived in [the recovery section](#sec:recovery)):** q ≈ 0.42, I\* ≈ 1.25 lots, and the call — struck only ~3% above the market — is worth c_c ≈ 0.029. Run rate: 0.005 + 0.176·0.029/0.42 ≈ 0.0170 per month ≈ **20.4% of S₀ per year** (Track A) on capital ≈ **1.37·S₀** (Track B), for a true excess return of roughly **+9.9% per year**.
 
 **Stress case (d = 0.15, the ~2.5σ assignment):** q ≈ 0.162, so I\* ≈ 3.3 lots. The quarterly call on the depressed stock is worth only c_c ≈ 0.008. Run rate: 0.005 + 0.176·0.008/0.162 ≈ 0.0133 per month ≈ **16.0% of S₀ per year** (Track A). Capital: 0.20·0.95 + 3.26·0.945 ≈ **3.27·S₀** (Track B). Charging r on that capital (Track C ≈ 0.163·S₀/yr) leaves a true excess return of roughly **−0.1% per year**. Read that again: with assignments always landing 15% deep, the wheel works furiously to approximately match T-bills.
 
@@ -50,7 +50,7 @@ The pair of numbers is the honest summary of the strategy: its economics live an
 
 How bad can Track B get in a sustained fall? Suppose the price falls geometrically — every assignment occurs at S_j = S₀·(1−d)^j, each drop a constant fraction d. Then cost bases shrink geometrically too, B_j = (k − c_p)·S_j, and even summing infinitely many lots the total converges:
 
-Σ_j B_j = (k − c_p) · S₀ / d
+Σ_j B_j = (k − c_p) · S₀ / d    {#eq:capital-bound}
 
 > **Detour: geometric series.** A sum a + a·x + a·x² + … with |x| < 1 converges to a/(1−x): each term is a fixed fraction of the last, so the tail shrinks fast enough to add up to something finite. Here each successive lot's basis is (1−d) times the previous one's.
 

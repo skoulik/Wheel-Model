@@ -10,6 +10,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 - Probabilities named p refer to the put leg; probabilities named q refer to the call leg.
 - Math is written in Unicode plain text in these drafts; conversion to LaTeX happens at assembly time.
 - **Cross-references:** every section's H1 carries a pandoc-style anchor (`# Title {#sec:name}`), and in-prose references are written as markdown links to those anchors — e.g. `[the recovery section](#sec:recovery)`. At assembly time these become `\label`/`\ref` pairs. Never refer to another section by bare prose or by number; always link. Current anchors: sec:notation, sec:abstract, sec:introduction, sec:prior-work, sec:strategy, sec:assignment, sec:recovery, sec:queue, sec:returns, sec:stability, sec:outlook.
+- **Formula numbering:** every displayed (non-inline) formula carries a pandoc-style anchor at the end of its display line — `E[Π] / S = c_p + p · c_c / q    {#eq:run-rate}`. In-prose references are markdown links to those anchors, e.g. `formula [eq:run-rate](#eq:run-rate)`. At assembly time the display becomes a numbered `equation` environment with `\label{eq:name}`, and each reference link is replaced wholesale by `\eqref{eq:name}` — a literal "(N)" — so phrase references to read naturally with a bare number in the link's place ("formula (7)"). Never refer to a displayed formula by paraphrase or by its section alone; cite its anchor. Current anchors: eq:n, eq:excess-return (section 04); eq:p, eq:kstar, eq:p-rw (05); eq:s-prime, eq:partial-expectation, eq:d-mean, eq:q (06); eq:qp, eq:istar, eq:poisson (07); eq:run-rate, eq:capital, eq:capital-bound (08).
 - Every worked numerical example in the text is recomputed by `code/verify_examples.py`. If you change a formula or an example, update and re-run the script.
 
 ## Market and asset parameters
@@ -29,7 +30,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 | τ_c | Lifetime of each covered call sold; τ_c ≥ τ_p |
 | n | The clock ratio τ_c / τ_p ≥ 1 (e.g., monthly puts with quarterly calls give n = 3) |
 | k | Put strike as a fraction of current price, k = K/S₀ (k = 0.95 is a 5% out-of-the-money put) |
-| p\* | Target assignment probability. The operator has two equivalent ways to set the put strike: pick k directly, or pick the desired assignment probability p\* and compute the strike k\* that delivers it (the inversion formula in [the assignment section](#sec:assignment)). We generally use the second, so k floats with volatility while p\* stays fixed. |
+| p\* | Target assignment probability. The operator has two equivalent ways to set the put strike: pick k directly, or pick the desired assignment probability p\* and compute the strike k\* that delivers it (the inversion formula [eq:kstar](#eq:kstar) in [the assignment section](#sec:assignment)). We generally use the second, so k floats with volatility while p\* stays fixed. |
 | m | Margin fraction the broker requires on a short put position |
 
 ## Derived quantities
@@ -39,7 +40,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 | d₂, d₁ | The standard Black–Scholes intermediate quantities (defined where first used) |
 | p | Risk-neutral probability the put is assigned at expiration, p = N(−d₂) |
 | p_rw | Real-world assignment probability (uses μ instead of r); p_rw < p for equities |
-| d | Fractional price drop at the moment of assignment: the stock sits at S′ = S₀(1−d). Not a free input: E[d \| assignment] = 1 − e^(r·τ_p)·N(−d₁)/N(−d₂), derived in [the recovery section](#sec:recovery) (≈ 0.08 for the running example — the base case); d = 0.15 is the labeled ~2.5σ stress scenario |
+| d | Fractional price drop at the moment of assignment: the stock sits at S′ = S₀(1−d). Not a free input: E[d \| assignment] = 1 − e^(r·τ_p)·N(−d₁)/N(−d₂), derived as [eq:d-mean](#eq:d-mean) in [the recovery section](#sec:recovery) (≈ 0.08 for the running example — the base case); d = 0.15 is the labeled ~2.5σ stress scenario |
 | S′ | Stock price just after assignment, S′ = S₀(1−d) |
 | K_c | Covered call strike; in the base model K_c equals the put strike, K_c = k·S₀ |
 | q | Probability the covered call finishes in the money within one call period τ_c |
@@ -67,4 +68,4 @@ This file is the single source of truth for every symbol used in the article. Wh
 | B | Capital committed at current market prices — what the broker margins, regardless of the operator's accounting philosophy. |
 | C | Opportunity cost: the risk-free rate charged against committed capital. |
 
-True excess return = (Track A − Track C) / Track B, annualized.
+True excess return = (Track A − Track C) / Track B, annualized — [eq:excess-return](#eq:excess-return) in [the strategy section](#sec:strategy).
