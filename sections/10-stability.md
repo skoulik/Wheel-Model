@@ -51,12 +51,12 @@ Now run the same two tests under the market's pricing drift, m = r − δ = 2.5%
 | tail exponent θ | 1.25 | **0.25** |
 | lots come back | ✔ | ✔ barely |
 | capital comes back | ✔ barely | ✘ **fails** |
-| mean holding time | 4.2 years | 20.1 years |
-| equilibrium lots | 10.0 | 48.2 |
+| mean holding time | 2.1 years | ≈ 9 years |
+| equilibrium lots | 21.8 | ≈ 94 |
 
-**The option market prices this stock as one whose wheel inventory never clears.** Under the measure that sets the premiums the operator collects, holding times run twenty years, equilibrium inventory approaches fifty lots, and expected capital is infinite.
+**The option market prices this stock as one whose wheel inventory never clears.** Under the measure that sets the premiums the operator collects, holding times run to nine years, equilibrium inventory approaches a hundred lots, and expected capital is infinite.
 
-This is the sharpest statement in the article, and it is not a paradox. Risk-neutral pricing is what the market charges to bear risk; it deliberately assumes away the compensation for holding equities. Reading the wheel in that measure therefore shows the strategy stripped of its only real engine — and what remains does not clear. **The entire difference between a wheel that recycles in four years and one that never recycles is the equity risk premium μ − r = 2%.** The strategy is not an income machine that happens to hold stock. It is a leveraged bet that stocks go up, wearing the costume of an income machine, and its stability rests on the same assumption its returns do.
+This is the sharpest statement in the article, and it is not a paradox. Risk-neutral pricing is what the market charges to bear risk; it deliberately assumes away the compensation for holding equities. Reading the wheel in that measure therefore shows the strategy stripped of its only real engine — and what remains does not clear. **The entire difference between a wheel that recycles in two years and one that never recycles is the equity risk premium μ − r = 2%.** The strategy is not an income machine that happens to hold stock. It is a leveraged bet that stocks go up, wearing the costume of an income machine, and its stability rests on the same assumption its returns do.
 
 ## The ratchet: crash, then flatline
 
@@ -67,14 +67,16 @@ A geometric decline — the stock falling by the same percentage repeatedly — 
 What buries it is falling and then *stopping*. Simulating a crash (a quarter with an expected 30% log-drop at 35% volatility) followed by three years of flat market at μ = 0, then a return to calm:
 
     year               1.0    2.0    2.25    3.0    4.0    5.0    6.0    8.0   10.0
-    lots held         1.40   2.17   2.56   3.71   4.40   5.08   5.51   5.27   4.96
-    capital (market)  1.59   2.36   2.75   3.90   4.59   5.27   5.70   5.46   5.15
+    lots held         3.23   5.12   7.04   9.63  11.51  12.39  13.13  12.89  12.68
+    capital (market)  3.74   6.02  11.04  14.16  17.64  19.55  21.12  21.49  21.37
 
-The crash itself is not the damage — inventory rises only from 2.2 to 2.6 through the quarter. The damage is the flatline that follows. With μ = 0 the drift becomes ν = −4.5%, deep in the unstable region on *both* criteria, and the warehouse simply fills: lots keep arriving at 2.4 a year and essentially none leave. Inventory **more than doubles** from its pre-crash level over the next four years, and then four *further* years of restored, healthy drift claw back barely a tenth of the peak.
+Two things happen, and on a weekly cadence the first is no longer negligible. Through the crash quarter itself inventory rises from 5.1 to 7.0 lots and market capital nearly doubles, from 6.0 to 11.0 — thirteen puts are sold into a falling market in the space of that quarter, and every lot already held is marked down at the same time. An operator selling monthly would have written three.
+
+But the larger damage is still the flatline that follows. With μ = 0 the drift becomes ν = −4.5%, deep in the unstable region on *both* criteria, and the warehouse simply fills: lots keep arriving at 10.4 a year and essentially none leave. Inventory **more than doubles again** from its pre-crash level over the next four years, and then four *further* years of restored, healthy drift claw back barely a tenth of the peak.
 
 (Those figures come from 300 simulated paths at a fixed seed: `python code/wheel_sim.py --scenario stress --paths 300`.)
 
-That asymmetry — filled in three years, drained in decades — is the ratchet, and it follows directly from the transient of [the inventory section](#sec:inventory). Accumulation happens at the arrival rate, which is fast and constant. Release happens at the first-passage rate, which is slow and gets slower with depth. A strategy whose inventory can be filled twenty times faster than it can be emptied does not mean-revert in any sense an operator would recognize.
+That asymmetry — filled in three years, drained in decades — is the ratchet, and it follows directly from the transient of [the inventory section](#sec:inventory). Accumulation happens at the arrival rate, which is fast and constant. Release happens at the first-passage rate, which is slow and gets slower with depth. Through the flatline the warehouse gains about 1.6 lots a year; once healthy drift returns it sheds about 0.35. A strategy whose inventory fills four to five times faster than it drains does not mean-revert in any sense an operator would recognize.
 
 ## Reflexivity: the parameters move together
 

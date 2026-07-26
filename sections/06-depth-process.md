@@ -20,7 +20,7 @@ The log price is a random walk with drift; the strike is a constant; so depth is
 
 x  →  x  −  ν·τ_c  +  σ·√τ_c · (a standard normal draw)    {#eq:depth-walk}
 
-The depth is dragged *down* — toward exit — at rate ν per year, and jostled by an amount σ·√τ_c each period. At the article's parameters the jostle is 0.2 × √0.25 = **0.10**, ten log-points per quarter, against a downward pull of just 0.025 × 0.25 = **0.006**. Noise beats drift by a factor of sixteen over one period. Depth does not march toward zero; it staggers, and the drift only asserts itself over many periods.
+The depth is dragged *down* — toward exit — at rate ν per year, and jostled by an amount σ·√τ_c each period. At the article's parameters the jostle is 0.2 × √(1/13) = **0.055**, five and a half log-points per four-week period, against a downward pull of just 0.025 ÷ 13 = **0.0019**. Noise beats drift by a factor of twenty-nine over one period. Depth does not march toward zero; it staggers, and the drift only asserts itself over many periods.
 
 The drift itself is
 
@@ -32,7 +32,7 @@ and it deserves unpacking, because all three terms will matter and the last one 
 - **δ, the dividend yield**, pushes depth back up. A dividend is paid *out of the price* — on the ex-dividend day the stock is worth less by exactly that amount. At a fixed total return, every point of yield is a point of price appreciation the operator does not get, and the climb back to the strike takes correspondingly longer. The stock pays you to wait, and makes you wait longer *because* it pays.
 - **σ²/2, the volatility drag**, also pushes depth up, and it is not a modelling artifact. A price that swings symmetrically in percentage terms drifts *downward* in logarithm: gain 20% then lose 20% and you are down 4%. Over long horizons what matters to a multiplicative process is not its average return but its average log return, and the difference is exactly σ²/2. At σ = 20% this costs 2% a year — of the same order as everything else in the formula.
 
-For the running example ν = 7% − 2.5% − 2% = **2.5% per year**, against a typical entry depth of 3.2%. Read that comparison slowly: the drift needs **more than a year** to work off the hole a *typical* assignment starts in, and the typical assignment is the shallow case.
+For the running example ν = 7% − 2.5% − 2% = **2.5% per year**, against a typical entry depth of 1.55%. Read that comparison slowly: the drift needs **the better part of a year** to work off the hole a *typical* assignment starts in, and the typical assignment is the shallow case.
 
 Under the market's pricing drift the same formula gives ν = 5% − 2.5% − 2% = **0.5%**, five times smaller. The market prices this stock as one whose strikes are worked off at a crawl.
 
@@ -42,14 +42,16 @@ A lot at depth x is called away at the end of the current call period if the sto
 
 q(x)  =  N( (ν·τ_c − x) / (σ·√τ_c) )    {#eq:qx}
 
-This is the same recovery probability a practitioner would compute for a freshly assigned lot, but written as a *function* rather than a constant — and that difference is the entire content of this article. Evaluated for the running example, quarterly calls:
+This is the same recovery probability a practitioner would compute for a freshly assigned lot, but written as a *function* rather than a constant — and that difference is the entire content of this article. Evaluated for the running example, four-week calls:
 
-    depth x        0.032      0.05      0.10      0.15      0.20      0.30
-    q(x)           0.398     0.331     0.174     0.075     0.026     0.002
+    depth x        0.0155     0.03      0.05      0.10      0.15      0.20
+    q(x)            0.404     0.306     0.193     0.039     0.004     0.000
 
-A fresh lot is close to a coin flip: **q ≈ 0.40**, so about two lots in five leave on their first call. Ten log-points down, the odds are one in six. Twenty points down, one in thirty-eight. Thirty points down — a stock that has fallen by a quarter since the lot was bought — the call is a formality, worth nothing and virtually certain to expire.
+A fresh lot is close to a coin flip: **q ≈ 0.40**, so about two lots in five leave on their first call. Five log-points down, the odds are one in five. Ten points down, one in twenty-six. Fifteen points down, one in two hundred and sixty. Twenty points down — a stock that has fallen by a fifth since the lot was bought — the call is a formality, worth nothing and virtually certain to expire.
 
-The collapse is fast because the *drift term is negligible next to the noise*. Over one quarter, ν·τ_c contributes 0.006 while a standard deviation is 0.10; a lot escapes not because the stock is trending up but because it got lucky this quarter. Depth is worked off by luck in the short run and by drift only in the long run, and how long "the long run" takes is [the next section](#sec:holding).
+The collapse is fast because the *drift term is negligible next to the noise*. Over one four-week period, ν·τ_c contributes 0.0019 while a standard deviation is 0.055; a lot escapes not because the stock is trending up but because it got lucky this month. Depth is worked off by luck in the short run and by drift only in the long run, and how long "the long run" takes is [the next section](#sec:holding).
+
+Notice how much steeper this collapse is than it would be on a slower call clock. The scale on which depth matters is the one period's jostle σ·√τ_c, so shortening the call period does not merely change the units — it moves the cliff edge closer. A lot ten points under water is a live position against a quarterly call and a dead one against a four-week call.
 
 ## The premium at depth x
 
@@ -57,10 +59,10 @@ The other thing that depends on depth is what the covered call is worth. A lot a
 
 c_c(x)  =  BlackScholesCall( spot = 1, strike = e^x, tenor = τ_c, σ_IV, r, δ )    {#eq:ccx}
 
-    depth x        0.032      0.05      0.10      0.15      0.20      0.30
-    c_c(x)        0.0284    0.0221    0.0098    0.0036    0.0011    0.0001
+    depth x        0.0155     0.03      0.05      0.10      0.15      0.20
+    c_c(x)         0.0161   0.0110    0.0060    0.0009    0.0001    0.0000
 
-A fresh lot's quarterly call sells for **2.8% of the share price** — a real income stream, better than 11% a year on the value of the shares. A lot ten points down sells for 1.0%. A lot thirty points down sells for **one basis point**: nothing.
+A fresh lot's four-week call sells for **1.6% of the share price** — a real income stream, better than 20% a year on the value of the shares. A lot ten points down sells for 0.09%. A lot fifteen points down sells for **one basis point**: nothing.
 
 Put the two tables side by side and the mechanism driving the whole strategy is visible in one sentence. **Depth simultaneously destroys a lot's chance of leaving and its ability to earn while it waits.** The lots that are stuck are exactly the lots that pay nothing for being stuck. There is no compensating force — the same variable governs both, and governs them in the same direction.
 

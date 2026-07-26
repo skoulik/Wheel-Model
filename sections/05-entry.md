@@ -35,15 +35,17 @@ Operators rarely pick a strike directly. They pick how often they are willing to
 
 k\*  =  exp( N⁻¹(p\*) · σ·√τ_p  +  (m − σ²/2) · τ_p )    {#eq:kstar}
 
-For the **Standard** regime — p\* = 20%, monthly puts, σ = 20%, total return μ = 7%, δ = 2.5%, so m = 4.5% — this gives k\* ≈ **0.9546**, a strike about 4.5% below the market. For the **Conservative** regime, p\* = 10%, it gives k\* ≈ **0.9306**, about 7% below. Because p\* is defined in the real world, the realized assignment rate *is* p\*: one put in five, or one in ten. No correction is needed and none is applied.
+For the **Standard** regime — p\* = 20%, weekly puts, σ = 20%, total return μ = 7%, δ = 2.5%, so m = 4.5% — this gives k\* ≈ **0.9774**, a strike about 2.3% below the market. For the **Conservative** regime, p\* = 10%, it gives k\* ≈ **0.9655**, about 3.5% below. Because p\* is defined in the real world, the realized assignment rate *is* p\*: one put in five, or one in ten. No correction is needed and none is applied.
+
+The strikes are close to the money because the tenor is short. A week is not long enough for a 20%-volatility stock to travel far, so a one-in-five chance of finishing below the strike is only 2.3% away. This is the first appearance of a theme that runs through the whole article: **the cadence sets the scale of everything**, and quantities that look comparable at one cadence are not at another.
 
 Read the other way round — fixing that strike and asking the market what it thinks — the probability implied by option prices is
 
 p_screen  =  N(−d₂),   d₂ = [ −ln(k) + (r − δ − σ²/2)·τ_p ] / (σ·√τ_p)    {#eq:p-screen}
 
-which comes to **20.8%** at the Standard strike, a little higher than the 20% that will actually occur. This is worth knowing because p_screen is what a broker's screen displays and what practitioners quote to each other. The gap between the two worlds is (μ − r)·√τ_p/σ in probability units — the asset's Sharpe ratio times the square root of the tenor. It is small for short-dated options, and it is the *entire* difference between them.
+which comes to **20.4%** at the Standard strike, a little higher than the 20% that will actually occur. This is worth knowing because p_screen is what a broker's screen displays and what practitioners quote to each other. The gap between the two worlds is (μ − r)·√τ_p/σ in probability units — the asset's Sharpe ratio times the square root of the tenor. It is small for short-dated options, and it is the *entire* difference between them.
 
-(Strictly, the screen usually shows the option's **delta**, N(−d₁) ≈ 19.1% here, rather than the probability of finishing in the money, N(−d₂) ≈ 20.8%. The two are close for short-dated options and traders conflate them freely. This article always means a probability.)
+(Strictly, the screen usually shows the option's **delta**, N(−d₁) ≈ 19.6% here, rather than the probability of finishing in the money, N(−d₂) ≈ 20.4%. The two are close for short-dated options and traders conflate them freely. This article always means a probability.)
 
 ## How deep does assignment land?
 
@@ -59,15 +61,15 @@ Writing z = ln(S_T/S) for the log return over the put's life — normal, with me
 
 f(x₀)  =  φ( (ln k − x₀ − (m − σ²/2)·τ_p) / (σ·√τ_p) ) / ( σ·√τ_p · p\* ),   x₀ > 0    {#eq:x0-law}
 
-where φ is the standard normal bell curve. Its mean for the Standard regime is **E[x₀] ≈ 0.0322**: a typical assignment lands about **3.2% below its own strike**. Conservative entries land slightly shallower, E[x₀] ≈ 0.0273 — a strike further out of the money is reached only by a larger move, which then has less of the period left in which to overshoot.
+where φ is the standard normal bell curve. Its mean for the Standard regime is **E[x₀] ≈ 0.0155**: a typical assignment lands about **1.6% below its own strike**. Conservative entries land slightly shallower, E[x₀] ≈ 0.0131 — a strike further out of the money is reached only by a larger move, which then has less of the period left in which to overshoot.
 
 Expressed as a drop from the pre-assignment price rather than from the strike — the form practitioners usually think in — the same result reads
 
 E[d | assignment]  =  1 − e^(m·τ_p) · N(−d₁) / N(−d₂),   d₁ = d₂ + σ·√τ_p    {#eq:d-mean}
 
-giving **7.5%** for Standard and **9.4%** for Conservative. Under the market's drift these become 7.7% and 9.6%: conditioning on assignment does nearly all the work, and one month of drift is noise beside it.
+giving **3.8%** for Standard and **4.7%** for Conservative. Under the market's drift they are 3.8% and 4.7% as well — the two readings differ in the fourth decimal. Conditioning on assignment does all the work here, and one week of drift is invisible beside it.
 
-Two things about this number deserve emphasis, because guessing it instead of deriving it is the most consequential shortcut available in this subject. First, it costs nothing: it falls out of the same σ and τ_p that priced the option, with no separate assumption. Second, it is **much smaller than intuition suggests**. A monthly put assigned is not a disaster in progress; it is a lot bought about 3% under a strike the operator chose on purpose. Whether 3% is easy or hard to work off is the question the rest of Part II answers — and the answer is not the comfortable one.
+Two things about this number deserve emphasis, because guessing it instead of deriving it is the most consequential shortcut available in this subject. First, it costs nothing: it falls out of the same σ and τ_p that priced the option, with no separate assumption. Second, it is **much smaller than intuition suggests**. A weekly put assigned is not a disaster in progress; it is a lot bought about 1.6% under a strike the operator chose on purpose. Whether 1.6% is easy or hard to work off is the question the rest of Part II answers — and the answer is not the comfortable one, because it turns out to have almost nothing to do with the 1.6%.
 
 ## A caveat on exercise style
 

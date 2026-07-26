@@ -26,6 +26,13 @@ Two stability criteria fall out, and they are different:
                                    the killed walk's tail exponent 2nu/sigma^2
                                    must exceed 1)
 
+Numerics: finite-horizon quantities come from occupation() on a near grid
+(default h = 0.01, x_max = 4), whose resolution is set by the per-period
+step sigma*sqrt(tau_c); the stationary ones come from stationary(), which
+Richardson-extrapolates two grids because a single one biases E[T] upward
+by O(h^2) accumulated over the whole tail.  `code/mc_holding.py` is the
+grid-free check on both.
+
 Stdlib only.  Run:  python code/model.py
 """
 
@@ -88,8 +95,8 @@ class Config:
     """Strategy and market parameters.  Defaults = the Standard regime."""
 
     p_star: float = 0.20       # strike policy: assignment probability per put
-    tau_p: float = 1 / 12      # put tenor
-    n: int = 3                 # tau_c = n * tau_p
+    tau_p: float = 1 / 52      # put tenor: one week, the live-account cadence
+    n: int = 4                 # tau_c = n * tau_p = 4 weeks, the "monthly" call
     cadence: float = None      # T >= tau_p; None -> T = tau_p
     r: float = 0.05
     mu: float = 0.07           # TOTAL expected return; price drifts at mu - delta
@@ -266,7 +273,7 @@ class DepthWalk:
         return [wi / tot for wi in w]
 
 
-def occupation(C, measure, h=0.02, x_max=4.0, j_max=8000, eps=1e-9,
+def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
                min_steps=40):
     """Per-arrival functionals of the killed walk, summed over its life.
 
@@ -326,6 +333,49 @@ def occupation(C, measure, h=0.02, x_max=4.0, j_max=8000, eps=1e-9,
 # ----------------------------------------------------------------------
 # Economics: Little's law applied to inventory, income and capital
 # ----------------------------------------------------------------------
+
+def stationary(C, measure, h=0.025, x_max=20.0, eps=1e-7, **kw):
+    """Stationary functionals, Richardson-extrapolated in the grid step.
+
+    occupation()'s absorbing boundary sits on cell centres, so the first
+    live cell is at h/2 rather than 0+ and a lot is held marginally too
+    long; the resulting bias is O(h^2) and positive.  It matters here and
+    not for the finite-horizon numbers because the stationary sums run over
+    the whole heavy tail.  Combining a run at h with one at h/2,
+
+        F  =  ( 4*F_{h/2} - F_h ) / 3,
+
+    cancels the leading term.  Successive halvings of h shrink the error by
+    4x at both cadences, confirming the order; the extrapolated value agrees
+    with a grid-free Monte Carlo of the same walk to within its sampling
+    error (`code/mc_holding.py`).  A single run at h = 0.05 -- what the
+    article quoted before 2026-07-26 -- overstates E[T] by 5% at the old
+    monthly cadence and by 23% at the weekly one.
+
+    The default x_max is sized for the COUNT functionals the article quotes
+    (E[J], E[T], E[I], the survival curve): they are converged by x_max = 20
+    in both worlds, and going to 50 changes E[T] in the fifth decimal.  The
+    capital integral E[basis] is a different matter -- it needs the far
+    sweep in convergence_check(), which is where its divergence is the
+    finding rather than an error.
+    """
+    coarse = occupation(C, measure, h=h, x_max=x_max, eps=eps, **kw)
+    fine = occupation(C, measure, h=h / 2, x_max=x_max, eps=eps, **kw)
+
+    def rich(a, b):
+        return (4 * b - a) / 3
+
+    out = dict(fine)
+    for key in ("E[J]", "E[prem]", "E[basis]", "E[exitcost]", "P[exit]"):
+        out[key] = rich(coarse[key], fine[key])
+    j = min(len(coarse["surv"]), len(fine["surv"]))
+    for key in ("surv", "prem", "basis", "exitcost"):
+        out[key] = [rich(a, b) for a, b in zip(coarse[key][:j], fine[key][:j])]
+    out["q(x0)"] = 1 - out["surv"][1] if len(out["surv"]) > 1 else float("nan")
+    out["method"] = f"richardson({h:g}, {h / 2:g})"
+    out["steps"] = j
+    return out
+
 
 def _time_avg_weights(seq, tau_c, horizon):
     """Weights turning per-period functionals into a [0,H] time average.
@@ -541,20 +591,25 @@ def report(C, args):
 
         if not args.far:
             continue
-        far = occupation(C, measure, h=args.far_h, x_max=args.far_x_max,
-                         eps=1e-7)
+        # Counts converge by x_max = 20 and want the extrapolation; the
+        # capital integral below wants the far tail and tolerates a coarse h,
+        # so the two are computed on grids sized for their own job.
+        far = stationary(C, measure, h=args.far_h)
         f = economics(C, measure, far)
         t90 = time_to_fraction(C, far, 0.9)
-        print(f"   stationary (far grid h={args.far_h}, x_max={args.far_x_max},"
+        print(f"   stationary ({far['method']}, x_max={far['x_max']},"
               f" {far['steps']} periods, escaped {far['escaped']:.2e}):")
         print(f"     E[T] = {f['E[T]']:.2f}y ({f['E[J]']:.1f} call periods)"
               f"   Siegmund {f['E[T]_siegmund']:.2f}y"
               f"   E[I] = {f['I']:.2f}   time to 90% of it: {t90:.0f}y")
         if crit["capital_ok"]:
+            wide = economics(C, measure, occupation(
+                C, measure, h=args.far_h, x_max=args.far_x_max, eps=1e-7))
             conv = (theta - 1) * args.far_x_max
             flag = "" if conv > 8 else f"  [NOT converged: (theta-1)*x_max={conv:.1f}]"
-            print(f"     stationary capital = {f['capital']:.1f}"
-                  f"   excess = {f['excess']:+.4f}/yr{flag}")
+            print(f"     stationary capital = {wide['capital']:.1f}"
+                  f"   excess = {wide['excess']:+.4f}/yr"
+                  f"   [single grid h={args.far_h}, x_max={args.far_x_max}]{flag}")
         else:
             print("     stationary capital = INFINITE (m < sigma^2): the mean is "
                   "carried by depths the system reaches only over centuries.")
@@ -569,7 +624,7 @@ def convergence_check(args):
     print(f"{'meas':>5} {'h':>6} {'x_max':>6} {'E[I]':>8} {'capital':>9}"
           f" {'income':>9} {'excess':>10} {'escaped':>10}")
     for measure in ("P", "Q"):
-        for h, xm in ((0.04, 4.0), (0.02, 4.0), (0.02, 6.0), (0.01, 4.0)):
+        for h, xm in ((0.02, 4.0), (0.01, 4.0), (0.01, 6.0), (0.005, 4.0)):
             occ = occupation(C, measure, h=h, x_max=xm)
             x = economics(C, measure, occ, horizon=30.0)
             print(f"{measure:>5} {h:>6.3f} {xm:>6.1f} {x['I']:>8.3f}"
@@ -600,9 +655,9 @@ def convergence_check(args):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--h", type=float, default=0.02)
+    ap.add_argument("--h", type=float, default=0.01)
     ap.add_argument("--x-max", type=float, default=4.0)
-    ap.add_argument("--far-h", type=float, default=0.05)
+    ap.add_argument("--far-h", type=float, default=0.025)
     ap.add_argument("--far-x-max", type=float, default=50.0)
     ap.add_argument("--no-far", dest="far", action="store_false")
     ap.add_argument("--no-grid-check", dest="grid_check", action="store_false")

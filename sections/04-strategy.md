@@ -31,7 +31,7 @@ For the two call clocks the ratio
 
 n = τ_c / τ_p ≥ 1    {#eq:n}
 
-is the natural bookkeeping unit. Why would an operator choose τ_c > τ_p at all? Longer-dated calls collect more premium per contract and give a depressed stock more time to recover before the next decision point; shorter puts let the operator re-price the entry strike more frequently as conditions change. The trade-off is exactly what the model quantifies — and [the holding-time section](#sec:holding) finds that the length of the call period matters for a reason nobody expects.
+is the natural bookkeeping unit. Every worked example in this article uses the rhythm of the live account behind it: **a put sold every week, T = τ_p = 1/52, and calls written for four weeks, so n = 4** and τ_c = 1/13 of a year. Why would an operator choose τ_c > τ_p at all? Longer-dated calls collect more premium per contract and give a depressed stock more time to recover before the next decision point; shorter puts let the operator re-price the entry strike more frequently as conditions change. The trade-off is exactly what the model quantifies — and [the holding-time section](#sec:holding) finds that the length of the call period matters for a reason nobody expects.
 
 ## Three accounting tracks
 

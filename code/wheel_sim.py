@@ -62,8 +62,8 @@ class Regime:
 @dataclass
 class Params:
     p_star: float = 0.20
-    tau_p: float = 1 / 12
-    n: int = 3                 # tau_c = n * tau_p
+    tau_p: float = 1 / 52      # one week, matching model.Config
+    n: int = 4                 # tau_c = n * tau_p = 4 weeks
     cadence: float = None      # T >= tau_p; None -> T = tau_p
     r: float = 0.05
     margin: float = 0.20
@@ -602,7 +602,7 @@ def main():
 
     if args.scenario in ("base", "all"):
         P = Params(years=30.0, paths=args.paths or 200, seed=args.seed)
-        report(P, simulate(P), "base (article running example: p*=20%, monthly/quarterly)")
+        report(P, simulate(P), "base (article running example: p*=20%, weekly puts / 4-week calls)")
 
     if args.scenario in ("dividends", "all"):
         P = Params(years=30.0, paths=args.paths or 200, seed=args.seed, delta=0.025)

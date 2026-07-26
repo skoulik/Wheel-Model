@@ -4,7 +4,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 
 ## Conventions
 
-- All times are measured in **years** (a month is 1/12, a quarter is 0.25).
+- All times are measured in **years** (a week is 1/52, four weeks 1/13, a month 1/12, a quarter 0.25).
 - Prices of options and strikes are expressed as **fractions of the underlying price** at the moment of reference, so they are dimensionless. A premium c_p = 0.005 means the put sells for 0.5% of the stock price. Capital is quoted the same way: "capital of 5.1" means five times the current share price.
 - Rates (r, μ) and volatility (σ) are **annualized**.
 - Math is written in Unicode plain text in these drafts; conversion to LaTeX happens at assembly time.
@@ -31,10 +31,10 @@ This file is the single source of truth for every symbol used in the article. Wh
 
 | Symbol | Meaning |
 |---|---|
-| T | **Cadence**: how often a new put is sold (running example: monthly) |
+| T | **Cadence**: how often a new put is sold (running example: weekly) |
 | τ_p | **Tenor**: how long each put runs, τ_p ≤ T. The article's examples use τ_p = T; the two come apart in real operation, see [the live-account section](#sec:live) |
-| τ_c | Lifetime of each covered call sold; τ_c ≥ τ_p (running example: quarterly) |
-| n | The clock ratio τ_c / τ_p ≥ 1 (monthly puts with quarterly calls give n = 3) |
+| τ_c | Lifetime of each covered call sold; τ_c ≥ τ_p (running example: four weeks) |
+| n | The clock ratio τ_c / τ_p ≥ 1 (weekly puts with four-week calls give n = 4) |
 | k | Put strike as a fraction of the current price, k = K/S (k = 0.95 is a 5% out-of-the-money put) |
 | p\* | **The strike dial**: the assignment probability the operator targets, from which the strike k\* follows by [eq:kstar](#eq:kstar). Two regimes are carried throughout — **Standard** p\* = 20% and **Conservative** p\* = 10% |
 | γ | Margin fraction the broker requires on a short put position (running example: 0.20) |
@@ -58,7 +58,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 | λ | Arrival rate of new lots per year, λ = p\*/T |
 | I, I(t) | Number of inventory lots held — a random variable; I(t) when the time path matters |
 | ρ(x) | Stationary depth census: how the standing inventory is distributed over depth ([eq:census](#eq:census)) |
-| d | Fractional price drop at the moment of assignment, S → S(1−d). Not a free input: it follows from x₀, and its average is [eq:d-mean](#eq:d-mean) (≈ 7.5% for the running example) |
+| d | Fractional price drop at the moment of assignment, S → S(1−d). Not a free input: it follows from x₀, and its average is [eq:d-mean](#eq:d-mean) (≈ 3.8% for the running example) |
 
 ## Probability notation
 
