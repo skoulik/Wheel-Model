@@ -25,7 +25,7 @@ Three period lengths govern the strategy, and keeping them separate matters more
 - **The tenor τ_p ≤ T** — how long each put runs. Premium is collected once per cadence period, but priced off the tenor.
 - **The call period τ_c ≥ τ_p** — how long each covered call runs.
 
-Most descriptions of the wheel collapse the first two, assuming a put is always live: sell a monthly put, it expires, sell another. Real operation often separates them — a three-day option sold once a week leaves the stock uncovered most of the time — and the separation changes the economics, because premium scales roughly with the square root of the tenor while assignments scale with the cadence. Every example in Parts II and III sets T = τ_p, the always-covered case; [the live-account section](#sec:live) is where they come apart.
+Most descriptions of the wheel collapse the first two, assuming a put is always live: sell a monthly put, it expires, sell another. Real operation separates them, though usually by less than it first appears — a put sold Monday at the open and expiring Friday at the close is live five of the week's seven days, leaving the stock uncovered only over the weekend, when the market is shut in any case. The separation still changes the economics, because premium scales roughly with the square root of the tenor while assignments scale with the cadence. Every example in Parts II and III sets T = τ_p, the always-covered case — for the Monday-to-Friday weekly pattern, very nearly the truth; [the live-account section](#sec:live) is where they come apart.
 
 For the two call clocks the ratio
 

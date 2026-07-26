@@ -25,6 +25,17 @@ Statement row format (columns: Date, Amount, Payee, Description, Reference):
                                                    negative = withheld, positive = refund)
     "NVO(...) Cash Dividend USD 0.58432 per Share - FEE"      ADR/handling fee
 
+Dates: the statement's Date column is the CASH POSTING date, not the trade
+date. Trades post one business day later (options and equities both settle
+T+1), and expiry/assignment processing posts one calendar day after expiry —
+which is why 526 of 530 expiry rows land exactly one day after the contract's
+expiry date, why 55 assignment stock rows are dated Saturday, and why opens
+cluster on Tuesday for an operator who sells on Monday. Every date is shifted
+back to its event date at parse time (`_trade_day` / `_expiry_day`), so a put
+sold Monday and expiring Friday reads as the 4-calendar-day option it is, not
+a 3-day one. Residual error: a holiday between trade and posting shifts the
+inferred trade date one extra day back.
+
 Caveats baked into the analysis:
   * "Junk" filter: any symbol that ever traded (stock or strike) below
     JUNK_PRICE_CUTOFF is excluded from the quality universe — these are legacy
@@ -48,10 +59,10 @@ import glob
 import re
 import sys
 from collections import Counter, defaultdict
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
-# Model formulas shared with the article's verification script (same directory).
-from verify_examples import bs_call, expected_drop_given_assignment, k_star
+# Model formulas: model.py is the single source (same directory).
+from model import Config, assign_prob, bs_call, expected_drop, strike
 
 STATEMENTS_GLOB = "statements/*.csv"
 JUNK_PRICE_CUTOFF = 8.0  # USD; discretionary, see module docstring
@@ -97,7 +108,7 @@ def parse(paths):
                     if m:
                         key = (m[2], m[3], float(m[4]), m[5])
                         opens.setdefault(key, []).append(
-                            (_d(day), float(m[6]), float(m[7] or 0)))
+                            (_trade_day(day), float(m[6]), float(m[7] or 0)))
                         continue
                     m = OPT_CLOSE.match(desc)
                     if m:
@@ -105,9 +116,13 @@ def parse(paths):
                         pending = opens.get(key, [])
                         if pending:
                             open_day, open_px, comm = pending.pop(0)
+                            # Expiry/assignment posts +1 calendar day; a
+                            # buy-back is a trade and posts +1 business day.
+                            close_day = (_expiry_day(day) if m[6]
+                                         else _trade_day(day))
                             positions.append(dict(
                                 sym=m[2], exp=_exp(m[3]), strike=float(m[4]),
-                                right=m[5], open=open_day, close=_d(day),
+                                right=m[5], open=open_day, close=close_day,
                                 open_px=open_px, comm=comm,
                                 how=m[6] or "closed",
                                 close_px=float(m[7]) if m[7] else 0.0))
@@ -117,8 +132,10 @@ def parse(paths):
                     m = STOCK.match(desc)
                     if m:
                         sign = 1 if m[1] == "+" else -1
-                        stock_tx.append((_d(day), m[3], sign * int(m[2]),
-                                         float(m[5]), m[4] == "assigned"))
+                        assigned = m[4] == "assigned"
+                        d_ev = _expiry_day(day) if assigned else _trade_day(day)
+                        stock_tx.append((d_ev, m[3], sign * int(m[2]),
+                                         float(m[5]), assigned))
                     else:
                         print("UNPARSED STOCK ROW:", desc, file=sys.stderr)
                 elif ref == "" and "ividend" in desc:
@@ -147,6 +164,23 @@ def _d(s):
     return datetime.strptime(s, "%Y-%m-%d").date()
 
 
+def _trade_day(s):
+    """Trade date behind a T+1 cash posting: the previous business day."""
+    d = _d(s) - timedelta(days=1)
+    while d.weekday() >= 5:          # posted Mon or Sat -> traded Friday
+        d -= timedelta(days=1)
+    return d
+
+
+def _expiry_day(s):
+    """Event date behind an expiry/assignment posting: one calendar day back.
+
+    Not a business-day shift: the OCC processes Friday expiries over the
+    weekend, so these rows are dated Saturday.
+    """
+    return _d(s) - timedelta(days=1)
+
+
 def _exp(s):
     return datetime.strptime(s, "%d%b%y").date()
 
@@ -163,8 +197,11 @@ def median(sorted_vals):
 
 
 def option_report(positions, junk):
-    buckets = {"P": [(1, 5, "weekly(2-4d)"), (6, 14, "1-2wk"),
-                     (15, 27, "2-4wk"), (28, 45, "monthly")],
+    # Calendar days between trade and expiry, after the posting-date shift.
+    # The dominant pattern is Mon-open/Fri-close = 4d; a put sold the previous
+    # Friday for the same expiry is a true 7d weekly, hence the split at 6-8.
+    buckets = {"P": [(1, 5, "intraweek(<=5d)"), (6, 8, "weekly(7d)"),
+                     (9, 14, "~2wk"), (15, 27, "2-4wk"), (28, 45, "monthly")],
                "C": [(1, 7, "<=1wk"), (8, 21, "1-3wk"),
                      (22, 45, "~monthly"), (46, 400, "long")]}
     for right in "PC":
@@ -295,14 +332,25 @@ def assignment_depth_report(positions, junk, r=0.05):
               f"above strike: {neg / m:.0%}")
     print("  model-predicted E[gap] = 1 - (1 - E[d|A])/k at the observed "
           "assignment rates (finding #2):")
-    for label, tau_p, p_emp in (("weekly-cadence 3d puts", 3 / 252, 0.09),
+    # The weekly put runs Monday open to Friday close. That is 5 sessions of
+    # trading time but only 4 calendar days, and at this tenor the convention
+    # nearly doubles tau_p, so both ends of the bracket are reported.
+    for label, tau_p, p_emp in (("Mon-Fri puts (5/252 trading)", 5 / 252, 0.09),
+                                ("Mon-Fri puts (4/365 calendar)", 4 / 365, 0.09),
                                 ("monthly puts", 1 / 12, 0.118)):
         for sigma in (0.20, 0.30):
-            k = k_star(p_emp, tau_p, sigma, r)
-            ed = expected_drop_given_assignment(k, tau_p, sigma, r)
-            print(f"    {label:24s} sigma={sigma:.0%}: k*={k:.3f}  E[d|A]={ed:.3f}  "
+            # delta=0, no IV spread: measure "Q" is then the plain drift r,
+            # matching the convention this diagnostic has always used.
+            C = Config(p_star=p_emp, tau_p=tau_p, sigma=sigma, r=r, delta=0.0)
+            k = strike(C, "Q")
+            ed = expected_drop(C, "Q")
+            print(f"    {label:30s} sigma={sigma:.0%}: k*={k:.3f}  E[d|A]={ed:.3f}  "
                   f"E[gap]={1 - (1 - ed) / k:+.3f}")
-    ed = expected_drop_given_assignment(0.95, 1 / 12, 0.20, r)
+    # Config is parameterized by p*, so reach k = 0.95 through the p* that
+    # produces it rather than re-deriving the formula outside model.py.
+    C = Config(p_star=assign_prob(0.95, 1 / 12, 0.20, r), tau_p=1 / 12,
+               sigma=0.20, r=r, delta=0.0)
+    ed = expected_drop(C, "Q")
     print(f"    article example (k=0.95, monthly, sigma=20%): E[d|A]={ed:.3f}  "
           f"E[gap]={1 - (1 - ed) / 0.95:+.3f}  (d=0.15 would put E[gap] near +0.11)")
 

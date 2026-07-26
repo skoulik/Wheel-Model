@@ -1,5 +1,13 @@
 # Real Statement vs. Model: Observations from 14 Months of Live Wheel Trading
 
+> **Correction, 2026-07-26 (kept as written otherwise — this is a historical draft).**
+> Every date below is one day late: the statement's Date column is the cash posting
+> date, not the trade date. Finding #1's "3-day option" is a Monday-sold, Friday-expiring
+> option, and the duty-cycle gap it reports is the weekend, not "~40–50% of calendar
+> time". See TODO #7 for the evidence and the consequences; findings #1–#3 should be
+> re-derived from `code/analyze_statement.py`, which now shifts dates to their event
+> date, rather than quoted from here.
+
 Source: statements/USD.csv + statements/USD1.csv (private, gitignored) — Interactive
 Brokers cash-flow statements covering 2025-05 through 2026-07-10. Parser and
 aggregate reports: code/analyze_statement.py. Parsed: 1,123 closed option positions
