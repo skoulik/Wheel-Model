@@ -1,0 +1,74 @@
+# Entry: How Often, and How Deep {#sec:entry}
+
+Everything the wheel does downstream is set by two numbers decided at the moment a put is assigned: **how often** assignment happens, and **how far below the strike** the stock has fallen when it does. This section derives both, and settles which probabilities the article is talking about.
+
+## Detour: Bernoulli trials
+
+> When something either happens or doesn't — a coin flip, a die roll checked for a six, a put option either assigning or not — probabilists call it a **Bernoulli trial**. Its only parameter is p, the probability the event happens. Strings of independent Bernoulli trials are the atoms from which the more elaborate distributions later in this article are built. Any introductory probability text covers them; Ross's *A First Course in Probability* is a standard choice.
+
+Selling a put is one Bernoulli trial per cadence period: with probability p\* it assigns and delivers a lot of stock into inventory, otherwise it expires and the operator keeps the premium and sells another.
+
+## Detour: the normal distribution and N(·)
+
+> The **standard normal distribution** is the familiar bell curve, centered at zero with spread one. Its **cumulative distribution function** N(x) answers: what is the probability that a standard normal random variable lands below x? It is a lookup — every statistics package and spreadsheet provides it. Its inverse N⁻¹ goes the other way, converting a probability into the corresponding threshold. Under the price model below, probabilities of price events reduce to evaluations of N at the right argument.
+
+## Detour: the lognormal price model
+
+> The **Black–Scholes model** (1973) describes a stock price as drifting upward at some average rate while being knocked around by random shocks whose size is set by the volatility σ. Percentage changes are random, independent from period to period, and normally distributed — which makes the price itself *lognormally* distributed at any future date, and makes the **logarithm** of the price an ordinary random walk with drift. That last fact is the one this article leans on hardest. The model is a simplification — real markets have jumps, fat tails, and volatility that changes over time — but it is the shared language in which option prices are quoted, and its probabilities are accurate enough for the structural questions asked here. Hull's *Options, Futures, and Other Derivatives* is the standard reference.
+
+## Which probabilities? One measure, two worlds
+
+A price model needs a **drift**: the average rate at which the price climbs. Two different numbers can be put there, and confusing them is the classic error in this subject.
+
+- The **real-world** drift is what the stock is actually expected to do: total return μ, less the dividend yield δ, which is paid out of the price rather than added to it. So m = μ − δ.
+- The **risk-neutral** drift is what option *prices* behave as if the stock will do: the risk-free rate r, less δ again. So m = r − δ. It is not a forecast, and nobody claims the stock will only return r. It is an artifact of how options are priced — and it is what lets a formula built out of option prices be read straight off the market.
+
+This article computes everything in terms of a single drift m, and reports two readings of the same chain of formulas: **m = μ − δ**, what actually happens, and **m = r − δ**, what the market's prices imply. Neither is ever mixed into the other. The real-world reading leads, because that is the world the operator lives in; the market's reading appears alongside wherever the two disagree, and in [the stability section](#sec:stability) that disagreement becomes the sharpest result in the article.
+
+Premiums are treated differently, and deliberately so. **A premium is not a probability; it is a price.** The operator does not compute what a put ought to cost, they read what it does cost. Premiums therefore enter as market data. That the market publishes those quotes in Black–Scholes form, at a number called implied volatility, is a quoting convention — the same way a bond price is published as a yield. Where a premium is needed, the article uses that convention at the quoted volatility σ_IV.
+
+That leaves one honest question, which [the returns section](#sec:returns) answers with a number rather than an argument. Implied volatility is *systematically higher* than the volatility that subsequently materializes, and that gap — the volatility risk premium — is the documented edge of every option-selling strategy. Every headline result below assumes it away, σ_IV = σ, so that what remains is the machinery of the strategy and nothing else.
+
+## The strike dial
+
+Operators rarely pick a strike directly. They pick how often they are willing to be assigned, and the strike follows. Under the lognormal model the strike fraction k\* delivering a target assignment probability p\* is
+
+k\*  =  exp( N⁻¹(p\*) · σ·√τ_p  +  (m − σ²/2) · τ_p )    {#eq:kstar}
+
+For the **Standard** regime — p\* = 20%, monthly puts, σ = 20%, total return μ = 7%, δ = 2.5%, so m = 4.5% — this gives k\* ≈ **0.9546**, a strike about 4.5% below the market. For the **Conservative** regime, p\* = 10%, it gives k\* ≈ **0.9306**, about 7% below. Because p\* is defined in the real world, the realized assignment rate *is* p\*: one put in five, or one in ten. No correction is needed and none is applied.
+
+Read the other way round — fixing that strike and asking the market what it thinks — the probability implied by option prices is
+
+p_screen  =  N(−d₂),   d₂ = [ −ln(k) + (r − δ − σ²/2)·τ_p ] / (σ·√τ_p)    {#eq:p-screen}
+
+which comes to **20.8%** at the Standard strike, a little higher than the 20% that will actually occur. This is worth knowing because p_screen is what a broker's screen displays and what practitioners quote to each other. The gap between the two worlds is (μ − r)·√τ_p/σ in probability units — the asset's Sharpe ratio times the square root of the tenor. It is small for short-dated options, and it is the *entire* difference between them.
+
+(Strictly, the screen usually shows the option's **delta**, N(−d₁) ≈ 19.1% here, rather than the probability of finishing in the money, N(−d₂) ≈ 20.8%. The two are close for short-dated options and traders conflate them freely. This article always means a probability.)
+
+## How deep does assignment land?
+
+Assignment tells us the stock finished below the strike; it does not say by how much, and that overshoot is what the lot must climb back out of. The quantity has a name here — the lot's **depth** — and its behaviour over time is the subject of everything that follows. At the moment of assignment,
+
+x₀  =  ln( K_c / S )  >  0,
+
+the log-distance from the price paid to the price the market is offering. Since the log price is normally distributed and assignment is precisely the event that it finished below ln k, the entry depth is a **truncated normal** — the tail of a bell curve, cut at zero and flipped around.
+
+> **Detour: truncated distributions and conditional expectation.** An ordinary expectation averages over all scenarios. A **conditional expectation** averages only over those in which some event occurred — "the average size of an insurance claim, *given* that a claim was filed". Computing one means cutting the distribution at the event's boundary and averaging what remains; the remaining piece is called a *truncated* distribution. For the normal distribution these truncated averages have closed forms built from the same N(·) used everywhere else. Any text deriving the Black–Scholes formula computes one along the way; Hull covers it.
+
+Writing z = ln(S_T/S) for the log return over the put's life — normal, with mean (m − σ²/2)·τ_p and standard deviation σ·√τ_p — the entry depth is x₀ = ln k − z conditioned on z < ln k, with density
+
+f(x₀)  =  φ( (ln k − x₀ − (m − σ²/2)·τ_p) / (σ·√τ_p) ) / ( σ·√τ_p · p\* ),   x₀ > 0    {#eq:x0-law}
+
+where φ is the standard normal bell curve. Its mean for the Standard regime is **E[x₀] ≈ 0.0322**: a typical assignment lands about **3.2% below its own strike**. Conservative entries land slightly shallower, E[x₀] ≈ 0.0273 — a strike further out of the money is reached only by a larger move, which then has less of the period left in which to overshoot.
+
+Expressed as a drop from the pre-assignment price rather than from the strike — the form practitioners usually think in — the same result reads
+
+E[d | assignment]  =  1 − e^(m·τ_p) · N(−d₁) / N(−d₂),   d₁ = d₂ + σ·√τ_p    {#eq:d-mean}
+
+giving **7.5%** for Standard and **9.4%** for Conservative. Under the market's drift these become 7.7% and 9.6%: conditioning on assignment does nearly all the work, and one month of drift is noise beside it.
+
+Two things about this number deserve emphasis, because guessing it instead of deriving it is the most consequential shortcut available in this subject. First, it costs nothing: it falls out of the same σ and τ_p that priced the option, with no separate assumption. Second, it is **much smaller than intuition suggests**. A monthly put assigned is not a disaster in progress; it is a lot bought about 3% under a strike the operator chose on purpose. Whether 3% is easy or hard to work off is the question the rest of Part II answers — and the answer is not the comfortable one.
+
+## A caveat on exercise style
+
+Both probabilities here are terminal: they ask where the stock is *at expiration*. Listed equity options are American and may be exercised early. For short puts the approximation is good — early exercise of a put is rare, and slightly raises the effective assignment rate. For covered calls on dividend payers it is not negligible: a deep in-the-money call is often exercised the day before the stock goes ex-dividend, which shortens holding periods and therefore *helps* the strategy, so omitting it is conservative. There is also a path-versus-endpoint distinction — the stock may cross a strike mid-period and come back, which a terminal probability never sees. [The holding-time section](#sec:holding) turns that from a caveat into a quantity, because on the call leg the same effect has a name and a measurable size.

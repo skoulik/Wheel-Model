@@ -17,7 +17,7 @@ A quantitative finance modeling project: a mathematical model of the "wheel" opt
 
 - Article sections are developed in Markdown, one file per section — not directly in `.tex`. Conversion to LaTeX happens at assembly time.
 - Math is written in **Unicode plain text** (τ, σ, N(−d₂)), not LaTeX markup — a deliberate decision for raw readability.
-- Cross-section references use pandoc-style anchors: each section H1 is `# Title {#sec:name}`, and prose references are markdown links like `[the recovery section](#sec:recovery)` (they become `\label`/`\ref` at assembly). The anchor list lives in `sections/00-notation.md` Conventions.
+- Cross-section references use pandoc-style anchors: each section H1 is `# Title {#sec:name}`, and prose references are markdown links like `[the holding-time section](#sec:holding)` (they become `\label`/`\ref` at assembly). The anchor list lives in `sections/00-notation.md` Conventions.
 - Target audience is the general public. Every modeling assumption must be justified in plain terms, not just stated.
 - Every parameter gets a proper explanation when first introduced (what it means, typical values, why it matters).
 - Before using a mathematical construct, include a short self-contained detour (blockquote style, see existing sections) explaining what it is with a pointer for further reading.
@@ -25,12 +25,16 @@ A quantitative finance modeling project: a mathematical model of the "wheel" opt
 
 ## The Model (big picture)
 
-- **Notation:** see `sections/00-notation.md`. Core symbols: τ_p/τ_c put/call periods, n = τ_c/τ_p; k = K/S₀; p = assignment probability (risk-neutral, deliberately conservative); q = per-call-period recovery probability (real-world drift μ — the measure mixing is a deliberate policy, TODO #4); q_p ≈ q/n on the put clock; d = drop at assignment.
-- **Central result:** inventory of assigned lots is an M/M/∞-style queue, ~Poisson steady state with mean I\* = p·n/q; in equilibrium arrival rate = departure rate ("self-recycling"). Track A run rate per put period: E[Π]/S = c_p + p·c_c/q.
-- **Tier structure:** Tier 1 (current sections) uses the homogeneous approximation — uniform q across inventory layers. Tier 2 (planned, `sections/10-outlook.md`) makes q_i depth-dependent, derives the true stability condition, and maps the stable/metastable/unstable phase diagram. Failure modes motivating it: dead strata of trapped capital, p↑/q↓ reflexivity in stress, crash-then-flatline breaking the capital-convergence bound.
+- **Notation:** see `sections/00-notation.md`, which is authoritative. Core symbols: cadence T ≥ tenor τ_p, call period τ_c, n = τ_c/τ_p; p\* the strike dial (a *real-world* assignment probability, from which k\* follows); x = ln(K_c/S) the depth of a lot below its own frozen call strike.
+- **The spine.** One state variable and one chain of formulas. Depth is a Gaussian random walk sampled on the call grid, with drift ν = m − σ²/2; a lot exits at the first grid point with x ≤ 0. From that: the entry law for x₀ → the survival sequence → E[W] by first passage → E[I] = λ·E[W] by Little's law → the depth census → income and capital as integrals against the census → the stability criteria.
+- **One measure, two worlds.** Every probability is computed at a single price drift m, and a "measure" is a value of m: m = μ − δ (real world, leads) or m = r − δ (what option prices imply, reported alongside). Premiums are never derived from either — they are quotes, priced at σ_IV, which defaults to σ (no volatility risk premium assumed).
+- **Central results.** Mean holding time 4.2y against a 6-month median, because holding time is a first-passage time; the call-grid tax β·σ·√τ_c exceeds the typical entry depth by 1.8×; equilibrium inventory is approached over ~94 years, so quoted numbers are finite-horizon; at fair option prices the wheel is economically indistinguishable from owning the stock, so its edge is entirely the volatility risk premium (break-even ≈ 0.2 vol points); **two** stability boundaries — lots return iff μ − δ > σ²/2, their capital returns iff μ − δ > σ².
+- **Accounting.** The headline "true excess return" uses the economic ledger: inventory at market value, the mark loss booked at acquisition, the upside surrendered booked at call-away. The Track A cash-on-cost-basis view is reported beside it as what a brokerage statement shows. The economic ledger is the one that satisfies no-arbitrage — which is used as a test, see below.
 
 ## Cautions
 
-- **Sign errors have happened before** (both d₂ and the q formula had inverted signs in early drafts; the P&L formula double-counted the put premium). The defense is `code/verify_examples.py` — keep it in sync with the text and re-run it after any formula change.
-- The known-correct anchor example: k=0.95, τ_p=1/12, σ=20%, r=5% ⇒ d₂ ≈ 0.93, p ≈ 17.6%.
-- Branch note: the current branch is `master`, but the configured main branch for PRs is `main`.
+- **Sign errors have happened before** (both d₂ and the q formula had inverted signs in early drafts; an early P&L formula double-counted the put premium; the first economic ledger omitted the call-away giveaway). The defense is `code/verify_examples.py` — keep it in sync with the text and re-run after any formula change. It is organized section by section, and `--full` adds the slow far-grid figures.
+- **The strongest available test is free**: run the model at m = r − δ and the economic excess return must vanish up to the dividend-withholding leak, because nothing beats the risk-free rate under the pricing measure. It holds to 5bp and it has already caught one real omission. Any change that breaks it is wrong.
+- **Stationary means can be pathological.** Expected capital is finite only when μ − δ > σ², and even then it is carried by depths reached over centuries. Quote finite-horizon figures (5/10/30y); use stationary values only to characterize a regime.
+- `code/model.py` is the analytic core and the single source of formulas. `code/legacy_homogeneous.py` and `code/first_passage.py` are scaffolding from the superseded model, kept only until Part IV replaces what depends on them; do not quote anything computed there.
+- Branch note: the current branch is `main`.

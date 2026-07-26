@@ -5,55 +5,60 @@ This file is the single source of truth for every symbol used in the article. Wh
 ## Conventions
 
 - All times are measured in **years** (a month is 1/12, a quarter is 0.25).
-- Prices of options and strikes are expressed as **fractions of the underlying price** at the moment of reference, so they are dimensionless. A premium c_p = 0.005 means the put sells for 0.5% of the stock price.
+- Prices of options and strikes are expressed as **fractions of the underlying price** at the moment of reference, so they are dimensionless. A premium c_p = 0.005 means the put sells for 0.5% of the stock price. Capital is quoted the same way: "capital of 5.1" means five times the current share price.
 - Rates (r, μ) and volatility (σ) are **annualized**.
-- Probabilities named p refer to the put leg; probabilities named q refer to the call leg.
 - Math is written in Unicode plain text in these drafts; conversion to LaTeX happens at assembly time.
-- **Cross-references:** every section's H1 carries a pandoc-style anchor (`# Title {#sec:name}`), and in-prose references are written as markdown links to those anchors — e.g. `[the recovery section](#sec:recovery)`. At assembly time these become `\label`/`\ref` pairs. Never refer to another section by bare prose or by number; always link. Current anchors: sec:notation, sec:abstract, sec:introduction, sec:prior-work, sec:strategy, sec:assignment, sec:recovery, sec:queue, sec:returns, sec:layered, sec:stability, sec:outlook.
-- **Formula numbering:** every displayed (non-inline) formula carries a pandoc-style anchor at the end of its display line — `E[Π] / S = c_p + p · c_c / q    {#eq:run-rate}`. In-prose references are markdown links to those anchors, e.g. `formula [eq:run-rate](#eq:run-rate)`. At assembly time the display becomes a numbered `equation` environment with `\label{eq:name}`, and each reference link is replaced wholesale by `\eqref{eq:name}` — a literal "(N)" — so phrase references to read naturally with a bare number in the link's place ("formula (7)"). Never refer to a displayed formula by paraphrase or by its section alone; cite its anchor. Current anchors: eq:n, eq:excess-return (section 04); eq:p, eq:kstar, eq:p-rw (05); eq:s-prime, eq:partial-expectation, eq:d-mean, eq:q (06); eq:qp, eq:istar, eq:poisson (07); eq:run-rate, eq:capital, eq:capital-bound (08).
-- Every worked numerical example in the text is recomputed by `code/verify_examples.py`. If you change a formula or an example, update and re-run the script.
+- **One measure, two worlds.** Every probability and expectation in this article is computed under a single price drift m, and the whole model is one chain of formulas parameterized by it. Setting m = μ − δ gives the **real-world** reading (what actually happens); setting m = r − δ gives the **risk-neutral** reading (what the option market's prices imply). Both are self-consistent, and where they differ materially the article reports both. Option premiums are never computed from either: they are **quotes**, market data, read off the screen and parameterized in the market's own convention (Black–Scholes at implied volatility). See [the entry section](#sec:entry).
+- **Cross-references:** every section's H1 carries a pandoc-style anchor (`# Title {#sec:name}`), and in-prose references are written as markdown links to those anchors — e.g. `[the holding-time section](#sec:holding)`. At assembly time these become `\label`/`\ref` pairs. Never refer to another section by bare prose or by number; always link. Current anchors: sec:notation, sec:abstract, sec:introduction, sec:prior-work, sec:strategy, sec:entry, sec:depth, sec:holding, sec:inventory, sec:returns, sec:stability, sec:portfolio, sec:correlation, sec:verification, sec:live, sec:outlook.
+- **Formula numbering:** every displayed (non-inline) formula carries a pandoc-style anchor at the end of its display line — `E[I] = λ · E[W]    {#eq:little}`. In-prose references are markdown links to those anchors, e.g. `formula [eq:little](#eq:little)`. At assembly time the display becomes a numbered `equation` environment with `\label{eq:name}`, and each reference link is replaced wholesale by `\eqref{eq:name}` — a literal "(N)" — so phrase references to read naturally with a bare number in the link's place ("formula (7)"). Never refer to a displayed formula by paraphrase or by its section alone; cite its anchor. Current anchors: eq:n, eq:excess-return (section 04); eq:kstar, eq:p-screen, eq:x0-law, eq:d-mean (05); eq:depth-walk, eq:nu, eq:qx, eq:ccx (06); eq:siegmund, eq:survival, eq:holding, eq:trapped (07); eq:little, eq:census (08); eq:income, eq:capital, eq:econ-pnl, eq:excess (09); eq:count-criterion, eq:capital-criterion (10).
+- Every worked numerical example in the text is recomputed by `code/verify_examples.py`, which is organized section by section. If you change a formula or an example, update and re-run the script.
 
 ## Market and asset parameters
 
 | Symbol | Meaning |
 |---|---|
-| S₀ | Price of the underlying stock at the moment of reference |
-| μ | Real-world (expected) annual **total return** of the stock — price appreciation plus dividend yield. The price itself drifts at μ − δ |
+| S, S₀ | Price of the underlying stock; S₀ when a fixed reference moment matters |
+| μ | Real-world expected annual **total return** of the stock — price appreciation plus dividend yield |
 | r | Risk-free interest rate, annualized |
-| σ | Volatility of the stock's returns, annualized (currently a single number; see TODO on distinguishing implied vs realized) |
+| σ | Volatility of the stock's returns, annualized — the **realized** volatility, which governs the actual price path |
+| σ_IV | Implied volatility: the number the market quotes option prices in. The article's results assume σ_IV = σ (no volatility risk premium) unless stated, and [the returns section](#sec:returns) computes what spread would be needed to change the verdict |
 | δ | Continuous dividend yield, annualized, gross of withholding (running example: 2.5%) |
 | w | Withholding tax fraction on dividends (running example: 15%, the common treaty rate) |
 | δ_net | Net dividend yield retained by the operator: δ_net = δ·(1−w) (running example: ≈ 2.1%) |
+| **m** | **The price drift of the world being computed in**: m = μ − δ in the real world, m = r − δ under the market's pricing measure. The dividend is subtracted because it is paid out of the price |
 
 ## Strategy parameters (chosen by the operator)
 
 | Symbol | Meaning |
 |---|---|
-| τ_p | Lifetime of each put option sold (e.g., 1/12 for monthly puts) |
-| τ_c | Lifetime of each covered call sold; τ_c ≥ τ_p |
-| n | The clock ratio τ_c / τ_p ≥ 1 (e.g., monthly puts with quarterly calls give n = 3) |
-| k | Put strike as a fraction of current price, k = K/S₀ (k = 0.95 is a 5% out-of-the-money put) |
-| p\* | Target assignment probability. The operator has two equivalent ways to set the put strike: pick k directly, or pick the desired assignment probability p\* and compute the strike k\* that delivers it (the inversion formula [eq:kstar](#eq:kstar) in [the assignment section](#sec:assignment)). We generally use the second, so k floats with volatility while p\* stays fixed. |
-| m | Margin fraction the broker requires on a short put position |
+| T | **Cadence**: how often a new put is sold (running example: monthly) |
+| τ_p | **Tenor**: how long each put runs, τ_p ≤ T. The article's examples use τ_p = T; the two come apart in real operation, see [the live-account section](#sec:live) |
+| τ_c | Lifetime of each covered call sold; τ_c ≥ τ_p (running example: quarterly) |
+| n | The clock ratio τ_c / τ_p ≥ 1 (monthly puts with quarterly calls give n = 3) |
+| k | Put strike as a fraction of the current price, k = K/S (k = 0.95 is a 5% out-of-the-money put) |
+| p\* | **The strike dial**: the assignment probability the operator targets, from which the strike k\* follows by [eq:kstar](#eq:kstar). Two regimes are carried throughout — **Standard** p\* = 20% and **Conservative** p\* = 10% |
+| γ | Margin fraction the broker requires on a short put position (running example: 0.20) |
+| K_c | Covered call strike, frozen at the price the lot was bought at: K_c = k·S at the moment of assignment |
 
-## Derived quantities
+## The depth process and its statistics
 
 | Symbol | Meaning |
 |---|---|
-| d₂, d₁ | The standard Black–Scholes intermediate quantities (defined where first used) |
-| p | Risk-neutral probability the put is assigned at expiration, p = N(−d₂) |
-| p_rw | Real-world assignment probability (uses μ instead of r); p_rw < p for equities |
-| d | Fractional price drop at the moment of assignment: the stock sits at S′ = S₀(1−d). Not a free input: E[d \| assignment] = 1 − e^((r−δ)·τ_p)·N(−d₁)/N(−d₂), derived as [eq:d-mean](#eq:d-mean) in [the recovery section](#sec:recovery) (≈ 0.08 for the running example — the base case); d = 0.15 is the labeled ~2.5σ stress scenario |
-| S′ | Stock price just after assignment, S′ = S₀(1−d) |
-| K_c | Covered call strike; in the base model K_c equals the put strike, K_c = k·S₀ |
-| q | Probability the covered call finishes in the money within one call period τ_c |
-| q_p | The same exit probability converted to the put-period clock: q_p = 1 − (1−q)^(1/n) ≈ q/n |
-| c_p | Put premium received, as a fraction of S₀ |
-| c_c | Call premium received, as a fraction of S₀ |
-| c | Generic option premium, used in qualitative diagrams where the put/call distinction is irrelevant (specific legs always use c_p, c_c) |
-| I | Number of inventory lots (assigned stock positions) currently held — a random variable |
-| I\* | Steady-state mean of I: I\* = p/q_p ≈ p·n/q |
-| B_j | Cost basis of the j-th inventory lot |
+| x | **Depth** of a lot: x = ln(K_c/S), how far its frozen call strike sits above the current price. The state variable of the whole model |
+| x₀ | Depth at the moment of assignment, distributed by [eq:x0-law](#eq:x0-law) |
+| ν | Drift of the depth process, ν = m − σ²/2 — the rate at which depth is worked off ([eq:nu](#eq:nu)) |
+| q(x) | Probability that a lot at depth x is called away at the end of the current call period ([eq:qx](#eq:qx)) |
+| c_p | Put premium received, as a fraction of the price at the sale. A quote |
+| c_c(x) | Call premium received on a lot at depth x, as a fraction of the current price. A quote ([eq:ccx](#eq:ccx)) |
+| J | Number of call periods a lot lives through before being called away |
+| W | Holding time of a lot, W = J·τ_c |
+| S_j | Survival sequence, S_j = P(J > j) ([eq:survival](#eq:survival)) |
+| β | Siegmund's overshoot constant, β = −ζ(1/2)/√(2π) ≈ 0.5826, the size of the call-grid tax ([eq:siegmund](#eq:siegmund)) |
+| θ | Tail exponent of the standing inventory's depth distribution, θ = 2ν/σ² ([eq:capital-criterion](#eq:capital-criterion)) |
+| λ | Arrival rate of new lots per year, λ = p\*/T |
+| I, I(t) | Number of inventory lots held — a random variable; I(t) when the time path matters |
+| ρ(x) | Stationary depth census: how the standing inventory is distributed over depth ([eq:census](#eq:census)) |
+| d | Fractional price drop at the moment of assignment, S → S(1−d). Not a free input: it follows from x₀, and its average is [eq:d-mean](#eq:d-mean) (≈ 7.5% for the running example) |
 
 ## Probability notation
 
@@ -67,8 +72,8 @@ This file is the single source of truth for every symbol used in the article. Wh
 
 | Track | Question it answers |
 |---|---|
-| A | Realized cash flows only: premiums received, dividends collected on held inventory, plus capital gains at call-away. Assignment is inventory acquisition, not a loss. |
-| B | Capital committed at current market prices — what the broker margins, regardless of the operator's accounting philosophy. |
-| C | Opportunity cost: the risk-free rate charged against committed capital. |
+| A | Realized cash flows only: premiums received, dividends collected, and cash exchanged when lots are bought and sold. Assignment is inventory acquisition, not a loss. This is what a brokerage statement shows |
+| B | Capital committed, valued at market: broker margin on the live short put plus the **market value** of the shares held. What could be redeployed if the position were closed |
+| C | Opportunity cost: the risk-free rate charged against the capital in Track B |
 
-True excess return = (Track A − Track C) / Track B, annualized — [eq:excess-return](#eq:excess-return) in [the strategy section](#sec:strategy).
+The headline number is the **true excess return** — [eq:excess](#eq:excess) in [the returns section](#sec:returns) — which values inventory at market, books the mark loss at acquisition and the upside surrendered at call-away, and charges r on Track B. It is the only convention that satisfies no-arbitrage, and that fact is used as a test in [the verification section](#sec:verification). The Track A cash view is reported next to it because it is what operators actually see, and because the gap between the two is instructive.

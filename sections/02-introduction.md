@@ -36,13 +36,15 @@ The central idea of this article is that the wheel is a **stochastic inventory s
 
 ## Contributions
 
-Working under an explicitly stated homogeneous approximation (all inventory lots behave alike), we derive:
+The model has one state variable. A lot's **depth** — the gap between the call strike frozen at its purchase price and the current market price — is a random walk, and every question above is a question about that walk. From it we derive:
 
-1. **The assignment probability** p of a single put from the Black–Scholes framework, its inversion (choosing the strike to hit a target assignment probability), and the correction from risk-neutral to real-world probability — including why using the risk-neutral figure is a deliberately conservative choice.
-2. **The recovery probability** q that an assigned lot is called away within one call period, and how it depends on the depth of the drawdown that caused assignment.
-3. **The steady-state inventory distribution** — approximately Poisson with mean I\* = p·(τ_c/τ_p)/q — and the *self-recycling property*: in equilibrium the strategy sheds inventory at exactly the rate it acquires it.
-4. **The realized income run rate and the capital committed** in steady state, kept in strictly separated accounting tracks (realized cash, market-priced capital, opportunity cost), and a convergence bound showing that under geometric price decline, total committed capital stays bounded even as lots accumulate.
-5. **The failure modes** of the homogeneous approximation — inventory layers acquired at higher prices unwind more slowly than fresh ones, and stress moves p up and q down simultaneously — which set the agenda for the depth-dependent model of tier 2.
+1. **Entry**, both how often and how deep. The strike follows from a target assignment probability; the depth at assignment is then not a free parameter but a derived distribution, and its mean is far shallower than intuition suggests — about 3% below the strike.
+2. **How long a lot stays**, as a first-passage problem rather than a repeated coin flip. The distinction is not academic: the naive calculation gives seven months, the correct answer is a median of six months and a *mean of four years*. Most of the difference comes from a source nobody expects — that exits can only happen on call expiry dates.
+3. **How much stock is held**, from Little's law, which needs no independence assumption and so survives the fact that all lots on one name ride one price path. Standing inventory turns out to be dominated by deep, slow, unprofitable lots for the same reason a hospital's beds hold sicker patients than its admissions desk sees — and the equilibrium takes decades to approach, so the operator-relevant numbers are never the equilibrium ones.
+4. **The return, honestly accounted.** Cash income of a third of a share price per year sounds decisive and is not a return at all. Measured properly, at fair option prices the wheel is economically **indistinguishable from simply owning the stock** — the entire edge of the strategy is the volatility risk premium, and we compute how much of it is needed: about 0.2 volatility points.
+5. **Two stability boundaries, not one.** Lots come back if μ − δ > σ²/2; the *capital* in them comes back only if μ − δ > σ². Between the two lies a regime where every position eventually resolves and the capital still runs away. Read under the option market's own pricing measure, the same strategy fails the capital test outright — the difference between a wheel that clears in four years and one that never clears is exactly the equity risk premium.
+6. **Portfolios**, where diversification is shown to leave the expected return and expected capital *completely unchanged* while removing only the noise around them — and where correlations rising toward one in a crisis is not a tail scenario but the mechanism the strategy is most exposed to.
+7. **A comparison against fourteen months of a real wheel account** running some forty-five names, which confirms the architecture, rejects several standard parameter conventions, and shows exactly which of the model's predictions a career-length track record has no power to test.
 
 ## How to read this article
 

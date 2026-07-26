@@ -2,7 +2,7 @@
 
 ## Mechanics
 
-The strategy operates on assets considered fundamentally sound — large, dividend-paying companies unlikely to collapse permanently — and entered at an attractive price, a discount to what the asset is worth. The two halves of that requirement play different roles here. The price half we leave to the operator: deciding what counts as "attractive" is the discipline of valuation, and it is out of scope of this article — the model takes the entry level as given. The soundness half is not a throwaway qualifier; it is a load-bearing assumption. Everything that follows about recovery probabilities presumes an asset whose deep drawdowns are eventually bought back up. The model does not apply to speculative names, and we will return to what "fundamentally sound" buys us mathematically in [the recovery section](#sec:recovery).
+The strategy operates on assets considered fundamentally sound — large, dividend-paying companies unlikely to collapse permanently — and entered at an attractive price, a discount to what the asset is worth. The two halves of that requirement play different roles here. The price half we leave to the operator: deciding what counts as "attractive" is the discipline of valuation, and it is out of scope of this article — the model takes the entry level as given. The soundness half is not a throwaway qualifier; it is a load-bearing assumption. Everything that follows about recovery presumes an asset whose deep drawdowns are eventually bought back up. The model does not apply to speculative names, and [the depth section](#sec:depth) turns "fundamentally sound" from a slogan into a specific inequality — while [the stability section](#sec:stability) shows that the strategy's survival, not merely its profitability, is what rests on it.
 
 One full turn of the wheel:
 
@@ -13,30 +13,40 @@ One full turn of the wheel:
 5. **If the call expires worthless** (the stock has not recovered to the strike), keep the premium and go to step 4 — sell another call on the same lot.
 6. **If the call is exercised** (the stock recovered), deliver the shares at the strike. The lot leaves inventory. Go to step 1.
 
-Crucially, step 1 does not wait for steps 4–6 to finish. A new put is sold every put period *regardless* of how much inventory is currently held. Puts keep arriving; calls keep working off the backlog. This is what makes the system a queue rather than a single loop, and it is also what makes the capital question nontrivial: in a falling market, inventory can pile up faster than it unwinds.
+Crucially, step 1 does not wait for steps 4–6 to finish. A new put is sold every cadence period *regardless* of how much inventory is currently held. Puts keep arriving; calls keep working off the backlog. This is what makes the system a queue rather than a single loop, and it is also what makes the capital question nontrivial: in a falling market, inventory can pile up faster than it unwinds.
 
-## Two clocks
+One rule in step 4 does a great deal of work and should be flagged as a modelling choice rather than a law of nature: the call strike is **frozen at the price the lot was bought at**, and stays there for as long as the lot is held. Real operators do sometimes move a call strike down to force an exit from a stuck position, accepting a realized loss to release the capital. That lever is deliberately outside this model — it is a policy question, and answering it well would require modelling the operator's judgment rather than the strategy. Everything that follows therefore describes the *mechanical* wheel, and where the results are unflattering, the possibility that active strike management improves them stays open.
 
-Two period lengths govern the strategy: τ_p, how long each put runs, and τ_c, how long each covered call runs, with τ_c ≥ τ_p. One can use weekly puts with monthly calls, or monthly puts with quarterly calls. The ratio
+## Three clocks
+
+Three period lengths govern the strategy, and keeping them separate matters more than it first appears.
+
+- **The cadence T** — how often a new put is sold.
+- **The tenor τ_p ≤ T** — how long each put runs. Premium is collected once per cadence period, but priced off the tenor.
+- **The call period τ_c ≥ τ_p** — how long each covered call runs.
+
+Most descriptions of the wheel collapse the first two, assuming a put is always live: sell a monthly put, it expires, sell another. Real operation often separates them — a three-day option sold once a week leaves the stock uncovered most of the time — and the separation changes the economics, because premium scales roughly with the square root of the tenor while assignments scale with the cadence. Every example in Parts II and III sets T = τ_p, the always-covered case; [the live-account section](#sec:live) is where they come apart.
+
+For the two call clocks the ratio
 
 n = τ_c / τ_p ≥ 1    {#eq:n}
 
-turns out to matter considerably: as we will show, it acts as a direct multiplier on how much inventory the strategy holds at equilibrium.
-
-Why would an operator choose τ_c > τ_p at all? Longer-dated calls collect more premium per contract and give a depressed stock more time to recover before the next decision point; shorter puts let the operator re-price the entry strike more frequently as conditions change. The trade-off — more premium per call versus more capital locked in inventory — is exactly what the model quantifies.
+is the natural bookkeeping unit. Why would an operator choose τ_c > τ_p at all? Longer-dated calls collect more premium per contract and give a depressed stock more time to recover before the next decision point; shorter puts let the operator re-price the entry strike more frequently as conditions change. The trade-off is exactly what the model quantifies — and [the holding-time section](#sec:holding) finds that the length of the call period matters for a reason nobody expects.
 
 ## Three accounting tracks
 
 Throughout, three parallel accounting tracks are maintained. They answer three different questions, and much confusion about strategies like this one comes from mixing them.
 
-**Track A — realized cash flows.** Premiums received, dividends collected on held inventory, and capital gains taken when lots are called away. Under Track A, assignment is *inventory acquisition, not a loss*: buying stock at the strike is recorded as an exchange of cash for an asset, at the operator's chosen basis. This is the operator's philosophy of the strategy, and it is internally consistent — but it is only one lens.
+**Track A — realized cash flows.** Premiums received, dividends collected on held inventory, and the cash exchanged when lots are bought and sold. Under Track A, assignment is *inventory acquisition, not a loss*: buying stock at the strike is recorded as an exchange of cash for an asset. This is the operator's philosophy of the strategy, it is internally consistent, and it is what a brokerage statement shows — but it is only one lens, and [the returns section](#sec:returns) shows it is not a return.
 
-**Track B — capital committed at market prices.** Whatever the operator's philosophy, the broker computes margin on live prices. Track B records the capital actually tied up: margin held against the open short put, plus the market-priced cost basis of all inventory. Track B is what limits how large the strategy can run and what determines whether it survives stress.
+**Track B — capital committed, valued at market.** Whatever the operator's philosophy, capital committed means capital that could otherwise be doing something else, and what a position could release is what the market will pay for it today. Track B records margin held against the open short put plus the **market value** of the shares held — not what was paid for them. Track B is what limits how large the strategy can run and what determines whether it survives stress.
 
 **Track C — opportunity cost.** Money committed to this strategy could be earning the risk-free rate elsewhere. Track C charges r against the capital in Track B. A strategy that earns 6% while T-bills pay 5% on the same capital has earned 1%, not 6%.
 
 The number that ultimately matters is the **true excess return**:
 
-(Track A − Track C) / Track B, annualized    {#eq:excess-return}
+(economic profit − Track C) / Track B, annualized    {#eq:excess-return}
 
-Keeping the tracks separate is a discipline we enforce on every formula in this article: each result will be labeled with the track it belongs to. As we will see in [the returns section](#sec:returns), at least one natural-looking formula for the strategy's income turns out to mix tracks and silently double-count — the separation is not pedantry.
+where the economic profit is Track A's cash *plus* the two things cash accounting cannot see — the shares' change in value, and the mark loss taken at the moment of assignment. [The returns section](#sec:returns) assembles it precisely.
+
+Keeping the tracks separate is a discipline enforced on every formula in this article. It is not pedantry: the most natural-looking formula for this strategy's return mixes the income of one track with the capital of another, and the resulting number is both far too flattering in the early years and far too damning later.

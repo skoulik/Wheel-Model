@@ -20,10 +20,10 @@ Stdlib only (Python 3.8+).
 import argparse
 from math import exp, log, sqrt
 
-from model import (BETA, Config, N, assign_prob, bs_call, criteria, d2,
-                   economics, entry_law, expected_drop, k_star_drift,
-                   occupation, put_premium, q_exit, strike, time_to_fraction,
-                   trapped_fraction)
+from model import (BETA, Config, DepthWalk, N, assign_prob, bs_call, criteria,
+                   d2, depth_census, economics, entry_law, expected_drop,
+                   k_star_drift, occupation, put_premium, q_exit, strike,
+                   time_to_fraction, trapped_fraction)
 
 FAILURES = []
 
@@ -58,24 +58,33 @@ def main():
     m_q, _ = STD.world("Q")
     check("screen (risk-neutral) p at the P-strike",
           assign_prob(k_p, STD.tau_p, STD.sigma, m_q), 0.2075, 0.001)
+    check("what the screen usually shows instead: delta N(-d1)",
+          N(-(d2(k_p, STD.tau_p, STD.sigma, m_q) + STD.sigma * sqrt(STD.tau_p))),
+          0.192, 0.002)
     check("c_p, the put quote (Standard)", put_premium(STD, "P"), 0.00628, 0.0002)
     check("k* (Conservative, P-world)", strike(CON, "P"), 0.9306, 0.0005)
+    check("E[x0] (Conservative)", entry_law(CON, "P")[2], 0.0273, 0.0005)
     check("E[d | assignment] (Conservative, P)", expected_drop(CON, "P"), 0.0942, 0.001)
+    check("E[d | assignment] (Conservative, Q)", expected_drop(CON, "Q"), 0.0958, 0.001)
 
     # ------------------------------------------------------------------
     print("--- Section 06: the depth process ---")
     crit_p, crit_q = criteria(STD, "P"), criteria(STD, "Q")
     check("nu (P-world)", crit_p["nu"], 0.025, 1e-9)
     check("nu (Q-world)", crit_q["nu"], 0.005, 1e-9)
-    check("q at the mean entry depth (P)", q_exit(STD, "P", x0_p), 0.3976, 0.001)
-    check("q at 10% depth (P)", q_exit(STD, "P", 0.10), 0.1743, 0.001)
-    check("q at 30% depth (P)", q_exit(STD, "P", 0.30), 0.0017, 0.0005)
-    check("call quote at the mean entry depth",
-          bs_call(1.0, exp(x0_p), STD.tau_c, STD.sigma_iv, STD.r, STD.delta),
-          0.0284, 0.001)
-    check("call quote at 30% depth",
-          bs_call(1.0, exp(0.30), STD.tau_c, STD.sigma_iv, STD.r, STD.delta),
-          0.0001, 0.0002)
+    # The two tables of section 06: exit odds and premium, both against depth.
+    for x, q_want, cc_want in [(x0_p, 0.398, 0.0284), (0.05, 0.331, 0.0221),
+                               (0.10, 0.174, 0.0098), (0.15, 0.075, 0.0036),
+                               (0.20, 0.026, 0.0011), (0.30, 0.002, 0.0001)]:
+        check(f"q at depth {x:.3f}", q_exit(STD, "P", x), q_want, 0.001)
+        check(f"call quote at depth {x:.3f}",
+              bs_call(1.0, exp(x), STD.tau_c, STD.sigma_iv, STD.r, STD.delta),
+              cc_want, 0.0002)
+    check("one period's jostle, sigma*sqrt(tau_c)",
+          STD.sigma * sqrt(STD.tau_c), 0.10, 1e-9)
+    check("one period's drift, nu*tau_c", crit_p["nu"] * STD.tau_c, 0.00625, 1e-9)
+    check("volatility at which nu vanishes", sqrt(2 * (STD.mu - STD.delta)),
+          0.30, 0.001)
 
     # ------------------------------------------------------------------
     print("--- Section 07: holding time ---")
@@ -85,9 +94,17 @@ def main():
     check("call-grid tax beta*sigma*sqrt(tau_c)", BETA * sc, 0.0583, 0.0005)
     check("grid tax as a multiple of the entry depth", BETA * sc / x0_p, 1.81, 0.05)
     check("first-period exit probability (P)", occ_p["q(x0)"], 0.400, 0.005)
+    check("the naive 1/q answer, in call periods", 1 / occ_p["q(x0)"], 2.50, 0.02)
     check("every lot eventually exits when nu > 0", occ_p["P[exit]"], 1.0, 0.002)
     check("call premiums collected per lot (P)", occ_p["E[prem]"], 0.0678, 0.001)
     check("upside given away per lot (P)", occ_p["E[exitcost]"], 0.0634, 0.001)
+    # The survival curve quoted in section 07, by call period.
+    for months, want in [(3, 0.60), (6, 0.46), (12, 0.33), (24, 0.22),
+                         (36, 0.18), (60, 0.13), (120, 0.08), (240, 0.04)]:
+        check(f"still held after {months} months",
+              occ_p["surv"][months // 3], want, 0.005)
+    median_j = next(j for j, s in enumerate(occ_p["surv"]) if s < 0.5)
+    check("median holding time, in call periods", median_j, 2, 0)
 
     # ------------------------------------------------------------------
     print("--- Section 08: inventory ---")
@@ -96,8 +113,22 @@ def main():
     check("E[I] over 30 years (Standard, P)", e30["I"], 4.89, 0.05)
     check("E[I] over 30 years (Standard, Q)",
           economics(STD, "Q", occ_q, horizon=30.0)["I"], 6.13, 0.06)
+    occ_c = occupation(CON, "P")
     check("E[I] over 30 years (Conservative, P)",
-          economics(CON, "P", occupation(CON, "P"), horizon=30.0)["I"], 2.35, 0.03)
+          economics(CON, "P", occ_c, horizon=30.0)["I"], 2.35, 0.03)
+    # The depth census: what the standing inventory is made of.
+    EDGES = [0.0, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30, 0.50, float("inf")]
+    shares, mean_x, mean_q = depth_census(STD, "P", EDGES, horizon=30.0)
+    for i, want in enumerate([0.08, 0.06, 0.13, 0.07, 0.09, 0.13, 0.18, 0.27]):
+        check(f"census share, bin {i + 1} of 8", shares[i], want, 0.006)
+    check("inventory-weighted mean depth (30y)", mean_x, 0.367, 0.005)
+    check("inventory-weighted exit probability (30y)", mean_q, 0.112, 0.003)
+    check("share of held time deeper than 30%", shares[6] + shares[7], 0.45, 0.01)
+    s_st, mx_st, mq_st = depth_census(STD, "P", EDGES)
+    check("stationary inventory-weighted mean depth", mx_st, 0.775, 0.01)
+    check("stationary inventory-weighted exit probability", mq_st, 0.062, 0.003)
+    check("stationary share of held time deeper than 50%", s_st[7], 0.52, 0.01)
+    check("capital per share of a lot 50% down in log terms", exp(0.5), 1.65, 0.01)
 
     # ------------------------------------------------------------------
     print("--- Section 09: returns and capital ---")
@@ -118,11 +149,61 @@ def main():
     check("wheel's equity fraction of capital", equity_frac, 0.963, 0.005)
     check("gap: wheel minus equity-adjusted buy-and-hold",
           e30["econ_excess"] - buy_hold * equity_frac, -0.0007, 0.0005)
-    # A sliver of volatility risk premium is enough to close it.
-    breakeven = Config(p_star=0.20, iv_spread=0.005)
-    xb = economics(breakeven, "P", occupation(breakeven, "P"), horizon=30.0)
-    check("with 0.5 vol points of IV-RV spread, the gap turns positive",
-          xb["econ_excess"] - buy_hold * (xb["I"] / xb["mv_capital"]), 0.0015, 0.0005)
+    # The income decomposition quoted at the top of the section.
+    cp_yr = e30["c_p"] / STD.cadence
+    check("put premiums per year", cp_yr, 0.0753, 0.0005)
+    check("call premiums per year", e30["premiums"] - cp_yr, 0.1495, 0.0010)
+    check("dividends per year", e30["dividends"], 0.1038, 0.0005)
+    check("Track A income per year", e30["income"], 0.3287, 0.0010)
+    m_price, _ = STD.world("P")
+    apprec = e30["I"] * m_price
+    check("appreciation of held shares per year", apprec, 0.2199, 0.0010)
+    check("mark loss at acquisition per year", e30["acq_loss"], 0.0795, 0.0005)
+    check("upside surrendered per year", e30["call_away_loss"], 0.1393, 0.0010)
+    check("the three nearly cancel",
+          apprec - e30["acq_loss"] - e30["call_away_loss"], 0.0011, 0.0010)
+
+    # The volatility-risk-premium sweep: how much edge is needed, and what it buys.
+    for spread, prem, exc, gap in [(0.000, 0.2249, 0.0149, -0.0007),
+                                   (0.005, 0.2358, 0.0171, 0.0015),
+                                   (0.010, 0.2470, 0.0193, 0.0037),
+                                   (0.020, 0.2699, 0.0238, 0.0082)]:
+        cfg = Config(p_star=0.20, iv_spread=spread)
+        xs = economics(cfg, "P", occupation(cfg, "P"), horizon=30.0)
+        check(f"premiums/yr at sigma_IV = {cfg.sigma_iv:.3f}",
+              xs["premiums"], prem, 0.0010)
+        check(f"excess at sigma_IV = {cfg.sigma_iv:.3f}", xs["econ_excess"],
+              exc, 0.0005)
+        check(f"gap vs buy-and-hold at sigma_IV = {cfg.sigma_iv:.3f}",
+              xs["econ_excess"] - buy_hold * (xs["I"] / xs["mv_capital"]),
+              gap, 0.0005)
+
+    # The dividend sweep.
+    for d, inv, mv, cost, exc in [(0.000, 3.72, 3.91, 5.32, 0.0185),
+                                  (0.010, 4.14, 4.33, 6.15, 0.0171),
+                                  (0.025, 4.89, 5.08, 7.82, 0.0149),
+                                  (0.040, 5.79, 5.98, 10.14, 0.0128),
+                                  (0.060, 7.23, 7.42, 14.68, 0.0100)]:
+        cfg = Config(p_star=0.20, delta=d)
+        xd = economics(cfg, "P", occupation(cfg, "P"), horizon=30.0)
+        check(f"E[I] at delta = {d:.3f}", xd["I"], inv, 0.02)
+        check(f"market capital at delta = {d:.3f}", xd["mv_capital"], mv, 0.02)
+        check(f"cost capital at delta = {d:.3f}", xd["capital"], cost, 0.04)
+        check(f"true excess at delta = {d:.3f}", xd["econ_excess"], exc, 0.0005)
+        bh_d = (cfg.mu - cfg.r - cfg.withhold * d) * xd["I"] / xd["mv_capital"]
+        check(f"gap vs buy-and-hold at delta = {d:.3f}",
+              xd["econ_excess"] - bh_d, -0.0006, 0.0003)
+
+    # The Conservative regime.
+    xc = economics(CON, "P", occ_c, horizon=30.0)
+    check("Conservative: lots held", xc["I"], 2.35, 0.02)
+    check("Conservative: market capital", xc["mv_capital"], 2.54, 0.02)
+    check("Conservative: cost capital", xc["capital"], 3.86, 0.03)
+    check("Conservative: Track A income", xc["income"], 0.1573, 0.0010)
+    check("Conservative: true excess", xc["econ_excess"], 0.0126, 0.0005)
+    check("Conservative: cash-on-cost-basis", xc["excess"], -0.0093, 0.0005)
+    check("Conservative: buy-and-hold benchmark",
+          buy_hold * xc["I"] / xc["mv_capital"], 0.0151, 0.0005)
 
     # ------------------------------------------------------------------
     print("--- Section 10: stability ---")
@@ -163,6 +244,8 @@ def main():
     den = sum(dens((i + .5) * step) * step for i in range(20000))
     check("trapped fraction: closed form vs numerical integration",
           trapped_fraction(hi_vol, "P"), 1 - num / den, 1e-4)
+    check("trapped lots accumulate per year at sigma=40%",
+          (STD.p_star / STD.cadence) * trapped_fraction(hi_vol, "P"), 0.18, 0.01)
 
     # ------------------------------------------------------------------
     print("--- Structural: no-arbitrage in the Q-world ---")

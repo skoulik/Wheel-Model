@@ -413,6 +413,41 @@ def criteria(C, measure):
             "tail_exponent": 2 * (m - s**2 / 2) / s**2}
 
 
+def depth_census(C, measure, edges, horizon=None, h=0.02, x_max=8.0,
+                 j_max=8000, eps=1e-9):
+    """How standing inventory is distributed over depth ([eq:census]).
+
+    Returns (share of held time per bin, mean depth, inventory-weighted exit
+    probability).  With `horizon` set, the census is the one an operator
+    starting from an empty book sees averaged over [0, horizon]; without it,
+    the stationary census.
+    """
+    m, s = C.world(measure)
+    _, _, _, dens = entry_law(C, measure)
+    walk = DepthWalk(m - s**2 / 2, s, C.tau_c, h=h, x_max=x_max)
+    u = walk.entry_vector(dens)
+    U = [0.0] * walk.n
+    for j in range(j_max):
+        wt = 1.0 if horizon is None else \
+            max(0.0, horizon - (j + 0.5) * C.tau_c) / horizon
+        if wt:
+            for i, ui in enumerate(u):
+                U[i] += ui * wt
+        if sum(u) < eps and j >= 40:
+            break
+        u = walk.step(u)
+
+    total = sum(U)
+    bins = [0.0] * (len(edges) - 1)
+    mean_x = mean_q = 0.0
+    for x, ui in zip(walk.xs, U):
+        b = min(len(bins) - 1, max(0, sum(1 for e in edges[1:] if x >= e)))
+        bins[b] += ui
+        mean_x += ui * x
+        mean_q += ui * q_exit(C, measure, x)
+    return [b / total for b in bins], mean_x / total, mean_q / total
+
+
 def trapped_fraction(C, measure):
     """P(J = infinity): the share of lots that never come back, when nu <= 0.
 
