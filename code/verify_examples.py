@@ -28,7 +28,8 @@ from math import exp, log, sqrt
 from model import (BETA, Config, DepthWalk, N, assign_prob, bs_call, criteria,
                    d2, depth_census, economics, entry_law, expected_drop,
                    k_star_drift, occupation, put_premium, q_exit, stationary,
-                   strike, time_to_fraction, trapped_fraction)
+                   sticky_dividend_trap, sticky_dividend_yield, strike,
+                   time_to_fraction, trapped_fraction)
 
 FAILURES = []
 
@@ -88,6 +89,9 @@ def main():
     check("one period's jostle, sigma*sqrt(tau_c)",
           STD.sigma * sqrt(STD.tau_c), 0.05547, 1e-5)
     check("one period's drift, nu*tau_c", crit_p["nu"] * STD.tau_c, 0.001923, 1e-6)
+    # "What a constant dividend yield assumes": a 30% fall with no cut.
+    check("yield lift from a 30% fall with the payout unchanged",
+          1 / 0.70 - 1, 0.43, 0.005)
     check("volatility at which nu vanishes", sqrt(2 * (STD.mu - STD.delta)),
           0.30, 0.001)
 
@@ -200,6 +204,56 @@ def main():
         bh_d = (cfg.mu - cfg.r - cfg.withhold * d) * xd["I"] / xd["mv_capital"]
         check(f"gap vs buy-and-hold at delta = {d:.3f}",
               xd["econ_excess"] - bh_d, 0.0001, 0.0003)
+
+    # "What if the dividend never falls?" -- the sticky-dividend bound. delta
+    # reaches the model only through nu and through income, so the whole
+    # correction is a row of the sweep above at a larger delta.
+    for H, F, d_eff, exc, shift, gap in [
+            (5.0, 1.020, 0.02550, 0.01588, -0.00008, 0.00027),
+            (10.0, 1.039, 0.02597, 0.01581, -0.00015, 0.00012),
+            (30.0, 1.113, 0.02782, 0.01562, -0.00042, 0.00006)]:
+        d_got, F_got = sticky_dividend_yield(STD, "P", H)
+        check(f"sticky-dividend inflation factor at {H:.0f}y", F_got, F, 0.001)
+        check(f"delta_eff at {H:.0f}y", d_got, d_eff, 0.0001)
+        cfg = Config(p_star=0.20, delta=d_got)
+        xs = economics(cfg, "P", occupation(cfg, "P"), horizon=H)
+        base = economics(STD, "P", occ_p, horizon=H)
+        check(f"true excess at delta_eff, {H:.0f}y", xs["econ_excess"], exc, 0.0002)
+        check(f"change from constant delta at {H:.0f}y",
+              xs["econ_excess"] - base["econ_excess"], shift, 0.0001)
+        bh_s = (cfg.mu - cfg.r - cfg.withhold * d_got) * xs["I"] / xs["mv_capital"]
+        check(f"gap vs buy-and-hold at delta_eff, {H:.0f}y",
+              xs["econ_excess"] - bh_s, gap, 0.0002)
+        if H == 30.0:
+            check("inventory rise under the sticky correction",
+                  xs["I"] / base["I"] - 1, 0.034, 0.003)
+            check("cost-basis capital rise under the sticky correction",
+                  xs["capital"] / base["capital"] - 1, 0.051, 0.004)
+    # The correction has no stationary value: held lot-time thins like the
+    # holding-time tail while the yield inflates faster.
+    check("yield inflation rate sigma^2/2", STD.sigma**2 / 2, 0.0200, 0.0001)
+    nu_p = crit_p["nu"]
+    check("held-time thinning rate nu^2/(2 sigma^2)",
+          nu_p**2 / (2 * STD.sigma**2), 0.0078, 0.0002)
+    # A buy-and-hold anchor stands the whole horizon, so it inflates by more.
+    a = STD.sigma**2 * 30.0 / 2
+    check("buy-and-hold inflation factor at 30y", (exp(a) - 1) / a, 1.370, 0.002)
+    # The depth past which a payout frozen in dollars outruns the drift.
+    for meas, xstar, below, beyond in [("P", 0.693, 0.500, 0.164),
+                                       ("Q", 0.182, 0.167, 0.692)]:
+        xs_ = sticky_dividend_trap(STD, meas)
+        check(f"sticky-dividend trap depth x* ({meas})", xs_, xstar, 0.001)
+        check(f"x* as a fraction below the strike ({meas})", 1 - exp(-xs_),
+              below, 0.001)
+        sh, _, _ = depth_census(STD, meas, [0.0, xs_, float("inf")],
+                                horizon=30.0)
+        check(f"30y census mass beyond x* ({meas})", sh[1], beyond, 0.006)
+    # The rejected per-lot version, kept as a check that it is the cost-basis
+    # capital in disguise -- an unfunded +1.24pp, which is why it is wrong.
+    naive = e30["dividends"] * ((e30["capital"] - STD.margin * e30["k"])
+                                / e30["I"] - 1)
+    check("unfunded return from per-lot dividend anchoring (rejected)",
+          naive / e30["mv_capital"], 0.0122, 0.0003)
 
     # The Conservative regime.
     xc = economics(CON, "P", occ_c, horizon=30.0)

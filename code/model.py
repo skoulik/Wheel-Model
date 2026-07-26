@@ -37,7 +37,7 @@ Stdlib only.  Run:  python code/model.py
 """
 
 import argparse
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from math import ceil, exp, log, pi, sqrt
 from statistics import NormalDist
 
@@ -453,6 +453,84 @@ def economics(C, measure, occ, horizon=None):
         "income": income, "premiums": prem_income, "dividends": div_income,
         "excess": (income - C.r * capital) / capital,
     }
+
+
+def sticky_dividend_yield(C, measure, horizon, iters=40, tol=1e-10):
+    """The yield to run the model at when the payout never falls with the price.
+
+    A constant delta assumes the dividend tracks the price's *trend*: a company
+    raising its payout at the price's log drift nu has, by construction, a
+    constant median yield.  What a constant does not carry is the fluctuation.
+    With the payout fixed in dollars between raises, the yield the operator
+    actually collects is delta*e^y, where y is the market's log deviation from
+    the level at which it yielded delta.  When dividend growth equals nu, y is
+    driftless with volatility sigma, so over a position of a given age
+    E[e^y] = exp(sigma^2 * age / 2).
+
+    Averaging that over HELD lot-time and solving the fixed point -- a larger
+    delta lowers nu, which ages the book, which raises the factor again --
+    collapses the whole correction to one scalar, delta_eff: a single row of
+    the dividend sweep.  This is a uniform recalibration, NOT a per-lot income.
+    Every lot is credited the same yield, as it must be, since all shares of
+    one company pay the same cash on the same day; weighting a lot's income by
+    its own realized depth (E[e^x], the cost-basis capital) would credit
+    different dividends to identical shares and breaks no-arbitrage.
+
+    The held-time average has no limit as the horizon grows: the age density
+    decays like the holding-time tail, exp(-nu^2*t/(2*sigma^2)), while the
+    integrand grows like exp(sigma^2*t/2), and at the running parameters
+    0.0078 < 0.02.  That divergence is the finding rather than a nuisance -- a
+    payout cannot be assumed fixed forever, which is the permanent-impairment
+    question (TODO #13) -- so the correction is only ever quoted at a finite
+    horizon.
+
+    Returns (delta_eff, factor).
+
+    Cost note: only periods inside the horizon carry weight, so occupation()
+    is truncated there rather than run out to its own convergence -- exact for
+    this average (the dropped weights are identically zero) and ~20x cheaper
+    at H = 30, which matters because this is a fixed point over full solves.
+    """
+    d = C.delta
+    for _ in range(iters):
+        Cd = replace(C, delta=d)
+        occ = occupation(Cd, measure,
+                         j_max=int(horizon / Cd.tau_c) + 2, min_steps=0)
+        s = occ["sigma"]
+        w = _time_avg_weights(occ["surv"], Cd.tau_c, horizon)
+        num = den = 0.0
+        for j, (S, wj) in enumerate(zip(occ["surv"], w)):
+            if wj <= 0:
+                continue
+            num += S * wj * exp(s * s * (j + 0.5) * Cd.tau_c / 2)
+            den += S * wj
+        d_new = C.delta * num / den
+        if abs(d_new - d) < tol:
+            d = d_new
+            break
+        d = d_new
+    return d, d / C.delta
+
+
+def sticky_dividend_trap(C, measure):
+    """Depth beyond which a payout fixed in dollars outruns the drift.
+
+    Hold the total return fixed and freeze the dividend in dollars: a lot at
+    depth x sees a yield of delta*e^x on the market value of its shares, so the
+    price drag rises with depth and the depth drift becomes
+
+        nu(x) = nu - delta*(e^x - 1),
+
+    which changes sign at x* = ln(1 + nu/delta) and grows more negative beyond
+    it -- a runaway region, not merely a slow one.  It is the Gordon-model
+    price at which a fixed payout stops being sustainable, and it is why the
+    fixed-dividend correction cannot be extrapolated: see TODO #13.
+    """
+    m, s = C.world(measure)
+    nu = m - s**2 / 2
+    if nu <= 0:
+        return 0.0
+    return log(1 + nu / C.delta)
 
 
 def criteria(C, measure):

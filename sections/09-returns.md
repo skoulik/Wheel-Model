@@ -128,6 +128,29 @@ The δ = 6% row deserves its flag: ν has gone negative there, which by [the hol
 
 (One convention note, since the conclusion depends on it. Total return is held fixed as yield varies — dividends are treated as a *route* for return, not extra return. Assume instead that a 2.5% yielder returns 2.5% more in total than a non-payer, and the sign flips. The equal-total-return assumption is the neutral one, and it is stated here rather than buried.)
 
+## What if the dividend never falls?
+
+[The depth section](#sec:depth) held δ constant on the grounds that an aristocrat's payout tracks the price trend, and flagged one residual: between raises the payout is fixed in dollars, so an operator waiting out a drawdown collects a *higher* yield than δ while they wait. The sweep above is enough to price that, and the reason is worth seeing, because it is the whole answer.
+
+δ reaches the model through exactly two channels — the drift ν = μ − δ − σ²/2 and the income δ_net·E[I] — so any story about the yield being effectively higher is a story about running the model at a larger δ. It is a *row of the table above*, not a new model. Writing y for the market's log deviation from the level at which it yielded δ, and taking dividend growth equal to the price's log drift, y is driftless with volatility σ, so a position of age t collects a yield inflated by e^(σ²·t/2). Averaging over held lot-time and solving the fixed point — a larger δ lowers ν, which ages the book, which inflates the yield again:
+
+    horizon                      5 y      10 y      30 y
+    inflation factor            1.020     1.039     1.113
+    δ_eff                       2.55%     2.60%     2.78%
+    true excess               +1.59%    +1.58%    +1.56%
+    change from constant δ    −0.01pp   −0.01pp   −0.04pp
+    gap vs buy-and-hold       +0.03pp   +0.01pp   +0.01pp
+
+**Four basis points at thirty years, and negative.** The extra carry is real and it is outweighed, by the same two mechanisms the sweep above already identified: a higher yield drags harder on the price, so the book deepens (inventory rises 3.4%, cost-basis capital 5.1%), and a larger share of the total return arrives in the one form that is taxed on the way in.
+
+The last line is the one that settles it. The article's verdict is not the wheel's excess return in isolation but its *gap* against owning the stock, and the sweep above showed that gap is flat in δ to a basis point or two. A sticky dividend moves the wheel and the benchmark together, so it cannot change the verdict — and if anything it favours the wheel, since a buy-and-hold position holds one anchor for the entire horizon and picks up a larger inflation factor for it (1.37 at thirty years, against the wheel's 1.11) while the wheel's lots turn over.
+
+Two boundaries on this, both worth stating because they mark where the analysis stops rather than where it is comfortable.
+
+The inflation factor **has no limit**. Held lot-time thins out like the holding-time tail, e^(−ν²·t/(2σ²)), at 0.8% a year, while the yield inflates at σ²/2 = 2% a year; the second wins, so the average has no stationary value and the correction above is only ever a finite-horizon statement. That divergence is not a numerical defect — it is the model reporting that a payout cannot be assumed fixed forever.
+
+And there is a depth past which the assumption is self-defeating. Freeze the payout in dollars and a lot at depth x faces a yield of δ·e^x on the market value of its shares, so the drag grows with depth and the depth drift becomes ν − δ·(e^x − 1). That changes sign at x\* = ln(1 + ν/δ), and beyond it grows more negative — a runaway region rather than a slow one. At the running parameters x\* sits **50% below the strike**, with 16% of the thirty-year census already past it. It is the Gordon-model price at which a fixed payout stops being payable, which is to say it is the point where a company stops being an aristocrat and starts being [the outlook](#sec:outlook)'s permanent-impairment case. Under the market's pricing drift the boundary is far tighter — 17% below the strike, with 69% of the census beyond it — which is a sharp way of putting the limitation: **option prices are not consistent with a dividend that never falls.**
+
 ## The Conservative regime
 
 Everything above used p\* = 20%. At p\* = 10%, with strikes 3.5% out of the money rather than 2.3%:

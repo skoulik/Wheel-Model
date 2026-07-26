@@ -22,9 +22,10 @@ This file is the single source of truth for every symbol used in the article. Wh
 | r | Risk-free interest rate, annualized |
 | σ | Volatility of the stock's returns, annualized — the **realized** volatility, which governs the actual price path |
 | σ_IV | Implied volatility: the number the market quotes option prices in. The article's results assume σ_IV = σ (no volatility risk premium) unless stated, and [the returns section](#sec:returns) computes what spread would be needed to change the verdict |
-| δ | Continuous dividend yield, annualized, gross of withholding (running example: 2.5%) |
+| δ | Continuous dividend yield, annualized, gross of withholding (running example: 2.5%). Held **constant**, which assumes the payout tracks the price's *trend* — a company raising its dividend at the price's log drift ν has, by construction, a constant yield. It does **not** assume the payout is cut when the price dips; see [the depth section](#sec:depth) |
 | w | Withholding tax fraction on dividends (running example: 15%, the common treaty rate) |
 | δ_net | Net dividend yield retained by the operator: δ_net = δ·(1−w) (running example: ≈ 2.1%) |
+| δ_eff | Sensitivity device, not a parameter: the yield to run the model at if the payout is fixed in dollars between raises rather than tracking the price continuously. Used once, in [the returns section](#sec:returns), to bound that assumption at 2.78% over thirty years |
 | **m** | **The price drift of the world being computed in**: m = μ − δ in the real world, m = r − δ under the market's pricing measure. The dividend is subtracted because it is paid out of the price |
 
 ## Strategy parameters (chosen by the operator)
