@@ -43,7 +43,8 @@ Stdlib only.  Run:  python code/first_passage.py   (~2 min, mostly MC)
 import argparse
 from math import exp, log, pi, sqrt
 
-from verify_examples import N, k_star, p_real_world, q_per_put_period
+from legacy_homogeneous import k_star, p_real_world, q_per_put_period
+from model import N
 from wheel_sim import (Params, homogeneous_predictions, km_survival, simulate)
 
 BETA = 0.5826  # -zeta(1/2)/sqrt(2*pi), Siegmund's overshoot constant

@@ -39,9 +39,9 @@ from collections import Counter
 from dataclasses import dataclass
 from math import exp, log, sqrt
 
-from verify_examples import (N, bs_call, bs_put,
-                             expected_drop_given_assignment, k_star, p_assign,
-                             p_real_world, q_per_put_period, q_recover)
+from model import (N, assign_prob, bs_call, bs_put, d2, k_star_drift)
+from legacy_homogeneous import (expected_drop_given_assignment, k_star, p_assign,
+                                p_real_world, q_per_put_period, q_recover)
 import random
 
 # Event priorities at equal timestamps: settle expiring options first, then
@@ -112,6 +112,12 @@ class Agg:
         self.inv_hist = Counter()  # inventory level at cadence dates
         self.cap_sum = 0.0
         self.cap_n = 0
+        # Economic ledger (the no-arbitrage-consistent one): inventory carried
+        # at market value, the mark loss booked at acquisition, the upside
+        # given away booked at call-away.  All spot-normalized when they occur.
+        self.mvcap_sum = 0.0
+        self.acq_loss = 0.0
+        self.giveaway = 0.0
         self.inv_by_idx = Counter()    # for time profiles (stress scenario)
         self.cap_by_idx = Counter()
         self.n_by_idx = Counter()
@@ -181,8 +187,10 @@ def run_path(P, rng, agg):
             agg.inv_hist[len(lots)] += 1
             agg.inv_by_idx[idx] += len(lots)
             agg.n_by_idx[idx] += 1
-            # Sell the put: strike from the p* policy at prevailing IV.
-            kf = k_star(P.p_star, P.tau_p, sig_iv, P.r, P.delta)
+            # Sell the put.  The strike dial is a real-world assignment
+            # probability (the model's one measure), so k* inverts the
+            # P-world probability; the premium is a quote, priced at IV.
+            kf = k_star_drift(P.p_star, P.tau_p, rg.sigma, rg.mu - P.delta)
             K = kf * S
             c_p = S * bs_put(kf, P.tau_p, sig_iv, P.r, P.delta)
             agg.puts += 1
@@ -191,6 +199,7 @@ def run_path(P, rng, agg):
             agg.cap_sum += capital / S
             agg.cap_by_idx[idx] += capital / S
             agg.cap_n += 1
+            agg.mvcap_sum += P.margin * kf + len(lots)
             push(t + P.tau_p, PUTEXP, (K, S, c_p))
             if t + P.cadence <= P.years + 1e-9:
                 push(t + P.cadence, SALE, None)
@@ -200,6 +209,7 @@ def run_path(P, rng, agg):
             if S < K:
                 agg.assigned += 1
                 agg.d_sum += 1 - S / S_sale
+                agg.acq_loss += (K - S) / S      # paid K for something worth S
                 lot = Lot(entry=t, strike=K, basis=K - c_p)
                 lots.append(lot)
                 # Sell the first covered call at the frozen strike.
@@ -215,6 +225,7 @@ def run_path(P, rng, agg):
             agg.record_call_period(lot.x, exited, rg.mu - P.delta, rg.sigma, P.tau_c)
             if exited:
                 agg.exits += 1
+                agg.giveaway += (S - lot.strike) / S   # delivered below market
                 lots.remove(lot)
                 agg.durations.append((round((t - lot.entry) * 12, 6), True))
                 agg.period_hist[lot.periods] += 1
@@ -451,6 +462,14 @@ def dividend_sweep(args):
 def check_quoted(args):
     """Assert every MC number quoted in sections/09-layered-inventory.md.
 
+    SUPERSEDED, and currently failing on purpose: this gate is pinned to the
+    numbers of the pre-restructure section 09, which were computed when the
+    strike dial inverted the *risk-neutral* assignment probability. The model
+    now dials a real-world p* (see TODO.md, "Campaign"), so arrivals run at
+    20.0% rather than 19.2% and every downstream figure shifts by ~4%. This
+    function is retired together with the section it verifies; the live gates
+    are `verify_examples.py` and `--scenario validate`. Not run by --scenario all.
+
     Runs the dividends scenario at the fixed seed and checks the quoted
     statistics with tight tolerances. The analytic side of the section's
     numbers is covered by verify_examples.py; this is the slow gate for the
@@ -508,16 +527,77 @@ def check_quoted(args):
     print("All quoted numbers reproduced.")
 
 
+def as_config(P, label="sim"):
+    """The analytic Config matching a simulator Params."""
+    import model
+    return model.Config(p_star=P.p_star, tau_p=P.tau_p, n=P.n,
+                        cadence=P.cadence, r=P.r, mu=P.mu, sigma=P.sigma,
+                        delta=P.delta, withhold=P.withhold,
+                        iv_spread=P.iv_spread, margin=P.margin, label=label)
+
+
+def validate(args):
+    """Simulation vs. the analytic core, component by component."""
+    import model
+    for label, ps in (("Standard", 0.20), ("Conservative", 0.10)):
+        P = Params(p_star=ps, delta=0.025, years=30.0,
+                   paths=args.paths or 200, seed=args.seed)
+        agg = simulate(P)
+        C = as_config(P, label)
+        occ = model.occupation(C, "P")
+        a = model.economics(C, "P", occ, horizon=P.years)
+
+        n_samples = sum(agg.inv_hist.values())
+        per_yr = 1.0 / (agg.puts * P.cadence)
+        sim = {
+            "assignment rate": agg.assigned / agg.puts,
+            "E[d]": agg.d_sum / max(1, agg.assigned),
+            "E[I]": sum(k * v for k, v in agg.inv_hist.items()) / n_samples,
+            "cost capital": agg.cap_sum / agg.cap_n,
+            "market capital": agg.mvcap_sum / agg.cap_n,
+            "premiums/yr": (agg.prem_put + agg.prem_call) * per_yr,
+            "dividends/yr": agg.dividends / (agg.puts * P.cadence),
+            "acq loss/yr": agg.acq_loss * per_yr,
+            "call-away loss/yr": agg.giveaway * per_yr,
+        }
+        ana = {
+            "assignment rate": a["p_real"], "E[d]": a["E[d]"], "E[I]": a["I"],
+            "cost capital": a["capital"], "market capital": a["mv_capital"],
+            "premiums/yr": a["premiums"], "dividends/yr": a["dividends"],
+            "acq loss/yr": a["acq_loss"],
+            "call-away loss/yr": a["call_away_loss"],
+        }
+        sim_pnl = (sim["premiums/yr"] + sim["dividends/yr"]
+                   + sim["E[I]"] * (P.mu - P.delta)
+                   - sim["acq loss/yr"] - sim["call-away loss/yr"])
+        sim["economic excess/yr"] = ((sim_pnl - P.r * sim["market capital"])
+                                     / sim["market capital"])
+        ana["economic excess/yr"] = a["econ_excess"]
+
+        print(f"\n{'=' * 72}\nVALIDATION: {label}  ({P.paths} paths x "
+              f"{P.years:g}y, seed {P.seed})\n{'=' * 72}")
+        print(f"{'quantity':>20} {'simulated':>12} {'analytic':>12} {'rel.diff':>10}")
+        for key in sim:
+            s, v = sim[key], ana[key]
+            rel = (s - v) / abs(v) if v else float("nan")
+            print(f"{key:>20} {s:>12.4f} {v:>12.4f} {rel:>+9.1%}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--scenario", default="all",
-                    choices=["base", "dividends", "stress", "sweep", "check", "all"])
+                    choices=["base", "dividends", "stress", "sweep", "check",
+                             "validate", "all"])
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     args = ap.parse_args()
 
     if args.scenario == "check":
         check_quoted(args)
+        return
+
+    if args.scenario == "validate":
+        validate(args)
         return
 
     if args.scenario in ("base", "all"):

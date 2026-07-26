@@ -1,118 +1,29 @@
-"""Numerical verification of every worked example in the article sections.
+"""Numerical verification of every worked example quoted in the sections.
 
-Run:  python code/verify_examples.py
+Run:  python code/verify_examples.py          (analytic, ~15 s)
+      python code/verify_examples.py --full   (adds the far-grid stationary
+                                               figures, ~2 min)
 
-Each check recomputes a number quoted in sections/*.md from first principles
-and asserts it matches. If a formula in the text is edited, re-run this script;
-a sign error (this project's historical failure mode) will trip an assertion.
+Each check recomputes a number from `model.py` and asserts it matches what the
+text says. If a formula in the text is edited, re-run this script; a sign error
+(this project's historical failure mode) will trip an assertion.
+
+The structural check at the end is the strongest one in the file: run the whole
+machinery in the Q-world and the economic excess return must vanish up to the
+dividend-withholding leak, because no strategy beats the risk-free rate under
+the pricing measure. It exercises the entry law, the depth walk, the occupation
+measure, premium pricing and the capital definition simultaneously.
 
 Stdlib only (Python 3.8+).
 """
 
-from math import exp, log, pi, sqrt
-from statistics import NormalDist
+import argparse
+from math import exp, log, sqrt
 
-N = NormalDist().cdf
-Ninv = NormalDist().inv_cdf
-
-
-# ----------------------------------------------------------------------
-# Core model formulas (single source of truth for the numbers in the text)
-#
-# All formulas carry a continuous dividend yield delta (default 0). The
-# convention (sections 00/05/06): mu is the asset's TOTAL expected return,
-# so the price itself drifts at mu - delta; the risk-neutral price drift is
-# r - delta likewise.
-# ----------------------------------------------------------------------
-
-def d2(k, tau, sigma, r, delta=0.0):
-    """Black-Scholes d2 with strike expressed as k = K/S0."""
-    return (-log(k) + (r - delta - sigma**2 / 2) * tau) / (sigma * sqrt(tau))
-
-
-def p_assign(k, tau_p, sigma, r, delta=0.0):
-    """Risk-neutral probability the put expires in the money: p = N(-d2)."""
-    return N(-d2(k, tau_p, sigma, r, delta))
-
-
-def k_star(p_target, tau_p, sigma, r, delta=0.0):
-    """Strike fraction that hits a target assignment probability."""
-    return exp(Ninv(p_target) * sigma * sqrt(tau_p)
-               + (r - delta - sigma**2 / 2) * tau_p)
-
-
-def p_real_world(k, tau_p, sigma, r, mu, delta=0.0):
-    """Real-world assignment probability (total-return drift mu instead of r).
-
-    The dividend yield cancels in the measure shift: risk-neutral price
-    drift r - delta vs real-world price drift mu - delta.
-    """
-    return N(-d2(k, tau_p, sigma, r, delta) + (r - mu) * sqrt(tau_p) / sigma)
-
-
-def q_recover(k, d, tau_c, sigma, mu, delta=0.0):
-    """Real-world probability the covered call finishes in the money.
-
-    Stock sits at S' = S0*(1-d) after assignment; call strike is k*S0.
-    Recovery is driven by the PRICE drift mu - delta: the dividend is paid
-    out of the very growth the recovery relies on.
-    """
-    return N(((mu - delta - sigma**2 / 2) * tau_c - log(k / (1 - d)))
-             / (sigma * sqrt(tau_c)))
-
-
-def q_per_put_period(q, n):
-    """Convert per-call-period exit probability to the put-period clock."""
-    return 1 - (1 - q) ** (1 / n)
-
-
-def bs_put(k, tau, sigma, r, delta=0.0):
-    """Black-Scholes European put price as a fraction of spot (S0 = 1)."""
-    _d2 = d2(k, tau, sigma, r, delta)
-    _d1 = _d2 + sigma * sqrt(tau)
-    return k * exp(-r * tau) * N(-_d2) - exp(-delta * tau) * N(-_d1)
-
-
-def bs_call(s, k, tau, sigma, r, delta=0.0):
-    """Black-Scholes European call price; s and k as fractions of S0."""
-    _d1 = (log(s / k) + (r - delta + sigma**2 / 2) * tau) / (sigma * sqrt(tau))
-    _d2 = _d1 - sigma * sqrt(tau)
-    return s * exp(-delta * tau) * N(_d1) - k * exp(-r * tau) * N(_d2)
-
-
-def expected_drop_given_assignment(k, tau_p, sigma, r, delta=0.0):
-    """E[1 - S_T/S0 | S_T < k*S0] under the risk-neutral lognormal.
-
-    Uses E[S_T/S0 * 1{S_T < K}] = e^{(r-delta) tau} N(-d1), a standard
-    truncated-lognormal identity.
-    """
-    _d2 = d2(k, tau_p, sigma, r, delta)
-    _d1 = _d2 + sigma * sqrt(tau_p)
-    return 1 - exp((r - delta) * tau_p) * N(-_d1) / N(-_d2)
-
-
-def expected_drop_numint(k, tau, sigma, r, delta=0.0, steps=20000):
-    """Same conditional expectation by direct trapezoidal integration.
-
-    Independent cross-check of the closed form above (the formula newly
-    derived in the recovery section): integrates (1 - e^x) against the
-    lognormal density of x = ln(S_T/S0) over x < ln k, then normalizes
-    by P(S_T < K) = N(-d2).
-    """
-    m_, s_ = (r - delta - sigma**2 / 2) * tau, sigma * sqrt(tau)
-    lo, hi = log(k) - 12 * s_, log(k)
-    h = (hi - lo) / steps
-
-    def f(x):
-        return (1 - exp(x)) * exp(-((x - m_) / s_) ** 2 / 2) / (s_ * sqrt(2 * pi))
-
-    total = (f(lo) + f(hi)) / 2 + sum(f(lo + i * h) for i in range(1, steps))
-    return total * h / N(-d2(k, tau, sigma, r, delta))
-
-
-# ----------------------------------------------------------------------
-# Checks
-# ----------------------------------------------------------------------
+from model import (BETA, Config, N, assign_prob, bs_call, criteria, d2,
+                   economics, entry_law, expected_drop, k_star_drift,
+                   occupation, put_premium, q_exit, strike, time_to_fraction,
+                   trapped_fraction)
 
 FAILURES = []
 
@@ -125,82 +36,159 @@ def check(label, got, expected, tol):
 
 
 def main():
-    # Baseline parameters used throughout the article: a dividend-paying
-    # quality name. mu is TOTAL return; delta_net = delta*(1 - withholding).
-    k, tau_p, sigma, r, mu = 0.95, 1 / 12, 0.20, 0.05, 0.07
-    delta, withhold = 0.025, 0.15
-    dn = delta * (1 - withhold)
-    n, tau_c = 3, 0.25
-    m = 0.20
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--full", action="store_true",
+                    help="also check the far-grid stationary figures (slow)")
+    args = ap.parse_args()
 
-    print("--- No-dividend anchor (historical known-correct example) ---")
-    check("d2 (k=0.95, monthly, delta=0)", d2(k, tau_p, sigma, r), 0.93, 0.01)
-    check("p = N(-d2) (delta=0)", p_assign(k, tau_p, sigma, r), 0.176, 0.005)
+    STD = Config(p_star=0.20, label="Standard")
+    CON = Config(p_star=0.10, label="Conservative")
 
-    print("--- Section 5: assignment probability ---")
-    check("d2 (k=0.95, monthly)", d2(k, tau_p, sigma, r, delta), 0.90, 0.01)
-    check("p = N(-d2)", p_assign(k, tau_p, sigma, r, delta), 0.185, 0.005)
-    check("k* for p*=20%", k_star(0.20, tau_p, sigma, r, delta), 0.953, 0.002)
-    check("real-world p (mu=7% total)",
-          p_real_world(k, tau_p, sigma, r, mu, delta), 0.178, 0.005)
-    check("put delta N(-d1)",
-          N(-(d2(k, tau_p, sigma, r, delta) + sigma * sqrt(tau_p))), 0.170, 0.005)
+    # ------------------------------------------------------------------
+    print("--- Section 05: entry ---")
+    k_p, p_p, x0_p, _ = entry_law(STD, "P")
+    k_q, p_q, x0_q, _ = entry_law(STD, "Q")
+    check("k* (Standard, P-world)", k_p, 0.9546, 0.0005)
+    check("k* (Standard, Q-world)", k_q, 0.9530, 0.0005)
+    check("realized assignment rate = p* by construction", p_p, 0.20, 1e-9)
+    check("E[x0] (Standard)", x0_p, 0.0322, 0.0005)
+    check("E[d | assignment] (Standard, P)", expected_drop(STD, "P"), 0.0754, 0.001)
+    check("E[d | assignment] (Standard, Q)", expected_drop(STD, "Q"), 0.0770, 0.001)
+    # What the broker screen shows at the same strike: the risk-neutral number.
+    m_q, _ = STD.world("Q")
+    check("screen (risk-neutral) p at the P-strike",
+          assign_prob(k_p, STD.tau_p, STD.sigma, m_q), 0.2075, 0.001)
+    check("c_p, the put quote (Standard)", put_premium(STD, "P"), 0.00628, 0.0002)
+    check("k* (Conservative, P-world)", strike(CON, "P"), 0.9306, 0.0005)
+    check("E[d | assignment] (Conservative, P)", expected_drop(CON, "P"), 0.0942, 0.001)
 
-    print("--- Section 6: recovery probability ---")
-    e_d = expected_drop_given_assignment(k, tau_p, sigma, r, delta)
-    check("E[d | assignment] (monthly)", e_d, 0.079, 0.003)
-    check("E[d | A] closed form vs num. integration", e_d,
-          expected_drop_numint(k, tau_p, sigma, r, delta), 1e-4)
-    check("E[d | A] under real-world drift (< 0.1pp shift)",
-          expected_drop_given_assignment(k, tau_p, sigma, mu, delta), e_d, 0.001)
-    check("d1 (k=0.95, monthly)",
-          d2(k, tau_p, sigma, r, delta) + sigma * sqrt(tau_p), 0.95, 0.01)
-    check("required recovery % (base d=0.08)", k / (1 - 0.08) - 1, 0.033, 0.002)
-    check("q (base d=0.08, quarterly)",
-          q_recover(k, 0.08, tau_c, sigma, mu, delta), 0.398, 0.005)
-    check("required recovery % (stress d=0.15)", k / (1 - 0.15) - 1, 0.118, 0.002)
-    check("q (stress d=0.15, quarterly)",
-          q_recover(k, 0.15, tau_c, sigma, mu, delta), 0.147, 0.005)
+    # ------------------------------------------------------------------
+    print("--- Section 06: the depth process ---")
+    crit_p, crit_q = criteria(STD, "P"), criteria(STD, "Q")
+    check("nu (P-world)", crit_p["nu"], 0.025, 1e-9)
+    check("nu (Q-world)", crit_q["nu"], 0.005, 1e-9)
+    check("q at the mean entry depth (P)", q_exit(STD, "P", x0_p), 0.3976, 0.001)
+    check("q at 10% depth (P)", q_exit(STD, "P", 0.10), 0.1743, 0.001)
+    check("q at 30% depth (P)", q_exit(STD, "P", 0.30), 0.0017, 0.0005)
+    check("call quote at the mean entry depth",
+          bs_call(1.0, exp(x0_p), STD.tau_c, STD.sigma_iv, STD.r, STD.delta),
+          0.0284, 0.001)
+    check("call quote at 30% depth",
+          bs_call(1.0, exp(0.30), STD.tau_c, STD.sigma_iv, STD.r, STD.delta),
+          0.0001, 0.0002)
 
-    print("--- Section 7: inventory queue ---")
-    p = p_assign(k, tau_p, sigma, r, delta)
-    q08 = q_recover(k, 0.08, tau_c, sigma, mu, delta)
-    q15 = q_recover(k, 0.15, tau_c, sigma, mu, delta)
-    check("q_p vs q/n approx (d=0.15)", q_per_put_period(q15, n), q15 / n, 0.004)
-    check("I* (base d=0.08)", p * n / q08, 1.40, 0.02)
-    check("I* (stress d=0.15)", p * n / q15, 3.78, 0.05)
-    check("P(I=0) for I*=1", exp(-1.0), 0.37, 0.005)
-    check("P(I=0) for I*=2", exp(-2.0), 0.14, 0.005)
-    check("P(I=0) for I*=3", exp(-3.0), 0.05, 0.003)
-    check("self-recycling: exit rate = p",
-          (p * n / q15) * q_per_put_period(q15, n), p, 0.02)
+    # ------------------------------------------------------------------
+    print("--- Section 07: holding time ---")
+    occ_p = occupation(STD, "P")
+    occ_q = occupation(STD, "Q")
+    sc = STD.sigma * sqrt(STD.tau_c)
+    check("call-grid tax beta*sigma*sqrt(tau_c)", BETA * sc, 0.0583, 0.0005)
+    check("grid tax as a multiple of the entry depth", BETA * sc / x0_p, 1.81, 0.05)
+    check("first-period exit probability (P)", occ_p["q(x0)"], 0.400, 0.005)
+    check("every lot eventually exits when nu > 0", occ_p["P[exit]"], 1.0, 0.002)
+    check("call premiums collected per lot (P)", occ_p["E[prem]"], 0.0678, 0.001)
+    check("upside given away per lot (P)", occ_p["E[exitcost]"], 0.0634, 0.001)
 
-    print("--- Section 8: returns and capital ---")
-    c_p = bs_put(k, tau_p, sigma, r, delta)
-    check("c_p (BS put premium)", c_p, 0.0054, 0.0005)
+    # ------------------------------------------------------------------
+    print("--- Section 08: inventory ---")
+    e30 = economics(STD, "P", occ_p, horizon=30.0)
+    check("arrival rate lambda (Standard)", e30["lambda"], 2.40, 0.01)
+    check("E[I] over 30 years (Standard, P)", e30["I"], 4.89, 0.05)
+    check("E[I] over 30 years (Standard, Q)",
+          economics(STD, "Q", occ_q, horizon=30.0)["I"], 6.13, 0.06)
+    check("E[I] over 30 years (Conservative, P)",
+          economics(CON, "P", occupation(CON, "P"), horizon=30.0)["I"], 2.35, 0.03)
 
-    for d, q_d, cc_expect, run_expect, cap_expect, exc_expect in [
-        # base case first, as in the text
-        (0.08, q08, 0.0262, 0.0200, 1.51, 0.109),
-        (0.15, q15, 0.0067, 0.0206, 3.76, 0.016),
-    ]:
-        c_c = bs_call(1 - d, k, tau_c, sigma, r, delta)
-        I_star = p * n / q_d
-        # Track A per put period, per S0: premiums + dividend carry, both
-        # readable by lifecycle (each call period yields c_c + dn*tau_c)
-        # or by standing inventory (I* lots x dn per year).
-        run_rate = c_p + p * (c_c + dn * tau_c) / q_d
-        capital = m * k + I_star * (k - c_p)
-        check(f"c_c (d={d})", c_c, cc_expect, 0.0005)
-        check(f"Track A run rate/period (d={d})", run_rate, run_expect, 0.0005)
-        check(f"E[Capital]/S0 (d={d})", capital, cap_expect, 0.02)
-        annual = run_rate / tau_p
-        excess = (annual - r * capital) / capital
-        check(f"excess return (d={d})", excess, exc_expect, 0.002)
-        print(f"      d={d}: annual Track A = {annual:.3f}, "
-              f"excess over risk-free = {excess:+.3f}/yr on capital")
+    # ------------------------------------------------------------------
+    print("--- Section 09: returns and capital ---")
+    for H, inv, mv, cost, econ, cash in [(5.0, 2.22, 2.41, 2.82, 0.0139, 0.0373),
+                                         (10.0, 3.10, 3.29, 4.18, 0.0143, 0.0164),
+                                         (30.0, 4.89, 5.08, 7.82, 0.0149, -0.0080)]:
+        x = economics(STD, "P", occ_p, horizon=H)
+        check(f"E[I] at {H:.0f}y", x["I"], inv, 0.02)
+        check(f"market-value capital at {H:.0f}y", x["mv_capital"], mv, 0.02)
+        check(f"cost-basis capital at {H:.0f}y", x["capital"], cost, 0.03)
+        check(f"economic excess at {H:.0f}y", x["econ_excess"], econ, 0.0005)
+        check(f"cash-view excess at {H:.0f}y", x["excess"], cash, 0.0005)
+    # The wheel against simply owning the stock, on the same capital.
+    m_p, _ = STD.world("P")
+    buy_hold = m_p + STD.delta_net - STD.r
+    check("buy-and-hold excess return", buy_hold, 0.01625, 1e-6)
+    equity_frac = e30["I"] / e30["mv_capital"]
+    check("wheel's equity fraction of capital", equity_frac, 0.963, 0.005)
+    check("gap: wheel minus equity-adjusted buy-and-hold",
+          e30["econ_excess"] - buy_hold * equity_frac, -0.0007, 0.0005)
+    # A sliver of volatility risk premium is enough to close it.
+    breakeven = Config(p_star=0.20, iv_spread=0.005)
+    xb = economics(breakeven, "P", occupation(breakeven, "P"), horizon=30.0)
+    check("with 0.5 vol points of IV-RV spread, the gap turns positive",
+          xb["econ_excess"] - buy_hold * (xb["I"] / xb["mv_capital"]), 0.0015, 0.0005)
 
-    check("capital bound (k-c_p)/d", (0.95 - 0.0054) / 0.15, 6.3, 0.05)
+    # ------------------------------------------------------------------
+    print("--- Section 10: stability ---")
+    check("tail exponent 2nu/sigma^2 (P)", crit_p["tail_exponent"], 1.25, 0.01)
+    check("tail exponent 2nu/sigma^2 (Q)", crit_q["tail_exponent"], 0.25, 0.01)
+    print(f"      P-world: count {'stable' if crit_p['count_ok'] else 'UNSTABLE'}, "
+          f"capital {'stable' if crit_p['capital_ok'] else 'UNSTABLE'}")
+    print(f"      Q-world: count {'stable' if crit_q['count_ok'] else 'UNSTABLE'}, "
+          f"capital {'stable' if crit_q['capital_ok'] else 'UNSTABLE'}")
+    if crit_p["capital_ok"] and not crit_q["capital_ok"]:
+        print("PASS  the two measures disagree on capital stability (the "
+              "article's sharpest comparison)")
+    else:
+        FAILURES.append("measure disagreement on capital stability")
+    # Where the two boundaries sit, in each parameter.
+    check("volatility at which lot count destabilizes (sqrt(2(mu-delta)))",
+          sqrt(2 * (STD.mu - STD.delta)), 0.300, 0.001)
+    check("volatility at which capital destabilizes (sqrt(mu-delta))",
+          sqrt(STD.mu - STD.delta), 0.2121, 0.001)
+    check("dividend yield at which lot count destabilizes (mu - sigma^2/2)",
+          STD.mu - STD.sigma**2 / 2, 0.050, 1e-9)
+    check("dividend yield at which capital destabilizes (mu - sigma^2)",
+          STD.mu - STD.sigma**2, 0.030, 1e-9)
+    hi_vol = Config(sigma=0.40)
+    check("nu at sigma=40% (both criteria fail)",
+          criteria(hi_vol, "P")["nu"], -0.035, 1e-9)
+    check("trapped-forever fraction per assignment at sigma=40%",
+          trapped_fraction(hi_vol, "P"), 0.0759, 0.002)
+    # Independent cross-check of that closed form: integrate the escape
+    # probability against the entry density directly.
+    _, _, _, dens = entry_law(hi_vol, "P")
+    m_h, s_h = hi_vol.world("P")
+    th = 2 * abs(m_h - s_h**2 / 2) / s_h**2
+    sc_h = s_h * sqrt(hi_vol.tau_c)
+    step = 0.0005
+    num = sum(dens((i + .5) * step) * step * exp(-th * ((i + .5) * step + BETA * sc_h))
+              for i in range(20000))
+    den = sum(dens((i + .5) * step) * step for i in range(20000))
+    check("trapped fraction: closed form vs numerical integration",
+          trapped_fraction(hi_vol, "P"), 1 - num / den, 1e-4)
+
+    # ------------------------------------------------------------------
+    print("--- Structural: no-arbitrage in the Q-world ---")
+    for label, cfg in (("Standard", STD), ("Conservative", CON)):
+        occ = occupation(cfg, "Q")
+        for H in (5.0, 10.0, 30.0):
+            x = economics(cfg, "Q", occ, horizon=H)
+            resid = x["econ_excess"] + x["leak"] / x["mv_capital"]
+            check(f"{label} @ {H:.0f}y: Q-world excess = -(withholding leak)",
+                  resid, 0.0, 0.003)
+
+    # ------------------------------------------------------------------
+    if args.full:
+        print("--- Far-grid stationary figures (slow) ---")
+        far = dict(h=0.05, x_max=50.0, eps=1e-7)
+        fp = occupation(STD, "P", **far)
+        f = economics(STD, "P", fp)
+        check("stationary E[T] (Standard, P), years", f["E[T]"], 4.18, 0.05)
+        check("Siegmund closed form for E[T]", f["E[T]_siegmund"], 3.62, 0.05)
+        check("stationary E[I] (Standard, P)", f["I"], 10.04, 0.10)
+        check("years to reach 90% of stationary E[I]",
+              time_to_fraction(STD, fp, 0.9), 94.0, 1.0)
+        fq = occupation(STD, "Q", **far)
+        g = economics(STD, "Q", fq)
+        check("stationary E[T] (Standard, Q), years", g["E[T]"], 20.08, 0.20)
+        check("stationary E[I] (Standard, Q)", g["I"], 48.20, 0.50)
 
     print()
     if FAILURES:

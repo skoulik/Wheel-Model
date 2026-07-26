@@ -2,6 +2,54 @@
 
 Open modeling and writing issues, from the 2026-07-10 review of the initial draft. Items are referenced from the sections as "TODO #n".
 
+## Campaign: the restructure (agreed 2026-07-26)
+
+The homogeneous approximation is excised from the article — not flagged, not caveated, deleted.
+Sections that derived it or leaned on it are replaced by derivations from the depth process. The
+article carries final results only; the road that led to them stays in `drafts/` and this file.
+
+**Agreed structure — four parts, 16 files.**
+
+| part | files |
+|---|---|
+| I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability |
+| III. Many assets | 11 portfolio · 12 correlation |
+| IV. Reality | 13 verification · 14 live-account · 15 outlook |
+
+**The spine.** A lot's state is its depth x = ln(K_c/S); on the call grid x is a Gaussian random
+walk with per-period drift −ν·τ_c; exit is the first grid point with x ≤ 0. Everything follows:
+entry law for x₀ → q(x) as the one-step exit probability → grid-sampled first passage for the
+holding time → Little's law E[I] = λ·E[T] → the stationary depth census → income and capital as
+integrals against that census → stability as conditions on ν.
+
+**Settled decisions.**
+
+1. *One chain in ν.* Every formula is the same formula with a drift argument m; everything
+   downstream depends on it only through ν = m − σ²/2. A "measure" is a value of ν:
+   Q-world = (r−δ, σ_IV), P-world = (μ−δ, σ_RV). Both are self-consistent worlds and both are
+   reported wherever they differ materially; P leads for anything the operator lives through,
+   Q for anything the market quotes, r for Track C. Resolves #4's first half by elimination.
+2. *Two criteria, not one.* Lot count is stable iff ν > 0; expected capital is stable iff
+   m > σ² (a lot's basis relative to current spot is e^x, and E[1/S_t] must decay). At the
+   running parameters the verdict flips between measures — the article's sharpest result.
+3. *Two regimes, side by side.* Standard p\* = 20% (the prose thread), Conservative p\* = 10%.
+   Neither is fitted to the live account, which falls between them.
+4. *Three clocks.* Cadence T ≥ tenor τ_p, call τ_c. Little's law wants an arrival rate anyway
+   (λ = p/T), so #7 costs one symbol; Parts II–III set T = τ_p, Part IV calibrates it.
+5. *Volatility risk premium off by default* (σ_IV = σ_RV): headline results describe the
+   inventory machine with the strategy's documented edge stripped out. The break-even IV−RV
+   spread is a computed result instead. Skew (put spread > call spread) stays a named limitation.
+6. *No strike-down lever* (#10 descoped): K_c frozen at entry. The article's verdict is therefore
+   a statement about the mechanical wheel, stated as such.
+7. *The d = 0.15 stress case dies* — depth is a process, not a parameter; the stress axis is σ.
+8. *Q gives the verification section a theorem*: run at ν_Q with Q-priced premiums, expected
+   excess return over r must vanish, up to the dividend-withholding leak (≈ w·δ on the stock
+   component) and any Track C overcharge — which measures #6's open accounting question.
+
+**Staging.** (1) analytic core + numbers, reviewed before prose; (2) Part II prose; (3) Part III;
+(4) Part IV. Each stage: `verify_examples.py` green, summary, review, then commit.
+
 ## Done
 
 - ✅ **Correlated exits vs. the Poisson independence assumption** (was #1; 2026-07-22). Decided by data rather than by framing choice: the layered simulation (section 09, finding five) shows the single-name inventory is nothing like Poisson (Var/Mean ≈ 4.8, P(I=0) ≈ 14% vs Poisson 0.9%), and the section commits to the honest combined framing — on one name only the rate-balance logic survives; the distributional claims (±√I\*, e^(−I\*)) belong to a diversified portfolio of independent wheels. Exit clustering itself proved modest (14% of exit dates); the real single-name tail risk is depth, not batch exits. Residue: section 07's caveat flag gets rewired to sec:layered in the #18 pass; portfolio-level modeling continues as #11.
