@@ -45,7 +45,7 @@ from datetime import timedelta
 from math import exp, isfinite, log, sqrt
 
 import prices
-from analyze_statement import STATEMENTS_GLOB, junk_symbols, parse
+from analyze_statement import STATEMENTS_GLOB, excluded_symbols, parse
 from live_ledger import wheel_universe
 
 LOOKBACK_5Y = 1250        # trading days
@@ -268,8 +268,8 @@ def main():
     if not paths:
         sys.exit(f"no statement files found at {STATEMENTS_GLOB}")
     positions, stock_tx, divs, live = parse(paths)
-    junk = junk_symbols(positions, stock_tx)
-    universe = wheel_universe(positions, stock_tx, junk)
+    excluded = excluded_symbols()
+    universe = wheel_universe(positions, stock_tx, excluded)
     px = prices.load_all(universe)
 
     sets = build_choice_sets(list(positions) + list(live), px, universe)

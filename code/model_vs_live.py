@@ -37,8 +37,8 @@ from datetime import timedelta
 from math import exp, log, sqrt
 
 import prices
-from analyze_statement import (STATEMENTS_GLOB, WHEEL_DESPITE_JUNK, build_lots,
-                               junk_symbols, parse)
+from analyze_statement import (STATEMENTS_GLOB, build_lots,
+                               excluded_symbols, parse)
 from live_ledger import realized_vol, wheel_universe
 from model import (N, Config, assign_prob, depth_census, expected_drop,
                    occupation)
@@ -124,7 +124,10 @@ def test_entry_law(positions, px, universe, sigma_by_sym, drift):
         ser = px.get(p["sym"])
         if ser is None:
             continue
-        s0 = ser.close_on_or_before(p["open"])
+        # Open at entry, close at expiry: the position was written in the
+        # first hour of the session, but it expires at the bell. See
+        # prices.Series.open().
+        s0 = ser.open_on_or_before(p["open"])
         s1 = ser.close_on_or_before(p["exp"])
         tau = (p["exp"] - p["open"]).days / 365
         if not s0 or not s1 or tau <= 0:
@@ -272,7 +275,10 @@ def test_q_of_x(positions, px, universe, C, drift):
         ser = px.get(p["sym"])
         if ser is None:
             continue
-        s0 = ser.close_on_or_before(p["open"])
+        # Open at entry, close at expiry: the position was written in the
+        # first hour of the session, but it expires at the bell. See
+        # prices.Series.open().
+        s0 = ser.open_on_or_before(p["open"])
         s1 = ser.close_on_or_before(p["exp"])
         tau = (p["exp"] - p["open"]).days / 365
         if not s0 or not s1 or tau <= 0:
@@ -355,9 +361,9 @@ def main():
     if not paths:
         sys.exit(f"no statement files found at {STATEMENTS_GLOB}")
     positions, stock_tx, divs, live = parse(paths)
-    junk = junk_symbols(positions, stock_tx)
-    universe = wheel_universe(positions, stock_tx, junk)
-    completed, open_lots = build_lots(stock_tx, junk - WHEEL_DESPITE_JUNK)
+    excluded = excluded_symbols()
+    universe = wheel_universe(positions, stock_tx, excluded)
+    completed, open_lots = build_lots(stock_tx, excluded)
     end = max(max(p["close"] for p in positions),
               max(d for d, *_ in stock_tx))
     start = min(min(p["open"] for p in positions),

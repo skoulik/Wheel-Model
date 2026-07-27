@@ -37,9 +37,13 @@ a 3-day one. Residual error: a holiday between trade and posting shifts the
 inferred trade date one extra day back.
 
 Caveats baked into the analysis:
-  * "Junk" filter: any symbol that ever traded (stock or strike) below
-    JUNK_PRICE_CUTOFF is excluded from the quality universe — these are legacy
-    losers / bankruptcy remnants being liquidated, not wheel positions.
+  * Universe: defined by exclusion. Every out-of-universe name is listed
+    explicitly in EXCLUDED_LIST below (see there) — there is no price rule or
+    other heuristic. A price threshold was tried and dropped: it is a proxy
+    for "not wheel-grade" that both over- and under-fires, and the operator's
+    judgement is the thing actually being encoded. The list is applied in
+    parse(), so an excluded name is absent from every figure below as though
+    it had never been traded.
   * Lot matching: a sale is first matched to an open lot whose entry price
     equals the sale price (the wheel's default exit — the call struck at that
     lot's basis was exercised), then to remaining lots FIFO. Plain FIFO
@@ -65,19 +69,53 @@ from datetime import date, datetime, timedelta
 from model import Config, assign_prob, bs_call, expected_drop, strike
 
 STATEMENTS_GLOB = "statements/*.csv"
-JUNK_PRICE_CUTOFF = 8.0  # USD; discretionary, see module docstring
-# Manual additions to the junk universe: names the operator does not consider
-# wheel-grade regardless of price (BEKE: speculative, not a hold-forever asset;
-# FOLD: renamed, and not wheel-grade either).
-JUNK_EXTRA = {"BEKE", "FOLD"}
+# Symbols outside the universe the article claims to trade. Every name is
+# listed explicitly -- there is no price rule or other heuristic -- and the
+# list is enforced in parse(): a row naming one of these is dropped as it is
+# read, so nothing here reaches any analysis. The position was never opened,
+# the shares were never assigned, the dividend was never received.
+#
+# Anything appearing in the statements and NOT listed here is the universe the
+# model is verified against, so a new symbol counts as in-universe by default
+# and must be ruled out by hand.
+#
+# What is in here, roughly in the order the groups below are written:
+#
+#   * Legacy losers and bankruptcy remnants -- penny-priced positions being
+#     liquidated, the residue of strategies that predate the wheel.
+#   * Speculative single names -- high-beta growth, China ADRs, pre-profit
+#     story stocks, spin-offs and renamings. They trade at normal prices but
+#     are not hold-forever assets, and the wheel's premise (assignment is an
+#     acceptable outcome) does not hold for them.
+#   * Non-equity or non-single-name instruments -- ETFs, bond funds and
+#     preferreds. Wheel-able, but their return process is not the lognormal
+#     single-stock walk the model is built on, so they cannot verify it. STRF
+#     is the wheeled preferred already noted as an out-of-scope outlier.
+#
+# ALT and BEKE were once carried as exceptions, the wheel having entered them
+# by assignment inside the window; they were the only empirical handle on the
+# permanent-impairment hazard (TODO #13). They are now excluded like the rest:
+# neither is a name the strategy would knowingly enter, so measuring the hazard
+# from them would measure a universe the article does not claim. That leaves no
+# impairment observations at all -- the honest state, pending a genuine
+# in-universe assignment that goes against us.
+EXCLUDED_LIST = {
+    "ALT", "API", "BB", "BLNK", "BTBT", "BYND", "BZUN", "CHPT", "CLNE",
+    "CLOV", "CRON", "FOSL", "FUBO", "GOTU", "HYLN", "KNDI", "KODK", "LAZR",
+    "MPT", "MPW", "NIO", "NNDM", "NNOX", "PLUG", "QS", "RLX", "TLRY", "TPIC",
+    "VIR",
 
-# Junk names the wheel nevertheless ENTERED by put assignment inside the
-# window. They are wheel lots whatever the universe filter says -- excluding
-# them would be survivorship bias in the live measurement, and they are the
-# only empirical handle on the permanent-impairment hazard (TODO #13). There
-# are exactly two, both confirmed by the operator as genuine entries; the rest
-# of the junk universe is the legacy of earlier strategies and stays out.
-WHEEL_DESPITE_JUNK = {"ALT", "BEKE"}
+    "ATHM", "BEKE", "CLSK", "D", "DQ", "EH", "FOLD", "GDS", "JKS", "JOYY",
+    "KVUE", "KYNB", "MCRB", "MOMO", "NBIS", "RBLX", "RIVN", "RSI", "SCLX",
+    "SHLS", "TAL", "TME", "VSNT", "WBA", "XPEV", "ZYME",
+
+    "AMLP", "EWM", "EWY", "KWEB", "LTPZ", "STRF", "TLT",
+}
+
+# Excluded symbols actually encountered while parsing, and how many rows each
+# cost. Populated by parse(); read by universe_report() to show what was
+# dropped and to flag entries that no longer appear in the statements at all.
+EXCLUDED_SEEN = Counter()
 
 OPT_OPEN = re.compile(
     r"^-(\d+) (\S+) (\d{2}[A-Z]{3}\d{2}) ([\d.]+) ([PC]) price: ([\d.]+)(?: comm: (-?[\d.]+))?$")
@@ -89,6 +127,14 @@ STOCK = re.compile(
 DIV = re.compile(r"^(\S+?) ?\((\S+)\) (.*)$")  # optional space: "TRI (CA...)"
 DIV_PER_SHARE = re.compile(r"USD ([\d.]+) per Share")
 DIV_TAX = re.compile(r"- ([A-Z]{2}) Tax$")
+
+
+def _excluded(sym):
+    """True if `sym` is out of universe; records the hit for the report."""
+    if sym not in EXCLUDED_LIST:
+        return False
+    EXCLUDED_SEEN[sym] += 1
+    return True
 
 
 def parse(paths):
@@ -108,11 +154,18 @@ def parse(paths):
     leg, which is enough to flip the calls/puts income ratio from 0.90 to 1.03.
     Every option row's Amount reconciles to qty*price*100 + commission exactly
     (1198 of 1198 rows), so the count is real and Amount is authoritative.
+
+    Rows naming a symbol in EXCLUDED_LIST are dropped here, at the point of
+    reading, rather than filtered downstream. That is the whole enforcement:
+    an excluded name cannot reach an analysis by being forgotten in one call
+    site, because it never enters the data. Both legs of an excluded option go
+    together, so the open/close matching below never sees a half pair.
     """
     opens = {}
     positions = []
     stock_tx = []
     divs = []
+    EXCLUDED_SEEN.clear()          # parse() may be called more than once
     for path in paths:
         with open(path, newline="") as f:
             reader = csv.reader(f)
@@ -124,6 +177,8 @@ def parse(paths):
                 if ref == "OPTION":
                     m = OPT_OPEN.match(desc)
                     if m:
+                        if _excluded(m[2]):
+                            continue
                         key = (m[2], m[3], float(m[4]), m[5])
                         n = int(m[1])
                         opens.setdefault(key, []).append(dict(
@@ -132,6 +187,8 @@ def parse(paths):
                         continue
                     m = OPT_CLOSE.match(desc)
                     if m:
+                        if _excluded(m[2]):
+                            continue
                         key = (m[2], m[3], float(m[4]), m[5])
                         pending = opens.get(key, [])
                         # Expiry/assignment posts +1 calendar day; a buy-back
@@ -160,6 +217,8 @@ def parse(paths):
                 elif ref == "STOCK":
                     m = STOCK.match(desc)
                     if m:
+                        if _excluded(m[3]):
+                            continue
                         sign = 1 if m[1] == "+" else -1
                         assigned = m[4] == "assigned"
                         d_ev = _expiry_day(day) if assigned else _trade_day(day)
@@ -173,6 +232,8 @@ def parse(paths):
                         print("UNPARSED DIVIDEND ROW:", desc, file=sys.stderr)
                         continue
                     sym, rest = m[1], m[3]
+                    if _excluded(sym):
+                        continue
                     tax = DIV_TAX.search(rest)
                     per_share = DIV_PER_SHARE.search(rest)
                     divs.append(dict(
@@ -192,6 +253,9 @@ def parse(paths):
           f"({n_contracts} contracts; {still_open} contracts still open), "
           f"{len(stock_tx)} stock transactions, "
           f"{len(divs)} dividend-related cash flows")
+    print(f"        ({sum(EXCLUDED_SEEN.values())} rows in "
+          f"{len(EXCLUDED_SEEN)} excluded symbols dropped at read; "
+          f"see EXCLUDED_LIST)")
     return positions, stock_tx, divs, live
 
 
@@ -220,18 +284,26 @@ def _exp(s):
     return datetime.strptime(s, "%d%b%y").date()
 
 
-def junk_symbols(positions, stock_tx):
-    junk = {sym for _, sym, _, px, _ in stock_tx if px < JUNK_PRICE_CUTOFF}
-    junk |= {p["sym"] for p in positions if p["strike"] < JUNK_PRICE_CUTOFF}
-    junk |= JUNK_EXTRA
-    return junk
+def excluded_symbols():
+    """Symbols outside the universe — a copy of the fixed EXCLUDED_LIST.
+
+    Kept as a function so callers read it the same way they always did, but it
+    no longer filters anything by itself: parse() has already dropped these
+    rows. Downstream uses are belt-and-braces on data that cannot contain
+    them.
+    """
+    return set(EXCLUDED_LIST)
+
+
+def all_symbols(positions, stock_tx):
+    return {p["sym"] for p in positions} | {sym for _, sym, _, _, _ in stock_tx}
 
 
 def median(sorted_vals):
     return sorted_vals[len(sorted_vals) // 2] if sorted_vals else float("nan")
 
 
-def option_report(positions, junk):
+def option_report(positions, excluded):
     # Calendar days between trade and expiry, after the posting-date shift.
     # The dominant pattern is Mon-open/Fri-close = 4d; a put sold the previous
     # Friday for the same expiry is a true 7d weekly, hence the split at 6-8.
@@ -241,10 +313,10 @@ def option_report(positions, junk):
                      (22, 45, "~monthly"), (46, 400, "long")]}
     for right in "PC":
         ps = [p for p in positions
-              if p["right"] == right and p["sym"] not in junk]
+              if p["right"] == right and p["sym"] not in excluded]
         outcomes = Counter(p["how"] for p in ps)
         premium = sorted(p["open_px"] / p["strike"] for p in ps)
-        print(f"\n=== {right} options, quality universe: {len(ps)} closed ===")
+        print(f"\n=== {right} options: {len(ps)} closed ===")
         print(f"outcomes: {dict(outcomes)}  "
               f"assign rate: {outcomes['assigned'] / len(ps):.3f}  "
               f"premium/strike median: {median(premium) * 100:.2f}%")
@@ -266,8 +338,8 @@ def option_report(positions, junk):
                   f"repurchased at median {median(frac):.0%} of premium received")
     # Gross premium counts contracts, not rows -- see the parse() docstring.
     total = {r: sum(p["open_px"] * 100 * p["qty"] for p in positions
-                    if p["right"] == r and p["sym"] not in junk) for r in "PC"}
-    print(f"\ngross premium (quality, closed): puts ${total['P']:,.0f}, "
+                    if p["right"] == r and p["sym"] not in excluded) for r in "PC"}
+    print(f"\ngross premium (closed): puts ${total['P']:,.0f}, "
           f"calls ${total['C']:,.0f}, calls/puts = {total['C'] / total['P']:.2f}")
 
 
@@ -280,8 +352,8 @@ def build_lots(stock_tx, excluded):
     legacy shares bought before the window and are dropped.
 
     Matching is price-first, then FIFO -- see the module docstring. `excluded`
-    is the set of symbols to skip (normally the junk universe minus the names
-    the wheel actually entered in-window, see WHEEL_DESPITE_JUNK).
+    is the set of symbols to skip; parse() has already dropped EXCLUDED_LIST,
+    so this is normally redundant and kept only as an explicit guard.
     """
     buys = defaultdict(list)
     completed = []
@@ -311,13 +383,13 @@ def build_lots(stock_tx, excluded):
     return completed, sorted(open_lots, key=lambda l: l["in_day"])
 
 
-def inventory_report(stock_tx, junk, today):
-    completed, open_lots = build_lots(stock_tx, junk - WHEEL_DESPITE_JUNK)
+def inventory_report(stock_tx, excluded, today):
+    completed, open_lots = build_lots(stock_tx, excluded)
     hold = sorted((l["out_day"] - l["in_day"]).days for l in completed)
     same = sum(1 for l in completed if abs(l["out_px"] - l["in_px"]) < 1e-9)
     above = sum(1 for l in completed if l["out_px"] > l["in_px"] + 1e-9)
     below = sum(1 for l in completed if l["out_px"] < l["in_px"] - 1e-9)
-    print(f"\n=== inventory lots (quality universe, price-match-then-FIFO) ===")
+    print(f"\n=== inventory lots (price-match-then-FIFO) ===")
     below_lots = [l for l in completed if l["out_px"] < l["in_px"] - 1e-9]
     for l in below_lots:
         print(f"  below-basis exit: {l['sym']} {l['qty']} in @{l['in_px']} "
@@ -343,7 +415,7 @@ def _implied_spot(c_over_k, tau, sigma, r):
     return (lo + hi) / 2
 
 
-def assignment_depth_report(positions, junk, r=0.05):
+def assignment_depth_report(positions, excluded, r=0.05):
     """How deep below the strike do assignments land? (draft finding #12)
 
     Empirical check of the article's derived E[d | assignment]. The statements
@@ -354,9 +426,10 @@ def assignment_depth_report(positions, junk, r=0.05):
     implied spots slightly ABOVE the strike are common and expected), and a
     volatility must be assumed - results are bracketed with sigma 20%/30%.
     """
-    quality = [p for p in positions if p["sym"] not in junk]
-    assigned = [p for p in quality if p["right"] == "P" and p["how"] == "assigned"]
-    calls = [p for p in quality if p["right"] == "C"]
+    in_universe = [p for p in positions if p["sym"] not in excluded]
+    assigned = [p for p in in_universe
+                if p["right"] == "P" and p["how"] == "assigned"]
+    calls = [p for p in in_universe if p["right"] == "C"]
     rows = []
     for ap in assigned:
         cands = [c for c in calls
@@ -371,7 +444,7 @@ def assignment_depth_report(positions, junk, r=0.05):
             rows.append((ap, c, tau))
     lags = sorted((c["open"] - ap["close"]).days for ap, c, _ in rows)
     print(f"\n=== assignment depth via first at-basis call "
-          f"(assigned quality puts: {len(assigned)}, usable: {len(rows)}, "
+          f"(assigned puts: {len(assigned)}, usable: {len(rows)}, "
           f"median lag {median(lags)}d) ===")
     for sigma in (0.20, 0.30):
         gaps = sorted(1 - _implied_spot(c["open_px"] / c["strike"], tau, sigma, r)
@@ -408,8 +481,8 @@ def assignment_depth_report(positions, junk, r=0.05):
           f"E[gap]={1 - (1 - ed) / 0.95:+.3f}  (d=0.15 would put E[gap] near +0.11)")
 
 
-def dividend_report(divs, positions, stock_tx, junk):
-    """Dividend flows split by universe, with withholding and wheel attribution.
+def dividend_report(divs, positions, stock_tx, excluded):
+    """Dividend flows, with withholding and wheel attribution.
 
     Attribution caveat: a receipt is credited to wheel inventory when the
     reconstructed wheel position (from statement stock rows) is > 0 on the
@@ -419,11 +492,9 @@ def dividend_report(divs, positions, stock_tx, junk):
     are legacy shares held from before the statement window.
     """
     wheel = {p["sym"] for p in positions} | {t[1] for t in stock_tx}
-    quality = wheel - junk
 
     def bucket(sym):
-        return ("junk" if sym in junk
-                else "wheel-quality" if sym in quality else "non-wheel")
+        return "wheel" if sym in wheel else "non-wheel"
 
     agg = defaultdict(lambda: defaultdict(float))
     for r in divs:
@@ -432,7 +503,7 @@ def dividend_report(divs, positions, stock_tx, junk):
         agg[bucket(r["sym"])][kind] += r["amount"]
     print(f"\n=== dividend flows ({min(r['day'] for r in divs)} .. "
           f"{max(r['day'] for r in divs)}) ===")
-    for b in ("wheel-quality", "non-wheel", "junk"):
+    for b in ("wheel", "non-wheel"):
         a = agg[b]
         gross = a["cash"] + a["pil"]
         if not gross:
@@ -452,7 +523,7 @@ def dividend_report(divs, positions, stock_tx, junk):
 
     per_sym = defaultdict(lambda: defaultdict(float))
     for r in divs:
-        if r["sym"] not in quality:
+        if r["sym"] not in wheel:
             continue
         key = "recv" if r["kind"] == "recv" else r["kind"]
         on_wheel = held(r["sym"], r["day"]) > 0
@@ -463,7 +534,7 @@ def dividend_report(divs, positions, stock_tx, junk):
             per_sym[r["sym"]]["n_wheel"] += 1
     tot_wheel = sum(s["recv_wheel"] for s in per_sym.values())
     tot_legacy = sum(s["recv_legacy"] for s in per_sym.values())
-    print(f"quality-name receipts on wheel inventory ${tot_wheel:,.0f} vs "
+    print(f"in-universe receipts on wheel inventory ${tot_wheel:,.0f} vs "
           f"legacy shares ${tot_legacy:,.0f}; by symbol (wheel part only):")
     for sym in sorted(per_sym, key=lambda s: -per_sym[s]["recv_wheel"]):
         s = per_sym[sym]
@@ -474,16 +545,29 @@ def dividend_report(divs, positions, stock_tx, junk):
               f"gross ${s['recv_wheel']:7,.0f}  "
               f"(symbol-level tax rate {rate:.1%})")
     premium = {r: sum(p["open_px"] * 100 * p["qty"] for p in positions
-                      if p["right"] == r and p["sym"] not in junk)
+                      if p["right"] == r and p["sym"] not in excluded)
                for r in "PC"}
-    print(f"wheel-inventory dividends vs gross quality premium: "
+    print(f"wheel-inventory dividends vs gross premium: "
           f"${tot_wheel:,.0f} / ${premium['P'] + premium['C']:,.0f} = "
           f"{tot_wheel / (premium['P'] + premium['C']):.1%}")
 
 
-def cluster_report(stock_tx, junk):
+def universe_report(positions, stock_tx, excluded):
+    """Print what was excluded and what remains as the universe."""
+    seen = all_symbols(positions, stock_tx)      # already excluded-free
+    dropped = sorted(EXCLUDED_SEEN)
+    print(f"\nexcluded, dropped at read ({len(dropped)} symbols, "
+          f"{sum(EXCLUDED_SEEN.values())} rows): {' '.join(dropped)}")
+    stale = sorted(excluded - set(EXCLUDED_SEEN))
+    if stale:  # listed by hand but absent from the statements
+        print(f"  listed but not traded in-window ({len(stale)}): "
+              f"{' '.join(stale)}")
+    print(f"universe ({len(seen)}): {' '.join(sorted(seen))}")
+
+
+def cluster_report(stock_tx, excluded):
     clusters = Counter(day for day, sym, qty, _, assigned in stock_tx
-                       if qty > 0 and assigned and sym not in junk)
+                       if qty > 0 and assigned and sym not in excluded)
     top = [(str(d), c) for d, c in clusters.most_common(6) if c > 1]
     print(f"\nassignment-day clusters (common shocks): {top}")
 
@@ -495,13 +579,13 @@ def main():
                  "(they are private and not in the repository)")
     print("reading:", ", ".join(paths))
     positions, stock_tx, divs, _live = parse(paths)
-    junk = junk_symbols(positions, stock_tx)
-    print(f"junk universe (excluded, price < {JUNK_PRICE_CUTOFF}): {sorted(junk)}")
-    option_report(positions, junk)
-    inventory_report(stock_tx, junk, date.today())
-    cluster_report(stock_tx, junk)
-    dividend_report(divs, positions, stock_tx, junk)
-    assignment_depth_report(positions, junk)
+    excluded = excluded_symbols()
+    universe_report(positions, stock_tx, excluded)
+    option_report(positions, excluded)
+    inventory_report(stock_tx, excluded, date.today())
+    cluster_report(stock_tx, excluded)
+    dividend_report(divs, positions, stock_tx, excluded)
+    assignment_depth_report(positions, excluded)
 
 
 if __name__ == "__main__":

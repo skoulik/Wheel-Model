@@ -58,8 +58,8 @@ from collections import defaultdict
 from datetime import date, timedelta
 
 import prices
-from analyze_statement import (STATEMENTS_GLOB, WHEEL_DESPITE_JUNK, build_lots,
-                               junk_symbols, parse)
+from analyze_statement import (STATEMENTS_GLOB, build_lots,
+                               excluded_symbols, parse)
 from model import bs_call, bs_put
 
 MARGIN = 0.20          # Track B margin on a short put, matching Config.margin
@@ -67,10 +67,14 @@ RF = 0.05              # risk-free rate, matching the article's r
 MARK_SIGMA = 0.25      # implied vol for marking still-open short options
 
 
-def wheel_universe(positions, stock_tx, junk):
-    """Symbols the wheel actually operated on: quality plus the junk it entered."""
+def wheel_universe(positions, stock_tx, excluded):
+    """Symbols the wheel operated on.
+
+    parse() has already dropped EXCLUDED_LIST, so `traded` is in-universe by
+    construction and the subtraction below is a guard, not a filter.
+    """
     traded = {p["sym"] for p in positions} | {t[1] for t in stock_tx}
-    return (traded - junk) | (traded & WHEEL_DESPITE_JUNK)
+    return traded - excluded
 
 
 def realized_vol(series, end, days=60):
@@ -309,9 +313,9 @@ def main():
     if not paths:
         sys.exit(f"no statement files found at {STATEMENTS_GLOB}")
     positions, stock_tx, divs, live = parse(paths)
-    junk = junk_symbols(positions, stock_tx)
-    universe = wheel_universe(positions, stock_tx, junk)
-    completed, open_lots = build_lots(stock_tx, junk - WHEEL_DESPITE_JUNK)
+    excluded = excluded_symbols()
+    universe = wheel_universe(positions, stock_tx, excluded)
+    completed, open_lots = build_lots(stock_tx, excluded)
 
     end = max(max(p["close"] for p in positions),
               max(d for d, *_ in stock_tx))

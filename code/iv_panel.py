@@ -25,8 +25,12 @@ measurements:
     for sigma_IV(x) is written into the model.
 
 **Accuracy warning, stated up front.** The statement records no market prices,
-so the spot used is the day's CLOSE while the trade happened at some unknown
-moment intraday. For the 25-day calls this is minor. For the 4-day puts written
+so the spot used is the day's OPENING print while the trade happened at some
+unknown moment intraday -- the operator writes within the hour after the bell,
+which makes the open the closest available proxy and avoids pricing a morning
+sale against that afternoon's close. Residual error remains: the trade was not
+at the opening auction either. For the 25-day calls this is minor. For the
+4-day puts written
 3% out of the money at 0.26% of strike it is not: vega is tiny there, so a 1%
 error in the spot moves implied vol by a lot. Per-contract IVs in the short-put
 bucket should be read as noisy; medians over hundreds of contracts survive,
@@ -42,8 +46,8 @@ from collections import defaultdict
 from math import log, sqrt
 
 import prices
-from analyze_statement import (STATEMENTS_GLOB, WHEEL_DESPITE_JUNK, build_lots,
-                               junk_symbols, parse)
+from analyze_statement import (STATEMENTS_GLOB, build_lots,
+                               excluded_symbols, parse)
 from live_ledger import RF, wheel_universe
 from model import bs_call, bs_put
 
@@ -101,7 +105,10 @@ def build_panel(positions, live, px, universe):
         ser = px.get(p["sym"])
         if ser is None:
             continue
-        s0 = ser.close_on_or_before(p["open"])
+        # Open, not close: the position was sold in the first hour of the
+        # session, so that day's opening print is the spot it was written
+        # against. See prices.Series.open().
+        s0 = ser.open_on_or_before(p["open"])
         tau = (p["exp"] - p["open"]).days / 365
         prem = p["open_px"]
         if not s0 or tau <= 0:
@@ -246,9 +253,9 @@ def main():
     if not paths:
         sys.exit(f"no statement files found at {STATEMENTS_GLOB}")
     positions, stock_tx, divs, live = parse(paths)
-    junk = junk_symbols(positions, stock_tx)
-    universe = wheel_universe(positions, stock_tx, junk)
-    completed, open_lots = build_lots(stock_tx, junk - WHEEL_DESPITE_JUNK)
+    excluded = excluded_symbols()
+    universe = wheel_universe(positions, stock_tx, excluded)
+    completed, open_lots = build_lots(stock_tx, excluded)
     px = prices.load_all(universe)
 
     rows, failed = build_panel(positions, live, px, universe)

@@ -32,8 +32,17 @@ separately for return calculations where the adjusted series is the correct one.
 
 Inside the statement window the only such event on a quality name is Comcast's
 Versant spin-off (2026-01-03), which Yahoo models as a 1067:1000 split; the rest
-(NVO 2:1, TRI 963:1000) predate the window and CHPT's 1:20 reverse split is a
-junk name. The correction is general rather than a special case for those.
+(NVO 2:1, TRI 963:1000) predate the window and CHPT's 1:20 reverse split is on
+an excluded name. The correction is general rather than a special case for
+those.
+
+**Open vs. close.** Each row carries both. The close is the right mark for
+anything that happens at the end of a session — an expiry, an assignment, an
+inventory mark — and is what every consumer uses by default. The *open* is used
+for one thing: the spot facing a position at the moment it was sold. The
+operator writes on Monday mornings, within the hour after the bell, so pricing
+that entry off the same day's close would compare a premium received at ~10am
+with the 4pm mark: a look-ahead the trade never had. See `Series.open()`.
 
 Dividends are *not* removed from either series: depth is a price ratio and the
 model carries dividends explicitly through delta, so a price series is what is
@@ -64,6 +73,14 @@ HISTORY_START = date(2019, 1, 1)
 # a long weekend plus a holiday; see is_stale().
 STALE_AFTER_DAYS = 4
 
+# Cache format. Bump when the shape of a row changes: an entry written by an
+# older version is treated as stale and refetched, so the upgrade happens by
+# itself rather than needing a manual --refresh.
+#   1: rows are [day, close]
+#   2: rows are [day, close, open]  -- the open is needed to price an entry at
+#      the moment it was actually made, see Series.open().
+CACHE_VERSION = 2
+
 # Symbols the statement knows under a name Yahoo does not. Renames and ticker
 # changes, not aliases of convenience.
 SYMBOL_ALIASES = {
@@ -73,13 +90,13 @@ SYMBOL_ALIASES = {
 # Known-dead: no history obtainable, for a reason we understand. Recorded so a
 # failed fetch is a deliberate omission rather than a silent hole, and so these
 # do not re-attempt on every run. Between them they carry $83 of the $60,059 of
-# quality-universe premium, so nothing here is material.
+# in-universe premium, so nothing here is material.
 KNOWN_MISSING = {
     "FGEN": "FibroGen — 1:25 reverse split then delisted",
     "MPW": "Medical Properties Trust — gone under either ticker",
     "MPT": "the pre-rename ticker for MPW; the statement carries both",
     "WBA": "Walgreens — taken private 2025-08, history withdrawn",
-    "FOLD": "renamed, and judged not wheel-grade (see JUNK_EXTRA)",
+    "FOLD": "renamed, and judged not wheel-grade (see EXCLUDED_LIST)",
     # Corporate-action placeholder tickers. These appear only in CORP rows,
     # never as positions, and are not securities Yahoo would know.
     "CHPT1": "adjusted-contract placeholder after the CHPT reverse split",
@@ -96,6 +113,9 @@ class Series:
         self.sym = sym
         self.days = [r[0] for r in rows]
         self._close = {r[0]: r[1] for r in rows}
+        # Rows from a version-1 cache have no open; those days simply have
+        # none, and the entry falls back to the close (see open_on_or_before).
+        self._open = {r[0]: r[2] for r in rows if len(r) > 2 and r[2] is not None}
         self.splits = splits          # [(date, factor)], factor = num/den
         self.divs = divs              # [(date, amount_per_share)]
         self._factor = self._forward_factors()
@@ -129,6 +149,44 @@ class Series:
         """Last as-traded close at or before `day` (holidays, weekends)."""
         for back in range(limit + 1):
             c = self.close(day - timedelta(days=back))
+            if c is not None:
+                return c
+        return None
+
+    def open(self, day):
+        """As-traded opening print — comparable with a statement strike.
+
+        Yahoo adjusts the open for splits exactly as it adjusts the close, so
+        the same forward factor undoes it.
+        """
+        o = self._open.get(day)
+        return None if o is None else o * self._factor[day]
+
+    def open_on_or_before(self, day, limit=7):
+        """Last as-traded open at or before `day`.
+
+        For a position opened intraday: the operator trades within the first
+        hour after the bell, so the session's opening print is a far better
+        proxy for the spot he faced than that afternoon's close. Using the
+        close instead prices a premium received at ~10am against the 4pm mark
+        — a look-ahead the entry never had.
+
+        The trade day itself is *inferred* (the statement posts an event a day
+        or more later, see `analyze_statement`), and the open is more exposed
+        to an off-by-one there than the close is, because overnight gaps are
+        where news lands. That error is occasional and unsigned; the bias it
+        replaces was systematic.
+
+        Falls back to the close of the same day when no open is recorded, so a
+        stale version-1 cache degrades to the old behaviour rather than
+        dropping the position out of the analysis entirely.
+        """
+        for back in range(limit + 1):
+            d = day - timedelta(days=back)
+            o = self.open(d)
+            if o is not None:
+                return o
+            c = self.close(d)
             if c is not None:
                 return c
         return None
@@ -179,16 +237,19 @@ def fetch(sym, start=HISTORY_START, end=None, pause=0.25):
     time.sleep(pause)                  # be a polite client
     res = payload["chart"]["result"][0]
     ts = res["timestamp"]
-    closes = res["indicators"]["quote"][0]["close"]
+    quote = res["indicators"]["quote"][0]
+    closes = quote["close"]
+    opens = quote.get("open") or [None] * len(closes)
     events = res.get("events", {})
-    rows = [[date.fromtimestamp(t).isoformat(), c]
-            for t, c in zip(ts, closes) if c is not None]
+    rows = [[date.fromtimestamp(t).isoformat(), c, o]
+            for t, c, o in zip(ts, closes, opens) if c is not None]
     splits = [[date.fromtimestamp(int(e["date"])).isoformat(),
                e["numerator"] / e["denominator"]]
               for e in events.get("splits", {}).values()]
     divs = [[date.fromtimestamp(int(e["date"])).isoformat(), e["amount"]]
             for e in events.get("dividends", {}).values()]
-    return {"symbol": sym, "fetched": date.today().isoformat(),
+    return {"symbol": sym, "version": CACHE_VERSION,
+            "fetched": date.today().isoformat(),
             "rows": rows, "splits": sorted(splits), "dividends": sorted(divs)}
 
 
@@ -202,10 +263,19 @@ def is_stale(payload, today=None):
     nothing, returns None, and the affected lots drop out of the marks. The
     numbers would move without anything reporting an error.
 
+    True also when the entry predates the current CACHE_VERSION, whatever its
+    date: an old row is missing fields the analysis now needs. This check comes
+    first, ahead of the attempted-today shortcut, so a format bump refetches
+    even a cache written moments ago.
+
     A symbol already attempted today is not retried, so a delisted name costs
     one request per day rather than one per call.
     """
     today = today or date.today()
+    if payload.get("attempted") == today.isoformat():
+        return False       # today's fetch already failed; see load()
+    if payload.get("version", 1) < CACHE_VERSION:
+        return True
     if payload.get("fetched") == today.isoformat():
         return False
     if not payload.get("rows"):
@@ -237,7 +307,9 @@ def load(sym, refresh=False):
                 print(f"  {sym}: refresh failed ({type(e).__name__}), "
                       f"using cache through {cached['rows'][-1][0]}",
                       file=sys.stderr)
-                cached["fetched"] = date.today().isoformat()
+                # `attempted`, not `fetched`: the entry may be stale in format
+                # as well as in date, and only `attempted` suppresses both.
+                cached["attempted"] = date.today().isoformat()
                 with open(path, "w") as f:
                     json.dump(cached, f)
                 payload = cached
@@ -251,7 +323,11 @@ def load(sym, refresh=False):
                 json.dump(payload, f)
     return Series(
         sym,
-        [(date.fromisoformat(d), c) for d, c in payload["rows"]],
+        # Rows are [day, close] in a version-1 cache and [day, close, open] in
+        # a version-2 one; both shapes are accepted, so a serve-the-stale-cache
+        # fallback still works after the bump.
+        [(date.fromisoformat(r[0]), r[1]) + tuple(r[2:])
+         for r in payload["rows"]],
         [(date.fromisoformat(d), f) for d, f in payload["splits"]],
         [(date.fromisoformat(d), a) for d, a in payload["dividends"]])
 
@@ -270,8 +346,8 @@ def statement_symbols(pattern="statements/*.csv"):
     """Every symbol appearing in an option or stock row of the statements.
 
     Parsed with deliberately loose patterns rather than by importing
-    analyze_statement: this is the *superset* of names to fetch, including junk
-    and legacy, and it should not inherit that module's filters.
+    analyze_statement: this is the *superset* of names to fetch, including the
+    excluded and the legacy, and it should not inherit that module's filters.
     """
     opt = re.compile(r"^[+-]\d+ (\S+) \d{2}[A-Z]{3}\d{2} ")
     stk = re.compile(r"^[+-]\d+ (\S+?)(?: \(assigned\))? price: ")
