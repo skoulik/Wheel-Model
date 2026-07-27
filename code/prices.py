@@ -14,10 +14,13 @@ key, no package: stdlib `urllib` only, so the project's stdlib-only guarantee
 survives. The endpoint is unofficial and could change; everything fetched is
 cached under `data/` (gitignored, like `statements/`) so that an analysis run
 is reproducible offline and a change upstream cannot silently move a published
-number.
+number. The cache refreshes itself when it falls behind the calendar -- see
+`is_stale()` -- so adding statements that run past the cached range fetches the
+missing days instead of quietly dropping those dates from the marks.
 
     python code/prices.py            # fetch/refresh every symbol in statements/
     python code/prices.py ABT ACN    # just these
+    python code/prices.py --refresh  # force, ignoring cache freshness
 
 **As-traded vs. adjusted, which matters here.** Yahoo returns closes that are
 retroactively *split-adjusted*: after a 2:1 split every earlier close is halved.
@@ -57,18 +60,32 @@ UA = {"User-Agent": "Mozilla/5.0"}
 # defined on the first day of the window rather than growing into existence.
 HISTORY_START = date(2019, 1, 1)
 
+# A cache whose last row is older than this many days is refetched. Sized for
+# a long weekend plus a holiday; see is_stale().
+STALE_AFTER_DAYS = 4
+
 # Symbols the statement knows under a name Yahoo does not. Renames and ticker
 # changes, not aliases of convenience.
 SYMBOL_ALIASES = {
     "MPT": "MPW",      # Medical Properties Trust: statement carries both
 }
 
-# Known-dead: delisted or renamed beyond recovery. Recorded so a failed fetch
-# is a deliberate omission rather than a silent hole. Both are junk-universe
-# names and neither is one of the two junk lots the analysis counts (ALT, BEKE).
+# Known-dead: no history obtainable, for a reason we understand. Recorded so a
+# failed fetch is a deliberate omission rather than a silent hole, and so these
+# do not re-attempt on every run. Between them they carry $83 of the $60,059 of
+# quality-universe premium, so nothing here is material.
 KNOWN_MISSING = {
-    "FGEN": "FibroGen — 1:25 reverse split then delisted; no Yahoo history",
-    "MPW": "Medical Properties Trust — no history under either ticker",
+    "FGEN": "FibroGen — 1:25 reverse split then delisted",
+    "MPW": "Medical Properties Trust — gone under either ticker",
+    "MPT": "the pre-rename ticker for MPW; the statement carries both",
+    "WBA": "Walgreens — taken private 2025-08, history withdrawn",
+    "FOLD": "renamed, and judged not wheel-grade (see JUNK_EXTRA)",
+    # Corporate-action placeholder tickers. These appear only in CORP rows,
+    # never as positions, and are not securities Yahoo would know.
+    "CHPT1": "adjusted-contract placeholder after the CHPT reverse split",
+    "CMCS1": "adjusted-contract placeholder after the Versant spin-off",
+    "KYNB1": "adjusted-contract placeholder after the KYNB reverse split",
+    "TRI1": "adjusted-contract placeholder from the TRI tender",
 }
 
 
@@ -175,25 +192,63 @@ def fetch(sym, start=HISTORY_START, end=None, pause=0.25):
             "rows": rows, "splits": sorted(splits), "dividends": sorted(divs)}
 
 
+def is_stale(payload, today=None):
+    """Should this cache entry be refetched?
+
+    True when its last row predates the most recent plausible trading day.
+    Without this the cache is permanent: a statement extending past the cached
+    range would find no price for its new dates, and the failure is quiet
+    rather than loud — `close_on_or_before` searches back a week, finds
+    nothing, returns None, and the affected lots drop out of the marks. The
+    numbers would move without anything reporting an error.
+
+    A symbol already attempted today is not retried, so a delisted name costs
+    one request per day rather than one per call.
+    """
+    today = today or date.today()
+    if payload.get("fetched") == today.isoformat():
+        return False
+    if not payload.get("rows"):
+        return True
+    last = date.fromisoformat(payload["rows"][-1][0])
+    return last < today - timedelta(days=STALE_AFTER_DAYS)
+
+
 def load(sym, refresh=False):
-    """Cached history for one symbol, fetching if absent. None if unavailable."""
+    """Cached history for one symbol, refetching when absent or stale."""
     path = _cache_path(sym)
-    if not refresh and os.path.exists(path):
+    cached = None
+    if os.path.exists(path):
         with open(path) as f:
-            payload = json.load(f)
+            cached = json.load(f)
+    if cached is not None and not refresh and not is_stale(cached):
+        payload = cached
     else:
-        if sym in KNOWN_MISSING:
+        if sym in KNOWN_MISSING and cached is None:
             return None
         try:
             payload = fetch(sym)
         except (urllib.error.HTTPError, urllib.error.URLError, KeyError,
                 IndexError, TypeError) as e:
-            print(f"  {sym}: fetch failed ({type(e).__name__}) — skipped",
-                  file=sys.stderr)
-            return None
-        os.makedirs(CACHE_DIR, exist_ok=True)
-        with open(path, "w") as f:
-            json.dump(payload, f)
+            if cached is not None:
+                # Keep serving what we have rather than losing the history to
+                # a transient network failure; stamp the attempt so the retry
+                # happens tomorrow, not on the next call.
+                print(f"  {sym}: refresh failed ({type(e).__name__}), "
+                      f"using cache through {cached['rows'][-1][0]}",
+                      file=sys.stderr)
+                cached["fetched"] = date.today().isoformat()
+                with open(path, "w") as f:
+                    json.dump(cached, f)
+                payload = cached
+            else:
+                print(f"  {sym}: fetch failed ({type(e).__name__}) — skipped",
+                      file=sys.stderr)
+                return None
+        else:
+            os.makedirs(CACHE_DIR, exist_ok=True)
+            with open(path, "w") as f:
+                json.dump(payload, f)
     return Series(
         sym,
         [(date.fromisoformat(d), c) for d, c in payload["rows"]],
@@ -236,11 +291,14 @@ def statement_symbols(pattern="statements/*.csv"):
 
 
 def main():
-    want = sys.argv[1:] or statement_symbols()
-    print(f"symbols: {len(want)}  cache: {CACHE_DIR}/")
+    args = sys.argv[1:]
+    refresh = "--refresh" in args
+    want = [a for a in args if not a.startswith("-")] or statement_symbols()
+    print(f"symbols: {len(want)}  cache: {CACHE_DIR}/"
+          f"{'  (forced refresh)' if refresh else ''}")
     got, missing = {}, []
     for s in want:
-        ser = load(s)
+        ser = load(s, refresh=refresh)
         if ser is None or not len(ser):
             missing.append(s)
         else:
