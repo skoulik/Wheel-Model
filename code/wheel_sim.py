@@ -39,7 +39,7 @@ from collections import Counter
 from dataclasses import dataclass
 from math import exp, log, sqrt
 
-from model import (N, assign_prob, bs_call, bs_put, d2, k_star_drift)
+from model import (N, assign_prob, bs_call, bs_put, d2, k_star_drift, pmap)
 from legacy_homogeneous import (expected_drop_given_assignment, k_star, p_assign,
                                 p_real_world, q_per_put_period, q_recover)
 import random
@@ -428,6 +428,23 @@ def report_time_profile(P, agg, checkpoints):
 # Scenarios
 # ----------------------------------------------------------------------
 
+def _sweep_row(P):
+    """One row of the dividend sweep: its own simulation.  A pmap worker.
+
+    Each row seeds its own generator from P.seed, so the row is the same
+    whether the sweep runs on one core or on all of them.
+    """
+    agg = simulate(P)
+    H = homogeneous_predictions(P)
+    n_samples = sum(agg.inv_hist.values())
+    mean_I = sum(k * v for k, v in agg.inv_hist.items()) / n_samples
+    cap = agg.cap_sum / agg.cap_n
+    prem = (agg.prem_put + agg.prem_call) / agg.puts
+    div = agg.dividends / agg.puts
+    excess = ((prem + div) / P.cadence - P.r * cap) / cap
+    return H["I*_rw"], mean_I, cap, prem, div, excess
+
+
 def dividend_sweep(args):
     """Carry-vs-recovery trade-off: sweep the gross yield at fixed total return.
 
@@ -440,20 +457,12 @@ def dividend_sweep(args):
     print("  delta      nu    I*_rw   mean I   capital   prem/T   div/T   excess/yr")
     rows = [("0.0%", 0.07, 0.000), ("1.0%", 0.07, 0.010), ("2.5%", 0.07, 0.025),
             ("4.0%", 0.07, 0.040), ("6.0%", 0.07, 0.060), ("alt 2.5%", 0.095, 0.025)]
-    for label, mu, delta in rows:
-        P = Params(years=30.0, paths=args.paths or 200, seed=args.seed,
-                   mu=mu, delta=delta)
-        agg = simulate(P)
-        H = homogeneous_predictions(P)
-        n_samples = sum(agg.inv_hist.values())
-        mean_I = sum(k * v for k, v in agg.inv_hist.items()) / n_samples
-        cap = agg.cap_sum / agg.cap_n
-        prem = (agg.prem_put + agg.prem_call) / agg.puts
-        div = agg.dividends / agg.puts
-        ann = (prem + div) / P.cadence
-        excess = (ann - P.r * cap) / cap
+    params = [Params(years=30.0, paths=args.paths or 200, seed=args.seed,
+                     mu=mu, delta=delta) for _, mu, delta in rows]
+    for (label, mu, delta), P, r in zip(rows, params, pmap(_sweep_row, params)):
+        I_rw, mean_I, cap, prem, div, excess = r
         nu = mu - delta - P.sigma**2 / 2
-        print(f"  {label:>8} {nu:+.3f}   {H['I*_rw']:>5.2f}   {mean_I:>6.2f}   "
+        print(f"  {label:>8} {nu:+.3f}   {I_rw:>5.2f}   {mean_I:>6.2f}   "
               f"{cap:>7.2f}   {prem:.4f}  {div:.4f}   {excess:+.4f}")
     print("  (alt row: price drift held at 7%, i.e. total return 9.5% -- the")
     print("   stacked convention, shown as a sensitivity check only)")

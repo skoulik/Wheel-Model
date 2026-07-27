@@ -33,13 +33,47 @@ Richardson-extrapolates two grids because a single one biases E[T] upward
 by O(h^2) accumulated over the whole tail.  `code/mc_holding.py` is the
 grid-free check on both.
 
-Stdlib only.  Run:  python code/model.py
+Stdlib only -- with one optional accelerator.  The whole runtime of this
+project is DepthWalk.step(), a convolution of a 400-cell density with a
+69-point kernel, run for thousands of periods.  If numpy is importable it
+does that convolution instead of the Python loop; the pure-Python path is
+kept as the reference and is used verbatim when numpy is absent.  The two
+agree to floating-point noise, which verify_examples.py checks.
+
+Run:  python code/model.py
 """
 
 import argparse
+import os
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field, replace
 from math import ceil, exp, log, pi, sqrt
 from statistics import NormalDist
+
+try:                                   # optional accelerator, see module docstring
+    import numpy as _np
+except ImportError:                    # pragma: no cover - the stdlib fallback
+    _np = None
+
+
+def pmap(fn, jobs, workers=None):
+    """Map fn over independent jobs, in parallel when that pays.
+
+    Every sweep in this project is a list of *independent* configurations, each
+    of which runs its own killed walk: embarrassingly parallel.  `fn` must be a
+    module-level function and the jobs picklable, since Windows spawns fresh
+    interpreters.  Set WHEEL_WORKERS=1 to force the serial path (for profiling,
+    or inside a worker -- pmap is only ever called from top-level code, never
+    from a job, because nested pools deadlock more than they help).
+    """
+    jobs = list(jobs)
+    if workers is None:
+        workers = int(os.environ.get("WHEEL_WORKERS", 0)) or (os.cpu_count() or 1)
+    workers = min(workers, len(jobs))
+    if workers <= 1:
+        return [fn(j) for j in jobs]
+    with ProcessPoolExecutor(max_workers=workers) as ex:
+        return list(ex.map(fn, jobs))
 
 N = NormalDist().cdf
 Ninv = NormalDist().inv_cdf
@@ -230,6 +264,14 @@ class DepthWalk:
             if w > 1e-13:
                 kern.append((d, w))
         self.kern = kern
+        self.D = D
+        # Dense form of the same kernel, for the numpy path.  The entries the
+        # sparse list drops are below 1e-13 and enter as the zeros they are.
+        if _np is not None:
+            dense = [0.0] * (2 * D + 1)
+            for d, w in kern:
+                dense[d + D] = w
+            self.kern_np = _np.array(dense)
         # Per-cell probability of escaping above x_max in one step, so the
         # truncation error can be reported rather than silently absorbed.
         self.up = [sum(w for d, w in kern if i + d >= self.n)
@@ -246,12 +288,23 @@ class DepthWalk:
             e_part = exp(mu_x + sc * sc / 2) * N((-mu_x - sc * sc) / sc)
             self.exit_cost.append(p_exit - e_part)
             self.exit_prob.append(p_exit)
+        if _np is not None:
+            self.up_np = _np.array(self.up)
+            self.exit_cost_np = _np.array(self.exit_cost)
+            self.exit_prob_np = _np.array(self.exit_prob)
+            self.xs_np = _np.array(self.xs)
 
     def escaped(self, u):
+        if _np is not None and not isinstance(u, list):
+            return float(u @ self.up_np)
         return sum(ui * pi for ui, pi in zip(u, self.up))
 
     def step(self, u):
         """One period: convolve, absorb below 0, drop above x_max."""
+        if _np is not None and not isinstance(u, list):
+            # full[t] = sum_i u[i]*w(t-i-D), i.e. mass landing at cell t-D;
+            # the slice drops what fell below 0 (absorbed) or past x_max.
+            return _np.convolve(u, self.kern_np)[self.D:self.D + self.n]
         n = self.n
         v = [0.0] * n
         for off, w in self.kern:
@@ -270,7 +323,8 @@ class DepthWalk:
     def entry_vector(self, dens):
         w = [dens(x) * self.h for x in self.xs]
         tot = sum(w)
-        return [wi / tot for wi in w]
+        w = [wi / tot for wi in w]
+        return _np.array(w) if _np is not None else w
 
 
 def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
@@ -289,16 +343,29 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
     u = walk.entry_vector(dens)
     cc = [call_premium(C, x) for x in walk.xs]
     ex = [exp(x) for x in walk.xs]
+    if _np is not None:
+        cc, ex = _np.array(cc), _np.array(ex)
+        cost_v, exit_v = walk.exit_cost_np, walk.exit_prob_np
+    else:
+        cost_v, exit_v = walk.exit_cost, walk.exit_prob
 
     surv, prem, basis, exitcost, exits = [], [], [], [], []
     escaped = 0.0
     for j in range(j_max):
-        S = sum(u)
-        surv.append(S)
-        prem.append(sum(ui * ci for ui, ci in zip(u, cc)))
-        basis.append(sum(ui * ei for ui, ei in zip(u, ex)))
-        exitcost.append(sum(ui * ci for ui, ci in zip(u, walk.exit_cost)))
-        exits.append(sum(ui * pi for ui, pi in zip(u, walk.exit_prob)))
+        if _np is not None:
+            S = float(u.sum())
+            surv.append(S)
+            prem.append(float(u @ cc))
+            basis.append(float(u @ ex))
+            exitcost.append(float(u @ cost_v))
+            exits.append(float(u @ exit_v))
+        else:
+            S = sum(u)
+            surv.append(S)
+            prem.append(sum(ui * ci for ui, ci in zip(u, cc)))
+            basis.append(sum(ui * ei for ui, ei in zip(u, ex)))
+            exitcost.append(sum(ui * ci for ui, ci in zip(u, cost_v)))
+            exits.append(sum(ui * pi for ui, pi in zip(u, exit_v)))
         if S < eps and j >= min_steps:
             break
         escaped += walk.escaped(u)
@@ -554,13 +621,16 @@ def depth_census(C, measure, edges, horizon=None, h=0.02, x_max=8.0,
     _, _, _, dens = entry_law(C, measure)
     walk = DepthWalk(m - s**2 / 2, s, C.tau_c, h=h, x_max=x_max)
     u = walk.entry_vector(dens)
-    U = [0.0] * walk.n
+    U = _np.zeros(walk.n) if _np is not None else [0.0] * walk.n
     for j in range(j_max):
         wt = 1.0 if horizon is None else \
             max(0.0, horizon - (j + 0.5) * C.tau_c) / horizon
         if wt:
-            for i, ui in enumerate(u):
-                U[i] += ui * wt
+            if _np is not None:
+                U += u * wt
+            else:
+                for i, ui in enumerate(u):
+                    U[i] += ui * wt
         if sum(u) < eps and j >= 40:
             break
         u = walk.step(u)
@@ -693,6 +763,19 @@ def report(C, args):
                   "carried by depths the system reaches only over centuries.")
 
 
+def _grid_job(job):
+    """One (measure, h, x_max) cell of grid check (a).  A pmap worker."""
+    C, measure, h, xm = job
+    occ = occupation(C, measure, h=h, x_max=xm)
+    return economics(C, measure, occ, horizon=30.0), occ["escaped"]
+
+
+def _basis_job(job):
+    """One (config, measure, x_max) cell of grid check (b).  A pmap worker."""
+    cfg, measure, xm = job
+    return occupation(cfg, measure, h=0.05, x_max=xm, eps=1e-7)["E[basis]"]
+
+
 def convergence_check(args):
     """(a) finite-horizon numbers are grid-insensitive; (b) the criterion bites."""
     print("\n" + "=" * 78)
@@ -701,13 +784,13 @@ def convergence_check(args):
     C = Config(label="Standard")
     print(f"{'meas':>5} {'h':>6} {'x_max':>6} {'E[I]':>8} {'capital':>9}"
           f" {'income':>9} {'excess':>10} {'escaped':>10}")
-    for measure in ("P", "Q"):
-        for h, xm in ((0.02, 4.0), (0.01, 4.0), (0.01, 6.0), (0.005, 4.0)):
-            occ = occupation(C, measure, h=h, x_max=xm)
-            x = economics(C, measure, occ, horizon=30.0)
-            print(f"{measure:>5} {h:>6.3f} {xm:>6.1f} {x['I']:>8.3f}"
-                  f" {x['capital']:>9.3f} {x['income']:>9.4f}"
-                  f" {x['excess']:>+10.4f} {occ['escaped']:>10.2e}")
+    cells = [(C, measure, h, xm)
+             for measure in ("P", "Q")
+             for h, xm in ((0.02, 4.0), (0.01, 4.0), (0.01, 6.0), (0.005, 4.0))]
+    for (_, measure, h, xm), (x, esc) in zip(cells, pmap(_grid_job, cells)):
+        print(f"{measure:>5} {h:>6.3f} {xm:>6.1f} {x['I']:>8.3f}"
+              f" {x['capital']:>9.3f} {x['income']:>9.4f}"
+              f" {x['excess']:>+10.4f} {esc:>10.2e}")
 
     print("\n" + "=" * 78)
     print("GRID CHECK (b): does sum_j E[e^{x_j}; alive] converge?  (m > sigma^2 ?)")
@@ -719,12 +802,12 @@ def convergence_check(args):
              ("Standard", Config(label="Standard"), "Q"),
              ("sigma=25%", Config(sigma=0.25), "P"),
              ("delta=4.5%", Config(delta=0.045), "P")]
-    for label, cfg, measure in cases:
+    cases = [c for c in cases if criteria(c[1], c[2])["count_ok"]]
+    jobs = [(cfg, measure, xm) for _, cfg, measure in cases for xm in grid]
+    got = pmap(_basis_job, jobs)
+    for i, (label, cfg, measure) in enumerate(cases):
         crit = criteria(cfg, measure)
-        if not crit["count_ok"]:
-            continue
-        vals = [occupation(cfg, measure, h=0.05, x_max=xm, eps=1e-7)["E[basis]"]
-                for xm in grid]
+        vals = got[i * len(grid):(i + 1) * len(grid)]
         print(f"{label:>14} {measure:>5} {crit['m']:>8.4f} {crit['sigma2']:>8.4f}"
               f" {crit['tail_exponent']:>8.2f}   "
               + "".join(f"{v:>11.1f}" for v in vals)

@@ -1,13 +1,20 @@
 """Numerical verification of every worked example quoted in the sections.
 
-Run:  python code/verify_examples.py          (analytic, ~4 min)
+Run:  python code/verify_examples.py          (analytic, ~4 s)
       python code/verify_examples.py --full   (adds the extrapolated
-                                               stationary figures, ~12 min)
+                                               stationary figures, ~5 s)
 
-The weekly cadence costs time: the call grid is 4 weeks, so covering the same
-span of calendar years takes 4.3x more periods than the old quarterly grid,
-and resolving a period's step (sigma*sqrt(tau_c) = 0.055) needs h = 0.01
-rather than 0.02.
+Those used to be 7 and 12 minutes.  Two changes bought it back: model.py now
+convolves the depth density with numpy when it is installed (~100x on the
+single-config path, and the pure-Python path still runs unchanged when it is
+not -- the two are checked against each other below), and the sweeps here,
+which are lists of independent configurations, run through model.pmap over a
+process pool.  Set WHEEL_WORKERS=1 to force the serial path.
+
+The weekly cadence is what made it expensive: the call grid is 4 weeks, so
+covering the same span of calendar years takes 4.3x more periods than the old
+quarterly grid, and resolving a period's step (sigma*sqrt(tau_c) = 0.055)
+needs h = 0.01 rather than 0.02.
 
 Each check recomputes a number from `model.py` and asserts it matches what the
 text says. If a formula in the text is edited, re-run this script; a sign error
@@ -25,9 +32,10 @@ Stdlib only (Python 3.8+).
 import argparse
 from math import exp, log, sqrt
 
-from model import (BETA, Config, DepthWalk, N, assign_prob, bs_call, criteria,
+import model
+from model import (BETA, Config, N, assign_prob, bs_call, criteria,
                    d2, depth_census, economics, entry_law, expected_drop,
-                   k_star_drift, occupation, put_premium, q_exit, stationary,
+                   occupation, pmap, put_premium, q_exit, stationary,
                    sticky_dividend_trap, sticky_dividend_yield, strike,
                    time_to_fraction, trapped_fraction)
 
@@ -41,6 +49,43 @@ def check(label, got, expected, tol):
         FAILURES.append(label)
 
 
+# ----------------------------------------------------------------------
+# pmap workers.  Each takes one independent configuration and returns only
+# what its checks need; they must stay module-level to survive pickling.
+# ----------------------------------------------------------------------
+
+def _occ_job(job):
+    """The full occupation measure, for checks that read the survival curve."""
+    cfg, measure = job
+    return occupation(cfg, measure)
+
+
+def _econ_job(job):
+    """A sweep row: economics at one horizon, its own walk."""
+    cfg, measure, H = job
+    return economics(cfg, measure, occupation(cfg, measure), horizon=H)
+
+
+def _sticky_job(job):
+    """The sticky-dividend fixed point at one horizon, and what it implies."""
+    cfg, measure, H = job
+    d, F = sticky_dividend_yield(cfg, measure, H)
+    at_eff = Config(p_star=cfg.p_star, delta=d)
+    return d, F, economics(at_eff, measure, occupation(at_eff, measure), horizon=H)
+
+
+def _census_job(job):
+    cfg, measure, edges, horizon = job
+    return depth_census(cfg, measure, edges, horizon=horizon)
+
+
+def _stationary_job(job):
+    """A Richardson-extrapolated stationary solve (two grids, run serially)."""
+    cfg, measure = job
+    occ = stationary(cfg, measure)
+    return economics(cfg, measure, occ), time_to_fraction(cfg, occ, 0.9)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--full", action="store_true",
@@ -49,6 +94,11 @@ def main():
 
     STD = Config(p_star=0.20, label="Standard")
     CON = Config(p_star=0.10, label="Conservative")
+
+    # The three base walks the rest of the file reads: independent, so they go
+    # out together rather than one after another.
+    occ_p, occ_q, occ_c, occ_cq = pmap(
+        _occ_job, [(STD, "P"), (STD, "Q"), (CON, "P"), (CON, "Q")])
 
     # ------------------------------------------------------------------
     print("--- Section 05: entry ---")
@@ -97,8 +147,6 @@ def main():
 
     # ------------------------------------------------------------------
     print("--- Section 07: holding time ---")
-    occ_p = occupation(STD, "P")
-    occ_q = occupation(STD, "Q")
     sc = STD.sigma * sqrt(STD.tau_c)
     check("call-grid tax beta*sigma*sqrt(tau_c)", BETA * sc, 0.0323, 0.0005)
     check("grid tax as a multiple of the entry depth", BETA * sc / x0_p, 2.09, 0.05)
@@ -124,18 +172,22 @@ def main():
     check("E[I] over 30 years (Standard, P)", e30["I"], 11.40, 0.10)
     check("E[I] over 30 years (Standard, Q)",
           economics(STD, "Q", occ_q, horizon=30.0)["I"], 14.49, 0.12)
-    occ_c = occupation(CON, "P")
     check("E[I] over 30 years (Conservative, P)",
           economics(CON, "P", occ_c, horizon=30.0)["I"], 5.50, 0.06)
-    # The depth census: what the standing inventory is made of.
+    # The depth census: what the standing inventory is made of.  The 30-year
+    # and stationary censuses are separate walks, and the two trap censuses of
+    # section 09 below are two more, so all four are issued at once.
     EDGES = [0.0, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30, 0.50, float("inf")]
-    shares, mean_x, mean_q = depth_census(STD, "P", EDGES, horizon=30.0)
+    x_trap_p, x_trap_q = sticky_dividend_trap(STD, "P"), sticky_dividend_trap(STD, "Q")
+    (shares, mean_x, mean_q), (s_st, mx_st, mq_st), trap_p, trap_q = pmap(
+        _census_job, [(STD, "P", EDGES, 30.0), (STD, "P", EDGES, None),
+                      (STD, "P", [0.0, x_trap_p, float("inf")], 30.0),
+                      (STD, "Q", [0.0, x_trap_q, float("inf")], 30.0)])
     for i, want in enumerate([0.08, 0.05, 0.11, 0.07, 0.09, 0.13, 0.18, 0.28]):
         check(f"census share, bin {i + 1} of 8", shares[i], want, 0.006)
     check("inventory-weighted mean depth (30y)", mean_x, 0.380, 0.005)
     check("inventory-weighted exit probability (30y)", mean_q, 0.066, 0.003)
     check("share of held time deeper than 30%", shares[6] + shares[7], 0.46, 0.01)
-    s_st, mx_st, mq_st = depth_census(STD, "P", EDGES)
     check("stationary inventory-weighted mean depth", mx_st, 0.790, 0.01)
     check("stationary inventory-weighted exit probability", mq_st, 0.036, 0.003)
     check("stationary share of held time deeper than 50%", s_st[7], 0.53, 0.01)
@@ -174,13 +226,13 @@ def main():
     check("the three nearly cancel",
           apprec - e30["acq_loss"] - e30["call_away_loss"], -0.0063, 0.0015)
 
-    # The volatility-risk-premium sweep: how much edge is needed, and what it buys.
-    for spread, prem, exc, gap in [(0.000, 0.5297, 0.0160, 0.0001),
-                                   (0.005, 0.5555, 0.0183, 0.0023),
-                                   (0.010, 0.5818, 0.0205, 0.0046),
-                                   (0.020, 0.6358, 0.0252, 0.0092)]:
-        cfg = Config(p_star=0.20, iv_spread=spread)
-        xs = economics(cfg, "P", occupation(cfg, "P"), horizon=30.0)
+    # The volatility-risk-premium sweep: how much edge is needed, and what it
+    # buys.  Independent configs -- one pmap, one row each.
+    VRP = [(0.000, 0.5297, 0.0160, 0.0001), (0.005, 0.5555, 0.0183, 0.0023),
+           (0.010, 0.5818, 0.0205, 0.0046), (0.020, 0.6358, 0.0252, 0.0092)]
+    vrp_cfgs = [Config(p_star=0.20, iv_spread=s) for s, *_ in VRP]
+    vrp_rows = pmap(_econ_job, [(c, "P", 30.0) for c in vrp_cfgs])
+    for (spread, prem, exc, gap), cfg, xs in zip(VRP, vrp_cfgs, vrp_rows):
         check(f"premiums/yr at sigma_IV = {cfg.sigma_iv:.3f}",
               xs["premiums"], prem, 0.0010)
         check(f"excess at sigma_IV = {cfg.sigma_iv:.3f}", xs["econ_excess"],
@@ -190,13 +242,12 @@ def main():
               gap, 0.0005)
 
     # The dividend sweep.
-    for d, inv, mv, cost, exc in [(0.000, 8.54, 8.74, 12.11, 0.0198),
-                                  (0.010, 9.56, 9.75, 14.15, 0.0183),
-                                  (0.025, 11.40, 11.59, 18.23, 0.0160),
-                                  (0.040, 13.65, 13.84, 24.00, 0.0138),
-                                  (0.060, 17.31, 17.51, 35.50, 0.0108)]:
-        cfg = Config(p_star=0.20, delta=d)
-        xd = economics(cfg, "P", occupation(cfg, "P"), horizon=30.0)
+    DIV = [(0.000, 8.54, 8.74, 12.11, 0.0198), (0.010, 9.56, 9.75, 14.15, 0.0183),
+           (0.025, 11.40, 11.59, 18.23, 0.0160), (0.040, 13.65, 13.84, 24.00, 0.0138),
+           (0.060, 17.31, 17.51, 35.50, 0.0108)]
+    div_cfgs = [Config(p_star=0.20, delta=d) for d, *_ in DIV]
+    div_rows = pmap(_econ_job, [(c, "P", 30.0) for c in div_cfgs])
+    for (d, inv, mv, cost, exc), cfg, xd in zip(DIV, div_cfgs, div_rows):
         check(f"E[I] at delta = {d:.3f}", xd["I"], inv, 0.05)
         check(f"market capital at delta = {d:.3f}", xd["mv_capital"], mv, 0.05)
         check(f"cost capital at delta = {d:.3f}", xd["capital"], cost, 0.10)
@@ -208,15 +259,14 @@ def main():
     # "What if the dividend never falls?" -- the sticky-dividend bound. delta
     # reaches the model only through nu and through income, so the whole
     # correction is a row of the sweep above at a larger delta.
-    for H, F, d_eff, exc, shift, gap in [
-            (5.0, 1.020, 0.02550, 0.01588, -0.00008, 0.00027),
-            (10.0, 1.039, 0.02597, 0.01581, -0.00015, 0.00012),
-            (30.0, 1.113, 0.02782, 0.01562, -0.00042, 0.00006)]:
-        d_got, F_got = sticky_dividend_yield(STD, "P", H)
+    STICKY = [(5.0, 1.020, 0.02550, 0.01588, -0.00008, 0.00027),
+              (10.0, 1.039, 0.02597, 0.01581, -0.00015, 0.00012),
+              (30.0, 1.113, 0.02782, 0.01562, -0.00042, 0.00006)]
+    sticky_rows = pmap(_sticky_job, [(STD, "P", H) for H, *_ in STICKY])
+    for (H, F, d_eff, exc, shift, gap), (d_got, F_got, xs) in zip(STICKY, sticky_rows):
         check(f"sticky-dividend inflation factor at {H:.0f}y", F_got, F, 0.001)
         check(f"delta_eff at {H:.0f}y", d_got, d_eff, 0.0001)
         cfg = Config(p_star=0.20, delta=d_got)
-        xs = economics(cfg, "P", occupation(cfg, "P"), horizon=H)
         base = economics(STD, "P", occ_p, horizon=H)
         check(f"true excess at delta_eff, {H:.0f}y", xs["econ_excess"], exc, 0.0002)
         check(f"change from constant delta at {H:.0f}y",
@@ -239,14 +289,13 @@ def main():
     a = STD.sigma**2 * 30.0 / 2
     check("buy-and-hold inflation factor at 30y", (exp(a) - 1) / a, 1.370, 0.002)
     # The depth past which a payout frozen in dollars outruns the drift.
-    for meas, xstar, below, beyond in [("P", 0.693, 0.500, 0.164),
-                                       ("Q", 0.182, 0.167, 0.692)]:
-        xs_ = sticky_dividend_trap(STD, meas)
+    # (The censuses came out of the pmap in section 08.)
+    for meas, xs_, (sh, _, _), xstar, below, beyond in [
+            ("P", x_trap_p, trap_p, 0.693, 0.500, 0.164),
+            ("Q", x_trap_q, trap_q, 0.182, 0.167, 0.692)]:
         check(f"sticky-dividend trap depth x* ({meas})", xs_, xstar, 0.001)
         check(f"x* as a fraction below the strike ({meas})", 1 - exp(-xs_),
               below, 0.001)
-        sh, _, _ = depth_census(STD, meas, [0.0, xs_, float("inf")],
-                                horizon=30.0)
         check(f"30y census mass beyond x* ({meas})", sh[1], beyond, 0.006)
     # The rejected per-lot version, kept as a check that it is the cost-basis
     # capital in disguise -- an unfunded +1.24pp, which is why it is wrong.
@@ -309,9 +358,31 @@ def main():
           (STD.p_star / STD.cadence) * trapped_fraction(hi_vol, "P"), 0.43, 0.02)
 
     # ------------------------------------------------------------------
+    # The convolution has two implementations, and only one of them is the
+    # reference: if numpy is installed everything above ran through it, so the
+    # stdlib loop it replaced is exercised here on a short walk.
+    print("--- Structural: numpy fast path == pure-Python reference ---")
+    if model._np is None:
+        print("SKIP  numpy not installed; the reference path is the only path")
+    else:
+        short = dict(j_max=40, min_steps=0)
+        fast = occupation(STD, "P", **short)
+        try:
+            model._np, saved = None, model._np
+            ref = occupation(STD, "P", **short)
+        finally:
+            model._np = saved
+        for key in ("E[J]", "E[prem]", "E[basis]", "E[exitcost]", "P[exit]",
+                    "q(x0)", "escaped"):
+            check(f"{key}: numpy vs. reference (relative)",
+                  fast[key] / ref[key] - 1.0, 0.0, 1e-12)
+        check("survival curve: largest absolute disagreement",
+              max(abs(a - b) for a, b in zip(fast["surv"], ref["surv"])),
+              0.0, 1e-14)
+
+    # ------------------------------------------------------------------
     print("--- Structural: no-arbitrage in the Q-world ---")
-    for label, cfg in (("Standard", STD), ("Conservative", CON)):
-        occ = occupation(cfg, "Q")
+    for label, cfg, occ in (("Standard", STD, occ_q), ("Conservative", CON, occ_cq)):
         for H in (5.0, 10.0, 30.0):
             x = economics(cfg, "Q", occ, horizon=H)
             resid = x["econ_excess"] + x["leak"] / x["mv_capital"]
@@ -321,18 +392,16 @@ def main():
     # ------------------------------------------------------------------
     if args.full:
         print("--- Stationary figures, Richardson-extrapolated (slow) ---")
-        fp = stationary(STD, "P")
-        f = economics(STD, "P", fp)
+        # Each solve is two grids run serially inside its own worker; the two
+        # worlds run side by side.
+        (f, t90), (g, _) = pmap(_stationary_job, [(STD, "P"), (STD, "Q")])
         check("stationary E[T] (Standard, P), years", f["E[T]"], 2.10, 0.03)
         check("Siegmund closed form for E[T]", f["E[T]_siegmund"], 1.91, 0.03)
         check("stationary E[I] (Standard, P)", f["I"], 21.82, 0.30)
-        check("years to reach 90% of stationary E[I]",
-              time_to_fraction(STD, fp, 0.9), 90.4, 1.0)
+        check("years to reach 90% of stationary E[I]", t90, 90.4, 1.0)
         # The Q-world stationary figures are quoted as round numbers in the
         # text: at nu = 0.5% the mean is carried by the far tail, so the
         # tolerances here are what the article actually claims, not more.
-        fq = stationary(STD, "Q")
-        g = economics(STD, "Q", fq)
         check("stationary E[T] (Standard, Q), years", g["E[T]"], 9.0, 0.4)
         check("stationary E[I] (Standard, Q)", g["I"], 93.7, 4.0)
 
