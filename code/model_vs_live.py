@@ -78,7 +78,7 @@ def measure_parameters(positions, completed, open_lots, px, start, end):
         day = d0
         while day < d1:
             nxt = day + timedelta(days=1)
-            a, b = ser.close_on_or_before(day), ser.close_on_or_before(nxt)
+            a, b = ser.adj_on_or_before(day), ser.adj_on_or_before(nxt)
             if a and b:
                 num += a * qty * (b / a - 1)
                 den += a * qty

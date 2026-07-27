@@ -75,7 +75,8 @@ def wheel_universe(positions, stock_tx, junk):
 
 def realized_vol(series, end, days=60):
     """Annualised close-to-close volatility over the trailing `days` sessions."""
-    hist = [c for d, c in series.window(end - timedelta(days=days * 2), end)]
+    # Adjusted: a ratio of two as-traded prices is meaningless across a split.
+    hist = [c for d, c in series.window_adj(end - timedelta(days=days * 2), end)]
     if len(hist) < 10:
         return MARK_SIGMA
     rets = [(b / a) - 1 for a, b in zip(hist, hist[1:]) if a]
@@ -284,7 +285,9 @@ def universe_benchmark(px, universe, completed, open_lots, start, end):
             ser = px.get(sym)
             if ser is None:
                 continue
-            a, b = ser.close_on_or_before(prev), ser.close_on_or_before(day)
+            # Adjusted: three names reverse-split inside the window, and an
+            # as-traded return across a 1:20 split is a 1,900% daily move.
+            a, b = ser.adj_on_or_before(prev), ser.adj_on_or_before(day)
             if a and b:
                 rets.append(b / a - 1)
         if not rets:

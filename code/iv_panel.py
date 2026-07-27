@@ -72,7 +72,7 @@ def implied_vol(right, spot, strike, tau, premium, r=RF, delta=0.0):
 
 def forward_vol(ser, a, b, min_obs=6):
     """Annualised close-to-close volatility realised over [a, b]."""
-    h = [c for d, c in ser.window(a, b)]
+    h = [c for d, c in ser.window_adj(a, b)]
     if len(h) < min_obs:
         return None
     rets = [(y / x) - 1 for x, y in zip(h, h[1:]) if x]
@@ -86,8 +86,8 @@ def forward_vol(ser, a, b, min_obs=6):
 def trailing_return(ser, day, days=20):
     """Log return of the name over the `days` calendar days before `day`."""
     from datetime import timedelta
-    a = ser.close_on_or_before(day - timedelta(days=days))
-    b = ser.close_on_or_before(day)
+    a = ser.adj_on_or_before(day - timedelta(days=days))
+    b = ser.adj_on_or_before(day)
     return log(b / a) if a and b else None
 
 

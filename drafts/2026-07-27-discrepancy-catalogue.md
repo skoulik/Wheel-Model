@@ -15,7 +15,7 @@ computed from a cash ledger, which can only produce Track A on a cost basis.
     Track B economic, on market    +15.43% /yr
     same-names buy-and-hold        +17.62% /yr
     EXCESS over same names          -2.19% /yr    the option overlay
-    selection contribution          +6.11% /yr    which names, when
+    selection contribution         +10.59% /yr    which names, when
 
 Three findings, in order of size.
 
@@ -35,10 +35,20 @@ prediction, confirmed — not contradicted — by the live account. A single lot
 moves it: dropping the UNH call-away flips −2.19% to +3.97%.
 
 **3. The live account's advantage is stock selection, not the wheel.** Holding
-the wheel's own inventory earned +20.07%/yr against +13.96%/yr for the same
+the wheel's own inventory earned +20.07%/yr against +9.48%/yr for the same
 dollars, on the same days, spread equally across every name the operator ever
-traded. The +6.11% gap is what "attractive price" bought — and it is the lever
+traded. The +10.59% gap is what "attractive price" bought — and it is the lever
 [the strategy section](#sec:strategy) declares out of scope.
+
+> **Correction, applied 2026-07-27 after first publication of this draft.** That
+> gap first read +6.11%, against a universe benchmark of +13.96%. Both were
+> wrong. Returns were being taken as ratios of *as-traded* prices, which are
+> deliberately discontinuous at a split: SCLX, KYNB and MCRB each reverse-split
+> inside the window, so a 1:20 split entered the equal-weight universe average
+> as a +1,900% daily return. `prices.Series.window_adj`/`adj_on_or_before` now
+> serve every return, volatility and trend calculation, and the as-traded series
+> is reserved for what it is for — comparing a price with a strike. The overlay
+> excess is unaffected, since it never touches universe returns.
 
 So the perceived outperformance is real, but it is **not** the wheel
 outperforming. It is good stock selection, measured through a cash ledger that
@@ -109,9 +119,9 @@ the most expensive available form.
 
 | # | source | magnitude | status |
 |---|---|---|---|
-| S1 | name and entry selection | **+6.11%/yr** | measured, exposure-matched |
+| S1 | name and entry selection | **+10.59%/yr** | measured, exposure-matched |
 | S2 | skipped weeks | 257 of 651 gaps exactly 7d; mean gap 21.7d | measured |
-| S3 | the operator's stated rule | pre-registered 2026-07-27 | awaiting fit |
+| S3 | the operator's stated rule | rules 4 and 6 confirmed, rule 5 rejected | fitted, see Appendix 3 |
 
 S1 is measured with the size and duration of the exposure held fixed — the same
 dollars, on the same days — so it is not the artifact of comparing a
@@ -299,6 +309,54 @@ very nearly cancelled by the cost of the inventory it creates. That is a
 cleaner statement of why the wheel's edge is so much smaller than its premium
 income suggests than anything the model derived a priori — and it is the live
 account's version of the article's "each leg is very nearly a wash."
+
+## Appendix 3: the selection rule, fitted (`code/selection_fit.py`)
+
+The pre-registration was written before any price data was fetched. What it
+predicted, and what the trades say. 55 weeks, 6,914 name-weeks, 716 sales — a
+menu of ~126 names a week from which ~13 were picked. Conditional logit over the
+weekly choice set, so the weekly budget (rule 7) is absorbed and every
+coefficient is identified by *which* names were picked, never how many.
+
+    feature      beta/sd      z    odds/sd    mean pct rank of chosen
+    pct5y         -0.564  -10.5      0.57                      0.318
+    pctB          -0.467  -10.6      0.63                      0.361
+    slope         -0.196   -5.5      0.82                      0.326
+    slope_r2      +0.136   +3.3      1.15                      0.569
+
+**Rule 4 (fallen angels) and rule 6 (oversold): confirmed, decisively.** Both
+coefficients carry the pre-registered negative sign at z ≈ −10, and the
+nonparametric check agrees without any model at all — the names picked sit at
+the **32nd percentile** of their own 5-year range and the **36th percentile** of
+their 30-day Bollinger position, against 50 under random selection, at p < 0.001
+by permutation. The operator does what the operator says.
+
+**Rule 5 (avoid falling knives): rejected, in both forms.** The pre-registration
+predicted a *positive* slope coefficient — a low price preferred only once it
+has stopped falling. The fitted sign is negative (z = −5.5): steeper decliners
+are picked *more* often, and the picked names sit at the 33rd percentile by
+trend slope. Adding the pre-registered interaction does not rescue it; `pct5y ×
+slope` also comes out negative (z = −5.1), so the preference for decline is
+*stronger* among already-cheap names, not weaker. Whatever the operator does to
+avoid value traps, it is not visible as trend-slope avoidance in the trades.
+
+The generic secondary set tells the same story from another angle: 3-month and
+12-month returns both strongly negative (z = −8.6, −9.0) — dip buying — while
+`off52w` is *positive* (z = +3.4). Conditional on being cheap over the long
+haul, names nearer their 52-week high are preferred. That is arguably rule 5
+surviving in a different coordinate: not "avoid steep trends" but "prefer the
+ones that have started to come back".
+
+Two honesty notes. Pseudo-R² is 0.07 — this explains a modest slice of a noisy
+decision, which is what one should expect from a rule the operator describes as
+"not always followed systematically". And `rvol` carries a significant
+conditional coefficient (z = −6.7) but a mean percentile rank of 0.520 at
+p = 0.044, i.e. essentially no marginal effect; it is a suppression/collinearity
+artifact and should not be reported as "the operator avoids volatile names".
+
+**What this does not show.** That the timing earned anything. The fit says
+entries are timed to drawdowns; whether those drawdowns mean-revert is a claim
+about the price process that 29 lots in a single bull market cannot support.
 
 ## What this changes
 

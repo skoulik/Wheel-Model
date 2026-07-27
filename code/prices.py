@@ -116,9 +116,30 @@ class Series:
                 return c
         return None
 
+    def adj_on_or_before(self, day, limit=7):
+        """Last split-adjusted close at or before `day`."""
+        for back in range(limit + 1):
+            c = self.adj_close(day - timedelta(days=back))
+            if c is not None:
+                return c
+        return None
+
     def window(self, start, end):
         """As-traded closes in [start, end], chronological."""
         return [(d, self.close(d)) for d in self.days if start <= d <= end]
+
+    def window_adj(self, start, end):
+        """Split-adjusted closes in [start, end], chronological.
+
+        **Use this for anything that takes a ratio of two prices** -- returns,
+        volatility, trends, 5-year ranges. The as-traded series is deliberately
+        discontinuous at a split, because the traded price really did jump: a
+        1:20 reverse split multiplies it by twenty overnight. That is the right
+        number to compare with a strike and a catastrophic one to difference.
+        SCLX, KYNB and MCRB each reverse-split inside the window and produced
+        annualised volatilities of 4,300-7,300% before this was separated out.
+        """
+        return [(d, self.adj_close(d)) for d in self.days if start <= d <= end]
 
     def __len__(self):
         return len(self.days)
