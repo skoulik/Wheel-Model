@@ -75,9 +75,78 @@ simulator when the verification section replaces what they were checking.
 - ✅ **d derived, not assumed** (was #3). The recovery section now derives E[d | assignment] = 1 − e^(r·τ_p)·N(−d₁)/N(−d₂) ≈ 7.9% for the running example via the lognormal partial-expectation identity (with a conditional-expectation detour), fixes the article-wide convention — base case d ≈ 0.08, stress case d = 0.15 explicitly labeled as a ~2.5σ event — and sections 07/08 now lead with the base case. The closed form is cross-checked against direct numerical integration in `code/verify_examples.py`; computing under μ instead of r moves the figure by <0.1pp, so the risk-neutral convention is immaterial here. *Empirically confirmed* against the live statements (draft finding #12, `assignment_depth_report` in `code/analyze_statement.py`): implied assignment depths recovered from at-basis call premiums are of order 1% below the strike — matching the formula's prediction for the operator's short-tenor regime — and cleanly reject d = 0.15 as typical (zero implied gaps beyond 10% at σ = 20%).
 - ✅ **P&L formula corrected.** The draft's E[Π]/S = c_p(1+p) + p·c_c/q − p(k−1+d) double-counted the put premium (once as income at entry, once as the "recycled capital gain" at exit under the net-basis convention) and booked a mark-to-market drag into Track A. Corrected Track A run rate: **E[Π]/S = c_p + p·c_c/q** per put period. See `sections/08-returns-and-capital.md`, including the "pitfall worth naming" box documenting the error class.
 
+## Part IV, from the live-account measurement (2026-07-27)
+
+Source: `drafts/2026-07-27-discrepancy-catalogue.md`, and the four scripts behind
+it — `prices.py`, `live_ledger.py`, `model_vs_live.py`, `iv_panel.py`,
+`selection_fit.py`. Parts I and II now carry brief supporting references to this
+work; the material itself belongs here. **Everything below is measured**, so
+these are writing tasks, not modelling ones.
+
+20. **§14 the live account** ({#sec:live}) — the ledger and its verdict. Track A
+    on cost basis +34.40%/yr against Track B +15.43%; same-names buy-and-hold
+    +17.62%; option-overlay excess **−2.19%/yr with a bootstrap 90% interval of
+    −15.6% to +8.5%**, i.e. indistinguishable from the predicted zero; selection
+    **+10.59%/yr**, exposure-matched. Lead with the ledger gap, not the return.
+    The **UNH lot is the worked example** and was deliberately kept out of Part
+    II so it lands here: assigned at 260, a four-week call written at the same
+    260 basis for $18.10, called away at 260 with the stock at 393.85 —
+    collected $1,810, surrendered $13,385, one lot accounting for a third of the
+    whole call-away term. Include the by-leg decomposition (put leg keeps 10.8%
+    of premium, call leg −6.9%, frictions −$6,073) and the regime caveat: the
+    universe rose over the window and a covered-call overlay *must* lag in a
+    strong up-market.
+
+21. **§13 verification** ({#sec:verification}) — the spine tested against live
+    data, not only simulation. Entry law: 94.6 assignments expected, 94 finished
+    below the strike, 97 assigned, over 1,083 contracts. Depth census: mean depth
+    0.139 model against 0.146 live over 6,351 lot-days. q(x): 19.9% of calls
+    expected exercised against 15.6%, monotone in depth across seven bins.
+    Survival: model exits faster than observed, the compounding of that per-period
+    gap. Also carries the grid-free Monte Carlo check and the Q-world
+    no-arbitrage identity. Two measurement traps are worth a paragraph because
+    both were fallen into: reading depth on the day before exit discards nearly
+    every exit, and sampling lots on a synthetic τ_c grid scores periods at
+    tenors never traded.
+
+22. **Selection as a model extension** — the honest form of TODO #14. The
+    pre-registered rule (`drafts/2026-07-27-selection-rule-preregistration.md`)
+    is fitted: rules 4 and 6 (fallen angels, oversold) confirmed at z ≈ −10 with
+    a permutation check agreeing, rule 5 (avoid falling knives) **rejected** in
+    both its simple and its interaction form. If this becomes a modelled
+    mechanism rather than a reported measurement, the minimal form is a
+    state-dependent thinning of the arrival process. **Note what it commits to**:
+    under GBM entry timing cannot generate return by construction, so modelling
+    selection as profitable is a claim of mean reversion and must be argued as
+    one. 29 lots in one bull market cannot support it.
+
+23. **σ_IV, if it is ever carried properly** (supersedes the modelling half of
+    #4). Measured: the put leg's spread over realized volatility runs ~2× the
+    call leg's, and the within-name depth slope is ≈ +20% relative IV from
+    shallow to deep (the apparent doubling is mostly name selection). [The
+    returns section](#sec:returns) now names both as deliberate simplifications
+    and states the sign of the bias. Splitting `Config.iv_spread` into put and
+    call legs is small; a strike- and depth-dependent surface is a
+    renumber-every-figure job through Parts II–III and was judged not worth it.
+
+24. **Part III inputs from the live book.** The live account's put book spans 129
+    names while inventory sits on 29, so put margin is ~25% of Track B capital
+    against the single-name model's 1.6%: premium is generated across a far
+    wider book than the inventory it creates. That is a portfolio fact, and
+    [the portfolio section](#sec:portfolio) is where sizing against bursty,
+    heavy-tailed capital demand belongs (see #6). Assignment clustering on
+    market-wide drawdown dates (#11) is measured and waiting there too.
+
+25. **Impairment gets its first data point** (feeds #13). Two in-window entries
+    into names since judged un-wheelable (ALT, BEKE) across ~45 names over 1.17
+    years. Thin, but it is an observed hazard rate rather than a free parameter,
+    and it pairs with the x\* boundary already derived under #13.
+
 ## Open
 
-4. **Volatility skew** (all that remains of the old #4). The article carries one implied volatility σ_IV and one spread over realized. Skew means the puts sold are systematically richer than the calls sold, so the edge concentrates in the put leg and in shallow lots — which matters more since the 2026-07-26 recompute, not less: at the weekly cadence the break-even spread computed in [the returns section](#sec:returns) is essentially **zero**, so the whole of the edge is the spread and *where* the spread sits decides who earns it. `model.Config` carries `iv_spread` as a single scalar; splitting it into put and call legs is a small change, and the honest version would also make the spread strike-dependent.
+4. **Volatility skew** (all that remains of the old #4). *Modelling half
+   superseded by #23; what remains here is the article-side decision, now taken:
+   [the returns section](#sec:returns) names the omission and its cost.* The article carries one implied volatility σ_IV and one spread over realized. Skew means the puts sold are systematically richer than the calls sold, so the edge concentrates in the put leg and in shallow lots — which matters more since the 2026-07-26 recompute, not less: at the weekly cadence the break-even spread computed in [the returns section](#sec:returns) is essentially **zero**, so the whole of the edge is the spread and *where* the spread sits decides who earns it. `model.Config` carries `iv_spread` as a single scalar; splitting it into put and call legs is a small change, and the honest version would also make the spread strike-dependent.
 
 6. **Smaller items.** (Three resolved sub-items moved to Done, 2026-07-22.)
    - Track C on put collateral: cash securing a short put earns ~risk-free at the broker, so charging r against it may overcharge. Now *measured* rather than argued — the Q-world identity puts it at 15–19bp/yr, since market-value capital is dominated by the shares (5.08 against 0.19 of margin). Small enough to state as a footnote in [the returns section](#sec:returns) rather than restructure Track C for; decide when Part IV lands.
@@ -109,7 +178,14 @@ Source: `drafts/2026-07-10-statement-vs-model-observations.md`, an analysis of a
 
     Rejected along the way, recorded so it is not re-invented: crediting a lot's dividend income by its own realized depth (income ∝ δ·e^x per lot). It is internally inconsistent — all shares of one company pay the same cash on the same day, so identical shares would receive different dividends — and the tell is that E[e^x] over the census *is* the cost-basis capital, so the correction is worth +1.22pp of pure unfunded return at 30y and breaks the no-arbitrage identity immediately. Any dividend correction must move the drift and the income together.
 
-14. **The operator skips weeks, and that is the entry discipline, not a defect.** Measured 2026-07-26 when the working example moved to a weekly cadence: per name the median gap between consecutive put opens is exactly 7 days (248 of 610 gaps), so the weekly cadence is genuinely per-name and not a portfolio aggregate — but the *mean* gap is far longer, ~19.6 puts per name-year against the 52 an unconditional weekly cadence would sell, with a long tail of 14/21/28/60-day gaps. Consequently observed arrivals are 1.70 lots per name-year while the model at T = 1 week, p\* = 20% predicts 10.4 (p\* = 10%: 5.2). The gap is *not* p\*'s to absorb: the operator's strikes sit at ≈8.7% assignment probability per put, which is what p\* is defined to measure, and bending p\* down to ≈3.3% to match arrivals would put the model's strikes far outside the real ones and wreck premium and entry depth together. The missing mechanism is the **"attractive price" selection** of [the strategy section](#sec:strategy) — the operator sells a put only when the price is worth entering at, and the model's step 1, which never waits, has no such filter. Deliberately out of scope (valuation is the operator's discipline, and the article says so), but recorded here because it is the single largest unexplained ratio between the model and the statements, and calibrating arrival rates against live data will keep hitting it. If it ever must be modelled, the natural minimal form is a state-dependent thinning of the arrival process rather than a change to the strike dial.
+14. **RESOLVED as a measurement (2026-07-27), see #22 for what remains.** The
+    missing mechanism was correctly identified below as "attractive price"
+    selection, and it is now quantified rather than conjectured: exposure-matched,
+    it contributed **+10.59%/yr** against the option overlay's zero, and the
+    stated rule behind it has been fitted and partly rejected. The original entry
+    follows, since its reasoning about why p\* cannot absorb the gap still stands.
+
+    **The operator skips weeks, and that is the entry discipline, not a defect.** Measured 2026-07-26 when the working example moved to a weekly cadence: per name the median gap between consecutive put opens is exactly 7 days (248 of 610 gaps), so the weekly cadence is genuinely per-name and not a portfolio aggregate — but the *mean* gap is far longer, ~19.6 puts per name-year against the 52 an unconditional weekly cadence would sell, with a long tail of 14/21/28/60-day gaps. Consequently observed arrivals are 1.70 lots per name-year while the model at T = 1 week, p\* = 20% predicts 10.4 (p\* = 10%: 5.2). The gap is *not* p\*'s to absorb: the operator's strikes sit at ≈8.7% assignment probability per put, which is what p\* is defined to measure, and bending p\* down to ≈3.3% to match arrivals would put the model's strikes far outside the real ones and wreck premium and entry depth together. The missing mechanism is the **"attractive price" selection** of [the strategy section](#sec:strategy) — the operator sells a put only when the price is worth entering at, and the model's step 1, which never waits, has no such filter. Deliberately out of scope (valuation is the operator's discipline, and the article says so), but recorded here because it is the single largest unexplained ratio between the model and the statements, and calibrating arrival rates against live data will keep hitting it. If it ever must be modelled, the natural minimal form is a state-dependent thinning of the arrival process rather than a change to the strike dial.
 
 ## From the layered simulation (2026-07-22)
 

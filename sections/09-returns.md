@@ -109,7 +109,23 @@ The model can price exactly how much of it is needed. Holding everything else fi
 
 **The break-even is zero.** At fair prices the wheel matches the stock, and every volatility point of overpricing is worth about 45 basis points of excess return on top. There is no hurdle to clear first: against a documented premium of 2–4 points, the whole of it is edge. That is a cleaner statement than it looks, and it is the no-arbitrage argument showing up as arithmetic — a fairly priced loop earns exactly what the asset earns, so whatever the strategy makes above that has to come from the options being sold dear.
 
-Two honest qualifications. The single number σ_IV hides the volatility skew: the puts the operator sells carry a fatter premium than the calls they sell, so the edge concentrates in the put leg and in shallow lots, while deep lots — most of the inventory — contribute nothing regardless. And the edge is paid on premium volume, which is largest exactly when inventory is shallow and smallest when it is deep.
+## The premium is real. It also does not arrive.
+
+That table invites a straightforward conclusion — find a few points of overpricing and collect 45 basis points apiece — and the live account is the reason to resist it. Inverting the option premiums that account actually paid and comparing them with the volatility that actually followed, the puts it sold were dear by a wide margin, several points clear of the 2–4 the literature reports. Its option overlay nevertheless earned **nothing**: measured against simply holding the same shares over the same days, the entire apparatus of puts, assignments, calls and call-aways came to zero within the precision fourteen months can support.
+
+The two facts are not in conflict, and the reconciliation is the most useful thing in this section. A rich put is rich because it is likely to be assigned into a falling stock, and the premium is collected in the same transaction that hands the operator a lot below water. Of every dollar of put premium the live account collected, the mark loss taken at assignment consumed about nine tenths. **The volatility risk premium is real, and it is very nearly the price of the inventory it creates.**
+
+Two things follow for reading the table above. It is a *comparative static* — it holds the entry policy fixed and asks what a richer quote is worth — and so it correctly prices a spread that arrives without a matching change in assignment. It is not a promise that a measured spread converts at 45 basis points a point, because the spread that is easiest to measure is the one on far-out-of-the-money puts, and that one is quoted precisely because those puts are not as far out of the money as they look.
+
+## What the single σ_IV leaves out
+
+One number stands in for the entire volatility surface here, and the simplification should be named rather than left implicit, because a real surface is not flat in either direction that matters to this strategy.
+
+**Across strikes.** The puts the operator sells carry a fatter implied volatility than the calls they sell — the skew of [the introduction](#sec:introduction)'s detour. So the edge concentrates in the put leg and in shallow lots, while deep lots, which are most of the inventory, contribute little regardless. In the live account the put leg's spread over realized volatility ran to roughly twice the call leg's. Splitting σ_IV into two numbers would capture this and is a small change; it is not made here because it buys detail in a quantity the article has already deliberately set to zero.
+
+**With depth.** The more interesting omission. A lot is deep because its stock fell, and a stock that has fallen is quoted at a higher implied volatility — so the model, holding σ_IV fixed, understates what deep lots earn on their calls. The live account confirms the direction: calls written against its deepest lots were quoted materially dearer than calls on its shallow ones. But most of that gap is not depth at all — deep lots sit on names that are volatile to begin with, and once each name is compared against its own typical level, the genuine depth effect is about a fifth. **That is why it is left out: a twenty-percent enrichment of the smallest income term in the ledger is not worth carrying a strike- and state-dependent volatility surface through every formula in this article.** It is recorded here as a known bias, and its sign is favourable — the model is, in this one respect, slightly pessimistic about deep inventory.
+
+And a third, which no surface captures: the edge is paid on premium volume, which is largest exactly when inventory is shallow and smallest when it is deep.
 
 ## Dividends, resolved
 
