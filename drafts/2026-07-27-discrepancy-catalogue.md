@@ -145,6 +145,88 @@ model's predicted zero. Neither the overlay result nor the selection result
 should be read as an unconditional estimate: 1.17 years, ~45 correlated names,
 one direction of market.
 
+## Appendix: the model's own predictions, tested (`code/model_vs_live.py`)
+
+The comparison above is against the *market*. This one is against the *model*:
+`model.py` fed the live account's measured parameters — σ = 33.9%
+(inventory-weighted realised), exposure-weighted drift +19.4%, median put tenor
+4 d, median call tenor 25 d — and checked link by link. Every one of these tests
+needs a spot price, which is why none was possible before.
+
+**T1, the entry law — passes sharply.** Over 1,083 put contracts written against
+a known spot, the model expects **94.6** assignments, **94** contracts finished
+below the strike, and **97** were assigned. That is a 0.6% error on the model's
+own event. Calibration by predicted probability tracks well except in the
+far-OTM bucket, where puts predicted at 0.7% finished ITM 9.2% of the time — the
+lognormal has no jumps and the market does.
+
+**T2, the entry depth — the model brackets reality but is skewed wrong.** Live
+d = 1 − S(expiry)/K has median **+2.2%**, mean **+4.4%**; the model's
+E[d | assignment] at these clocks is **+6.1%**. The live mean is 2.0× the live
+median, so the distribution is far more right-skewed than the lognormal
+conditional, which is the same jump tail T1 sees from the other side.
+
+**T3, the depth census — the sharpest test, and it holds.** Mean depth over
+6,351 lot-days is **0.146** live against **0.139** from the killed walk at the
+article's μ = 7%: a 5% error on the quantity that carries income and capital.
+Notably the census matches *better* at the article's assumed drift than at the
+realised +19.4% — a bull-market drift would have emptied the book faster than it
+actually emptied. The shape differs in a consistent way: live is thinner right
+at the strike (10.1% vs 23.6% in 0–2%) and fatter in the middle (52.1% vs 38.6%
+in 5–20%).
+
+**And the call-grid tax, measured directly for the first time: 16.7% of all
+lot-days are spent above the lot's own call strike**, held only because the
+call has not expired yet. The model kills those states by construction; this is
+the empirical size of the effect [eq:siegmund](#eq:siegmund) corrects for.
+
+**T4, q(x) — validated.** Against the 556 call contracts actually written, the
+model expects **19.9%** exercised and **15.6%** were. The shape is monotone in
+depth and tracked throughout, the model running modestly aggressive:
+
+    depth at write     n    model q   realised
+       ITM (x<-2%)     6      0.752      0.667
+            -2..0%    10      0.588      0.600
+              0-2%    69      0.447      0.406
+              2-5%   121      0.314      0.215
+             5-10%    81      0.175      0.185
+            10-20%   138      0.092      0.051
+              >20%   131      0.036      0.008
+
+Two wrong constructions were tried first and are recorded in the module so they
+are not retried: reading depth on the day before exit (throws away nearly every
+exit, since a called-away lot is above its strike that day), and sampling each
+lot every τ_c days from its own entry (scores periods at tenors the operator
+never traded, and made the model look 2× too aggressive when the fault was the
+sampling). Neither the call-coverage rate (90.8%, highest in the shallow bins)
+nor post-entry volatility drift (30.4% at entry vs 32.8% while held) explains
+any part of the gap; both were measured and rejected.
+
+**A confirmation that was previously thought untestable.** 87 calls were
+assigned against only 76 that finished above the strike. The excess is early
+exercise — the dividend-capture channel that draft finding #11 recorded as
+invisible to a cash statement ("payment dates, not ex-dates, are recorded").
+With prices it is visible after all, and it is direct evidence for the early-
+exercise caveat of TODO #2c/#5.
+
+**T5, holding time — the model exits too fast, and censoring is huge.**
+
+    days     live S(t)   model S(t)
+      30        68.2%       53.5%
+      90        49.3%       31.6%
+     365        31.8%       10.9%
+
+Kaplan-Meier median holding time is **63 days against the 28 days that
+completed lots alone report** — a 2.3× understatement, which is TODO #9's
+censoring warning quantified. The survival gap is T4's modest per-period
+overstatement compounded over many periods.
+
+**Verdict.** The spine is confirmed empirically at every link that the sample can
+resolve: the entry law to within 0.6%, the depth census to within 5% on the mean,
+q(x) monotone and tracked. Where it errs it errs in one direction — the lognormal
+lacks the jump tail, which makes assignments deeper than predicted in the tail
+and exits slightly faster than observed.
+
 ## What this changes
 
 * The mechanical wheel model is **not** contradicted by the live account. Its
