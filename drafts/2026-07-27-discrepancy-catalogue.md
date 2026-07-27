@@ -227,6 +227,79 @@ q(x) monotone and tracked. Where it errs it errs in one direction — the lognor
 lacks the jump tail, which makes assignments deeper than predicted in the tail
 and exits slightly faster than observed.
 
+## Appendix 2: the implied-volatility panel (`code/iv_panel.py`)
+
+1,097 of 1,109 contracts inverted for implied volatility. This is what the
+article currently assumes rather than measures.
+
+**Accuracy bound, first.** The spot used is the day's close; the trade happened
+intraday. Perturbing the assumed spot by ±1% moves median IV by ∓5.5 points on
+the 4-day puts, ∓2 points on monthlies, and ±2.5 points on calls (the opposite
+sign, since a call is long the spot). Worse, the bias is not obviously random:
+rule 6 sells puts into weakness, so if the operator trades below the close the
+true put IV is nearer the low end. Every put number below should be read as a
+band, not a point.
+
+**The volatility risk premium is real and large on the put leg.**
+
+    leg      tenor      n   median IV   med fwd RV   IV - RV
+    puts     <=1wk    541       37.8%        27.3%    +10.5%
+    puts     ~monthly 161       35.1%        25.4%     +9.7%
+    calls    <=1wk     86       33.1%        28.5%     +4.7%
+    calls    ~monthly 137       37.3%        32.4%     +4.9%
+
+Against the article's break-even of **zero**, with every point worth ~45bp, a
+put-leg spread of +5 to +10 points (the band the sensitivity above allows) is
+the entire edge and then some. TODO #4's conjecture that the edge concentrates
+in the put leg is confirmed: the put spread is roughly double the call spread.
+
+**The skew is textbook and steep.** Put IV rises monotonically as the strike
+falls — 16.3% at the money, 29.7% at 2–5% out, 45.7% at 5–10% out, 48.6% beyond
+— while calls trace a smile, 31.1% at the money, 26.3% just out, and 48.9%
+beyond 10%. A single scalar `iv_spread` cannot represent this.
+
+**σ_IV(x) is increasing in depth — the sign question is settled.**
+
+    lot depth      n   median IV   relative to the name's own median
+      0-2%        46       31.7%                                0.93x
+      2-5%        47       31.3%                                0.92x
+      5-10%       33       35.8%                                0.96x
+     10-20%       38       37.3%                                0.95x
+     20-35%       20       65.9%                                1.09x
+      >35%        11       57.5%                                1.13x
+
+The far-OTM smile wins over the "shallow lots sit at the money" effect: a deep
+lot's call is quoted at a *higher* implied volatility, so deep lots earn richer
+call premiums than a constant σ_IV books. **But the relative column is the one
+to model.** In absolute terms IV roughly doubles across the depth range; after
+dividing by each name's own median IV it rises only from 0.92× to 1.13×. Most
+of the absolute rise is selection — deep lots sit on intrinsically volatile
+names — and the genuine within-name depth effect is about **+20% relative IV
+from shallow to deep**. That, not the doubling, is what belongs in σ_IV(x).
+
+**The leverage effect is confirmed, modest, and asymmetric as predicted.**
+
+    trailing 20d       n   median IV   relative
+    fell >15%         93       52.3%      1.06x
+    fell 7-15%       184       36.4%      1.00x
+    flat             258       33.0%      1.00x
+    rose 2-7%        136       37.9%      0.98x
+    rose >7%          60       44.3%      0.94x
+
+Relative IV rises after falls and drops after rises. But *absolute* IV is
+elevated on **both** tails — 52.3% after a big fall and 44.3% after a big rise —
+which is exactly the operator's own observation that a surge raises implied
+volatility too, just not relative to the name's own level.
+
+**The tension worth naming, because it is the sharpest result here.** The put
+leg harvests a spread of +5 to +10 volatility points, and yet Appendix 1 shows
+it kept only **10.8% of its premium** economically, because the mark loss at
+assignment consumed the rest. The volatility risk premium is real and it is
+very nearly cancelled by the cost of the inventory it creates. That is a
+cleaner statement of why the wheel's edge is so much smaller than its premium
+income suggests than anything the model derived a priori — and it is the live
+account's version of the article's "each leg is very nearly a wash."
+
 ## What this changes
 
 * The mechanical wheel model is **not** contradicted by the live account. Its
