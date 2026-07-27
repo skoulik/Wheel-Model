@@ -1,5 +1,8 @@
 # Private brokerage statements — never commit
 statements/
 
+# Cached market data (code/prices.py) — refetchable, not ours to redistribute
+data/
+
 # Python bytecode cache (analyze_statement imports verify_examples)
 __pycache__/

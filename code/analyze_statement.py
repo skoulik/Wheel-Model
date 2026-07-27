@@ -67,8 +67,17 @@ from model import Config, assign_prob, bs_call, expected_drop, strike
 STATEMENTS_GLOB = "statements/*.csv"
 JUNK_PRICE_CUTOFF = 8.0  # USD; discretionary, see module docstring
 # Manual additions to the junk universe: names the operator does not consider
-# wheel-grade regardless of price (BEKE: speculative, not a hold-forever asset).
-JUNK_EXTRA = {"BEKE"}
+# wheel-grade regardless of price (BEKE: speculative, not a hold-forever asset;
+# FOLD: renamed, and not wheel-grade either).
+JUNK_EXTRA = {"BEKE", "FOLD"}
+
+# Junk names the wheel nevertheless ENTERED by put assignment inside the
+# window. They are wheel lots whatever the universe filter says -- excluding
+# them would be survivorship bias in the live measurement, and they are the
+# only empirical handle on the permanent-impairment hazard (TODO #13). There
+# are exactly two, both confirmed by the operator as genuine entries; the rest
+# of the junk universe is the legacy of earlier strategies and stays out.
+WHEEL_DESPITE_JUNK = {"ALT", "BEKE"}
 
 OPT_OPEN = re.compile(
     r"^-(\d+) (\S+) (\d{2}[A-Z]{3}\d{2}) ([\d.]+) ([PC]) price: ([\d.]+)(?: comm: (-?[\d.]+))?$")
@@ -90,6 +99,15 @@ def parse(paths):
     opened before the statement window) are dropped. Dividend rows keep every
     dividend-related cash flow (receipt, payment in lieu, withholding tax,
     fee) tagged by kind.
+
+    Matching is by CONTRACT COUNT, not by row: a row can carry any number of
+    contracts (1 is the mode, but 2, 3, 6 and even 60 all occur), and an open
+    of six can be closed by two rows of three. Each emitted position therefore
+    carries `qty`, and its cash is prorated to that quantity. Ignoring the
+    count understates gross premium by 14% on the put leg and 30% on the call
+    leg, which is enough to flip the calls/puts income ratio from 0.90 to 1.03.
+    Every option row's Amount reconciles to qty*price*100 + commission exactly
+    (1198 of 1198 rows), so the count is real and Amount is authoritative.
     """
     opens = {}
     positions = []
@@ -107,25 +125,36 @@ def parse(paths):
                     m = OPT_OPEN.match(desc)
                     if m:
                         key = (m[2], m[3], float(m[4]), m[5])
-                        opens.setdefault(key, []).append(
-                            (_trade_day(day), float(m[6]), float(m[7] or 0)))
+                        n = int(m[1])
+                        opens.setdefault(key, []).append(dict(
+                            day=_trade_day(day), qty=n, px=float(m[6]),
+                            comm_per=float(m[7] or 0) / n))
                         continue
                     m = OPT_CLOSE.match(desc)
                     if m:
                         key = (m[2], m[3], float(m[4]), m[5])
                         pending = opens.get(key, [])
-                        if pending:
-                            open_day, open_px, comm = pending.pop(0)
-                            # Expiry/assignment posts +1 calendar day; a
-                            # buy-back is a trade and posts +1 business day.
-                            close_day = (_expiry_day(day) if m[6]
-                                         else _trade_day(day))
+                        # Expiry/assignment posts +1 calendar day; a buy-back
+                        # is a trade and posts +1 business day.
+                        close_day = (_expiry_day(day) if m[6]
+                                     else _trade_day(day))
+                        close_px = float(m[7]) if m[7] else 0.0
+                        close_comm_per = float(m[8] or 0) / int(m[1])
+                        remaining = int(m[1])
+                        while remaining > 0 and pending:
+                            o = pending[0]
+                            take = min(remaining, o["qty"])
                             positions.append(dict(
                                 sym=m[2], exp=_exp(m[3]), strike=float(m[4]),
-                                right=m[5], open=open_day, close=close_day,
-                                open_px=open_px, comm=comm,
-                                how=m[6] or "closed",
-                                close_px=float(m[7]) if m[7] else 0.0))
+                                right=m[5], open=o["day"], close=close_day,
+                                qty=take, open_px=o["px"],
+                                comm=o["comm_per"] * take,
+                                close_comm=close_comm_per * take,
+                                how=m[6] or "closed", close_px=close_px))
+                            o["qty"] -= take
+                            remaining -= take
+                            if o["qty"] == 0:
+                                pending.pop(0)
                         continue
                     print("UNPARSED OPTION ROW:", desc, file=sys.stderr)
                 elif ref == "STOCK":
@@ -153,11 +182,17 @@ def parse(paths):
                         country=tax[1] if tax else None,
                         pil="in Lieu" in rest or "IN LIEU" in rest,
                         per_share=float(per_share[1]) if per_share else None))
-    still_open = sum(len(v) for v in opens.values())
+    live = [dict(sym=k[0], exp=_exp(k[1]), strike=k[2], right=k[3],
+                 open=o["day"], qty=o["qty"], open_px=o["px"],
+                 comm=o["comm_per"] * o["qty"])
+            for k, v in opens.items() for o in v if o["qty"]]
+    still_open = sum(o["qty"] for o in live)
+    n_contracts = sum(p["qty"] for p in positions)
     print(f"parsed: {len(positions)} closed option positions "
-          f"({still_open} still open), {len(stock_tx)} stock transactions, "
+          f"({n_contracts} contracts; {still_open} contracts still open), "
+          f"{len(stock_tx)} stock transactions, "
           f"{len(divs)} dividend-related cash flows")
-    return positions, stock_tx, divs
+    return positions, stock_tx, divs, live
 
 
 def _d(s):
@@ -219,7 +254,7 @@ def option_report(positions, junk):
                 continue
             assigned = sum(1 for p in sub if p["how"] == "assigned")
             prem = sorted(p["open_px"] / p["strike"] for p in sub)
-            comm = sorted(-p["comm"] / (p["open_px"] * 100)
+            comm = sorted(-p["comm"] / (p["open_px"] * 100 * p["qty"])
                           for p in sub if p["open_px"])
             print(f"  {name:12s} n={len(sub):4d}  assign rate={assigned / len(sub):.3f}  "
                   f"premium median={median(prem) * 100:.2f}%  "
@@ -229,17 +264,29 @@ def option_report(positions, junk):
             frac = sorted(p["close_px"] / p["open_px"] for p in early)
             print(f"  early buy-backs: {len(early)} ({len(early) / len(ps):.0%}), "
                   f"repurchased at median {median(frac):.0%} of premium received")
-    total = {r: sum(p["open_px"] * 100 for p in positions
+    # Gross premium counts contracts, not rows -- see the parse() docstring.
+    total = {r: sum(p["open_px"] * 100 * p["qty"] for p in positions
                     if p["right"] == r and p["sym"] not in junk) for r in "PC"}
     print(f"\ngross premium (quality, closed): puts ${total['P']:,.0f}, "
           f"calls ${total['C']:,.0f}, calls/puts = {total['C'] / total['P']:.2f}")
 
 
-def inventory_report(stock_tx, junk, today):
+def build_lots(stock_tx, excluded):
+    """Reconstruct inventory lots from stock rows.
+
+    Returns (completed, open_lots). A lot is a parcel of shares acquired on one
+    day at one price; `completed` records its exit, `open_lots` the parcels
+    still held at the end of the statement. Sales that match no open lot are
+    legacy shares bought before the window and are dropped.
+
+    Matching is price-first, then FIFO -- see the module docstring. `excluded`
+    is the set of symbols to skip (normally the junk universe minus the names
+    the wheel actually entered in-window, see WHEEL_DESPITE_JUNK).
+    """
     buys = defaultdict(list)
     completed = []
     for day, sym, qty, px, _ in sorted(stock_tx):
-        if sym in junk:
+        if sym in excluded:
             continue
         if qty > 0:
             buys[sym].append([day, qty, px])
@@ -259,6 +306,13 @@ def inventory_report(stock_tx, junk, today):
                     buys[sym].remove(lot)
             # remaining > 0 here means legacy shares bought before the
             # statement window were sold; not a wheel lot, ignore.
+    open_lots = [dict(sym=sym, in_day=d, in_px=px, qty=q)
+                 for sym, lst in buys.items() for d, q, px in lst]
+    return completed, sorted(open_lots, key=lambda l: l["in_day"])
+
+
+def inventory_report(stock_tx, junk, today):
+    completed, open_lots = build_lots(stock_tx, junk - WHEEL_DESPITE_JUNK)
     hold = sorted((l["out_day"] - l["in_day"]).days for l in completed)
     same = sum(1 for l in completed if abs(l["out_px"] - l["in_px"]) < 1e-9)
     above = sum(1 for l in completed if l["out_px"] > l["in_px"] + 1e-9)
@@ -272,10 +326,9 @@ def inventory_report(stock_tx, junk, today):
           f"max {hold[-1] if hold else '-'}  "
           f"exit vs entry strike same/above/below: {same}/{above}/{below}")
     print("open lots (right-censored — the aging tail):")
-    open_lots = [(sym, d, q, px) for sym, lst in buys.items()
-                 for d, q, px in lst]
-    for sym, d, q, px in sorted(open_lots, key=lambda x: x[1]):
-        print(f"  {sym:6s} {q:5d} @ {px:8.2f}  since {d}  ({(today - d).days}d)")
+    for l in open_lots:
+        print(f"  {l['sym']:6s} {l['qty']:5d} @ {l['in_px']:8.2f}  "
+              f"since {l['in_day']}  ({(today - l['in_day']).days}d)")
 
 
 def _implied_spot(c_over_k, tau, sigma, r):
@@ -420,7 +473,7 @@ def dividend_report(divs, positions, stock_tx, junk):
         print(f"  {sym:6s} {s['n_wheel']:2.0f} receipt rows  "
               f"gross ${s['recv_wheel']:7,.0f}  "
               f"(symbol-level tax rate {rate:.1%})")
-    premium = {r: sum(p["open_px"] * 100 for p in positions
+    premium = {r: sum(p["open_px"] * 100 * p["qty"] for p in positions
                       if p["right"] == r and p["sym"] not in junk)
                for r in "PC"}
     print(f"wheel-inventory dividends vs gross quality premium: "
@@ -441,7 +494,7 @@ def main():
         sys.exit(f"no statement files found at {STATEMENTS_GLOB} "
                  "(they are private and not in the repository)")
     print("reading:", ", ".join(paths))
-    positions, stock_tx, divs = parse(paths)
+    positions, stock_tx, divs, _live = parse(paths)
     junk = junk_symbols(positions, stock_tx)
     print(f"junk universe (excluded, price < {JUNK_PRICE_CUTOFF}): {sorted(junk)}")
     option_report(positions, junk)
