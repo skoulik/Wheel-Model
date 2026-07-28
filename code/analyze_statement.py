@@ -24,6 +24,21 @@ Statement row format (columns: Date, Amount, Payee, Description, Reference):
     "EMLC(...) Cash Dividend USD 0.1206 per Share - US Tax"   withholding (both signs:
                                                    negative = withheld, positive = refund)
     "NVO(...) Cash Dividend USD 0.58432 per Share - FEE"      ADR/handling fee
+  CORP rows — corporate actions, read only for the ticker map below
+    "CMCSA(US20030N1019) Spinoff  1 for 25 (VSNT, VERSANT MEDIA GROUP INC-WI, ...)"
+
+Two properties of the exports themselves, both of which cost a real figure
+before they were found (TODO IV-6 and IV-7), and both handled in `_read_rows`:
+
+  * The rows are NOT in date order, and open/close matching cannot assume they
+    are. IBKR emitted one renamed close thirty-five rows ABOVE the open it
+    belonged to, so the close was discarded as unmatched and the open stood
+    forever. Rows are stably sorted by posting date before anything is matched.
+  * Successive exports OVERLAP at the seam — USD.csv ends 2026-05-02 and
+    USD1.csv starts 2026-05-01 — so nine rows are exported twice. A row
+    repeated in a LATER file is one event seen twice and is dropped; a row
+    repeated INSIDE one file is two genuine fills (there is such a pair) and is
+    kept. Deduplicating the corpus as a whole would destroy the second kind.
 
 Dates: the statement's Date column is the CASH POSTING date, not the trade
 date. Trades post one business day later (options and equities both settle
@@ -54,6 +69,9 @@ Caveats baked into the analysis:
   * Completed-lot statistics are right-censored: lots still open (often the
     oldest, highest-basis ones) never enter them. Read them as "fast lane"
     numbers, not unconditional averages.
+  * Corporate-action ticker variants are folded into their underlying before
+    anything is keyed on the symbol — see `_variant_map`. A contract renamed
+    mid-life otherwise loses both of its legs at once.
 
 Stdlib only (Python 3.8+).
 """
@@ -95,9 +113,11 @@ STATEMENTS_GLOB = "statements/*.csv"
 #     an option whose deliverable a corporate action has changed, so an
 #     excluded name reappears under a name the list does not hold. CHPT1 and
 #     KYNB1 are the two observed, from a 1-for-20 reverse split and a merger.
-#     Listing them keeps the exclusion from being undone by a corporate
-#     action; the in-universe variants (CMCS1, TRI1) are a different problem
-#     and belong to their parent -- see TODO IV-6.
+#     These now resolve to their underlying in `_variant_map` and would be
+#     excluded through it, but they stay listed: the map is inferred from what
+#     the statements happen to mention, and an exclusion should not depend on
+#     an inference. The hit is recorded under the name the statement wrote, so
+#     these go on reporting as traded rather than as stale list entries.
 #
 # ALT and BEKE were once carried as exceptions, the wheel having entered them
 # by assignment inside the window; they were the only empirical handle on the
@@ -134,6 +154,19 @@ EXCLUDED_LIST = {
 # dropped and to flag entries that no longer appear in the statements at all.
 EXCLUDED_SEEN = Counter()
 
+# Every symbol the raw rows mention, folded onto its underlying, counted by
+# row kind: {symbol: Counter({"OPTION": n, "STOCK": n, "DIVIDEND": n, ...})}.
+# Populated by parse(); read by universe_report() to name the symbols the
+# analysis never reaches. That report is the one that could have caught TODO
+# IV-5 and did not, because it was built from what the analysis had already
+# consumed rather than from what the statements say.
+SYMBOLS_SEEN = {}
+
+# Corporate-action ticker variant -> the underlying it belongs to, inferred by
+# `_variant_map` from the corpus. Populated by parse(), reported by
+# universe_report().
+VARIANT_PARENT = {}
+
 OPT_OPEN = re.compile(
     r"^-(\d+) (\S+) (\d{2}[A-Z]{3}\d{2}) ([\d.]+) ([PC]) price: ([\d.]+)(?: comm: (-?[\d.]+))?$")
 OPT_CLOSE = re.compile(
@@ -144,14 +177,131 @@ STOCK = re.compile(
 DIV = re.compile(r"^(\S+?) ?\((\S+)\) (.*)$")  # optional space: "TRI (CA...)"
 DIV_PER_SHARE = re.compile(r"USD ([\d.]+) per Share")
 DIV_TAX = re.compile(r"- ([A-Z]{2}) Tax$")
+# An adjusted option's symbol: a letters-only root with one digit appended.
+# The digit-only tickers in the statements (9988, an HK listing) are not this
+# shape, and would find no parent even if they were.
+VARIANT = re.compile(r"^([A-Z][A-Z.]*)(\d)$")
 
 
-def _excluded(sym):
-    """True if `sym` is out of universe; records the hit for the report."""
-    if sym not in EXCLUDED_LIST:
+def _excluded(sym, parent=None):
+    """True if `sym` is out of universe; records the hit for the report.
+
+    `parent` is the underlying `sym` was renamed from, if any: an excluded
+    name must stay excluded when a corporate action renames its options. The
+    hit is recorded under the symbol the statement actually wrote, so a list
+    entry covering a variant (CHPT1, KYNB1) goes on showing as traded rather
+    than as an entry that no longer matches anything.
+    """
+    if sym not in EXCLUDED_LIST and (parent or sym) not in EXCLUDED_LIST:
         return False
     EXCLUDED_SEEN[sym] += 1
     return True
+
+
+def _row_symbol(row):
+    """(kind, symbol) named by a raw row; symbol None if the row parses no name."""
+    desc, ref = row[3].strip(), row[4]
+    if ref == "OPTION":
+        m = OPT_OPEN.match(desc) or OPT_CLOSE.match(desc)
+        return "OPTION", m[2] if m else None
+    if ref == "STOCK":
+        m = STOCK.match(desc)
+        return "STOCK", m[3] if m else None
+    if ref == "CORP":
+        m = DIV.match(desc)          # same "SYM(ISIN) ..." shape as a dividend
+        return "CORP", m[1] if m else None
+    if ref == "" and "ividend" in desc:
+        m = DIV.match(desc)
+        return "DIVIDEND", m[1] if m else None
+    return None, None
+
+
+def _read_rows(paths):
+    """Every data row from every file, in event order and without re-exports.
+
+    Returns (rows, n_duplicates). Two properties of the exports are handled
+    here rather than left for the matching to trip over — see the module
+    docstring for what each one cost.
+
+    ORDER. Rows are stably sorted by posting date, so an open always precedes
+    the close it belongs to. The files are not ordered, and the case that
+    matters is not hypothetical: the close of the renamed CMCSA contract sits
+    thirty-five rows above its own open. The sort is stable, so file order
+    survives within a day and the read order of everything already contiguous
+    is untouched — no in-universe contract has an open and a close posted on
+    the same day, so nothing can be re-paired by this.
+
+    OVERLAP. Successive exports repeat the days at the seam. A row already
+    carried by an EARLIER file is dropped, at most as many times as that file
+    carried it; repeats INSIDE one file are genuine repeat fills and are kept.
+    Headers are skipped per file, so the whole-corpus dedupe that would eat
+    the second file's header — and the data row behind it — cannot happen.
+    """
+    seen = Counter()
+    rows = []
+    n_dup = 0
+    for path in paths:
+        with open(path, newline="") as f:
+            reader = csv.reader(f)
+            next(reader)  # header, one per file
+            body = [r for r in reader if len(r) >= 5]
+        budget = Counter(seen)     # how many of each row earlier files carried
+        kept = []
+        for r in body:
+            t = tuple(r)
+            if budget[t]:
+                budget[t] -= 1
+                n_dup += 1
+                continue
+            kept.append(r)
+        seen.update(tuple(r) for r in kept)
+        rows.extend(kept)
+    rows.sort(key=lambda r: r[0])
+    return rows, n_dup
+
+
+def _variant_map(census):
+    """Corporate-action ticker variants, mapped back to their underlying.
+
+    IBKR renames an option whose deliverable a corporate action has changed:
+    by the OCC convention the root is truncated to four characters and a
+    sequence digit appended, so CMCSA -> CMCS1 and TRI -> TRI1. Nothing else
+    about the contract changes, so the two legs of one position end up keyed
+    under two different symbols — the close matches no open and is discarded,
+    and the open is never closed and stands as a short position forever. Three
+    contracts in the window (TODO IV-6).
+
+    `census` is {symbol: Counter(row kind)} over the raw rows. A candidate is
+    a symbol of the adjusted shape whose stem is the four-character root of
+    another symbol the statements mention. CORP rows are the corroborating
+    authority — they name the underlying whose deliverable changed — but they
+    are NOT sufficient alone: KYNB1 appears with no CORP row in the window,
+    its merger having posted outside it. So a mapping the CORP rows do not
+    confirm is applied and reported rather than silently trusted or silently
+    dropped, and an ambiguous one is refused.
+    """
+    corp = {s for s, kinds in census.items() if kinds["CORP"]}
+    parent, unconfirmed = {}, []
+    for sym in sorted(census):
+        m = VARIANT.match(sym)
+        if not m:
+            continue
+        cands = [s for s in census if s != sym and s[:4] == m[1]]
+        if not cands:
+            continue
+        backed = [s for s in cands if s in corp]
+        if len(backed) == 1:
+            parent[sym] = backed[0]
+        elif len(cands) == 1:
+            parent[sym] = cands[0]
+            unconfirmed.append(sym)
+        else:
+            print(f"AMBIGUOUS TICKER VARIANT: {sym} -> {sorted(cands)}, "
+                  "not resolved", file=sys.stderr)
+    for sym in unconfirmed:
+        print(f"TICKER VARIANT {sym} -> {parent[sym]}: no CORP row confirms it "
+              "(the corporate action posted outside the window)", file=sys.stderr)
+    return parent
 
 
 def parse(paths):
@@ -177,89 +327,105 @@ def parse(paths):
     an excluded name cannot reach an analysis by being forgotten in one call
     site, because it never enters the data. Both legs of an excluded option go
     together, so the open/close matching below never sees a half pair.
+
+    Every symbol is folded onto its underlying before it is used as a key --
+    see `_variant_map` -- and the corpus itself is de-overlapped and put in
+    event order by `_read_rows`. Neither is cosmetic: without the first the
+    two legs of a renamed contract never meet, and without the second they
+    still do not, because the rename also moves the close in the file.
     """
     opens = {}
     positions = []
     stock_tx = []
     divs = []
     EXCLUDED_SEEN.clear()          # parse() may be called more than once
-    for path in paths:
-        with open(path, newline="") as f:
-            reader = csv.reader(f)
-            next(reader)  # header
-            for row in reader:
-                if len(row) < 5:
+    SYMBOLS_SEEN.clear()
+    VARIANT_PARENT.clear()
+
+    rows, n_dup = _read_rows(paths)
+    census = defaultdict(Counter)
+    for row in rows:
+        kind, sym = _row_symbol(row)
+        if sym:
+            census[sym][kind] += 1
+    VARIANT_PARENT.update(_variant_map(census))
+    for sym, kinds in census.items():          # the census, folded on parents
+        SYMBOLS_SEEN.setdefault(VARIANT_PARENT.get(sym, sym), Counter()).update(kinds)
+
+    for row in rows:
+        day, desc, ref = row[0], row[3].strip(), row[4]
+        if ref == "OPTION":
+            m = OPT_OPEN.match(desc)
+            if m:
+                sym = VARIANT_PARENT.get(m[2], m[2])
+                if _excluded(m[2], sym):
                     continue
-                day, desc, ref = row[0], row[3].strip(), row[4]
-                if ref == "OPTION":
-                    m = OPT_OPEN.match(desc)
-                    if m:
-                        if _excluded(m[2]):
-                            continue
-                        key = (m[2], m[3], float(m[4]), m[5])
-                        n = int(m[1])
-                        opens.setdefault(key, []).append(dict(
-                            day=_trade_day(day), qty=n, px=float(m[6]),
-                            comm_per=float(m[7] or 0) / n))
-                        continue
-                    m = OPT_CLOSE.match(desc)
-                    if m:
-                        if _excluded(m[2]):
-                            continue
-                        key = (m[2], m[3], float(m[4]), m[5])
-                        pending = opens.get(key, [])
-                        # Expiry/assignment posts +1 calendar day; a buy-back
-                        # is a trade and posts +1 business day.
-                        close_day = (_expiry_day(day) if m[6]
-                                     else _trade_day(day))
-                        close_px = float(m[7]) if m[7] else 0.0
-                        close_comm_per = float(m[8] or 0) / int(m[1])
-                        remaining = int(m[1])
-                        while remaining > 0 and pending:
-                            o = pending[0]
-                            take = min(remaining, o["qty"])
-                            positions.append(dict(
-                                sym=m[2], exp=_exp(m[3]), strike=float(m[4]),
-                                right=m[5], open=o["day"], close=close_day,
-                                qty=take, open_px=o["px"],
-                                comm=o["comm_per"] * take,
-                                close_comm=close_comm_per * take,
-                                how=m[6] or "closed", close_px=close_px))
-                            o["qty"] -= take
-                            remaining -= take
-                            if o["qty"] == 0:
-                                pending.pop(0)
-                        continue
-                    print("UNPARSED OPTION ROW:", desc, file=sys.stderr)
-                elif ref == "STOCK":
-                    m = STOCK.match(desc)
-                    if m:
-                        if _excluded(m[3]):
-                            continue
-                        sign = 1 if m[1] == "+" else -1
-                        assigned = m[4] == "assigned"
-                        d_ev = _expiry_day(day) if assigned else _trade_day(day)
-                        stock_tx.append((d_ev, m[3], sign * int(m[2]),
-                                         float(m[5]), assigned))
-                    else:
-                        print("UNPARSED STOCK ROW:", desc, file=sys.stderr)
-                elif ref == "" and "ividend" in desc:
-                    m = DIV.match(desc)
-                    if not m:
-                        print("UNPARSED DIVIDEND ROW:", desc, file=sys.stderr)
-                        continue
-                    sym, rest = m[1], m[3]
-                    if _excluded(sym):
-                        continue
-                    tax = DIV_TAX.search(rest)
-                    per_share = DIV_PER_SHARE.search(rest)
-                    divs.append(dict(
-                        day=_d(day), sym=sym, amount=float(row[1]),
-                        kind=("fee" if rest.endswith("FEE")
-                              else "tax" if tax else "recv"),
-                        country=tax[1] if tax else None,
-                        pil="in Lieu" in rest or "IN LIEU" in rest,
-                        per_share=float(per_share[1]) if per_share else None))
+                key = (sym, m[3], float(m[4]), m[5])
+                n = int(m[1])
+                opens.setdefault(key, []).append(dict(
+                    day=_trade_day(day), qty=n, px=float(m[6]),
+                    comm_per=float(m[7] or 0) / n))
+                continue
+            m = OPT_CLOSE.match(desc)
+            if m:
+                sym = VARIANT_PARENT.get(m[2], m[2])
+                if _excluded(m[2], sym):
+                    continue
+                key = (sym, m[3], float(m[4]), m[5])
+                pending = opens.get(key, [])
+                # Expiry/assignment posts +1 calendar day; a buy-back
+                # is a trade and posts +1 business day.
+                close_day = (_expiry_day(day) if m[6]
+                             else _trade_day(day))
+                close_px = float(m[7]) if m[7] else 0.0
+                close_comm_per = float(m[8] or 0) / int(m[1])
+                remaining = int(m[1])
+                while remaining > 0 and pending:
+                    o = pending[0]
+                    take = min(remaining, o["qty"])
+                    positions.append(dict(
+                        sym=sym, exp=_exp(m[3]), strike=float(m[4]),
+                        right=m[5], open=o["day"], close=close_day,
+                        qty=take, open_px=o["px"],
+                        comm=o["comm_per"] * take,
+                        close_comm=close_comm_per * take,
+                        how=m[6] or "closed", close_px=close_px))
+                    o["qty"] -= take
+                    remaining -= take
+                    if o["qty"] == 0:
+                        pending.pop(0)
+                continue
+            print("UNPARSED OPTION ROW:", desc, file=sys.stderr)
+        elif ref == "STOCK":
+            m = STOCK.match(desc)
+            if m:
+                sym = VARIANT_PARENT.get(m[3], m[3])
+                if _excluded(m[3], sym):
+                    continue
+                sign = 1 if m[1] == "+" else -1
+                assigned = m[4] == "assigned"
+                d_ev = _expiry_day(day) if assigned else _trade_day(day)
+                stock_tx.append((d_ev, sym, sign * int(m[2]),
+                                 float(m[5]), assigned))
+            else:
+                print("UNPARSED STOCK ROW:", desc, file=sys.stderr)
+        elif ref == "" and "ividend" in desc:
+            m = DIV.match(desc)
+            if not m:
+                print("UNPARSED DIVIDEND ROW:", desc, file=sys.stderr)
+                continue
+            sym, rest = VARIANT_PARENT.get(m[1], m[1]), m[3]
+            if _excluded(m[1], sym):
+                continue
+            tax = DIV_TAX.search(rest)
+            per_share = DIV_PER_SHARE.search(rest)
+            divs.append(dict(
+                day=_d(day), sym=sym, amount=float(row[1]),
+                kind=("fee" if rest.endswith("FEE")
+                      else "tax" if tax else "recv"),
+                country=tax[1] if tax else None,
+                pil="in Lieu" in rest or "IN LIEU" in rest,
+                per_share=float(per_share[1]) if per_share else None))
     live = [dict(sym=k[0], exp=_exp(k[1]), strike=k[2], right=k[3],
                  open=o["day"], qty=o["qty"], open_px=o["px"],
                  comm=o["comm_per"] * o["qty"])
@@ -273,7 +439,40 @@ def parse(paths):
     print(f"        ({sum(EXCLUDED_SEEN.values())} rows in "
           f"{len(EXCLUDED_SEEN)} excluded symbols dropped at read; "
           f"see EXCLUDED_LIST)")
+    if n_dup:
+        print(f"        ({n_dup} rows dropped as re-exports of a row an "
+              f"earlier file already carried)")
+    if VARIANT_PARENT:
+        print("        (corporate-action renames folded onto the underlying: "
+              + " ".join(f"{v}->{p}" for v, p in sorted(VARIANT_PARENT.items()))
+              + ")")
+    _check_live(live, _d(max(r[0] for r in rows)) if rows else None)
     return positions, stock_tx, divs, live
+
+
+def _check_live(live, last_day):
+    """Warn about contracts left standing that the statements say are gone.
+
+    A contract still in `live` at the end of the read has no close anywhere in
+    the corpus. If it expired BEFORE the last statement date, that is not a
+    live position — it is a lost close, and the open will be carried as a
+    standing short for the rest of time. Today's cost is a misclassification;
+    the expensive version is a ledger whose window ends before such an expiry,
+    which marks a Black-Scholes liability against a contract that no longer
+    exists.
+
+    A warning rather than a hard failure: the next tranche of statements can
+    bring a corporate action this map has never seen, and that is exactly when
+    the output is wanted rather than a traceback.
+    """
+    stale = sorted((o for o in live if last_day and o["exp"] < last_day),
+                   key=lambda o: o["exp"])
+    for o in stale:
+        print(f"STALE OPEN CONTRACT: {o['sym']} {o['exp']} {o['strike']:g}"
+              f"{o['right']} x{o['qty']} opened {o['open']} — expired before "
+              f"the last statement date {last_day} and was never closed; its "
+              "close is probably keyed under a renamed symbol (TODO IV-6)",
+              file=sys.stderr)
 
 
 def _d(s):
@@ -570,7 +769,17 @@ def dividend_report(divs, positions, stock_tx, excluded):
 
 
 def universe_report(positions, stock_tx, excluded):
-    """Print what was excluded and what remains as the universe."""
+    """Print what was excluded, what remains as the universe, and what neither.
+
+    The last part is the one that matters. `all_symbols` sees only what the
+    analysis consumed — closed option positions and stock rows — so a name
+    that only pays dividends, or only carries a contract that never closed, is
+    in universe by EXCLUDED_LIST's default rule and invisible to the only
+    report that could say so. Two such names went unnoticed for months (TODO
+    IV-5) and finding them took enumerating the raw rows by hand. SYMBOLS_SEEN
+    is that enumeration, kept: every symbol the statements mention, against
+    every symbol the analysis reaches.
+    """
     seen = all_symbols(positions, stock_tx)      # already excluded-free
     dropped = sorted(EXCLUDED_SEEN)
     print(f"\nexcluded, dropped at read ({len(dropped)} symbols, "
@@ -579,6 +788,13 @@ def universe_report(positions, stock_tx, excluded):
     if stale:  # listed by hand but absent from the statements
         print(f"  listed but not traded in-window ({len(stale)}): "
               f"{' '.join(stale)}")
+    unreached = sorted(set(SYMBOLS_SEEN) - seen - excluded - set(EXCLUDED_SEEN))
+    detail = " ".join(
+        f"{s}({','.join(f'{k}:{n}' for k, n in sorted(SYMBOLS_SEEN[s].items()))})"
+        for s in unreached)
+    print(f"mentioned in the raw rows ({len(SYMBOLS_SEEN)}), of which never "
+          f"reached by any analysis and not excluded ({len(unreached)})"
+          + (f": {detail}" if detail else ""))
     print(f"universe ({len(seen)}): {' '.join(sorted(seen))}")
 
 

@@ -124,13 +124,13 @@ Neither §13 nor §14 exists; §15 is a stub. Everything below is measured — t
 **IV-1. Write §13, verification** (`{#sec:verification}`, was #21). The spine tested against
 live data, not only simulation.
 
-- **Entry law:** 71.6 assignments expected, 72 finished below the strike, 71 assigned, over 920
-  contracts — an aggregate error of 0.8%.
-- **Depth census:** mean depth 0.151 model against 0.145 live over 3,870 lot-days. The model
+- **Entry law:** 71.5 assignments expected, 72 finished below the strike, 71 assigned, over 921
+  contracts — an aggregate error of 0.7%.
+- **Depth census:** mean depth 0.151 model against 0.146 live over 3,807 lot-days. The model
   fits at the article's **μ = 7% far better than at the window's realised drift** (0.151 against
   0.101) — that deserves its own paragraph, since it is a statement about which parameter the
   census is actually sensitive to.
-- **q(x):** 26.1% of calls expected exercised against 19.7% realised, monotone in depth.
+- **q(x):** 26.3% of calls expected exercised against 19.6% realised, monotone in depth.
 - **Survival:** the model exits lots faster than observed at every horizon, and the comparison
   is Kaplan–Meier, so **this is not censoring** (was #9). Show the compounding of the
   per-period gap.
@@ -153,32 +153,32 @@ live data, not only simulation.
 - **What a career-length record cannot test** — owed to §02 (I-4) and not yet written anywhere.
   The natural material is already in Part II: equilibrium is approached over ~90 years and the
   mean holding time is 2.1 years against an 8-week median, so the stationary results are
-  structurally untestable by any operator, and the 14-month window resolves 41 of 70 lots. State
+  structurally untestable by any operator, and the 14-month window resolves 36 of 55 lots. State
   which predictions the data *can* discriminate and which it provably cannot.
 
 **IV-2. Write §14, the live account** (`{#sec:live}`, was #20). The ledger and its verdict.
 **Lead with the ledger gap, not the return.**
 
-- **The ledger:** Track A on cost basis **+37.97%/yr** against Track B **+19.52%**; same-names
-  buy-and-hold +24.29%; option-overlay excess **−4.77%/yr**; selection **+25.01%/yr**,
+- **The ledger:** Track A on cost basis **+38.11%/yr** against Track B **+19.73%**; same-names
+  buy-and-hold +24.50%; option-overlay excess **−4.77%/yr**; selection **+25.39%/yr**,
   exposure-matched.
 - **This section owes the reader the intervals, and it is the only section that does.** Parts I
   and II assert three times — in `02-introduction`, `04-strategy` and `09-returns` — that the
   overlay "earned nothing distinguishable from zero", with no number anywhere behind it. That is
   deliberate, the statistics belong here, but it means §14 must actually deliver them or the
   claim is unsupported across the whole article. Required: the point estimate, the 90%
-  resampling interval **−20.0% to +7.4% clustered by name** (quote the clustered one; −26.0% to
-  +14.1% by lot is the looser alternative), P(excess < 0) = 70%, and the sample it rests on.
+  resampling interval **−19.8% to +7.6% clustered by name** (quote the clustered one; −25.8% to
+  +14.2% by lot is the looser alternative), P(excess < 0) = 69%, and the sample it rests on.
   `live_ledger.py --bootstrap` produces all of it.
 - **The UNH lot is the worked example**, deliberately kept out of Part II so it lands here:
   assigned at 260, a four-week call written at the same 260 basis for $18.10, called away at 260
   with the stock at 393.85 — collected $1,810, surrendered $13,385. It is also, on its own, the
-  difference between a negative and a positive overlay excess (−4.77% → +2.08%) **and** 51% of
+  difference between a negative and a positive overlay excess (−4.77% → +2.10%) **and** 50% of
   the selection gap. The same position carries both verdicts, and that is the point rather than
   a caveat: a lot that runs far enough to dominate selection is a lot whose call gave the run
   away. **Do not present it as an outlier to be set aside.** UNH, ELV and MSFT all show negative
   excess and positive selection together.
-- **The by-leg decomposition**, which is where the restatement bites: the **put leg keeps 20.6%
+- **The by-leg decomposition**, which is where the restatement bites: the **put leg keeps 20.7%
   of premium, the call leg −32.9%**, frictions −$5,054. The old near-symmetry between the legs
   was cheap calls on falling names; on the universe the strategy actually claims, the call leg
   gives back a third of its own premium. Removing those names did not create the effect, it
@@ -196,14 +196,16 @@ live data, not only simulation.
   is sold Monday at the open for Friday's close — live 5 of the week's 7 days, continuous in
   trading time. What the account does instead of selling every week is skip weeks: **18.1 puts
   per name-year while in rotation** against 52, **1.41 lots per name-year** against the model's
-  10.4 at p\* = 20%, modal gap exactly 7 days (40% of gaps).
+  10.4 at p\* = 20%, modal gap exactly 7 days (40% of gaps). Both rates are the discrepancy
+  catalogue's and have no script behind them (INF-2); the lot count under the second moved
+  56 → 55 on 2026-07-28, so re-measure before quoting rather than copying the digits.
 - **The implied-volatility panel** (was #23). The put leg's spread over subsequent realised
   volatility runs **~+10 points, roughly double the call leg's**, and the within-name depth
   slope is **+30–40% relative IV** from shallow to deep. This is the measurement behind the
   article's decision to carry one scalar σ_IV; report it here and let [the returns
   section](#sec:returns)'s stated bias direction be checked against it.
-- **The regime caveat, which bounds everything above:** the universe returned +9.00%/yr over the
-  window and the held names +34.01%/yr, and **a covered-call overlay must lag in a strong
+- **The regime caveat, which bounds everything above:** the universe returned +8.96%/yr over the
+  window and the held names +34.36%/yr, and **a covered-call overlay must lag in a strong
   up-market**. That is mechanical, not evidence. Neither the overlay nor the selection result is
   an unconditional estimate.
 - Reference III-1's book-width caveat rather than restating it: Track A yields are not
@@ -224,80 +226,6 @@ new features in `selection_fit.py` without a dated amendment; classify the regim
 computing results; report failures as failures, in a dated appendix. P12 (impairment) is retired
 rather than pending. If a tranche arrives before the article is assembled, the article reports
 the out-of-sample result; if not, §13 says the test is pre-registered and pending.
-
-**IV-6. A corporate action renames an option mid-life, and `parse()` loses both of its legs.**
-IBKR appends a digit to an option's symbol when a corporate action changes its deliverable. If
-that happens between an open and its close — which it does, since these are multi-week contracts
-— the two legs are keyed under different symbols, so the close is discarded as "a close without
-a matching open" and the **open is never closed and lands in `live`**, carried as a standing
-short position for the rest of time. Three instances in the window, found by pairing orphan
-closes against never-closed opens on (expiry, strike, right):
-
-- **CMCSA → CMCS1**, 09JAN26 30 C ×2, opened 2025-12-31 at $0.50, expired worthless 2026-01-09.
-  The Versant spinoff, `CORP` row dated 2026-01-03.
-- **TRI → TRI1**, 15MAY26 80 P ×1, opened 2026-04-21 at $0.95, expired worthless 2026-05-15.
-  The tender and merger, `CORP` rows dated 2026-04-28 and 2026-05-05.
-- **CHPT → CHPT1**, excluded as of IV-5, no effect.
-
-Today's damage is small and self-cancelling — `option_cash()` books the premium as received
-either way and skips the mark because the expiry is already past at the ledger's end date, so
-**the ledger total is right by accident**. What is wrong is the classification: three contracts
-counted as open rather than expired, and therefore absent from every outcome rate, tenor bucket
-and call-strike statistic §13 will quote. The latent version is not small. **A window ending
-before such an expiry would mark a phantom liability against a contract that no longer exists.**
-
-Three pieces, and the last two are cheap enough to do even if the first waits:
-
-- **(a)** Resolve a variant ticker to its parent before keying open against close. The `CORP`
-  rows name both tickers and are **not parsed at all** today; they are the authority for the map.
-- **(b)** Assert that no contract in `live` may expire before the last statement date. Today
-  that fires exactly on these three plus two excluded names, and it is three lines.
-- **(c)** Enumerate every symbol the raw rows mention and report those the analysis never
-  reaches. This is what found IV-5 — the universe report is built from closed option positions
-  and stock rows, so a name that only pays dividends, or only holds a live contract, is in
-  universe by default and invisible to the only report that could flag it.
-
-Fixing (a) **will** move contract counts — 877 closed positions → 879, 1204 contracts → 1207,
-still-open 38 → 35 — so re-baseline deliberately, and mind the same IV-4 sequencing as IV-5.
-
-**IV-7. The two statement exports overlap, and one assignment is counted twice.** `USD.csv`
-covers 2025-02-07 .. 2026-05-02 and `USD1.csv` covers 2026-05-01 .. 2026-07-09, so the rows
-dated 2026-05-01 and 2026-05-02 are read twice. Nine rows are affected. Eight are inert — six
-duplicated option closes that `parse()` already discards as unmatched, and two MOMO dividends on
-an excluded name — but the ninth is not:
-
-> `2026-05-02,-3400,Interactive Brokers,+100 TSCO (assigned) price: 34,STOCK,`
-
-`stock_tx` has no open/close matching to protect it, so **a phantom 100-share TSCO lot at 34
-enters inventory**. The proof that it is phantom rather than a second real assignment is
-internal: there is exactly **one** `-1 TSCO 01MAY26 34 P` open against **two** `(assigned)`
-closes, and `parse()` already drops the second close — so the option side and the stock side of
-the same event currently disagree, and the lot report duly lists `TSCO 100 @ 34.00` twice.
-
-**This moves published figures**, measured by patching the reader and re-running the ledger:
-
-| figure | today | deduplicated |
-|---|---|---|
-| lots behind B | 56 | 55 |
-| Track A on cost basis | +37.97% | **+38.11%** |
-| Track B economic | +19.52% | **+19.73%** |
-| same-names buy-and-hold | +24.29% | **+24.50%** |
-| selection | +25.01% | **+25.39%** |
-| overlay excess | −4.77% | −4.76% |
-| average capital, market | $137,970 | $137,512 |
-
-So the headline verdict is untouched — the overlay excess moves by a basis point — but four of the
-five figures IV-2 is due to quote move in the second decimal, and the depth census and open-lot
-list (20 → 19) move with them.
-
-**The fix rule matters: deduplicate across files, never within one.** A row appearing in two
-exports is one event seen twice; two identical rows inside a single export are two genuine fills
-(there is such a pair, `-1 GOTU 15AUG25 4 C`, on the same day at the same price). Watch the
-header row while doing it — both files carry the same one, and a naive whole-corpus dedupe eats
-the second file's header and with it the first data row behind it, which is an ACN lot. That
-mistake was made and caught while measuring the above.
-
-Do this **before** IV-2 is written, not after, so §14 is drafted against final numbers.
 
 ## Infrastructure and assembly
 
