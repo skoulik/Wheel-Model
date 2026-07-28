@@ -66,11 +66,15 @@ A geometric decline — the stock falling by the same percentage repeatedly — 
 
 What buries it is falling and then *stopping*. Simulating a crash (a quarter with an expected 30% log-drop at 35% volatility) followed by three years of flat market at μ = 0, then a return to calm:
 
-    year               1.0    2.0    2.25    3.0    4.0    5.0    6.0    8.0   10.0
-    lots held         3.23   5.12   7.04   9.63  11.51  12.39  13.13  12.89  12.68
-    capital (market)  3.74   6.02  11.04  14.16  17.64  19.55  21.12  21.49  21.37
+    year                     1.0    2.0   2.25    3.0    4.0    5.0    6.0    8.0   10.0
+    lots held               3.23   5.12   7.04   9.63  11.51  12.39  13.13  12.89  12.68
+    capital, market value   3.42   5.30   7.23   9.83  11.71  12.58  13.33  13.08  12.88
+    capital, cost basis     3.74   6.02  11.04  14.16  17.64  19.55  21.12  21.49  21.37
+    paper loss (the gap)    0.32   0.72   3.80   4.33   5.94   6.97   7.79   8.41   8.49
 
-Two things happen, and on a weekly cadence the first is no longer negligible. Through the crash quarter itself inventory rises from 5.1 to 7.0 lots and market capital nearly doubles, from 6.0 to 11.0 — thirteen puts are sold into a falling market in the space of that quarter, and every lot already held is marked down at the same time. An operator selling monthly would have written three.
+Two things happen, and on a weekly cadence the first is no longer negligible. Through the crash quarter itself inventory rises from 5.1 to 7.0 lots: thirteen puts are sold into a falling market in the space of that quarter, where an operator selling monthly would have written three.
+
+Market-value capital rises with the lot count, 5.3 to 7.2, and it can do nothing else — at market a share is worth a share however far it has fallen, so Track B counts lots and only lots. What nearly doubles is the *cost basis*, 6.0 to 11.0. The difference between the two rows is the accumulated paper loss on standing inventory, as [the returns section](#sec:returns) named it, and it is the one quantity in the table that behaves violently: **more than fivefold in a single quarter, 0.7 to 3.8.** That is the crash's real signature. It is not capital newly committed; it is capital already committed and now under water. And it does not come back with the market: between years 6 and 10 the lot count *falls*, 13.1 to 12.7, while the paper loss goes on *rising*, 7.8 to 8.5.
 
 But the larger damage is still the flatline that follows. With μ = 0 the drift becomes ν = −4.5%, deep in the unstable region on *both* criteria, and the warehouse simply fills: lots keep arriving at 10.4 a year and essentially none leave. Inventory **more than doubles again** from its pre-crash level over the next four years, and then four *further* years of restored, healthy drift claw back barely a tenth of the peak.
 

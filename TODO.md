@@ -86,20 +86,6 @@ margin). Small enough to state as a footnote in [the returns section](#sec:retur
 restructure Track C for. **Verified 2026-07-28: the footnote is not written.** Write it, and
 have it point at the Q-world test in §13 as the source of the number.
 
-**II-3. §10's stress table labels the wrong accounting track.** (Found 2026-07-28, while
-retiring the legacy code.) [The stability section](#sec:stability) prints a row as
-`capital (market)` and the paragraph above it says "market capital nearly doubles, from 6.0 to
-11.0". Those figures come from `report_time_profile()` in `wheel_sim.py`, which accumulates
-`cap_by_idx` = `margin·K + Σ basis` over the current spot — **Track A cost basis**, not Track B.
-Track B at the same inventories would read ≈ γ·k + E[I], about **12.9 at year 10 against the
-quoted 21.37**; the two rows diverge as inventory ages, so this is not a rounding matter. The
-simulator's own labels (`capital (avg)`, `mean capital`) are the other half of the ambiguity and
-should be fixed with it. Either relabel the row and adjust the sentence — no number moves — or
-add a per-index market-capital accumulator (`agg.mvcap_sum` already exists but has no time
-profile), print both, and rewrite the paragraph around Track B, which does move published
-numbers. The argument the paragraph is making — that a crash marks down every lot already held —
-is a Track B argument, so the second option is the one that matches the prose.
-
 ## Part III — Many assets
 
 Neither file exists. This is Stage 3 of the restructure and the largest single block of

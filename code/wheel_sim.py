@@ -119,7 +119,8 @@ class Agg:
         self.acq_loss = 0.0
         self.giveaway = 0.0
         self.inv_by_idx = Counter()    # for time profiles (stress scenario)
-        self.cap_by_idx = Counter()
+        self.cap_by_idx = Counter()    # Track A (cost basis), by cadence index
+        self.mvcap_by_idx = Counter()  # Track B (market value), by cadence index
         self.n_by_idx = Counter()
         self.durations = []        # (months, completed?) per lot
         self.period_hist = Counter()   # call periods per *completed* lot
@@ -195,11 +196,18 @@ def run_path(P, rng, agg):
             c_p = S * bs_put(kf, P.tau_p, sig_iv, P.r, P.delta)
             agg.puts += 1
             agg.prem_put += c_p / S
-            capital = P.margin * K + sum(l.basis for l in lots)
-            agg.cap_sum += capital / S
-            agg.cap_by_idx[idx] += capital / S
+            # Both capital tracks, spot-normalized.  Track A is margin plus
+            # what was paid for the standing lots; Track B is margin plus what
+            # they are worth now -- and a share is worth one share however far
+            # it has fallen, so Track B is just the lot count.  Their gap is
+            # the accumulated paper loss on standing inventory.
+            cost_cap = P.margin * K + sum(l.basis for l in lots)
+            mv_cap = P.margin * kf + len(lots)
+            agg.cap_sum += cost_cap / S
+            agg.mvcap_sum += mv_cap
             agg.cap_n += 1
-            agg.mvcap_sum += P.margin * kf + len(lots)
+            agg.cap_by_idx[idx] += cost_cap / S
+            agg.mvcap_by_idx[idx] += mv_cap
             push(t + P.tau_p, PUTEXP, (K, S, c_p))
             if t + P.cadence <= P.years + 1e-9:
                 push(t + P.cadence, SALE, None)
@@ -340,6 +348,7 @@ def report(P, agg, name):
     run_emp = (agg.prem_put + agg.prem_call) / agg.puts
     div_emp = agg.dividends / agg.puts
     cap_emp = agg.cap_sum / agg.cap_n
+    mvcap_emp = agg.mvcap_sum / agg.cap_n
     ann = (run_emp + div_emp) / P.cadence
     excess = (ann - P.r * cap_emp) / cap_emp
 
@@ -358,10 +367,12 @@ def report(P, agg, name):
     print(f"  run rate/period = {run_emp:.4f}")
     if P.delta:
         print(f"  dividends/period= {div_emp:.4f}")
-    print(f"  capital (avg)   = {cap_emp:.2f}")
+    print(f"  capital (cost)  = {cap_emp:.2f}   Track A: margin + basis paid")
+    print(f"  capital (market)= {mvcap_emp:.2f}   Track B: margin + market value")
     print(f"  annualized: income {ann:.3f} "
           f"(premiums {run_emp / P.cadence:.3f} + dividends {div_emp / P.cadence:.3f}), "
-          f"excess over risk-free {excess:+.3f}/yr on capital")
+          f"excess over risk-free {excess:+.3f}/yr on COST-BASIS capital "
+          f"(the Track A cash view; the economic ledger is --scenario validate)")
 
     completed = sorted(m for m, c in agg.durations if c)
     censored = [m for m, c in agg.durations if not c]
@@ -411,15 +422,22 @@ def report(P, agg, name):
 
 
 def report_time_profile(P, agg, checkpoints):
+    """Both capital tracks over time, and the paper loss that is their gap.
+
+    Track B moves with the lot count by construction, so through a crash it
+    is the cost-basis row that runs away and the gap that carries the story.
+    """
     print("\n-- Time profile (mean over paths) --")
-    print("    t(y)   mean I   mean capital")
+    print("    t(y)   mean I   capital (market)   capital (cost)   paper loss")
     for y in checkpoints:
         idx = round(y / P.cadence)
         if agg.n_by_idx[idx] == 0:
             continue
         n_ = agg.n_by_idx[idx]
+        mv = agg.mvcap_by_idx[idx] / n_
+        cost = agg.cap_by_idx[idx] / n_
         print(f"   {y:>5.2f}   {agg.inv_by_idx[idx] / n_:>6.2f}   "
-              f"{agg.cap_by_idx[idx] / n_:>8.2f}")
+              f"{mv:>16.2f}   {cost:>14.2f}   {cost - mv:>10.2f}")
 
 
 # ----------------------------------------------------------------------
@@ -435,11 +453,12 @@ def _sweep_row(P):
     agg = simulate(P)
     n_samples = sum(agg.inv_hist.values())
     mean_I = sum(k * v for k, v in agg.inv_hist.items()) / n_samples
-    cap = agg.cap_sum / agg.cap_n
+    cap = agg.cap_sum / agg.cap_n          # Track A, cost basis
+    mvcap = agg.mvcap_sum / agg.cap_n      # Track B, market value
     prem = (agg.prem_put + agg.prem_call) / agg.puts
     div = agg.dividends / agg.puts
     excess = ((prem + div) / P.cadence - P.r * cap) / cap
-    return mean_I, cap, prem, div, excess
+    return mean_I, mvcap, cap, prem, div, excess
 
 
 def dividend_sweep(args):
@@ -451,16 +470,20 @@ def dividend_sweep(args):
     print("\n" + "=" * 72)
     print("Dividend sweep (30y, total-return convention, withholding 15%)")
     print("=" * 72)
-    print("     delta     nu   mean I   capital   prem/T   div/T   excess/yr")
+    print("     delta     nu   mean I   cap(mkt)  cap(cost)   prem/T   div/T"
+          "   excess/yr")
     rows = [("0.0%", 0.07, 0.000), ("1.0%", 0.07, 0.010), ("2.5%", 0.07, 0.025),
             ("4.0%", 0.07, 0.040), ("6.0%", 0.07, 0.060), ("alt 2.5%", 0.095, 0.025)]
     params = [Params(years=30.0, paths=args.paths or 200, seed=args.seed,
                      mu=mu, delta=delta) for _, mu, delta in rows]
     for (label, mu, delta), P, r in zip(rows, params, pmap(_sweep_row, params)):
-        mean_I, cap, prem, div, excess = r
+        mean_I, mvcap, cap, prem, div, excess = r
         nu = mu - delta - P.sigma**2 / 2
         print(f"  {label:>8} {nu:+.3f}   {mean_I:>6.2f}   "
-              f"{cap:>7.2f}   {prem:.4f}  {div:.4f}   {excess:+.4f}")
+              f"{mvcap:>8.2f}  {cap:>9.2f}   {prem:.4f}  {div:.4f}   "
+              f"{excess:+.4f}")
+    print("  (capital: Track B market value and Track A cost basis; the excess")
+    print("   is the Track A cash view, charged against cost basis)")
     print("  (alt row: price drift held at 7%, i.e. total return 9.5% -- the")
     print("   stacked convention, shown as a sensitivity check only)")
 
