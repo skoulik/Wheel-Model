@@ -14,7 +14,8 @@ The end product will be a LaTeX article for a general, numerate audience.
 |---|---|
 | `sections/` | The article, one Markdown file per section, numbered in reading order. `00-notation.md` is the glossary and single source of truth for symbols. |
 | `code/` | Supplementary scripts. `verify_examples.py` recomputes every worked numerical example quoted in the text. |
-| `TODO.md` | Open modeling and writing issues, cross-referenced from the sections. |
+| `TODO.md` | Open modeling and writing issues, grouped by article part. |
+| `DONE.md` | Completed work, resolved questions, and what is deliberately out of scope. |
 | `drafts/` | Historical drafts. Superseded by `sections/` — the initial draft contains a since-corrected P&L formula. |
 
 ## Verifying the numbers
@@ -33,4 +34,4 @@ The article text is licensed under [CC BY 4.0](https://creativecommons.org/licen
 
 ## Status
 
-Tier 1 (the homogeneous approximation — all inventory lots share one recovery rate) is drafted. Tier 2 — depth-dependent recovery rates, the true stability condition, and the stable/metastable/unstable phase diagram — is planned; see `sections/10-outlook.md`.
+The article is in four parts. **Part I (setup)** and **Part II (one asset)** are written: the model has a single state variable — a lot's *depth* below its own frozen call strike — and the entry law, holding time, standing inventory, returns and two stability boundaries all follow from that one random walk. **Part III (portfolios and correlation)** and **Part IV (verification, the live account, outlook)** are not yet written; see [TODO.md](TODO.md).

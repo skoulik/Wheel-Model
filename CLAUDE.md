@@ -10,8 +10,9 @@ A quantitative finance modeling project: a mathematical model of the "wheel" opt
 
 - `sections/` — the article, one `.md` file per section, numbered in reading order. `sections/00-notation.md` is the **single source of truth for all symbols and conventions**; update it whenever a symbol is introduced or changed.
 - `code/` — all scripts. `code/verify_examples.py` recomputes every worked numerical example quoted in the sections. **Run it after touching any formula or example**: `python code/verify_examples.py` (~3 s; `--full` adds the stationary figures). When adding a worked example to the text, add a corresponding check.
-- `TODO.md` — open modeling/writing issues; sections reference them as "TODO #n". Resolve an item by fixing the sections, moving it to the Done list, and removing the in-text flag.
-- `drafts/` — historical drafts, named `YYYY-MM-DD-<description>.md`. The initial draft summarizes a prior modeling discussion; it contains a known-wrong P&L formula (see TODO.md Done list) — the sections, not the draft, are authoritative.
+- `TODO.md` — open modeling/writing issues **only**, grouped by article part and numbered per part (`I-1`, `IV-2`, …); sections would reference them as "TODO IV-2", though none currently does. Resolve an item by fixing the sections, moving it to `DONE.md`, and removing any in-text flag.
+- `DONE.md` — completed work, resolved questions, and the four things deliberately descoped, with the map from the old flat `#1`–`#25` numbering that `drafts/` still cites. Entries are never silently edited: a later withdrawal is appended as a dated `**Amended:**` note.
+- `drafts/` — historical drafts, named `YYYY-MM-DD-<description>.md`. The initial draft summarizes a prior modeling discussion; it contains a known-wrong P&L formula (see `DONE.md`) — the sections, not the draft, are authoritative.
 
 ## Writing Workflow
 
