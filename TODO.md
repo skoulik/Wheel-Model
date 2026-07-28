@@ -42,13 +42,6 @@ unchecked.
 **I-2. The abstract is written last.** `sections/01-abstract.md` is a stub by design; it cannot
 be honest until Parts III and IV fix what the article concludes.
 
-**I-3. The frozen call strike needs its live figure.** [The strategy section](#sec:strategy)
-flags K_c frozen at entry as a modelling choice and defends it, but quotes no measurement.
-The live account now says the assumption holds **69% of the time** (116 calls at basis, 23
-above, 29 below, of 168 matched) — restated down from ~80% under the old universe, because the
-calls that left were disproportionately the at-basis ones. "Roughly seven times in ten" is the
-honest figure and §04 should carry it, with a forward reference to §14.
-
 **I-4. §02 promises things Parts III and IV must actually deliver.** The contributions list
 commits the article to five results that do not yet exist anywhere:
 
@@ -232,6 +225,19 @@ computing results; report failures as failures, in a dated appendix. P12 (impair
 rather than pending. If a tranche arrives before the article is assembled, the article reports
 the out-of-sample result; if not, §13 says the test is pre-registered and pending.
 
+**IV-5. EMLC is in universe by default, and should not be.** `EXCLUDED_LIST` in
+`code/analyze_statement.py` omits **EMLC**, an emerging-market local-currency bond ETF, although
+every comparable fund is listed (AMLP, LTPZ, TLT) and the list's own rule is that anything not
+listed counts as in-universe. It carries 89 statement rows: one live 30-contract covered call
+and a long stream of dividends and payments in lieu — a legacy holding, not a wheeled position.
+**No published figure moves today**, verified rather than assumed: with no stock transactions
+and no closed option position it never enters `wheel_universe()`, so `option_cash()` and
+`capital_path()` filter it out and its dividends fall in the non-wheel bucket. The exposure is
+prospective — one assignment or one sale puts it into `stock_tx`, hence into the universe, hence
+into the ledger, silently. Add it to the ETF group and re-run. **Sequencing matters: this is
+coupled to IV-4** and must be done *before* a new tranche is examined, since the out-of-sample
+pre-registration forbids re-specification once new data is in hand.
+
 ## Infrastructure and assembly
 
 **INF-2. Extend `verify_examples.py` to Parts III and IV — and decide about the live figures.**
@@ -241,6 +247,13 @@ the single-name spine did, and — the real gap — that **no check reproduces t
 figures at all**. §14 will quote a ledger produced by `live_ledger.py` against statement data;
 if those numbers move, nothing tells us. At minimum, pin the headline ledger figures in a
 regression check so a change in `analyze_statement.py` cannot silently restate the article.
+
+The withdrawal of I-3 sharpened this: a figure that lives only in a draft, with **no script
+behind it**, survived into TODO as a finding and was wrong about what it measured. The concrete
+piece of that episode worth keeping is the **per-lot call-strike classification** — every call
+scored against the layers actually held when it was written, not against one basis per name.
+It exists nowhere in `code/`; the reconstruction that withdrew I-3 was ad hoc. Put it in
+`analyze_statement.py` beside the lot lifecycle, where it can be re-run.
 
 **INF-3. The LaTeX assembly pipeline.** Unicode-math → LaTeX conversion, `{#sec:...}` anchors →
 `\label`/`\ref`, `{#eq:...}` → numbered `equation` environments with `\eqref`. Tooling decision
