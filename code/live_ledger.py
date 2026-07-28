@@ -47,12 +47,14 @@ Capital is Track B capital of eq:capital: inventory at market value plus margin
 on the live puts. The margin convention is the open question of TODO #6, so the
 report gives capital with and without it.
 
-Run:  python code/live_ledger.py            (from the repo root)
-      python code/live_ledger.py --daily    (adds the capital/exposure path)
+Run:  python code/live_ledger.py              (from the repo root)
+      python code/live_ledger.py --daily      (capital/exposure path)
+      python code/live_ledger.py --bootstrap  (interval and concentration)
 """
 
 import argparse
 import glob
+import random
 import sys
 from collections import defaultdict
 from datetime import date, timedelta
@@ -89,6 +91,70 @@ def realized_vol(series, end, days=60):
     mean = sum(rets) / len(rets)
     var = sum((x - mean) ** 2 for x in rets) / (len(rets) - 1)
     return (var * 252) ** 0.5
+
+
+def excess_units(positions, live, universe, px, end, b_rows, c_rows):
+    """The excess A - B - C, split into name-attributable pieces.
+
+    Every component of A, B and C carries a symbol, so the whole of the excess
+    can be attributed without residue -- which the caller checks. The pieces
+    are what the bootstrap resamples and what the concentration report ranks.
+
+    Returned as (units, by_name): `units` is the finer split -- option cash
+    aggregated per name, but B and C one row per lot -- and `by_name` sums
+    everything to the symbol.
+    """
+    opt = defaultdict(float)
+    for p in positions:
+        if p["sym"] not in universe:
+            continue
+        opt[p["sym"]] += (p["qty"] * p["open_px"] * 100 + p["comm"]
+                          + p.get("close_comm", 0.0)
+                          - (p["qty"] * p["close_px"] * 100
+                             if p["how"] == "closed" else 0.0))
+    for o in live:
+        if o["sym"] not in universe:
+            continue
+        opt[o["sym"]] += o["qty"] * o["open_px"] * 100 + o["comm"]
+        ser = px.get(o["sym"])
+        s = ser.close_on_or_before(end) if ser else None
+        tau = (o["exp"] - end).days / 365
+        if s is None or tau <= 0:
+            continue
+        k = o["strike"]
+        val = (bs_put(k / s, tau, realized_vol(ser, end), RF) * s
+               if o["right"] == "P"
+               else bs_call(s / k, 1.0, tau, realized_vol(ser, end), RF) * k)
+        opt[o["sym"]] -= o["qty"] * val * 100
+
+    units = [(sym, v) for sym, v in opt.items()]
+    units += [(sym, -loss) for sym, _d, _k, _s, loss in b_rows]
+    units += [(sym, -give) for sym, _d, _k, _s, give in c_rows]
+    by_name = defaultdict(float)
+    for sym, v in units:
+        by_name[sym] += v
+    return units, dict(by_name)
+
+
+def bootstrap_excess(units, capital, years, n_iter=20000, seed=20260727):
+    """Resampling interval for the annualised excess.
+
+    Drawn with replacement from `units`, which the caller chooses: the lot-level
+    split, or the same values clustered by symbol. Clustering is the honest
+    default -- a name's contracts and lots are the same bet repeated, so
+    treating them as independent draws understates the interval -- and both are
+    reported because the article's earlier figure used the finer split.
+
+    Capital and the window length are held at their full-sample values. They are
+    not properties of the resampled positions, and letting them move would mix a
+    wobble in the capital base into an interval about the overlay.
+    """
+    rng = random.Random(seed)
+    k = len(units)
+    draws = sorted(sum(units[rng.randrange(k)][1] for _ in range(k))
+                   / capital / years for _ in range(n_iter))
+    return (draws[int(0.05 * n_iter)], draws[int(0.95 * n_iter)],
+            sum(1 for v in draws if v < 0) / n_iter)
 
 
 def option_cash(positions, live, universe, end, px):
@@ -266,6 +332,7 @@ def universe_benchmark(px, universe, completed, open_lots, start, end):
 
     bench_pnl = wheel_pnl = 0.0
     exposure_days = 0.0
+    gap_by_name = defaultdict(float)
     for prev, day in zip(days, days[1:]):
         held = [(s, q) for s, d0, d1, q in lots
                 if d0 <= prev and (d1 is None or prev < d1)]
@@ -273,6 +340,7 @@ def universe_benchmark(px, universe, completed, open_lots, start, end):
             continue
         mv_prev = 0.0
         mv_now = 0.0
+        contrib = []
         for sym, qty in held:
             ser = px.get(sym)
             if ser is None:
@@ -282,6 +350,7 @@ def universe_benchmark(px, universe, completed, open_lots, start, end):
                 continue
             mv_prev += a * qty
             mv_now += b * qty
+            contrib.append((sym, a * qty, (b - a) * qty))
         if mv_prev <= 0:
             continue
         rets = []
@@ -300,13 +369,19 @@ def universe_benchmark(px, universe, completed, open_lots, start, end):
         bench_pnl += mv_prev * r_uni
         wheel_pnl += mv_now - mv_prev
         exposure_days += mv_prev
-    return bench_pnl, wheel_pnl, exposure_days / max(len(days) - 1, 1)
+        for sym, mv, pnl in contrib:
+            gap_by_name[sym] += pnl - mv * r_uni
+    return (bench_pnl, wheel_pnl, exposure_days / max(len(days) - 1, 1),
+            dict(gap_by_name))
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--daily", action="store_true",
                     help="print the monthly capital and exposure path")
+    ap.add_argument("--bootstrap", action="store_true",
+                    help="resampling interval for the excess, and what "
+                         "concentration the point estimate rests on")
     args = ap.parse_args()
 
     paths = sorted(glob.glob(STATEMENTS_GLOB))
@@ -420,7 +495,7 @@ def main():
           f"{excess/avg_capB/years:+11.2%}"
           f"   <- the option overlay's edge")
 
-    bench_pnl, wheel_eq, avg_exposure = universe_benchmark(
+    bench_pnl, wheel_eq, avg_exposure, sel_by_name = universe_benchmark(
         px, universe, completed, open_lots, start, end)
     print("\n=== selection: the same dollars, on the same days ===")
     print(f"  wheel's own inventory earned   ${wheel_eq:12,.0f}"
@@ -433,6 +508,38 @@ def main():
     print(f"  (reconciliation: the daily walk gives ${wheel_eq:,.0f} against "
           f"D's ${D_price:,.0f}, a {abs(wheel_eq-D_price)/abs(D_price):.1%} "
           f"residual from entry/exit day alignment)")
+
+    if args.bootstrap:
+        units, by_name = excess_units(positions, live, universe, px, end,
+                                      b_rows, c_rows)
+        resid = sum(v for _, v in units) - excess
+        assert abs(resid) < 1.0, f"excess not fully attributed: {resid:,.2f}"
+        print("\n=== how firm is the excess? ===")
+        print(f"  point estimate                 "
+              f"{excess/avg_capB/years:+11.2%}")
+        for label, u in (("by lot ", units),
+                         ("by name", list(by_name.items()))):
+            lo, hi, p_neg = bootstrap_excess(u, avg_capB, years)
+            print(f"  {label}  n={len(u):4d}   90% CI {lo:+.2%} .. {hi:+.2%}"
+                  f"   P(excess < 0) = {p_neg:.0%}")
+        sel_total = sum(sel_by_name.values())
+        print("  largest single positions, in both decompositions:")
+        print(f"    {'name':6s} {'excess':>10s} {'w/o it':>9s} "
+              f"{'selection':>10s} {'w/o it':>9s}")
+        # Rank on total footprint, not the net: a name whose two contributions
+        # cancel is the most interesting one here, not the least.
+        rank = sorted(sel_by_name, key=lambda s: -(abs(by_name.get(s, 0.0))
+                                                   + abs(sel_by_name[s])))[:5]
+        for sym in rank:
+            e, g = by_name.get(sym, 0.0), sel_by_name[sym]
+            print(f"    {sym:6s} ${e:9,.0f} {(excess-e)/avg_capB/years:+9.2%} "
+                  f"${g:9,.0f} {(sel_total-g)/avg_exposure/years:+9.2%}")
+        print("  The concentration is not noise to be averaged away. A lot that"
+              "\n  runs far enough to matter is the jump tail the lognormal"
+              "\n  lacks, arriving in the ledger -- the same tail T2 sees as a"
+              "\n  right-skewed entry depth. It cuts both ways by construction:"
+              "\n  a name that rises far enough to dominate selection is a name"
+              "\n  whose call gave that rise away.")
 
     if args.daily:
         print("\n=== capital path (month ends) ===")

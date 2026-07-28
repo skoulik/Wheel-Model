@@ -12,6 +12,11 @@ It is the companion to
 `drafts/2026-07-27-selection-rule-preregistration.md`, which fixed the entry-rule
 hypothesis under the same discipline.
 
+> **Read Appendix A before using any baseline below.** The predictions are as
+> written and unamended, but two definitions changed on the same window after
+> this file was drafted, so every baseline figure in the body has been restated.
+> Nothing in the body has been edited, which is why the two disagree.
+
 ## The baseline being predicted from
 
 Everything below is measured over 2025-05-02 .. 2026-07-02: 1.17 years, 129
@@ -145,3 +150,79 @@ reality in the same direction, which is the spine and not a detail. P7 coming ou
 monotone would mean the overlay has a directional exposure the decomposition
 says it cannot have. Either would be a finding worth more than anything currently
 in the article, and neither should be explained away.
+
+
+## Appendix A, 2026-07-27: baselines restated after two definition changes
+
+**No new data has been examined.** This appendix exists because procedure item 3
+above requires it: *"Any change to a definition invalidates the comparison and
+must be applied to the baseline as well, with both figures reported."* Two
+definitions changed on the same window, after the body of this file was written
+and before any new tranche arrived:
+
+1. **The universe** is now an explicit list of names the strategy claims to
+   trade (`EXCLUDED_LIST` in `analyze_statement.py`), replacing a price threshold
+   that admitted speculative growth names, China ADRs, ETFs and a preferred. It
+   costs 43% of the option contracts and 39% of the lot-days.
+2. **An entry is priced at the session's open**, not its close, because the
+   operator writes within the hour after the bell.
+
+Re-running the old definitions reproduces the old baselines exactly, so the
+restatement below is attributable to the changes and nothing else. **The
+predictions themselves are unchanged** — no band was widened, no target moved.
+Only the numbers they are measured against.
+
+    ref   quantity                        old baseline      restated
+    P1    entry law, predicted/realised    94.6 / 97        71.6 / 71
+          error                            2.5%             0.8%
+    P2    mean depth, model/live           0.139 / 0.146    0.151 / 0.145
+          error                            -5%              +4%
+    P3    q(x) exercise, model/realised    19.9% / 15.6%    26.1% / 19.7%
+    P4    live S(t) above model            yes              yes
+    P5    acquisition mean/median ratio    2.0x             1.8x
+    P6    call-grid tax                    16.7%            19.0%
+    P7    overlay excess                   -2.19%           -4.77%
+          90% CI, by lot                   -15.6 .. +8.5    -26.0 .. +14.1
+          90% CI, clustered by name        not computed     -20.0 .. +7.4
+    P8    selection contribution           +10.59%          +25.01%
+    P9    pct5y / pctB coefficients        -0.564 / -0.467  -0.723 / -0.462
+    P10   put-leg IV minus realised        +5 to +10 pts    ~+10 pts
+    P11   Kaplan-Meier median              63 d             56 d
+    P12   impairment observations          2 (ALT, BEKE)    **0**
+
+Four consequences worth stating plainly.
+
+**P12 is void and is hereby retired.** ALT and BEKE were the only two lots the
+wheel entered on a name it would later disown, and both are now out of universe.
+The impairment hazard of TODO #13 has no observations at all and cannot
+accumulate toward one from a universe that excludes, by construction, the kind of
+name that impairs. If it is to be tested, it needs an in-universe name that falls
+and stays down — which is a different and slower experiment. Recorded as a
+retirement, not a pass.
+
+**P7's reporting rule now has a second interval.** The clustered-by-name figure
+is the honest one — a name's contracts and lots are the same bet repeated — and
+future tranches should quote both, with the clustered interval leading.
+`live_ledger.py --bootstrap` computes them.
+
+**P1 is narrowed to the aggregate.** Bucket-level calibration turned out to
+depend on the spot convention: the top probability bucket predicts 27.4% and
+realises 8.0% at the open, 25.9% against 24.3% at the close. P1 was always
+written as an aggregate test and stays exactly as written; but no bucket-level
+version of it should be added later, and the earlier draft's claim that
+"calibration tracks well" is withdrawn rather than carried forward.
+
+**P8's baseline moved most, and its logic is unaffected.** The +25.01% is larger
+because STRF and KWEB left, not because the operator did anything different. P8
+predicts that this number *shrinks* when drawdowns stop mean-reverting; a higher
+starting point makes the prediction easier to falsify, not harder.
+
+One further note, recorded here so it is not mistaken for a later discovery:
+**both headline figures are concentrated in a few positions.** UNH alone is 51%
+of the selection gap and is by itself the difference between a negative and a
+positive overlay excess; UNH, ELV and MSFT all show negative excess and positive
+selection together. That is the mechanism, not a defect — a lot that runs far
+enough to dominate selection is a lot whose call gave the run away — and it is
+the jump tail the lognormal lacks, showing up in the ledger. Future tranches
+should expect the same concentration and must not treat it as an outlier to be
+trimmed.

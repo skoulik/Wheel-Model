@@ -84,30 +84,61 @@ work; the material itself belongs here. **Everything below is measured**, so
 these are writing tasks, not modelling ones.
 
 20. **§14 the live account** ({#sec:live}) — the ledger and its verdict. Track A
-    on cost basis +34.40%/yr against Track B +15.43%; same-names buy-and-hold
-    +17.62%; option-overlay excess **−2.19%/yr with a bootstrap 90% interval of
-    −15.6% to +8.5%**, i.e. indistinguishable from the predicted zero; selection
-    **+10.59%/yr**, exposure-matched. Lead with the ledger gap, not the return.
+    on cost basis +37.97%/yr against Track B +19.52%; same-names buy-and-hold
+    +24.29%; option-overlay excess **−4.77%/yr**; selection **+25.01%/yr**,
+    exposure-matched. Lead with the ledger gap, not the return.
+
+    **This section owes the reader the intervals, and it is the only section
+    that does.** Parts I and II assert three times that the overlay "earned
+    nothing distinguishable from zero" (`02-introduction`, `04-strategy`,
+    `09-returns`) without a number anywhere behind it — that is deliberate, the
+    statistics belong to the reality-check sections, but it means §14 must
+    actually deliver them or the claim is unsupported in the whole article.
+    Required here: the point estimate, the 90% resampling interval **−20.0% to
+    +7.4%** clustered by name (quote the clustered one; −26.0% to +14.1% by lot
+    is the looser alternative), P(excess < 0) = 70%, and the sample it rests on.
+    A reader meeting only "earned nothing" would not guess the point estimate is
+    negative and the interval twenty points wide. `live_ledger.py --bootstrap`
+    produces all of it.
+
     The **UNH lot is the worked example** and was deliberately kept out of Part
     II so it lands here: assigned at 260, a four-week call written at the same
     260 basis for $18.10, called away at 260 with the stock at 393.85 —
-    collected $1,810, surrendered $13,385, one lot accounting for a third of the
-    whole call-away term. Include the by-leg decomposition (put leg keeps 10.8%
-    of premium, call leg −6.9%, frictions −$6,073) and the regime caveat: the
-    universe rose over the window and a covered-call overlay *must* lag in a
-    strong up-market.
+    collected $1,810, surrendered $13,385. It is also, on its own, the
+    difference between a negative and a positive overlay excess (−4.77% →
+    +2.08%) *and* 51% of the selection gap — the same position carrying both
+    verdicts, which is the point rather than a caveat: a lot that runs far
+    enough to dominate selection is a lot whose call gave the run away. Do not
+    present it as an outlier to be set aside.
+
+    Include the by-leg decomposition — **put leg keeps 20.6% of premium, call
+    leg −32.9%**, frictions −$5,054 — which is where the restatement bites: the
+    old near-symmetry between the legs was cheap calls on falling names, and on
+    the universe the strategy actually claims the call leg gives back a third of
+    its own premium. And the regime caveat: the universe rose over the window
+    and a covered-call overlay *must* lag in a strong up-market.
 
 21. **§13 verification** ({#sec:verification}) — the spine tested against live
-    data, not only simulation. Entry law: 94.6 assignments expected, 94 finished
-    below the strike, 97 assigned, over 1,083 contracts. Depth census: mean depth
-    0.139 model against 0.146 live over 6,351 lot-days. q(x): 19.9% of calls
-    expected exercised against 15.6%, monotone in depth across seven bins.
-    Survival: model exits faster than observed, the compounding of that per-period
-    gap. Also carries the grid-free Monte Carlo check and the Q-world
-    no-arbitrage identity. Two measurement traps are worth a paragraph because
-    both were fallen into: reading depth on the day before exit discards nearly
-    every exit, and sampling lots on a synthetic τ_c grid scores periods at
-    tenors never traded.
+    data, not only simulation. Entry law: 71.6 assignments expected, 72 finished
+    below the strike, 71 assigned, over 920 contracts. Depth census: mean depth
+    0.151 model against 0.145 live over 3,870 lot-days — and notably the model
+    fits at the article's μ = 7% (0.151) far better than at the window's realised
+    drift (0.101), which is worth its own paragraph. q(x): 26.1% of calls
+    expected exercised against 19.7%, monotone in depth. Survival: model exits
+    faster than observed, the compounding of that per-period gap. Also carries
+    the grid-free Monte Carlo check and the Q-world no-arbitrage identity.
+
+    **Claim only the aggregates.** The restatement withdrew two bin-level
+    results: T1's calibration curve is sensitive to whether entry is priced at
+    the session open or close (top bucket 27.4% predicted vs 8.0% realised at the
+    open, 25.9% vs 24.3% at the close), and q(x)'s two deepest bins now hold 70
+    and 20 contracts. The aggregate statements are what the sample carries.
+
+    Three measurement traps are worth a paragraph because all three were fallen
+    into: reading depth on the day before exit discards nearly every exit;
+    sampling lots on a synthetic τ_c grid scores periods at tenors never traded;
+    and pricing an entry at the day's close when the operator writes in the first
+    hour builds a look-ahead into every measured entry depth.
 
 22. **Selection as a model extension** — the honest form of TODO #14. The
     pre-registered rule (`drafts/2026-07-27-selection-rule-preregistration.md`)
@@ -118,7 +149,10 @@ these are writing tasks, not modelling ones.
     state-dependent thinning of the arrival process. **Note what it commits to**:
     under GBM entry timing cannot generate return by construction, so modelling
     selection as profitable is a claim of mean reversion and must be argued as
-    one. 29 lots in one bull market cannot support it.
+    one. 20 lots in one bull market cannot support it. Rule 5's partial rescue
+    ("prefers the ones that have started to come back") was **withdrawn** on the
+    restated choice set — see Appendix A of the selection-rule pre-registration —
+    so the rule is rejected without qualification.
 
 23. **σ_IV, if it is ever carried properly** (supersedes the modelling half of
     #4). Measured: the put leg's spread over realized volatility runs ~2× the
@@ -176,14 +210,20 @@ Source: `drafts/2026-07-10-statement-vs-model-observations.md`, an analysis of a
 
     changing sign at x\* and growing more negative beyond it — a runaway region, not a slow one, and the same object as the Gordon-model price at which a fixed payout stops being payable. At the running parameters x\* = 0.693 (**50% below the strike**), with 16% of the thirty-year census already past it; under the pricing drift x\* = 0.182 (**17% below**), with 69% of the census beyond. So the never-cut assumption is not merely optimistic in the deep tail, it is *inconsistent with option prices* there, and the impairment hazard is the mechanism that resolves the contradiction. `model.sticky_dividend_trap()` computes the boundary; `model.sticky_dividend_yield()` computes the bounded version of the correction that the article does adopt (four basis points at thirty years, see [the returns section](#sec:returns)). Two consequences for whoever picks this up: the hazard is naturally *depth-dependent* rather than a flat per-lot rate, and x\* gives it a scale to be calibrated against instead of a free parameter.
 
+    **The empirical handle is gone** (2026-07-27, with the universe restatement). The live account's only two entries into names it would later disown, ALT and BEKE, were the sole observations of this hazard; both are now out of universe, and rightly so — neither is a name the strategy would knowingly enter, so a rate estimated from them would describe a universe the article does not claim. The consequence is that **the impairment channel is untested and no rate can be quoted**, and the out-of-sample pre-registration's P12 has been retired rather than passed. Calibrating this needs an in-universe name that falls and stays down, which is a slower experiment than the rest of Part IV. Until then x\* above is the only scale available, and it is theoretical.
+
     Rejected along the way, recorded so it is not re-invented: crediting a lot's dividend income by its own realized depth (income ∝ δ·e^x per lot). It is internally inconsistent — all shares of one company pay the same cash on the same day, so identical shares would receive different dividends — and the tell is that E[e^x] over the census *is* the cost-basis capital, so the correction is worth +1.22pp of pure unfunded return at 30y and breaks the no-arbitrage identity immediately. Any dividend correction must move the drift and the income together.
 
 14. **RESOLVED as a measurement (2026-07-27), see #22 for what remains.** The
     missing mechanism was correctly identified below as "attractive price"
     selection, and it is now quantified rather than conjectured: exposure-matched,
-    it contributed **+10.59%/yr** against the option overlay's zero, and the
-    stated rule behind it has been fitted and partly rejected. The original entry
-    follows, since its reasoning about why p\* cannot absorb the gap still stands.
+    it contributed **+25.01%/yr** (restated 2026-07-27 from +10.59%, the change
+    being almost entirely STRF and KWEB leaving the universe) against the option
+    overlay's zero, and the stated rule behind it has been fitted and partly
+    rejected. The original entry follows, since its reasoning about why p\* cannot
+    absorb the gap still stands — with its arrival figures restated as **18.1
+    puts per name-year** while in rotation and **1.41 lots per name-year** (was
+    ~19.6 and 1.70), the modal gap still exactly 7 days.
 
     **The operator skips weeks, and that is the entry discipline, not a defect.** Measured 2026-07-26 when the working example moved to a weekly cadence: per name the median gap between consecutive put opens is exactly 7 days (248 of 610 gaps), so the weekly cadence is genuinely per-name and not a portfolio aggregate — but the *mean* gap is far longer, ~19.6 puts per name-year against the 52 an unconditional weekly cadence would sell, with a long tail of 14/21/28/60-day gaps. Consequently observed arrivals are 1.70 lots per name-year while the model at T = 1 week, p\* = 20% predicts 10.4 (p\* = 10%: 5.2). The gap is *not* p\*'s to absorb: the operator's strikes sit at ≈8.7% assignment probability per put, which is what p\* is defined to measure, and bending p\* down to ≈3.3% to match arrivals would put the model's strikes far outside the real ones and wreck premium and entry depth together. The missing mechanism is the **"attractive price" selection** of [the strategy section](#sec:strategy) — the operator sells a put only when the price is worth entering at, and the model's step 1, which never waits, has no such filter. Deliberately out of scope (valuation is the operator's discipline, and the article says so), but recorded here because it is the single largest unexplained ratio between the model and the statements, and calibrating arrival rates against live data will keep hitting it. If it ever must be modelled, the natural minimal form is a state-dependent thinning of the arrival process rather than a change to the strike dial.
 

@@ -104,3 +104,38 @@ feature space would overfit long before it informed anything.
   looking weaker than they are.
 * Weeks where margin was already exhausted are not observable from the cash
   statement. Rule 7's budget is proxied by the realised weekly count.
+
+## Appendix A, 2026-07-27: the choice set changed, and the fit was re-run
+
+Nothing above has been edited. This appendix records a change to the *data* the
+fit runs on, made after the first fit and before any new tranche of statements.
+
+The weekly menu was previously every name that ever appeared in the statements —
+126 names, including speculative growth names, China ADRs, ETFs and a preferred.
+It is now the 96 names of `EXCLUDED_LIST`'s complement, which is what **rule 1
+said the universe was all along**. The third caveat above ("the choice set is
+reconstructed from names the operator actually traded, which understates the true
+eligible universe") is unchanged in kind but smaller in degree: the menu is still
+reconstructed, but it no longer contains names rule 1 excludes by definition.
+
+Sample: 54 weeks, 5,184 name-weeks, 644 sales (was 55 / 6,914 / 716).
+
+Results are in Appendix 3 of `drafts/2026-07-27-discrepancy-catalogue.md`. In
+summary, against the hypotheses fixed above:
+
+* **Rules 4 and 6 confirmed, more strongly than on the old menu.** `pct5y`
+  β = −0.723 (z = −11.4), `pctB` β = −0.462 (z = −9.5); chosen names sit at the
+  27th and 35th percentiles. Pseudo-R² rose 0.07 → 0.094.
+* **Rule 5 rejected outright.** The pre-registered positive `slope` coefficient
+  is negative and larger than before (β = −0.306, z = −4.9). Both props of the
+  earlier partial rescue are gone: `slope_r2` went from +0.136 (z = +3.3) to
+  −0.071 (z = −1.3), and the secondary set's `off52w` from +0.352 (z = +3.4) to
+  −0.080 (z = −0.7). The reading that rule 5 survived as "prefer the ones that
+  have started to come back" is **withdrawn** — it was an artifact of the old
+  menu.
+* The stale context figures in the header and the caveats above restate as: 36
+  completed lots (was 41), 34 names carrying inventory (was ~45), and **1.41**
+  lots per name-year against the model's 10.4 at p\* = 20% (was 1.70).
+
+The disconfirmation clause above is satisfied for rule 5 and only rule 5, which
+is what a pre-registration is for.
