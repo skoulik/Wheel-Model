@@ -86,7 +86,9 @@ Buying and holding the same stock earns μ − r − w·δ = **+1.63%** over the
 | buy and hold, equity-adjusted | +1.60% |
 | **difference** | **+0.01%** |
 
-**At fair option prices the wheel is economically identical to owning the stock.** One basis point is not a result; it is the model's numerical noise floor, and the true difference is zero.
+**At fair option prices the wheel is economically identical to owning the stock.** One basis point is not a result; it is the model's numerical noise floor. The footnote below identifies a real correction worth about nine more — and nine basis points is not a result either, which is the sense in which the difference is zero.
+
+> **A footnote on the collateral, which Track C overcharges.** Track C charges r against everything in Track B, and Track B includes the γ·k of margin standing behind the live put. But that margin is a *hold* on the account, not a payment: the cash behind it sits at the broker earning approximately r, which is the whole point of calling the trade a cash-secured put. The model credits it nothing while charging it r, so it overcharges by r·γ·k a year — **17 basis points of capital at five years, 13 at ten, 8 at thirty**, the share falling as inventory grows around a margin requirement that does not. The correction lifts the wheel and not the benchmark, whose cash side already earns r by construction, so the difference in the table above becomes about **+0.09 points** instead of the +0.01 shown — and **+0.20** at five years, where the same fixed margin is a larger share of a smaller book. That is still nothing that moves a verdict — half a point of implied volatility is worth more than the entire correction — which is why it is recorded here rather than built into the ledger. Two remarks keep it honest. An operator who genuinely posts the full strike in cash rather than margin has the same overcharge about **four and a half times** larger, because the collateral is k rather than γ·k. And this is arithmetic, not a measurement: the overcharge is r·γ·k over the capital of [eq:capital](#eq:capital), so it needs no estimate and carries no uncertainty. It should not be confused with the small residual left over by the no-arbitrage identity in [the verification section](#sec:verification), which is a separate quantity of a similar size and the opposite sign.
 
 This is not a disappointing result; it is a clarifying one, and it is what a no-arbitrage argument would have predicted before any of the machinery was built. Selling a fairly priced option is a fairly priced transaction. Doing it repeatedly, in a loop, with inventory, is still a fairly priced transaction. **The third of a share price per year that Track A reports is not income the strategy generates — it is the equity risk premium, relabelled, plus the operator's own capital handed back to them in instalments.**
 
@@ -169,9 +171,20 @@ And there is a depth past which the assumption is self-defeating. Freeze the pay
 
 ## The Conservative regime
 
-Everything above used p\* = 20%. At p\* = 10%, with strikes 3.5% out of the money rather than 2.3%:
+Everything above used p\* = 20%. At p\* = 10% — the setting [the entry section](#sec:entry) identifies as the live account's own — with strikes 3.5% out of the money rather than 2.3%:
 
     lots held 5.50 · capital (market) 5.70 · capital (cost) 8.90
     Track A income 0.371/yr · true excess +1.49% · cash-on-cost −0.83%
 
-Half the assignments, half the inventory, half the capital — and a slightly *worse* excess return than Standard, against a benchmark of +1.57%. Selling further out of the money buys a quieter strategy, not a better one: the premium given up scales down faster than the risk. This is the tidiest illustration in the article of what the model is for. The choice of strike moves everything the operator experiences — how often they are assigned, how much capital they need, how busy their account is — and moves the expected return essentially not at all.
+Half the assignments, half the inventory, half the capital — and a slightly *worse* excess return than Standard, against a benchmark of +1.57%. The eight-basis-point deficit is worth chasing down rather than interpreting, because it is not economics at all. It is the collateral footnote above, arriving where it is easiest to see. The put margin γ·k is essentially the same 0.19 in both regimes — it is one put either way — but the inventory it stands beside is half the size, so the margin runs 3.4% of Conservative's capital against 1.7% of Standard's, and Track C's overcharge doubles with it, from 8 basis points a year to 17. Credit that collateral with the rate it actually earns and the two regimes agree on the number that matters:
+
+| difference vs buy-and-hold | 5 y | 10 y | 30 y |
+|---|---|---|---|
+| Standard, as modelled | +0.03% | +0.01% | +0.01% |
+| Conservative, as modelled | −0.14% | −0.11% | −0.08% |
+| Standard, collateral earning r | +0.20% | +0.14% | +0.09% |
+| Conservative, collateral earning r | +0.20% | +0.14% | +0.09% |
+
+The last two rows agree to a third of a basis point at every horizon, which is far tighter than either is separately determined. **The entire visible difference between the two regimes is an accounting convention, not a property of the strategy** — and it is a useful reminder that a deficit of a few basis points in a table like this is more likely to be a ledger artifact than a discovery.
+
+That leaves the real result, which is the invariance. The choice of strike moves everything the operator experiences — how often they are assigned, how much capital they need, how large the book grows, how busy the account is — and moves the expected return not at all. It is the tidiest illustration in the article of what the model is for: the dial the operator actually turns is a dial over their own experience of the strategy, not over its returns.

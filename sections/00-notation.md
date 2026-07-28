@@ -37,8 +37,8 @@ This file is the single source of truth for every symbol used in the article. Wh
 | τ_c | Lifetime of each covered call sold; τ_c ≥ τ_p (running example: four weeks) |
 | n | The clock ratio τ_c / τ_p ≥ 1 (weekly puts with four-week calls give n = 4) |
 | k | Put strike as a fraction of the current price, k = K/S (k = 0.95 is a 5% out-of-the-money put) |
-| p\* | **The strike dial**: the assignment probability the operator targets, from which the strike k\* follows by [eq:kstar](#eq:kstar). Two regimes are carried throughout — **Standard** p\* = 20% and **Conservative** p\* = 10% |
-| γ | Margin fraction the broker requires on a short put position (running example: 0.20) |
+| p\* | **The strike dial**: the assignment probability the operator targets, from which the strike k\* follows by [eq:kstar](#eq:kstar). Two regimes are carried throughout — **Standard** p\* = 20%, which leads the worked examples as the conventional setting to pair with a stylized 20%-volatility market, and **Conservative** p\* = 10%, which is the setting the live account is measured to run at. See [the entry section](#sec:entry) for the measurement and for why the stylized value leads |
+| γ | Margin fraction the broker requires on a short put position (running example: 0.20). Track C charges r on γ·k although the collateral behind it earns approximately r at the broker; the resulting overcharge is footnoted in [the returns section](#sec:returns) and measured in [the verification section](#sec:verification) |
 | K_c | Covered call strike, frozen at the price the lot was bought at: K_c = k·S at the moment of assignment |
 
 ## The depth process and its statistics

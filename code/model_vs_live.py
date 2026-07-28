@@ -41,7 +41,7 @@ from analyze_statement import (STATEMENTS_GLOB, build_lots,
                                excluded_symbols, parse)
 from live_ledger import realized_vol, wheel_universe
 from model import (N, Config, assign_prob, depth_census, expected_drop,
-                   occupation)
+                   k_star_drift, occupation)
 
 TRADING_DAYS = 252
 
@@ -108,7 +108,8 @@ def live_config(sigma, tau_p, tau_c, mu, delta):
 # ----------------------------------------------------------------------
 # T1: the entry law
 # ----------------------------------------------------------------------
-def test_entry_law(positions, px, universe, sigma_by_sym, drift):
+def test_entry_law(positions, px, universe, sigma_by_sym, drift,
+                   art_tau=1 / 52, art_drift=0.045):
     """Predicted assignment probability per put vs. what actually happened.
 
     For each put the model says P(assigned) = N(-d2) at the strike fraction
@@ -116,6 +117,24 @@ def test_entry_law(positions, px, universe, sigma_by_sym, drift):
     assignments the model expects; the statement gives the number that
     occurred. This is the entry law tested directly, and it could not be done
     before because k needs the spot on the trade date.
+
+    The same rows also answer a second question -- **the revealed strike dial**.
+    The raw assignment rate is not comparable with the article's p\\*, for two
+    reasons that push the same way. The window drifted at +34% rather than the
+    article's +4.5%; and `tau` above is in *calendar* years while `sigma` is
+    annualised over 252 sessions, so the dominant put -- written Monday at the
+    open, expiring Friday at the close, five sessions -- is priced here as four
+    days. Re-pricing the operator's own moneyness at `art_tau` and `art_drift`
+    holds the strike policy fixed and fixes both: note that the article's
+    tau_p = 1/52 is 4.85 sessions, so putting a five-session put on the
+    article's week is a change of clock only on paper.
+
+    The calendar/session mismatch is left as it is rather than corrected, and
+    that is a decision, not an oversight: pricing every put on its own session
+    count predicts 90.3 assignments against the 71 that occurred, where the
+    calendar reading predicts 71.5. The convention that is wrong on units fits
+    the data, and why is TODO IV-1's business -- see the note there before
+    changing anything here. See also [the entry section](#sec:entry).
     """
     rows = []
     for p in positions:
@@ -154,6 +173,26 @@ def test_entry_law(positions, px, universe, sigma_by_sym, drift):
           f"({itm/n:.1%})   <- the model's own event")
     print(f"  actually assigned               {asg:8.0f} contracts "
           f"({asg/n:.1%})")
+
+    # The revealed dial: the same strikes, re-priced on the article's clock and
+    # in the article's world. Each step is reported so the two corrections can
+    # be told apart -- the drift is worth ~2 points, the tenor another ~1.2.
+    own_art = sum(assign_prob(r["k"], r["tau"], r["sigma"], art_drift)
+                  * r["qty"] for r in rows)
+    art_art = sum(assign_prob(r["k"], art_tau, r["sigma"], art_drift)
+                  * r["qty"] for r in rows)
+    print(f"  revealed dial -- same moneyness, re-priced:")
+    print(f"    at the article's drift, own tenor  {own_art/n:8.1%}")
+    print(f"    at the article's drift and tenor   {art_art/n:8.1%}"
+          f"   <- the p* this account runs")
+    otm = sorted(1 - r["k"] for r in rows)
+    sig = sorted(r["sigma"] for r in rows)
+    med_otm, med_sig = otm[len(otm) // 2], sig[len(sig) // 2]
+    print(f"    median put written {med_otm:.1%} out of the money, at a name "
+          f"carrying sigma {med_sig:.1%};")
+    print(f"    a p*=10% strike at that sigma and tenor sits "
+          f"{1 - k_star_drift(0.10, art_tau, med_sig, art_drift):.1%} out")
+
     # Calibration: does the predicted probability track the realised rate?
     print("  calibration by predicted probability:")
     buckets = [(0, .02), (.02, .05), (.05, .10), (.10, .20), (.20, 1.01)]

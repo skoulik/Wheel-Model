@@ -61,23 +61,8 @@ Parts III and IV before assembly.
 
 ## Part II — One asset
 
-**II-1. The strike dial: promote Conservative to the lead?** (was #8.) A prose decision, not a
-modelling one, and the only thing left of the "realistic base case" item. The clocks are
-already the live account's — a put every week, calls for four weeks. At that cadence the
-existing **Conservative regime (p\* = 10%, λ = 5.2 lots/yr) already sits on the observed 8.7%
-per-put assignment rate**, so the realistic case is in the article; the open question is
-whether it leads instead of Standard p\* = 20%. Arguments for leading with Standard: continuity
-of the pedagogical thread, and it is the calibration practitioners quote. Against: the article
-then leads with a regime its own live data does not match. Note that neither regime reproduces
-the observed *arrival* rate — that gap is the entry filter, and it is not p\*'s to close.
-
-**II-2. Track C on put collateral — a footnote in §09.** (was #6.) Cash securing a short put
-earns approximately the risk-free rate at the broker, so charging r against it may overcharge
-Track C. Now measured rather than argued: the Q-world identity puts the overcharge at
-**15–19 bp/yr**, because market-value capital is dominated by the shares (5.08 against 0.19 of
-margin). Small enough to state as a footnote in [the returns section](#sec:returns) rather than
-restructure Track C for. **Verified 2026-07-28: the footnote is not written.** Write it, and
-have it point at the Q-world test in §13 as the source of the number.
+**Nothing open.** II-1 (the strike dial) and II-2 (Track C on put collateral) were resolved on
+2026-07-28; both write-ups, and the two errors they turned up, are in [`DONE.md`](DONE.md).
 
 ## Part III — Many assets
 
@@ -137,15 +122,36 @@ live data, not only simulation.
 - **The two internal checks:** the grid-free Monte Carlo (`mc_holding.py`) that proves the
   extrapolated stationary figures, and the **Q-world no-arbitrage identity** — run at ν_Q with
   Q-priced premiums, expected excess return over r must vanish up to the dividend-withholding
-  leak and the Track C overcharge; it holds to 8 bp at 30y and under 20 bp at every horizon, and
-  it has already caught one real omission. This is the settled decision the restructure owed the
-  article a theorem for, and it is also the source of II-2's number.
+  leak; it holds to 8 bp at 30y and under 20 bp at every horizon, and it has already caught one
+  real omission. This is the settled decision the restructure owed the article a theorem for.
+  **What the leftover residual is, is open** (from II-2, 2026-07-28). It is *not* the Track C
+  overcharge on collateral, which was this item's previous claim: the residual is positive
+  (+17.5/+12.6/+7.9 bp at Standard's 5/10/30y) where that argument predicts negative
+  (−16.0/−11.3/−6.7), and at Conservative it reads +2.3 bp against a predicted −31.5. The clue
+  worth chasing is that Q-world `econ_pnl` exceeds r·E[I] − leak by ≈ **0.0020 per arrival** in
+  both regimes at every horizon — a per-lot term, not a capital-proportional one. Either
+  identify it or state the residual as numerical tolerance and say so; do not attribute it to
+  the collateral.
 - **Claim only the aggregates.** The restatement withdrew two bin-level results: T1's
   calibration curve is sensitive to whether entry is priced at the session open or close (top
   bucket 27.4% predicted against 8.0% realised at the open, 25.9% against 24.3% at the close —
   the operator sells into intraday weakness that partly reverts, so the truth is between), and
   q(x)'s two deepest bins now hold 70 and 20 contracts. No bucket-level claim should be
   reintroduced.
+- **The calendar/session mismatch, found 2026-07-28 and deliberately not fixed.** Every τ in the
+  live tests is in *calendar* years while every σ is annualised over **252 sessions**, so a put
+  written Monday at the open for Friday's close — five sessions — is priced with four days of
+  diffusion. The units are wrong and the understatement is large: σ·√τ is short by a factor
+  √((5/252)/(4/365)) = **1.35** at the median put. **And the wrong convention is the one that
+  fits.** At the window's drift, pricing each put on its own session count predicts **90.3**
+  assignments against the **71** that occurred; the calendar reading predicts **71.5**. So either
+  the operator's entries partly revert — which is T1's own bucket finding, the opening print
+  overstating moneyness on puts written nearest the money — or session-annualised realised
+  volatility overstates the volatility relevant to a five-session option, or both. Resolve it
+  before claiming T1 as a clean pass, and note that the aggregate agreement currently rests on
+  a cancellation rather than on each side being right. Nothing was changed in the code; the
+  decision and its evidence are in `model_vs_live.py`'s T1 docstring. Note the article itself is
+  unaffected: its τ_p = 1/52 is 4.85 sessions, so its own week is already a trading week.
 - **Three measurement traps**, worth a paragraph because all three were fallen into: reading
   depth on the day before exit discards nearly every exit; sampling lots on a synthetic τ_c grid
   scores periods at tenors never traded; and pricing an entry at the day's close when the
@@ -199,6 +205,11 @@ live data, not only simulation.
   10.4 at p\* = 20%, modal gap exactly 7 days (40% of gaps). Both rates are the discrepancy
   catalogue's and have no script behind them (INF-2); the lot count under the second moved
   56 → 55 on 2026-07-28, so re-measure before quoting rather than copying the digits.
+  [The entry section](#sec:entry) now defers the arrival gap to here, deliberately without
+  digits, so this is the only place they appear. When they are re-measured, **check the identity
+  that closes the gap**: puts per name-year × the per-put assignment rate should reproduce lots
+  per name-year, which at the current digits it does (18.1 × 7.7% ≈ 1.4). If it stops doing so,
+  one of the three is measured over the wrong denominator.
 - **The implied-volatility panel** (was #23). The put leg's spread over subsequent realised
   volatility runs **~+10 points, roughly double the call leg's**, and the within-name depth
   slope is **+30–40% relative IV** from shallow to deep. This is the measurement behind the

@@ -35,7 +35,8 @@ from math import exp, log, sqrt
 import model
 from model import (BETA, Config, N, assign_prob, bs_call, criteria,
                    d2, depth_census, economics, entry_law, expected_drop,
-                   occupation, pmap, put_premium, q_exit, stationary,
+                   k_star_drift, occupation, pmap, put_premium, q_exit,
+                   stationary,
                    sticky_dividend_trap, sticky_dividend_yield, strike,
                    time_to_fraction, trapped_fraction)
 
@@ -122,6 +123,14 @@ def main():
     check("E[x0] (Conservative)", entry_law(CON, "P")[2], 0.0131, 0.0005)
     check("E[d | assignment] (Conservative, P)", expected_drop(CON, "P"), 0.0470, 0.001)
     check("E[d | assignment] (Conservative, Q)", expected_drop(CON, "Q"), 0.0474, 0.001)
+    # "Where a real operator sits on the dial": the live account's names carry a
+    # volatility near 30%, not the running example's 20%, so the same one-in-ten
+    # dial puts the strike further out.  The live side of that comparison -- the
+    # 7.7% realized rate, the 10.9% revealed dial, the 5.5% median moneyness --
+    # is measured by `model_vs_live.py`, which nothing here reproduces (INF-2).
+    m_p_, _ = STD.world("P")
+    check("k* for p*=10% at the live account's sigma = 29.7%",
+          1 - k_star_drift(0.10, STD.tau_p, 0.297, m_p_), 0.051, 0.001)
 
     # ------------------------------------------------------------------
     print("--- Section 06: the depth process ---")
@@ -314,6 +323,33 @@ def main():
     check("Conservative: cash-on-cost-basis", xc["excess"], -0.0083, 0.0005)
     check("Conservative: buy-and-hold benchmark",
           buy_hold * xc["I"] / xc["mv_capital"], 0.0157, 0.0005)
+
+    # The collateral footnote, and the regime comparison it explains. Track C
+    # charges r on the put margin, which in fact earns approximately r at the
+    # broker. The overcharge is the same absolute number in both regimes but a
+    # different share of capital, because Conservative's inventory is half the
+    # size -- and correcting it makes the two regimes agree, which is the point
+    # of the table in section 09.
+    for H, over, gap_s, gap_c in [(5.0, 0.00174, 0.0003, -0.0014),
+                                  (10.0, 0.00129, 0.0001, -0.0011),
+                                  (30.0, 0.00084, 0.0001, -0.0008)]:
+        xs, xcv = (economics(STD, "P", occ_p, horizon=H),
+                   economics(CON, "P", occ_c, horizon=H))
+        o_s = STD.r * STD.margin * xs["k"] / xs["mv_capital"]
+        o_c = CON.r * CON.margin * xcv["k"] / xcv["mv_capital"]
+        g_s = xs["econ_excess"] - buy_hold * xs["I"] / xs["mv_capital"]
+        g_c = xcv["econ_excess"] - buy_hold * xcv["I"] / xcv["mv_capital"]
+        check(f"Track C overcharge on collateral at {H:.0f}y (Standard)",
+              o_s, over, 5e-5)
+        check(f"gap vs buy-and-hold at {H:.0f}y (Standard)", g_s, gap_s, 0.0005)
+        check(f"gap vs buy-and-hold at {H:.0f}y (Conservative)",
+              g_c, gap_c, 0.0005)
+        check(f"the regimes agree once collateral earns r ({H:.0f}y)",
+              (g_s + o_s) - (g_c + o_c), 0.0, 0.0001)
+    # And the fully cash-secured convention, where collateral is k not gamma*k.
+    check("cash-secured overcharge is ~4.5x the margin one (30y)",
+          (e30["k"] / (e30["k"] + e30["I"]))
+          / (STD.margin * e30["k"] / e30["mv_capital"]), 4.7, 0.1)
 
     # ------------------------------------------------------------------
     print("--- Section 10: stability ---")
