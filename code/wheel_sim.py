@@ -1,35 +1,36 @@
-"""Monte Carlo simulator of the wheel as a *layered* inventory system.
+"""Monte Carlo simulator of the wheel, and the independent check on model.py.
 
-Tier-2 groundwork: simulates the exact mechanics of sections 04-08 on a common
-GBM price path with each lot's call strike frozen at its entry level -- i.e.
-WITHOUT the homogeneous-q approximation. Each individual call period still
-exits with probability q(x) given the lot's current depth x = ln(K_c/S); that
-is a mechanical consequence of the price model, not a finding. What the
-simulation reveals is everything the homogeneous model averages away:
+Simulates the exact mechanics of Parts I-II on a common GBM price path, with
+each lot's call strike frozen at its entry level: a put sold on the cadence
+grid, assignment when it finishes in the money, and a covered call rewritten
+every tau_c until the lot is called away. None of the analytic machinery is
+used here -- the depth walk, the first passage and Little's law of `model.py`
+are what this is meant to test -- so agreement between the two is evidence
+rather than arithmetic.
+
+`--scenario validate` is that comparison, component by component, from the
+assignment rate through to the economic excess return. The other scenarios are
+exploratory, and show what the analytic core cannot:
 
   * the emergent depth distribution of standing inventory (length-biased
     toward slow, deep layers),
   * correlated exits on the common path (a recovery flushes whole strata),
-  * the holding-time mixture -- homogeneous q predicts geometric holding
-    times; deviations are the fast/metastable/trapped structure of TODO #9,
+  * the shape of the holding-time distribution, fast lane to trapped tail,
   * dead-strata formation under crash-then-flatline stress.
 
-Homogeneous-model predictions (eq:istar, eq:run-rate, eq:capital) are printed
-next to the simulated values. Formula implementations are imported from
-verify_examples.py (single source of truth). The cadence/tenor split of
-TODO #7 is built in (cadence T >= tau_p; default T = tau_p, the article's
-special case).
+Dividends under the total-return convention: mu is the asset's TOTAL expected
+return, the price drifts at mu - delta, held lots accrue delta_net =
+delta*(1 - withholding) per year of holding (reported as a separate Track A
+line), and option pricing/probabilities use the dividend-yield Black-Scholes
+generalization. delta = 0 reproduces the no-dividend model exactly. The
+carry-vs-recovery trade-off: carry pays on held lots, but the depth drift
+nu = mu - delta - sigma^2/2 shrinks with delta, so lots recycle slower and
+inventory grows; nu > 0 is the stability boundary.
 
-Dividends (TODO #2/#16) under the total-return convention: mu is the asset's
-TOTAL expected return, the price drifts at mu - delta, held lots accrue
-delta_net = delta*(1 - withholding) per year of holding (reported as a separate
-Track A line), and option pricing/probabilities use the dividend-yield
-Black-Scholes generalization. delta = 0 reproduces the no-dividend model
-exactly. The carry-vs-recovery trade-off: carry pays on held lots, but the
-depth drift nu = mu - delta - sigma^2/2 shrinks with delta, so lots recycle
-slower and inventory grows; nu > 0 is the stability boundary.
+The cadence/tenor split is built in: cadence T >= tau_p, defaulting to
+T = tau_p, the article's running example.
 
-Stdlib only.  Run:  python code/wheel_sim.py  [--scenario base|dividends|stress|sweep|all]
+Stdlib only.  Run:  python code/wheel_sim.py  [--scenario base|dividends|stress|sweep|validate|all]
 """
 
 import argparse
@@ -39,9 +40,8 @@ from collections import Counter
 from dataclasses import dataclass
 from math import exp, log, sqrt
 
-from model import (N, assign_prob, bs_call, bs_put, d2, k_star_drift, pmap)
-from legacy_homogeneous import (expected_drop_given_assignment, k_star, p_assign,
-                                p_real_world, q_per_put_period, q_recover)
+from model import (Config, N, bs_call, bs_put, entry_law, expected_drop,
+                   k_star_drift, pmap)
 import random
 
 # Event priorities at equal timestamps: settle expiring options first, then
@@ -71,7 +71,7 @@ class Params:
     sigma: float = 0.20
     delta: float = 0.0         # gross dividend yield
     withhold: float = 0.15     # withholding tax fraction on dividends
-    iv_spread: float = 0.0     # sigma_iv = regime sigma + spread (TODO #4 hook)
+    iv_spread: float = 0.0     # sigma_iv = regime sigma + spread (0 = no VRP)
     years: float = 30.0
     paths: int = 200
     seed: int = 20260722
@@ -283,30 +283,33 @@ def km_survival(durations, horizons_m):
     return out
 
 
-def homogeneous_predictions(P):
-    sig_iv = P.sigma + P.iv_spread
-    k = k_star(P.p_star, P.tau_p, sig_iv, P.r, P.delta)
-    p = p_assign(k, P.tau_p, sig_iv, P.r, P.delta)
-    p_rw = p_real_world(k, P.tau_p, sig_iv, P.r, P.mu, P.delta)
-    e_d = expected_drop_given_assignment(k, P.tau_p, sig_iv, P.r, P.delta)
-    q = q_recover(k, e_d, P.tau_c, P.sigma, P.mu, P.delta)
-    q_p = q_per_put_period(q, P.n)
-    c_p = bs_put(k, P.tau_p, sig_iv, P.r, P.delta)
-    c_c = bs_call(1 - e_d, k, P.tau_c, sig_iv, P.r, P.delta)
-    return {
-        "k": k, "p": p, "p_rw": p_rw, "E[d]": e_d, "q": q, "q_p": q_p,
-        "c_p": c_p, "c_c": c_c,
-        "I*": p / q_p, "I*_rw": p_rw / q_p,
-        "run": c_p + p * c_c / q, "run_rw": c_p + p_rw * c_c / q,
-        "div": (p / q_p) * P.delta_net * P.cadence,
-        "div_rw": (p_rw / q_p) * P.delta_net * P.cadence,
-        "cap": P.margin * k + (p / q_p) * (k - c_p),
-        "cap_rw": P.margin * k + (p_rw / q_p) * (k - c_p),
-    }
+def as_config(P, label="sim"):
+    """The analytic Config matching a simulator Params."""
+    return Config(p_star=P.p_star, tau_p=P.tau_p, n=P.n, cadence=P.cadence,
+                  r=P.r, mu=P.mu, sigma=P.sigma, delta=P.delta,
+                  withhold=P.withhold, iv_spread=P.iv_spread,
+                  margin=P.margin, label=label)
+
+
+def closed_forms(P):
+    """The analytic core's entry-side predictions for this configuration.
+
+    Closed forms only -- strike, assignment probability, expected drop and
+    expected entry depth -- so they cost nothing and give `report` a reference
+    column without running the depth walk. Everything downstream of entry
+    needs the walk, and that comparison is `--scenario validate`.
+
+    Single-regime only: `Config` has one mu and one sigma, so there is no
+    honest reference for the stress scenario and `report` prints none.
+    """
+    C = as_config(P)
+    k, p_real, mean_x0, _ = entry_law(C, "P")
+    return {"k": k, "p_real": p_real, "E[d]": expected_drop(C, "P"),
+            "E[x0]": mean_x0}
 
 
 def report(P, agg, name):
-    H = homogeneous_predictions(P)
+    M = closed_forms(P) if len(P.regimes) == 1 else None
     line = "=" * 72
     print(f"\n{line}\nScenario: {name}   "
           f"({P.paths} paths x {P.years:g}y, tau_p={P.tau_p:.4f}, "
@@ -319,14 +322,13 @@ def report(P, agg, name):
               f"delta_net={P.delta_net:.4f}")
     print(line)
 
-    print("\n-- Homogeneous-model predictions (eq:istar / eq:run-rate / eq:capital) --")
-    print(f"  k*={H['k']:.4f}  p={H['p']:.3f} (rw {H['p_rw']:.3f})  "
-          f"E[d]={H['E[d]']:.3f}  q={H['q']:.3f}  q_p={H['q_p']:.3f}")
-    print(f"  I* = {H['I*']:.2f} (risk-neutral p) / {H['I*_rw']:.2f} (real-world p)")
-    print(f"  run rate/period = {H['run']:.4f} (rn) / {H['run_rw']:.4f} (rw)   "
-          f"capital = {H['cap']:.2f} (rn) / {H['cap_rw']:.2f} (rw)")
-    if P.delta:
-        print(f"  dividend carry/period = {H['div']:.4f} (rn I*) / {H['div_rw']:.4f} (rw I*)")
+    if M:
+        print("\n-- Analytic core, entry side (model.py closed forms) --")
+        print(f"  k*={M['k']:.4f}  p_real={M['p_real']:.3f}  "
+              f"E[d]={M['E[d]']:.3f}  E[x0]={M['E[x0]']:.4f}")
+    else:
+        print("\n-- No analytic reference: the core assumes a single regime --")
+    print("  (the full component-by-component comparison is --scenario validate)")
 
     n_samples = sum(agg.inv_hist.values())
     mean_I = sum(k * v for k, v in agg.inv_hist.items()) / n_samples
@@ -341,20 +343,22 @@ def report(P, agg, name):
     ann = (run_emp + div_emp) / P.cadence
     excess = (ann - P.r * cap_emp) / cap_emp
 
+    ref_p = f"   (model {M['p_real']:.3f})" if M else ""
+    ref_d = f"   (model {M['E[d]']:.3f})" if M else ""
     print("\n-- Simulated (layered system on the common path) --")
-    print(f"  assignment rate = {p_emp:.3f}   (rn p {H['p']:.3f}, rw p {H['p_rw']:.3f})")
-    print(f"  mean d at assignment = {mean_d:.3f}   (predicted E[d] {H['E[d]']:.3f})")
-    print(f"  mean inventory  = {mean_I:.2f}   (homogeneous I* {H['I*']:.2f} rn / {H['I*_rw']:.2f} rw)")
+    print(f"  assignment rate = {p_emp:.3f}{ref_p}")
+    print(f"  mean d at assignment = {mean_d:.3f}{ref_d}")
+    print(f"  mean inventory  = {mean_I:.2f}")
     pi0_emp = agg.inv_hist[0] / n_samples
     print(f"  P(I=0)          = {pi0_emp:.3f}   "
-          f"(Poisson at same mean {exp(-mean_I):.3f}, at I*_rw {exp(-H['I*_rw']):.3f})")
+          f"(Poisson at same mean {exp(-mean_I):.3f})")
     var_I = sum((k - mean_I) ** 2 * v for k, v in agg.inv_hist.items()) / n_samples
     print(f"  Var(I)/Mean(I)  = {var_I / mean_I:.2f}   (Poisson: 1.00)")
-    print(f"  effective q_p   = {eff_qp:.3f}   (homogeneous q_p {H['q_p']:.3f})")
-    print(f"  run rate/period = {run_emp:.4f}   (predicted {H['run']:.4f} rn / {H['run_rw']:.4f} rw)")
+    print(f"  effective q_p   = {eff_qp:.3f}")
+    print(f"  run rate/period = {run_emp:.4f}")
     if P.delta:
-        print(f"  dividends/period= {div_emp:.4f}   (predicted {H['div']:.4f} rn / {H['div_rw']:.4f} rw)")
-    print(f"  capital (avg)   = {cap_emp:.2f}   (predicted {H['cap']:.2f} rn / {H['cap_rw']:.2f} rw)")
+        print(f"  dividends/period= {div_emp:.4f}")
+    print(f"  capital (avg)   = {cap_emp:.2f}")
     print(f"  annualized: income {ann:.3f} "
           f"(premiums {run_emp / P.cadence:.3f} + dividends {div_emp / P.cadence:.3f}), "
           f"excess over risk-free {excess:+.3f}/yr on capital")
@@ -374,16 +378,12 @@ def report(P, agg, name):
     print(f"  KM survival (months):{hdr}\n"
           f"                       {row}")
     if agg.exits:
-        # Homogeneous q predicts geometric(q) call-period counts.
-        q = H["q"]
         tot = sum(agg.period_hist.values())
-        print("  call periods per completed lot (simulated vs geometric(q) share):")
-        for j in range(1, 7):
-            emp = agg.period_hist[j] / tot
-            geo = (1 - q) ** (j - 1) * q
-            print(f"    {j}: {emp:.3f} vs {geo:.3f}")
-        emp_tail = sum(v for k_, v in agg.period_hist.items() if k_ > 6) / tot
-        print(f"    >6: {emp_tail:.3f} vs {(1 - q) ** 6:.3f}")
+        shares = "  ".join(f"{j}: {agg.period_hist[j] / tot:.3f}"
+                           for j in range(1, 7))
+        tail = sum(v for k_, v in agg.period_hist.items() if k_ > 6) / tot
+        print(f"  call periods per completed lot:\n"
+              f"    {shares}  >6: {tail:.3f}")
 
     if len(P.regimes) == 1:
         print("\n-- Depth structure of call periods (x = ln(K_c/S) at call sale) --")
@@ -397,11 +397,9 @@ def report(P, agg, name):
         tot_per = sum(b[0] for b in agg.bins)
         mean_q_inv = sum(b[2] for b in agg.bins) / tot_per
         mean_x = sum(b[3] for b in agg.bins) / tot_per
-        x_fresh = log(H["k"] / (1 - H["E[d]"]))
-        print(f"  inventory-weighted mean q(x) = {mean_q_inv:.3f}  vs  homogeneous "
-              f"q(E[d]) = {H['q']:.3f}")
-        print(f"  inventory-weighted mean depth = {mean_x:.3f}  vs  fresh-assignment "
-              f"depth {x_fresh:.3f}")
+        print(f"  inventory-weighted mean q(x) = {mean_q_inv:.3f}")
+        print(f"  inventory-weighted mean depth = {mean_x:.3f}  vs  entry depth "
+              f"E[x0] = {M['E[x0]']:.3f}")
 
     multi = sum(v for k_, v in agg.batch_hist.items() if k_ >= 2)
     tot_ev = sum(agg.batch_hist.values())
@@ -435,14 +433,13 @@ def _sweep_row(P):
     whether the sweep runs on one core or on all of them.
     """
     agg = simulate(P)
-    H = homogeneous_predictions(P)
     n_samples = sum(agg.inv_hist.values())
     mean_I = sum(k * v for k, v in agg.inv_hist.items()) / n_samples
     cap = agg.cap_sum / agg.cap_n
     prem = (agg.prem_put + agg.prem_call) / agg.puts
     div = agg.dividends / agg.puts
     excess = ((prem + div) / P.cadence - P.r * cap) / cap
-    return H["I*_rw"], mean_I, cap, prem, div, excess
+    return mean_I, cap, prem, div, excess
 
 
 def dividend_sweep(args):
@@ -454,95 +451,18 @@ def dividend_sweep(args):
     print("\n" + "=" * 72)
     print("Dividend sweep (30y, total-return convention, withholding 15%)")
     print("=" * 72)
-    print("  delta      nu    I*_rw   mean I   capital   prem/T   div/T   excess/yr")
+    print("     delta     nu   mean I   capital   prem/T   div/T   excess/yr")
     rows = [("0.0%", 0.07, 0.000), ("1.0%", 0.07, 0.010), ("2.5%", 0.07, 0.025),
             ("4.0%", 0.07, 0.040), ("6.0%", 0.07, 0.060), ("alt 2.5%", 0.095, 0.025)]
     params = [Params(years=30.0, paths=args.paths or 200, seed=args.seed,
                      mu=mu, delta=delta) for _, mu, delta in rows]
     for (label, mu, delta), P, r in zip(rows, params, pmap(_sweep_row, params)):
-        I_rw, mean_I, cap, prem, div, excess = r
+        mean_I, cap, prem, div, excess = r
         nu = mu - delta - P.sigma**2 / 2
-        print(f"  {label:>8} {nu:+.3f}   {I_rw:>5.2f}   {mean_I:>6.2f}   "
+        print(f"  {label:>8} {nu:+.3f}   {mean_I:>6.2f}   "
               f"{cap:>7.2f}   {prem:.4f}  {div:.4f}   {excess:+.4f}")
     print("  (alt row: price drift held at 7%, i.e. total return 9.5% -- the")
     print("   stacked convention, shown as a sensitivity check only)")
-
-
-def check_quoted(args):
-    """Assert every MC number quoted in sections/09-layered-inventory.md.
-
-    SUPERSEDED, and currently failing on purpose: this gate is pinned to the
-    numbers of the pre-restructure section 09, which were computed when the
-    strike dial inverted the *risk-neutral* assignment probability. The model
-    now dials a real-world p* (see TODO.md, "Campaign"), so arrivals run at
-    20.0% rather than 19.2% and every downstream figure shifts by ~4%. This
-    function is retired together with the section it verifies; the live gates
-    are `verify_examples.py` and `--scenario validate`. Not run by --scenario all.
-
-    Runs the dividends scenario at the fixed seed and checks the quoted
-    statistics with tight tolerances. The analytic side of the section's
-    numbers is covered by verify_examples.py; this is the slow gate for the
-    simulation side. Exit code is nonzero on any failure.
-    """
-    P = Params(years=30.0, paths=200, seed=20260722, delta=0.025)
-    agg = simulate(P)
-    H = homogeneous_predictions(P)
-    fails = []
-
-    def ck(label, got, want, tol):
-        ok = abs(got - want) <= tol
-        print(f"{'PASS' if ok else 'FAIL'}  {label}: got {got:.4f}, quoted ~{want}")
-        if not ok:
-            fails.append(label)
-
-    n_samples = sum(agg.inv_hist.values())
-    mean_I = sum(k * v for k, v in agg.inv_hist.items()) / n_samples
-    var_I = sum((k - mean_I) ** 2 * v for k, v in agg.inv_hist.items()) / n_samples
-    run_emp = (agg.prem_put + agg.prem_call) / agg.puts
-    div_emp = agg.dividends / agg.puts
-    cap_emp = agg.cap_sum / agg.cap_n
-    excess = ((run_emp + div_emp) / P.cadence - P.r * cap_emp) / cap_emp
-    tot_per = sum(b[0] for b in agg.bins)
-    km = km_survival(agg.durations, [12, 36, 120])
-    tot_c = sum(agg.period_hist.values())
-
-    ck("assignment rate = p_rw", agg.assigned / agg.puts, 0.192, 0.001)
-    ck("mean d at assignment", agg.d_sum / agg.assigned, 0.076, 0.001)
-    ck("homogeneous I* (rw)", H["I*_rw"], 1.23, 0.01)
-    ck("mean inventory", mean_I, 4.71, 0.02)
-    ck("P(I=0)", agg.inv_hist[0] / n_samples, 0.139, 0.003)
-    ck("Var(I)/Mean(I)", var_I / mean_I, 4.83, 0.05)
-    ck("premium run rate/period", run_emp, 0.0181, 0.0003)
-    ck("predicted run rate (rw)", H["run_rw"], 0.0186, 0.0002)
-    ck("dividend carry/period", div_emp, 0.0081, 0.0002)
-    ck("predicted carry (rw I*)", H["div_rw"], 0.0022, 0.0002)
-    ck("capital (avg)", cap_emp, 7.71, 0.05)
-    ck("excess return/yr", excess, -0.009, 0.002)
-    ck("share of lot-quarters at depth > 0.35", agg.bins[-1][0] / tot_per, 0.39, 0.01)
-    ck("inventory-weighted mean q", sum(b[2] for b in agg.bins) / tot_per, 0.115, 0.003)
-    ck("completed share > 6 call periods",
-       sum(v for k_, v in agg.period_hist.items() if k_ > 6) / tot_c, 0.199, 0.005)
-    ck("still held at 12 months", km[0], 0.326, 0.005)
-    ck("still held at 36 months", km[1], 0.172, 0.005)
-    ck("still held at 120 months", km[2], 0.072, 0.005)
-    ck("censored share at 30y", sum(1 for _, c in agg.durations if not c)
-       / len(agg.durations), 0.091, 0.005)
-    multi = sum(v for k_, v in agg.batch_hist.items() if k_ >= 2)
-    ck("multi-exit date share", multi / sum(agg.batch_hist.values()), 0.143, 0.01)
-
-    print()
-    if fails:
-        raise SystemExit(f"{len(fails)} quoted number(s) FAILED: {fails}")
-    print("All quoted numbers reproduced.")
-
-
-def as_config(P, label="sim"):
-    """The analytic Config matching a simulator Params."""
-    import model
-    return model.Config(p_star=P.p_star, tau_p=P.tau_p, n=P.n,
-                        cadence=P.cadence, r=P.r, mu=P.mu, sigma=P.sigma,
-                        delta=P.delta, withhold=P.withhold,
-                        iv_spread=P.iv_spread, margin=P.margin, label=label)
 
 
 def validate(args):
@@ -595,15 +515,11 @@ def validate(args):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--scenario", default="all",
-                    choices=["base", "dividends", "stress", "sweep", "check",
+                    choices=["base", "dividends", "stress", "sweep",
                              "validate", "all"])
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     args = ap.parse_args()
-
-    if args.scenario == "check":
-        check_quoted(args)
-        return
 
     if args.scenario == "validate":
         validate(args)

@@ -86,6 +86,20 @@ margin). Small enough to state as a footnote in [the returns section](#sec:retur
 restructure Track C for. **Verified 2026-07-28: the footnote is not written.** Write it, and
 have it point at the Q-world test in §13 as the source of the number.
 
+**II-3. §10's stress table labels the wrong accounting track.** (Found 2026-07-28, while
+retiring the legacy code.) [The stability section](#sec:stability) prints a row as
+`capital (market)` and the paragraph above it says "market capital nearly doubles, from 6.0 to
+11.0". Those figures come from `report_time_profile()` in `wheel_sim.py`, which accumulates
+`cap_by_idx` = `margin·K + Σ basis` over the current spot — **Track A cost basis**, not Track B.
+Track B at the same inventories would read ≈ γ·k + E[I], about **12.9 at year 10 against the
+quoted 21.37**; the two rows diverge as inventory ages, so this is not a rounding matter. The
+simulator's own labels (`capital (avg)`, `mean capital`) are the other half of the ambiguity and
+should be fixed with it. Either relabel the row and adjust the sentence — no number moves — or
+add a per-index market-capital accumulator (`agg.mvcap_sum` already exists but has no time
+profile), print both, and rewrite the paragraph around Track B, which does move published
+numbers. The argument the paragraph is making — that a crash marks down every lot already held —
+is a Track B argument, so the second option is the one that matches the prose.
+
 ## Part III — Many assets
 
 Neither file exists. This is Stage 3 of the restructure and the largest single block of
@@ -233,13 +247,6 @@ rather than pending. If a tranche arrives before the article is assembled, the a
 the out-of-sample result; if not, §13 says the test is pre-registered and pending.
 
 ## Infrastructure and assembly
-
-**INF-1. Retire the superseded code.** `code/first_passage.py` and `code/legacy_homogeneous.py`
-are scaffolding from the model the restructure replaced, and nothing may be quoted from them.
-`first_passage.py` has no importers and can go now. `legacy_homogeneous.py` is still imported by
-`wheel_sim.py`, which also carries `homogeneous_predictions()` (three call sites) and
-`check_quoted()` — all of it comparing against predictions the article no longer makes. Delete
-the three together once §13 has replaced what they were checking.
 
 **INF-2. Extend `verify_examples.py` to Parts III and IV — and decide about the live figures.**
 Every number in §11–§14 needs a check, on the same section-by-section discipline as the rest.
