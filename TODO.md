@@ -11,15 +11,20 @@ should be added only when the text genuinely defers something.
 
 ## Where things stand
 
-Twelve of the sixteen planned files exist. Parts I and II are written; **Part III is unwritten
-and Part IV is unwritten**, and between them they are the bulk of what is left.
+Twelve of the seventeen planned files exist. Part I is written; **Part II was reopened on
+2026-07-29** for the working-capital reframe, which adds a section to it; **Part III and Part IV
+are unwritten**, and between them they remain the bulk of what is left.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability | written |
-| III. Many assets | 11 portfolio · 12 correlation | **do not exist** |
-| IV. Reality | 13 verification · 14 live-account · 15 outlook | **13, 14 do not exist**; 15 is a stub |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | written, and **reopened**: II-3…II-14 below; 11 does not exist |
+| III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
+| IV. Reality | 14 verification · 15 live-account · 16 outlook | **14, 15 do not exist**; outlook is a stub, currently on disk as `15-outlook.md` |
+
+Part III and Part IV shift by one because of the new §11. Anchors are name-based, so no
+cross-reference breaks and only filenames move; the renumbering is deferred until Part III drafts,
+per II-13.
 
 Five existing sections already link to anchors in the missing files — `sec:portfolio`,
 `sec:verification` and `sec:live` are referenced from 00, 04, 07, 08 and 09 — so those
@@ -61,14 +66,160 @@ Parts III and IV before assembly.
 
 ## Part II — One asset
 
-**Nothing open.** II-1 (the strike dial) and II-2 (Track C on put collateral) were resolved on
-2026-07-28; both write-ups, and the two errors they turned up, are in [`DONE.md`](DONE.md).
+II-1 (the strike dial) and II-2 (Track C on put collateral) were resolved on 2026-07-28; both
+write-ups, and the two errors they turned up, are in [`DONE.md`](DONE.md).
+
+**Everything below is the working-capital reframe, agreed 2026-07-29.** Part II currently models
+an operator with unlimited capital: a put is sold every period regardless of what is already
+held. Real accounts have a finite balance and a margin requirement, and the constraint changes
+what the model *is* — arrivals become state-dependent, so the system stops being M/G/∞ and
+becomes a loss system. Every existing figure survives as the **unconstrained limit**, recovered
+exactly when the account is large enough never to block, and that equivalence is the regression
+guard on the whole exercise.
+
+Four decisions fixed before any code (2026-07-29):
+
+- **Track B stays exposure.** The margin fraction governs *capacity*, not risk. Putting it in the
+  denominator of [eq:excess](#eq:excess) would roughly quadruple the reported excess at γ_s = 0.25
+  and appear to break the wheel-versus-stock result while nothing economic had changed. Equity
+  required is a **second ledger line**, never a replacement.
+- **Blocked means skip the put.** The operator does not sell what they could not cover. Blocking
+  is binary per put, not proportional — which is what keeps saturation a hitting time.
+- **Initial and maintenance requirements are deliberately not distinguished.** One parameter, and
+  a prose note saying so.
+- **No horizon cap is an input.** The saturation date T_sat is emergent: the first time E[I(t)]
+  reaches capacity. The unconstrained "90 years" needed an arbitrary 90%-of-asymptote convention;
+  a finite capacity is a real threshold and needs none. A career-length horizon returns only as an
+  annotation on the output.
+
+Code before prose: the survival figures decide how much of [the stability
+section](#sec:stability) has to be restructured.
+
+### Code
+
+**II-3. Parameters, and the regression guard.** `model.py`: rename `margin` → γ_p; add **γ_s**
+(stock margin fraction, swept over 1.00 / 0.50 / 0.25 / 0.15 — cash-secured, Reg T, portfolio
+margin, aggressive PM), the **financing spread** r_b − r, account equity **A** in share prices,
+and the stopping-rule utilization **u\***. Defaults must reproduce today exactly: γ_s = 1.0,
+spread = 0, A = ∞. `verify_examples.py` passes unchanged or the item is not done.
+
+**II-4. The survival closed forms.** In `model.py`, the one place formulas may live:
+
+- liquidation barrier **f\* = (1 − 1/L)/(1 − γ_s)**, the price ratio at which equity/MV crosses γ_s;
+- infinite-horizon **P = f\*^θ**, reusing the census tail exponent θ = 2ν/σ² of
+  [eq:capital-criterion](#eq:capital-criterion) — first passage to a lower barrier is governed by
+  the same constant, which is worth stating as a result rather than a coincidence;
+- the finite-horizon first passage,
+  N((−a − ν·T)/(σ·√T)) + e^(−2ν·a/σ²)·N((−a + ν·T)/(σ·√T)) with a = −ln f\*, which must collapse
+  to f\*^θ as T → ∞ (that limit is a unit test);
+- the inversion **L_max = 1 / (1 − (1−γ_s)·ε^(1/θ))**.
+
+Sanity target from the design discussion, to be confirmed or corrected, not assumed: at θ = 1.25
+and γ_s = 0.25, L_max ≈ 1.02 at ε = 1% and ≈ 1.14 at ε = 10% on the infinite horizon. **The
+figures quoted in that discussion were derived by hand and have no code behind them** — treat
+them as predictions to check, exactly the failure mode I-3 was withdrawn for.
+
+**II-5. Capacity → T_sat, and the fixed point.** Extend the transient inverse at `model.py:673`
+so it maps an absolute capacity in lots to the first time E[I(t)] reaches it. Then close the loop:
+u\* sets L = u\*/γ_s, which sets capacity, which sets T_sat, which sets survival probability,
+which constrains u\*. Solve for u\* given (γ_s, A, ε). The output is a frontier, not a single
+number: for each configuration report T_sat, P(survive to T_sat), saturation leverage,
+throughput retention λ_eff/λ, and steady-state return on equity.
+
+**II-6. The constrained simulator.** `wheel_sim.py --scenario constrained`: skip-when-blocked
+arrivals, debit tracking, mark-to-market equity, the liquidation trigger, premium income and
+call-away repayment. It exists to catch the three corrections the static barrier misses — new
+assignments grow the debit during exactly the declines that threaten the account, while premium
+income and called-away lots repay it, and the net sign is not obvious a priori. Shares no
+machinery with `model.py`, per the standing discipline; agreement is the evidence.
+
+**II-7. The sweep.** γ_s × A grid through `model.pmap()` (module-level worker, picklable args,
+called only from top level). Report the cell where **A equals the model's own E[Capital]** — an
+account sized at the strategy's mean capital demand — since its liquidation probability is the
+quantitative form of the "sizing against the mean is the mistake" warning, which is currently an
+assertion with nothing behind it. Diff parallel against `WHEEL_WORKERS=1` before quoting anything.
+
+### Prose
+
+**II-8. §00 notation.** γ_p, γ_s, A, u\*, L, the financing spread, f\*, T_sat, and the new
+section's anchor. Carry the prose note that initial and maintenance requirements are deliberately
+merged.
+
+**II-9. §04 strategy.** The exposure-versus-equity-required distinction belongs where the three
+tracks are defined. State plainly that Track B remains exposure at market and that the constraint
+runs on a different quantity.
+
+**II-10. §09 returns.** An equity-required row in the capital table, plus the leverage result:
+net excess on equity = excess·L − spread·(L−1), so **leverage is exactly neutral at every L when
+the broker's spread equals the strategy's own excess return** — here 1.60%, against retail
+spreads of 1–3%. Confirm the wheel-versus-buy-and-hold headline survives unchanged at every γ_s,
+since leverage applies identically to both sides; if it does not, something is wrong.
+
+**II-11. §08 inventory.** Reframe "the equilibrium the operator will never see". The constrained
+operator *does* reach theirs, because a capacity ceiling truncates the slow tail that made the
+approach take ninety years. Note that T_sat is convention-free where the 90% was not.
+
+**II-12. §10 stability.** Three changes. The two boundaries **do not move** — both are statements
+about e^x and E[1/S], and financing does not enter either. The second boundary is
+**reinterpreted**: expected capital cannot diverge inside a finite account, so m ≤ σ² shows up as
+throughput collapsing to zero and the account quietly ceasing to be a wheel. And a **third failure
+mode** joins the two, which needs the section's summary rewritten — it currently reads "neither
+is losing money on a trade", and forced liquidation is exactly that, and is the only fast one
+against two that are slow and invisible.
+
+**II-13. New section, the constrained wheel** (`sections/11-constrained.md`, `{#sec:constrained}`).
+The whole survival and steady-state analysis in one place, so the existing tables keep their
+unconstrained base case with a stated qualifier instead of doubling in width. It owes:
+
+- Little's law **run backwards** — inventory pinned by capacity, so the arrival rate becomes the
+  output, λ_eff = capacity / E[W], and therefore income ∝ A / (γ_s · E[W]). The binding resource
+  is capital and the thing that consumes capital is holding time, which makes [the holding-time
+  section](#sec:holding)'s 2.1 years the economically load-bearing number in the article rather
+  than merely its most surprising one;
+- the account **migrating to its own boundary**: a mechanical put-selling rule with no
+  withdrawals converts the broker's permission into actual leverage without the operator ever
+  deciding to lever, so the untended steady state is the state of maximum fragility, and the
+  stopping rule is mandatory rather than prudent;
+- the **capacity derivative** — capacity in lots is A/(γ_s·S) with A marked to market, so as S
+  falls an unlevered account's capacity *rises* while a levered account's falls and crosses zero;
+- the **selectively distorted census**: blocking removes arrivals when the account is full, which
+  is during drawdowns, so constrained inventory is missing precisely the lots that would have been
+  bought cheapest;
+- the **Q-world matched pair**: at θ_Q = 0.25 the eventual-liquidation probability rises sharply,
+  so the market prices this stock as one whose levered wheel is liquidated — alongside [the
+  stability section](#sec:stability)'s "prices it as one whose inventory never clears". If the
+  pair does not come out, the machinery is wrong.
+
+Two results to report **as they come out**, agreed before seeing them: the reachable steady states
+may be small enough that the strategy is barely running, which is a legitimate negative result and
+is not to be softened into a range; and γ_s may turn out barely to matter, if survivable leverage
+lands near 1.1–1.2× whatever the broker allows — in which case the swept parameter earns its place
+by showing the broker's limit is nowhere near the binding one.
+
+**File numbering is deferred.** The new section takes 11, so Part III moves to 12/13 and Part IV
+to 14/15/16. Anchors are name-based, so nothing cross-referential breaks and only filenames move;
+make the decision when Part III drafts rather than renumbering twice.
+
+### Verification
+
+**II-14. Extend `verify_examples.py`.** Its own section, on the standing discipline. Required: the
+γ_s = 1.0 regression (every current figure byte-identical); the T → ∞ collapse of the
+finite-horizon first passage onto f\*^θ; agreement between `model.py` and the constrained
+simulator on T_sat and P(survive); and the **Q-world identity extended to the constrained case** —
+at m = r − δ with r_b = r, a blocked, levered wheel must still earn exactly r on equity at every
+γ_s and every account size. Blocking arrivals creates no arbitrage, so any failure there is a bug
+in the new machinery, and this is the strongest free test the reframe gets.
 
 ## Part III — Many assets
 
 Neither file exists. This is Stage 3 of the restructure and the largest single block of
 remaining work. Both sections have their inputs already measured or already derived; what is
 missing is the derivation and the prose.
+
+**The section numbers below are stale by one** and deliberately not yet updated: §11 is now the
+constrained-wheel section of Part II (II-13), so the portfolio section is §12 and the correlation
+section §13. Anchors (`sec:portfolio`, `sec:correlation`) are unaffected. Renumber once, when
+Part III drafts.
 
 **III-1. Write §11, the portfolio section** (`{#sec:portfolio}`). It owes four things:
 
