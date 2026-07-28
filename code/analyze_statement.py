@@ -91,6 +91,13 @@ STATEMENTS_GLOB = "statements/*.csv"
 #     preferreds. Wheel-able, but their return process is not the lognormal
 #     single-stock walk the model is built on, so they cannot verify it. STRF
 #     is the wheeled preferred already noted as an out-of-scope outlier.
+#   * Corporate-action ticker variants. IBKR appends a digit to the symbol of
+#     an option whose deliverable a corporate action has changed, so an
+#     excluded name reappears under a name the list does not hold. CHPT1 and
+#     KYNB1 are the two observed, from a 1-for-20 reverse split and a merger.
+#     Listing them keeps the exclusion from being undone by a corporate
+#     action; the in-universe variants (CMCS1, TRI1) are a different problem
+#     and belong to their parent -- see TODO IV-6.
 #
 # ALT and BEKE were once carried as exceptions, the wheel having entered them
 # by assignment inside the window; they were the only empirical handle on the
@@ -99,17 +106,27 @@ STATEMENTS_GLOB = "statements/*.csv"
 # from them would measure a universe the article does not claim. That leaves no
 # impairment observations at all -- the honest state, pending a genuine
 # in-universe assignment that goes against us.
+#
+# EMLC and 9988 were found missing on 2026-07-28 (TODO IV-5) by enumerating
+# every symbol the statements mention rather than every symbol the analysis
+# reaches. Both are legacy holdings the wheel never traded -- an EM local
+# currency bond ETF and an HK listing -- and both were in universe by this
+# list's own default rule while being invisible to universe_report(), which
+# is built from closed option positions and stock rows and so cannot see a
+# name that only pays dividends.
 EXCLUDED_LIST = {
     "ALT", "API", "BB", "BLNK", "BTBT", "BYND", "BZUN", "CHPT", "CLNE",
     "CLOV", "CRON", "FOSL", "FUBO", "GOTU", "HYLN", "KNDI", "KODK", "LAZR",
     "MPT", "MPW", "NIO", "NNDM", "NNOX", "PLUG", "QS", "RLX", "TLRY", "TPIC",
     "VIR",
 
-    "ATHM", "BEKE", "CLSK", "D", "DQ", "EH", "FOLD", "GDS", "JKS", "JOYY",
-    "KVUE", "KYNB", "MCRB", "MOMO", "NBIS", "RBLX", "RIVN", "RSI", "SCLX",
-    "SHLS", "TAL", "TME", "VSNT", "WBA", "XPEV", "ZYME",
+    "9988", "ATHM", "BEKE", "CLSK", "D", "DQ", "EH", "FOLD", "GDS", "JKS",
+    "JOYY", "KVUE", "KYNB", "MCRB", "MOMO", "NBIS", "RBLX", "RIVN", "RSI",
+    "SCLX", "SHLS", "TAL", "TME", "VSNT", "WBA", "XPEV", "ZYME",
 
-    "AMLP", "EWM", "EWY", "KWEB", "LTPZ", "STRF", "TLT",
+    "AMLP", "EMLC", "EWM", "EWY", "KWEB", "LTPZ", "STRF", "TLT",
+
+    "CHPT1", "KYNB1",
 }
 
 # Excluded symbols actually encountered while parsing, and how many rows each

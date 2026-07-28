@@ -225,18 +225,79 @@ computing results; report failures as failures, in a dated appendix. P12 (impair
 rather than pending. If a tranche arrives before the article is assembled, the article reports
 the out-of-sample result; if not, §13 says the test is pre-registered and pending.
 
-**IV-5. EMLC is in universe by default, and should not be.** `EXCLUDED_LIST` in
-`code/analyze_statement.py` omits **EMLC**, an emerging-market local-currency bond ETF, although
-every comparable fund is listed (AMLP, LTPZ, TLT) and the list's own rule is that anything not
-listed counts as in-universe. It carries 89 statement rows: one live 30-contract covered call
-and a long stream of dividends and payments in lieu — a legacy holding, not a wheeled position.
-**No published figure moves today**, verified rather than assumed: with no stock transactions
-and no closed option position it never enters `wheel_universe()`, so `option_cash()` and
-`capital_path()` filter it out and its dividends fall in the non-wheel bucket. The exposure is
-prospective — one assignment or one sale puts it into `stock_tx`, hence into the universe, hence
-into the ledger, silently. Add it to the ETF group and re-run. **Sequencing matters: this is
-coupled to IV-4** and must be done *before* a new tranche is examined, since the out-of-sample
-pre-registration forbids re-specification once new data is in hand.
+**IV-6. A corporate action renames an option mid-life, and `parse()` loses both of its legs.**
+IBKR appends a digit to an option's symbol when a corporate action changes its deliverable. If
+that happens between an open and its close — which it does, since these are multi-week contracts
+— the two legs are keyed under different symbols, so the close is discarded as "a close without
+a matching open" and the **open is never closed and lands in `live`**, carried as a standing
+short position for the rest of time. Three instances in the window, found by pairing orphan
+closes against never-closed opens on (expiry, strike, right):
+
+- **CMCSA → CMCS1**, 09JAN26 30 C ×2, opened 2025-12-31 at $0.50, expired worthless 2026-01-09.
+  The Versant spinoff, `CORP` row dated 2026-01-03.
+- **TRI → TRI1**, 15MAY26 80 P ×1, opened 2026-04-21 at $0.95, expired worthless 2026-05-15.
+  The tender and merger, `CORP` rows dated 2026-04-28 and 2026-05-05.
+- **CHPT → CHPT1**, excluded as of IV-5, no effect.
+
+Today's damage is small and self-cancelling — `option_cash()` books the premium as received
+either way and skips the mark because the expiry is already past at the ledger's end date, so
+**the ledger total is right by accident**. What is wrong is the classification: three contracts
+counted as open rather than expired, and therefore absent from every outcome rate, tenor bucket
+and call-strike statistic §13 will quote. The latent version is not small. **A window ending
+before such an expiry would mark a phantom liability against a contract that no longer exists.**
+
+Three pieces, and the last two are cheap enough to do even if the first waits:
+
+- **(a)** Resolve a variant ticker to its parent before keying open against close. The `CORP`
+  rows name both tickers and are **not parsed at all** today; they are the authority for the map.
+- **(b)** Assert that no contract in `live` may expire before the last statement date. Today
+  that fires exactly on these three plus two excluded names, and it is three lines.
+- **(c)** Enumerate every symbol the raw rows mention and report those the analysis never
+  reaches. This is what found IV-5 — the universe report is built from closed option positions
+  and stock rows, so a name that only pays dividends, or only holds a live contract, is in
+  universe by default and invisible to the only report that could flag it.
+
+Fixing (a) **will** move contract counts — 877 closed positions → 879, 1204 contracts → 1207,
+still-open 38 → 35 — so re-baseline deliberately, and mind the same IV-4 sequencing as IV-5.
+
+**IV-7. The two statement exports overlap, and one assignment is counted twice.** `USD.csv`
+covers 2025-02-07 .. 2026-05-02 and `USD1.csv` covers 2026-05-01 .. 2026-07-09, so the rows
+dated 2026-05-01 and 2026-05-02 are read twice. Nine rows are affected. Eight are inert — six
+duplicated option closes that `parse()` already discards as unmatched, and two MOMO dividends on
+an excluded name — but the ninth is not:
+
+> `2026-05-02,-3400,Interactive Brokers,+100 TSCO (assigned) price: 34,STOCK,`
+
+`stock_tx` has no open/close matching to protect it, so **a phantom 100-share TSCO lot at 34
+enters inventory**. The proof that it is phantom rather than a second real assignment is
+internal: there is exactly **one** `-1 TSCO 01MAY26 34 P` open against **two** `(assigned)`
+closes, and `parse()` already drops the second close — so the option side and the stock side of
+the same event currently disagree, and the lot report duly lists `TSCO 100 @ 34.00` twice.
+
+**This moves published figures**, measured by patching the reader and re-running the ledger:
+
+| figure | today | deduplicated |
+|---|---|---|
+| lots behind B | 56 | 55 |
+| Track A on cost basis | +37.97% | **+38.11%** |
+| Track B economic | +19.52% | **+19.73%** |
+| same-names buy-and-hold | +24.29% | **+24.50%** |
+| selection | +25.01% | **+25.39%** |
+| overlay excess | −4.77% | −4.76% |
+| average capital, market | $137,970 | $137,512 |
+
+So the headline verdict is untouched — the overlay excess moves by a basis point — but four of the
+five figures IV-2 is due to quote move in the second decimal, and the depth census and open-lot
+list (20 → 19) move with them.
+
+**The fix rule matters: deduplicate across files, never within one.** A row appearing in two
+exports is one event seen twice; two identical rows inside a single export are two genuine fills
+(there is such a pair, `-1 GOTU 15AUG25 4 C`, on the same day at the same price). Watch the
+header row while doing it — both files carry the same one, and a naive whole-corpus dedupe eats
+the second file's header and with it the first data row behind it, which is an ACN lot. That
+mistake was made and caught while measuring the above.
+
+Do this **before** IV-2 is written, not after, so §14 is drafted against final numbers.
 
 ## Infrastructure and assembly
 
