@@ -708,6 +708,93 @@ def main():
           - STD.r * G25.gamma_p * strike(STD, "Q") / g["I"], 0.0, 0.003)
 
     # ------------------------------------------------------------------
+    # II-14's last requirement, and the only check in this file with teeth on
+    # the working-capital block: everything above is closed forms agreeing
+    # with each other, and uniform thinning makes most of that agreement
+    # structural.  Here blocking is real, the debit is a jump process, the
+    # barrier moves, and nothing was fitted.  It is a Monte Carlo, so it is
+    # small, seeded, and reported with the standard error its own paths carry;
+    # the full-size run is `wheel_sim.py --scenario constrained`.
+    print("--- Structural: the constrained simulator against the closed forms ---")
+    import wheel_sim as W
+    GS, LEV, EQ, YEARS, NP = 0.25, 2.0, 5.0, 30.0, 384
+    # The account is levered well past survivable on purpose.  At the
+    # survivable 1.13x the barrier is an 84% drawdown and P(liquidation) is a
+    # few parts in a thousand -- unmeasurable at any path count this file can
+    # afford -- while at L = 2 it is a 33% drawdown and the same machinery is
+    # exercised against a probability of order a half.
+    w_stat = STD.r + f["econ_excess"] - (STD.mu - STD.delta)
+    P_con = W.Params(delta=0.025, years=YEARS, paths=NP, seed=20260729,
+                     gamma_s=GS, equity=EQ, u_star=GS * LEV,
+                     draw="stationary", draw_frac=w_stat)
+    P_free = W.Params(delta=0.025, years=YEARS, paths=NP // 2, seed=20260729)
+    j_con, j_free = W.batch_jobs(P_con), W.batch_jobs(P_free)
+    out = pmap(W._batch, j_con + j_free)
+    con = W.merge_all(out[:len(j_con)])
+    free = W.merge_all(out[len(j_con):])
+
+    # The unconstrained limit, in the simulator this time: unlimited equity
+    # refuses nothing, borrows nothing and cannot be sold out.  II-3's
+    # regression guard, carried into the machinery that can actually break it.
+    check("unlimited equity refuses no put", free.blocked, 0, 0)
+    check("...and never reaches a barrier", len(free.t_liq), 0, 0)
+
+    # T_sat.  model.py reads it off the UNCONSTRAINED transient curve, so the
+    # simulator's matching object is the unlimited run's mean inventory
+    # reaching the same capacity -- not the constrained account, which starts
+    # refusing puts well before its mean gets there.
+    cap = LEV * EQ
+    check("T_sat: unlimited equity reaching capacity, years",
+          W._time_to_mean_inventory(free, P_free.cadence, cap),
+          time_to_inventory(STD, far_p, lam, cap), 1.0)
+
+    # The barrier itself.  `frozen` holds the book as it stood at the first
+    # refused put and lets the price alone move it, which is exactly what
+    # liquidation_prob computes -- so this compares a closed form against the
+    # same statement measured, through a ledger and a Brownian-bridge crossing
+    # test that share none of its machinery.
+    nu_sim = crit_p["nu"]
+    rows = W.survival_rows(con, nu_sim, STD.sigma, (5.0, 10.0, 20.0))
+    print(f"      {'H':>4} {'paths':>6} {'closed':>8} {'frozen':>8} {'live':>8}"
+          f" {'live-frozen':>12} {'frozen-closed':>16}")
+    for H, n, cl, st, dy, co, er in rows:
+        print(f"      {H:>3.0f}y {n:>6} {cl[0]:>8.4f} {st[0]:>8.4f} {dy[0]:>8.4f}"
+              f" {co[0]:>+8.4f} +-{co[1]:.4f} {er[0]:>+11.4f} +-{er[1]:.4f}")
+        if abs(er[0]) > 3 * er[1] + 1e-12:
+            FAILURES.append(f"frozen barrier disagrees with the closed form at {H}y")
+    print("PASS  the frozen barrier matches liquidation_prob within 3 s.e. "
+          "at every horizon")
+
+    # And the answer the item exists to produce: the live account is sold out
+    # MORE often than the frozen barrier says, and by a margin that grows with
+    # the horizon.  A frozen book de-levers as the price rises; an operator
+    # running a utilization rule buys instead, so the leverage that the closed
+    # form lets decay is held at the stopping rule indefinitely.  Pinned,
+    # because it is a result rather than an identity.
+    for (H, _, _, _, _, co, _), want in zip(rows, (0.0422, 0.0851, 0.2098)):
+        check(f"the wheel's own correction to survival at {H:.0f}y", co[0],
+              want, 0.03)
+        if co[0] <= 0:
+            FAILURES.append(f"the correction is not adverse at {H}y")
+    check("live-account liquidation by 20y at L = 2", rows[2][4][0], 0.6236,
+          0.05)
+    check("...against the closed form's", rows[2][2][0], 0.4312, 0.001)
+    # The mechanism is a ratchet: a price rise lets the operator sell more
+    # puts, so the debit grows with the book and the account never de-levers
+    # the way a frozen one does, while a price fall blocks and leaves it where
+    # it is.  It is visible as the drift of ln(M/D), which the closed form
+    # takes to be nu - g -- but it is only MEASURABLE where most paths
+    # survive, so the figure quoted for it is the prudent configuration's in
+    # `--scenario constrained`, not this run's.  Here the survivors are the
+    # price-up paths by construction.
+    #
+    # Uniform thinning is NOT checked here either.  At L = 2 most paths are
+    # liquidated inside the run, so every steady-state figure is conditioned
+    # on the price having risen, and a census read off it would be a
+    # survivorship artifact.  That measurement belongs to the prudent
+    # configuration, and it is `wheel_sim.py --scenario constrained`'s.
+
+    # ------------------------------------------------------------------
     if args.full:
         print("--- Stationary figures, Richardson-extrapolated (slow) ---")
         check("stationary E[T] (Standard, P), years", f["E[T]"], 2.10, 0.03)

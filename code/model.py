@@ -760,8 +760,23 @@ def time_to_inventory(C, occ, lam, target):
 # price move.  The wheel's own dynamics push both ways -- new assignments grow
 # the debit during exactly the declines that threaten the account, while
 # premium income and called-away lots repay it -- and the net sign is not
-# obvious a priori.  Settling it is the constrained simulator's job, not this
-# block's; these are the closed forms it will be checked against.
+# obvious a priori.
+#
+# It has now been settled, by `wheel_sim.py --scenario constrained`, and the
+# answer is that these formulas are RIGHT ABOUT WHAT THEY DESCRIBE and that
+# what they describe is not an operator.  Simulated with the book frozen as
+# the closed form freezes it, the barrier is reproduced at every horizon and
+# at probabilities from 1% to 47%, worst disagreement 1.6 standard errors.
+# Simulated with
+# the account allowed to go on selling puts under a utilization rule, the
+# same paths give a different number, because a frozen book DE-LEVERS as the
+# price rises while an operator buys instead: the barrier follows the price up
+# and does not follow it down.  The size of that gap is set by the cash
+# policy, and so is its sign -- at the running example, thirty years past
+# saturation, P(liquidation) runs 0.35% under full retention against a frozen
+# 0.92%, 3.95% under a draw that holds the account's size fixed, and 8.6%
+# under withdrawing the income.  Read these functions as the frozen case, and
+# the multiple as the operator's.
 # ----------------------------------------------------------------------
 
 def _log_ncdf(z):
@@ -875,8 +890,17 @@ def debit_growth(C, debit, income):
     Exact only when the net drain is proportional to the debit, which the two
     natural policies satisfy on the nose (g = 0, and g = r_b for an operator
     who withdraws income and lets the interest accrue).  For a fixed cash
-    draw it is a linearization around the current debit; the constrained
-    simulator is what says where that breaks.
+    draw it is a linearization around the current debit.
+
+    Where it breaks, measured (`wheel_sim.py --scenario constrained`): the
+    debit is not a smooth exponential but a jump process, grown by assignments
+    and repaid by call-aways, and the account's size is not fixed.  At the
+    running example the g = 0 policy realizes g = +0.8%/yr rather than 0 --
+    small -- while the g = r_b policy realizes +1.3% rather than +5.0%,
+    because withdrawing the income shrinks the account faster than the
+    interest compounds it.  The RANKING survives and the arithmetic does not:
+    the policy that pins g = r_b is still the one that gets liquidated, eight
+    times as often as the one that pins g = 0.
     """
     if C.draw is None:
         return 0.0
@@ -957,12 +981,24 @@ def max_leverage(C, measure, eps, gamma_s=None, g=0.0):
 # probability):
 #
 #  * UNIFORM THINNING.  The constrained steady state is taken to be the
-#    unconstrained stationary one scaled by lambda_eff/lambda.  Blocking in
-#    truth removes arrivals when the account is full, which is during
-#    drawdowns, so the constrained book is missing precisely the lots that
-#    would have been bought cheapest and its depth census is not the
-#    stationary census scaled.  Thinning gets the count right and the
-#    composition approximately.
+#    unconstrained stationary one scaled by lambda_eff/lambda.  Measured
+#    against a simulated control over the same sixty years, the count, the
+#    income and the implied E[W] all survive it to under 1%, so the income and
+#    RoE figures below rest on solid ground.  What bends is the composition,
+#    and only once the account is saturated: mean depth +5%, the deepest bin
+#    +3.8 points.  A blocked book is DEEPER than a thinned one, not shallower
+#    as the design discussion guessed, because the arrivals blocking refuses
+#    are the newest ones and a new lot is a shallow lot.
+#
+#    What is NOT a few per cent is the throughput, if the operator follows the
+#    cash policy these formulas assume.  A/A* is a statement about an account
+#    whose size is constant in SHARES; g = 0 holds the debit constant in
+#    DOLLARS, and a dollar-constant account shrinks against a compounding
+#    price.  Simulated, that halves the throughput -- 32% against the 60% this
+#    block reports at A = 11.59.  The frontier is the arithmetic of a
+#    stationary account; staying stationary costs a draw of about
+#    r + econ_excess - m, which is roughly half the "maximum sustainable"
+#    figure max_sustainable_draw reports.
 #  * THE PUT COLLATERAL IS LEFT OUT of capacity, of the barrier and of the
 #    financing ledger alike -- one exclusion, applied uniformly.  Capacity is
 #    a statement about shares.  The collateral against the one open put is
