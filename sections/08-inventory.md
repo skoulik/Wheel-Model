@@ -12,13 +12,11 @@ Lots arrive at a known rate and stay for a known average time. How much stock do
 
 Arrivals are one lot per put assigned, at rate
 
-λ  =  p\* / T  =  0.20 / (1/52)  =  **10.4 lots per year**
+λ  =  p\* / T  =  0.20 / (1/52)  =  **10.4 lots per year**    {#eq:lambda}
 
 and each stays E[W] = 2.10 years by [eq:holding](#eq:holding). So
 
-E[I]  =  λ · E[W]    {#eq:little}
-
-= 10.4 × 2.10 = **21.8 lots**.
+E[I]  =  λ · E[W]  =  10.4 × 2.10  =  **21.8 lots**    {#eq:little}
 
 Twenty-two lots. The strategy was described at the outset as one that sells puts and occasionally takes assignment; at equilibrium it is a strategy that owns twenty-two lots of stock and sells puts on the side. And it earned that inventory honestly: 10.4 assignments a year, each lingering two years, is twenty-two.
 

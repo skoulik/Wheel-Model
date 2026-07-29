@@ -772,6 +772,188 @@ def main():
           1 - 1 / quiet["L_max"], 0.348, 0.002)
 
     # ------------------------------------------------------------------
+    # Section 11's own numbers.  The blocks above check that the working-capital
+    # formulas agree with each other; this one checks that the PROSE quotes them
+    # correctly, which is a different failure mode and the one an article has.
+    #
+    # What is deliberately absent: every simulated figure section 11 quotes --
+    # the ratchet's 3.95% against 1.09%, the four cash policies, the census
+    # depths, the thinning table, realized leverage of 0.745 -- comes from
+    # `wheel_sim.py --scenario constrained --paths 4000`, which costs minutes
+    # rather than seconds.  The small seeded run below pins the same machinery
+    # at a configuration this file can afford; the section's figures are the
+    # scenario's and are cited as such in the text.
+    print("--- Section 11: the constrained wheel ---")
+
+    # The stopping rule, and the A* table's two columns.  The point of the
+    # table is the gap between them, so the gap is checked rather than implied.
+    check("the stopping rule u* = gamma_s*L_max, quoted as 0.28",
+          survival_utilization(G25, "P", 0.10), 0.2837, 0.0005)
+    ASTAR = [(1.00, 21.82, 21.82), (0.50, 10.91, 20.10),
+             (0.25, 5.46, 19.23), (0.15, 3.27, 18.88)]
+    for gs, implied, want in ASTAR:
+        Cg = Config(p_star=0.20, gamma_s=gs)
+        check(f"A* at gamma_s = {gs:.2f}", I_inf / max_leverage(Cg, "P", 0.10),
+              want, 0.02)
+        check(f"...against the {gs:.2f} ceiling's implied equity gamma_s*E[I]",
+              gs * I_inf, implied, 0.01)
+    check("the broker's permission is off by this factor at gamma_s = 0.15",
+          (I_inf / max_leverage(Config(p_star=0.20, gamma_s=0.15), "P", 0.10))
+          / (0.15 * I_inf), 5.8, 0.05)
+    check("...and correctly risked it buys a 12% discount on equity required",
+          1 - A_star / I_inf, 0.119, 0.002)
+
+    # Income is proportional to L_max*A/E[W].  The wrong reading prices capacity
+    # at the broker's ceiling A/gamma_s, and the section quotes what that costs.
+    for gs, want in ((0.50, 1.8), (0.25, 3.5), (0.15, 5.8)):
+        Cg = Config(p_star=0.20, gamma_s=gs)
+        check(f"overstatement of income at gamma_s = {gs:.2f} if capacity is "
+              f"read off the ceiling", 1 / (gs * max_leverage(Cg, "P", 0.10)),
+              want, 0.05)
+    check("what portfolio margin is actually worth in income, over fully paid",
+          max_leverage(G25, "P", 0.10) - 1.0, 0.13, 0.005)
+
+    # The frontier table, every column the section prints.
+    FRONT = [(1.00, 1.13, 0.052, 0.1), (3.00, 3.40, 0.156, 0.9),
+             (5.00, 5.67, 0.260, 2.4), (11.59, 13.15, 0.603, 18.5),
+             (15.00, 17.02, 0.780, 44.4), (19.04, 21.61, 0.990, 270.0)]
+    for A, cap, thr, tsat in FRONT:
+        s = saturation(G25, "P", far_p, 0.10, equity=A, econ=f)
+        check(f"capacity at A = {A}", s["capacity"], cap, 0.01)
+        check(f"throughput at A = {A}", s["throughput"], thr, 0.001)
+        check(f"T_sat at A = {A}", s["T_sat"], tsat, max(0.1, 0.02 * tsat))
+    # Integer lots at A = 5: capacity 5.67 means the book stops at 5 and the
+    # account never borrows, which is why its permitted leverage is unreachable.
+    check("the levered capacity a 5-lot account cannot use",
+          saturation(G25, "P", far_p, 0.10, equity=5.0, econ=f)["capacity"],
+          5.67, 0.01)
+
+    # The draw ladder at A = 11.59: the section's claim is that the last two
+    # rows move in opposite directions, so both rows are pinned at every rung.
+    LADDER = [(1.0000, 0.0000, 0.0000, 0.0463, 0.01675),
+              (1.0192, 0.0251, 0.0100, 0.0465, 0.01707),
+              (1.1349, 0.1585, 0.1000, 0.0458, 0.01900),
+              (1.2500, 0.2667, 0.1916, 0.0430, 0.02093),
+              (1.5000, 0.4444, 0.3629, 0.0286, 0.02512),
+              (1.8829, 0.6252, 0.5559, -0.0214, 0.03153)]
+    # The draw is NOT monotone at the bottom of the ladder: from L = 1 to
+    # L = 1.0192 it rises by 2bp, because a barrier that far away (f* = 0.025,
+    # a 97.5% drawdown) tolerates a debit that GROWS at 1.25%/yr, which is worth
+    # slightly more than the interest on the tiny debit costs.  So the claim the
+    # section makes -- and the one checked here -- is that the draw is flat to
+    # within a few basis points as far as the survivable leverage and collapses
+    # past it, while the reported return rises the whole way.
+    prev_roe = -1.0
+    for L, fstar, pliq, draw_frac, roe in LADDER:
+        s = saturation(G25, "P", far_p, 0.10, equity=11.59, L_max=L, econ=f)
+        check(f"barrier at L = {L:.4f}", liquidation_barrier(L, 0.25), fstar, 0.0005)
+        check(f"P(sold out, ever) at L = {L:.4f}",
+              liquidation_prob(G25, "P", L), pliq, 0.0005)
+        check(f"sustainable draw at L = {L:.4f}, as a fraction of equity",
+              s["draw"] / 11.59, draw_frac, 0.0005)
+        check(f"excess return on equity at L = {L:.4f}", s["roe_excess"],
+              roe, 0.0005)
+        if s["roe_excess"] <= prev_roe:
+            FAILURES.append(f"RoE does not rise with leverage at L = {L}")
+        prev_roe = s["roe_excess"]
+    flat = [saturation(G25, "P", far_p, 0.10, equity=11.59, L_max=L,
+                       econ=f)["draw"] / 11.59 for L in (1.0, 1.0192, 1.1349)]
+    if max(flat) - min(flat) > 0.001:
+        FAILURES.append("the draw is not flat up to the survivable leverage")
+    steep = [saturation(G25, "P", far_p, 0.10, equity=11.59, L_max=L,
+                        econ=f)["draw"] / 11.59 for L in (1.1349, 1.25, 1.5, 1.8829)]
+    if not all(b < a for a, b in zip(steep, steep[1:])) or steep[-1] >= 0:
+        FAILURES.append("the draw does not collapse through zero past L_max")
+    print("PASS  up the leverage ladder the reported return rises the whole "
+          "way while the cash that may be drawn is flat, then falls through zero")
+
+    # ...and it is flat along the OTHER axis, which is the tautology that makes
+    # the frontier's A column constant: g_max solves the equation L_max was
+    # solved from, so wherever the stopping rule binds it returns g = 0.
+    for A in (1.0, 5.0, 11.59, 19.0):
+        s = saturation(G25, "P", far_p, 0.10, equity=A, econ=f)
+        check(f"draw is a flat 4.58% of equity at A = {A}", s["draw"] / A,
+              0.0458, 0.0002)
+
+    # Two quantities both called sustainable, a factor of two apart.  The draw
+    # that keeps the account stationary in SHARES is derived, not tuned.
+    check("the draw that holds the account's size, r + excess - m",
+          STD.r + f["econ_excess"] - (STD.mu - STD.delta), 0.0212, 0.0005)
+
+    # The untended account's destination is the strategy's own demand, not the
+    # broker's ceiling: the wheel has nothing to buy with the rest of the money.
+    check("the leverage an untended account drifts to at A = 11.59",
+          I_inf / 11.59, 1.883, 0.001)
+    if not I_inf / 11.59 < 1.0 / G25.gamma_s:
+        FAILURES.append("the strategy's own demand exceeds the broker's ceiling")
+
+    # The capacity derivative, as an identity rather than an example: capacity
+    # in lots is I/gamma_s + C/(gamma_s*S), so it rises as the price falls for a
+    # net creditor and falls for a net debtor -- and it meets the book exactly
+    # at the maintenance requirement, which is what a margin call is.
+    for I_lots, C, S in ((10.0, 3.0, 1.0), (10.0, -3.0, 1.0), (10.0, 0.0, 1.0)):
+        for S_new in (0.7, 1.0, 1.4):
+            cap_direct = (C + I_lots * S_new) / (0.25 * S_new)
+            cap_formula = I_lots / 0.25 + C / (0.25 * S_new)
+            if abs(cap_direct - cap_formula) > 1e-12:
+                FAILURES.append("the capacity decomposition does not hold")
+        rising = ((C + I_lots * 0.7) / (0.25 * 0.7)
+                  > (C + I_lots * 1.4) / (0.25 * 1.4))
+        if rising != (C > 0):
+            FAILURES.append(f"capacity moves the wrong way with the price at C={C}")
+    # The margin call is capacity falling to meet the book: I_max = I exactly
+    # when equity = gamma_s*I*S.  Solve for the price and it is the barrier.
+    I_lots, D = 10.0, 3.0
+    S_call = D / (I_lots * (1 - 0.25))
+    check("capacity meets the book exactly at the liquidation barrier",
+          S_call, liquidation_barrier(I_lots / (I_lots - D), 0.25), 1e-12)
+    print("PASS  capacity in lots rises with a falling price for a net creditor "
+          "and falls to meet the book for a net debtor")
+
+    # Section 11's sweep figures.  The structural block pinned the cheap cell;
+    # these are the ones the prose quotes, including the expensive one that
+    # carries the whole "A* is a function of the stock" argument.  Six cells,
+    # each its own stationary solve, so they go out together rather than one
+    # after another -- serially they are half this script's runtime.
+    loud, lo, hi, mu10, mu13, dead = pmap(
+        model._sweep_job,
+        [(Config(sigma=0.25), "P", 19.23, 0.25, 0.10),
+         (Config(sigma=0.195), "P", 19.23, 0.25, 0.10),
+         (Config(sigma=0.205), "P", 19.23, 0.25, 0.10),
+         (Config(mu=0.10), "P", 19.23, 0.25, 0.10),
+         (Config(mu=0.13), "P", 19.23, 0.25, 0.10),
+         (Config(mu=0.04), "P", 19.23, 0.25, 0.10)])
+    check("A* at sigma = 25%", loud["A*"], 48.97, 0.05)
+    check("...E[W] there", loud["E[W]"], 4.73, 0.02)
+    check("...what an account sized for the running example retains",
+          loud["throughput"], 0.393, 0.003)
+    check("...and how long it takes to find out", loud["T_sat"], 29.9, 0.3)
+    check("...where survivable leverage has collapsed to nearly nothing",
+          1 - 1 / loud["L_max"], 0.004, 0.001)
+    check("the ratio in equity required between a 20-vol and a 25-vol stock",
+          loud["A*"] / A_star, 2.5, 0.05)
+    # The elasticity is LOCAL, and the local value is not the secant out to
+    # sigma = 25% (4.19), which is what makes the sensitivity worse as
+    # volatility rises rather than constant.  Both are quoted, so both are here.
+    check("d ln A* / d ln sigma at the running example",
+          log(hi["A*"] / lo["A*"]) / log(0.205 / 0.195), 3.46, 0.05)
+    check("...against the secant out to sigma = 25%",
+          log(loud["A*"] / A_star) / log(0.25 / 0.20), 4.19, 0.05)
+    for cell, mu, want in ((mu10, 0.10, 6.81), (mu13, 0.13, 3.74)):
+        check(f"A* at mu = {mu:.0%}", cell["A*"], want, 0.02)
+    if dead["count_ok"]:
+        FAILURES.append("mu = 4% should have no stationary anything")
+    print("PASS  at mu = 4% there is no A* at all (nu <= 0: lots never return)")
+
+    # The Q-world pair.  Its leverage half is pinned in the barrier block; what
+    # section 11 adds is the capacity half, which is the one that reads as an
+    # absurdity: the pricing measure asks for five times the equity.
+    q_sat = saturation(G25, "Q", far_q, 0.10, equity=1.0, econ=g)
+    check("Q-world A*, the equity the pricing measure demands", q_sat["A*"],
+          93.65, 0.05)
+    check("...on a mean holding time of", g["E[T]"], 9.01, 0.02)
+
+    # ------------------------------------------------------------------
     # II-14's last requirement, and the only check in this file with teeth on
     # the working-capital block: everything above is closed forms agreeing
     # with each other, and uniform thinning makes most of that agreement

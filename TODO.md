@@ -11,20 +11,21 @@ should be added only when the text genuinely defers something.
 
 ## Where things stand
 
-Twelve of the seventeen planned files exist. Part I is written; **Part II was reopened on
-2026-07-29** for the working-capital reframe, which adds a section to it; **Part III and Part IV
-are unwritten**, and between them they remain the bulk of what is left.
+Thirteen of the seventeen planned files exist. Part I is written; **Part II was reopened on
+2026-07-29** for the working-capital reframe, whose new §11 landed the same day, leaving four
+prose edits to existing sections; **Part III and Part IV are unwritten**, and between them they
+remain the bulk of what is left.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | written, and **reopened**: II-10…II-16 below; 11 does not exist |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | all seven written; four edits outstanding (II-10, II-11, II-12, II-16) |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14, 15 do not exist**; outlook is a stub, currently on disk as `15-outlook.md` |
 
-Part III and Part IV shift by one because of the new §11. Anchors are name-based, so no
-cross-reference breaks and only filenames move; the renumbering is deferred until Part III drafts,
-per II-13.
+Part III and Part IV shift by one because of §11. Anchors are name-based, so no cross-reference
+breaks and only filenames move; the renumbering is deferred until Part III drafts, and the note
+recording that decision now lives in the Part III preamble below.
 
 Five existing sections already link to anchors in the missing files — `sec:portfolio`,
 `sec:verification` and `sec:live` are referenced from 00, 04, 07, 08 and 09 — so those
@@ -170,8 +171,11 @@ over σ, μ, p\*, n and T, each of which re-solves the walk; the write-up is in 
 - **the parameters sort into two kinds.** The dials an operator chooses move A\* proportionally —
   exactly as 1/T along the cadence, nearly as λ along p\*, sub-linearly in n. The two they only
   estimate do not: A\* runs **7.97 / 19.23 / 48.97 / >126** across σ = 15/20/25/28% and diverges at
-  30%, and **3.74 / 6.81 / 19.23 / none** down μ = 13/10/7/4%. Elasticity to σ is **4.2**, so a 1%
-  relative error in the volatility estimate is a 4% error in the equity required;
+  30%, and **3.74 / 6.81 / 19.23 / none** down μ = 13/10/7/4%. Local elasticity to σ is **3.5**, so a
+  1% relative error in the volatility estimate is a 3.5% error in the equity required — and it
+  *rises* with volatility, averaging 4.2 over the 20% → 25% move (corrected by II-13, 2026-07-29;
+  the 4.2 originally recorded here is that secant, not the derivative — see the amendment in
+  [`DONE.md`](DONE.md));
 - **the effect compounds**, because survivable leverage collapses toward 1 exactly where inventory
   demand explodes: the equity discount the broker's permission buys is **35% at σ = 15%, 12% at
   20%, 0.4% at 25%**;
@@ -266,93 +270,19 @@ compounds the debit; the boundary is crossed by rather less than the factor of t
 suggests, and it is crossed nonetheless. Write ν > g as the criterion and the ranking as the
 evidence; do not quote g = r_b as a measured rate.
 
-**II-13. New section, the constrained wheel** (`sections/11-constrained.md`, `{#sec:constrained}`).
-The whole survival and steady-state analysis in one place, so the existing tables keep their
-unconstrained base case with a stated qualifier instead of doubling in width. **Its symbols and
-its twelve numbered displays are already fixed** by II-8 in [`00-notation.md`](sections/00-notation.md),
-five of them named to match the tags in `model.py`; the section is written against that list, not
-alongside it. It owes:
+**II-13 (§11, the constrained wheel) was resolved on 2026-07-29**, and **II-14 completed with
+it**; both write-ups are in [`DONE.md`](DONE.md). `sections/11-constrained.md` carries all twelve
+displays II-8 registered, and `verify_examples.py` gained the matching `--- Section 11 ---` block
+(8.6 s → 11.2 s). Three things it hands the four prose items still open:
 
-- Little's law **run backwards** — inventory pinned by capacity, so the arrival rate becomes the
-  output, λ_eff = capacity / E[W]. The binding resource is capital and the thing that consumes
-  capital is holding time, which makes [the holding-time section](#sec:holding)'s 2.1 years the
-  economically load-bearing number in the article rather than merely its most surprising one.
-  **But the stated proportionality income ∝ A/(γ_s·E[W]) is wrong and must not be written**
-  (measured 2026-07-29): it prices capacity at the *broker's* ceiling A/γ_s, and survivable
-  capacity is L_max·A, not A/γ_s. The correct form is **income ∝ L_max(γ_s, ε)·A / E[W]**, and
-  since L_max runs 1.00–1.16 the naive version overstates γ_s's contribution by **1.8× / 3.5× /
-  5.8×** at γ_s = 0.50 / 0.25 / 0.15. Written the wrong way it would say a portfolio-margin
-  account earns four times a cash account's income on the same equity. It earns 13% more.
-  **Checked by II-6** (2026-07-29) and it needs no correction: E[W] in that denominator survives
-  blocking to **+0.7%**, and inventory and income to +0.7% and +0.4%, measured against a simulated
-  unconstrained control at the same horizon. The proportionality can be written as it stands;
-- **A\*, the equity a wheel actually needs, which is the sharpest form of the result.** Throughput
-  stops being lost at A\* = E[I(∞)]/L_max: **21.82 lots unlevered, 19.23 at portfolio margin,
-  18.88 at the most aggressive margin available**, against a broker's ceiling that would claim
-  3.27. So the broker's permission is **5.8× off the binding constraint**, and correctly risked,
-  the whole of that permission buys a **12% discount on required equity**. Capacity comes from
-  equity; leverage is nearly irrelevant to it. Below A\* the loss is severe and slow: an account
-  sized at the model's own 30-year capital (11.59) runs at **60% throughput** and takes **18.5
-  years** to get there, and T_sat then explodes — 44y at 78%, 254y at 98.8%, never at A\*.
-  **Swept 2026-07-29 (II-7), and every figure in that bullet is a figure about one stock.** A\*
-  moves by an order of magnitude across a plausible range of σ and μ and diverges at a finite
-  boundary, so §11 must present A\* as *a function of the stock* and not as a number — and the
-  12% discount is itself the most stock-specific quantity of the lot, running **35% at σ = 15%
-  and 0.4% at 25%** because survivable leverage collapses toward 1 exactly where inventory demand
-  explodes. Whatever else the section says about leverage, it cannot say it once;
-- the account **migrating to its own boundary**: a mechanical put-selling rule with no
-  withdrawals converts the broker's permission into actual leverage without the operator ever
-  deciding to lever, so the untended steady state is the state of maximum fragility, and the
-  stopping rule is mandatory rather than prudent. **Simulated 2026-07-29, and the migration is not
-  a one-way trip to a destination but a ratchet.** The account returns to its stopping rule after
-  every recovery, because a price rise raises equity and the rule then permits another put, while
-  a price fall merely blocks. So the barrier follows the price up and not down, and the closed
-  form's de-levering — which is the whole of its comfort — never happens. That is why the live
-  account is liquidated 3.6× as often as the frozen one at the *same* leverage, and it is the
-  cleanest statement of what a static barrier gets wrong. **Also measured, and the destination
-  itself is not the broker's ceiling.** The drift stops at the strategy's own demand, E[I(∞)]/A = **1.883**
-  at A = 11.59 — the permitted 4.00 is unreachable because the wheel has nothing to buy with the
-  money. The pairing to write is that at 1.883 the **excess return on equity reads higher, 3.15%
-  against 1.68% unlevered, while the sustainable draw has gone to −2.14% of equity**: a demand for
-  deposits. Return on paper and cash in hand move in opposite directions, and only one is
-  spendable. That is also the answer to "why is the stopping rule mandatory" — not because the
-  drifted state loses money on the page, but because it cannot be drawn on;
-- the **capacity derivative** — capacity in lots is A/(γ_s·S) with A marked to market, so as S
-  falls an unlevered account's capacity *rises* while a levered account's falls and crosses zero;
-- the **selectively distorted census** — **measured 2026-07-29, and this bullet had the sign
-  backwards**. The claim was that blocking removes arrivals during drawdowns, so constrained
-  inventory is missing precisely the lots that would have been bought cheapest, and the book is
-  therefore shallower. It is **deeper**: +5.3% on mean depth after saturation against a simulated
-  unconstrained control at the same horizon (0.5174 against 0.4916), with the deepest bin's share
-  up 3.8 points, and the effect washes out to −1% once the unblocked fill-up years are averaged
-  in — so it is a saturated-regime statement. What blocking removes
-  is the *newest* arrivals, and a new lot is a shallow lot; and for a near-unlevered account
-  capacity in lots *rises* as the price falls, so blocking is if anything less likely during a
-  drawdown, not more. Write the effect, the corrected sign, and the reason the intuition failed —
-  it is a good illustration of the capacity derivative two bullets down;
-- the **Q-world matched pair**, which **came out** (II-4, 2026-07-29): the leverage carrying a 10%
-  eventual-liquidation risk in the real world carries **63.1%** under the pricing measure, and
-  Q-world L_max at ε = 10% is 1.00008 — no leverage at all. The market prices this stock as one
-  whose levered wheel is liquidated, alongside [the stability section](#sec:stability)'s "prices it
-  as one whose inventory never clears". The machinery passes its own test;
-- **θ read twice**, which is the cleanest thing the reframe turned up: first passage to the
-  liquidation barrier is governed by the same 2ν/σ² as the census tail, so the constant that says
-  whether expected capital converges also says whether a levered account survives. State it as a
-  result, not as a convenience.
-
-Two results to report **as they come out**, agreed before seeing them. The first still stands: the
-reachable steady states may be small enough that the strategy is barely running, which is a
-legitimate negative result and is not to be softened into a range. **The second is now measured,
-and the guess was too generous** (II-4, 2026-07-29). γ_s barely matters — survivable leverage at
-ε = 10% runs **1.0000 / 1.0861 / 1.1349 / 1.1557** across γ_s = 1.00 / 0.50 / 0.25 / 0.15 against
-broker ceilings of 1 / 2 / 4 / 6.67, so the usable fraction of the broker's permission *falls*
-from 100% to 54% to 28% to 17%. Survivable leverage lands near 1.1–1.2× **total**, not 1.1–1.2×
-what the broker allows: the binding limit is near-independent of the permission, and the gap
-widens the more generous the broker is. That is the form the swept parameter earns its place in.
-
-**File numbering is deferred.** The new section takes 11, so Part III moves to 12/13 and Part IV
-to 14/15/16. Anchors are name-based, so nothing cross-referential breaks and only filenames move;
-make the decision when Part III drafts rather than renumbering twice.
+- **the elasticity of A\* to σ is 3.5, not the 4.2 recorded by II-7** — that figure is the secant
+  out to σ = 25% rather than the local derivative. Corrected above and in III-1, with an
+  `**Amended:**` note on II-7 in [`DONE.md`](DONE.md). Anything quoting it must say which it means;
+- **the sustainable draw is not monotone in leverage**: it rises 2bp from L = 1.0000 to 1.0192
+  before collapsing, so “falls, then goes negative” is wrong and “flat as far as survivable
+  leverage, then collapses through zero” is right;
+- **§11 does not display `eq:account-criterion`** — §00 assigns it to §10, so it remains II-12's to
+  write. §11 states ν > g inline and points at [the stability section](#sec:stability).
 
 **II-16. §02 introduction** (raised 2026-07-29, when II-8 landed). The contributions list runs to
 seven items and **none of them is the constrained account**, though the reframe added a whole
@@ -379,105 +309,20 @@ editing the list twice.
 
 ### Verification
 
-**II-14. Extend `verify_examples.py`.** Its own section, on the standing discipline. Three of the
-four are in, under the structural headings (II-4 and II-5, 2026-07-29): the **γ_s = 1.0
-regression** — which must go on holding at every later step, not just today, and which II-5
-widened to the unconstrained limit A = ∞ — the **T → ∞ collapse** of the finite-horizon first
-passage onto f\*^θ, alongside the L_max round trip, the f\* = 1 recovery of the broker's ceiling
-and the Q-world pair; and the **Q-world identity extended to the constrained case**, which holds
-to within 1 bp: at m = r − δ with r_b = r, a blocked, levered wheel earns exactly r on equity less
-the withholding leak, at every γ_s and every account size. Note what that last one does *not*
-test: uniform thinning makes every rate invariant to A and γ_s by construction, so the
-independence is structural and only the **level** is evidence. The version with teeth is the
-simulator's, where blocking is real.
-
-**The fourth landed with II-6 (2026-07-29), and this item is now complete.** A seeded 384-path
-constrained run plus a 192-path unconstrained control, inside `verify_examples.py` at a cost of
-2.2 s: the unconstrained limit (no put refused, no barrier reached), **T_sat** against
-`time_to_inventory`, the **frozen barrier** against `liquidation_prob` to within 3 s.e. at every
-horizon, and the live-versus-frozen correction pinned as a regression. Uniform thinning is
-deliberately *not* pinned there — at the levered configuration the run needs, most paths are
-liquidated inside it, so a census read off the survivors would be a survivorship artifact. It is
-measured instead by `wheel_sim.py --scenario constrained` at the prudent configuration.
-
-**II-7 added a fifth structural block on 2026-07-29** (6.5 s → 8.6 s): the exact 1/T identity in
-A\*, the running example's insensitivity to the period cap, both verdicts of the tail converger,
-the refusal of the ν = 0 cell, and one pinned sweep cell at σ = 15%.
-
-What remains for II-14 is only what §11 will need when it is written: **section-level** checks
-against the prose, which is II-13's to specify.
+**II-14 (extending `verify_examples.py`) was resolved on 2026-07-29**; the write-up is spread over
+the II-4, II-5, II-6, II-7 and II-13 entries in [`DONE.md`](DONE.md). The standing discipline it
+encodes does not close with it: every number a section quotes gets a check under that section's
+heading, and INF-2 carries the same requirement into Parts III and IV.
 
 **II-15 (the cash drawing rate) was resolved on 2026-07-29**; the write-up is in
 [`DONE.md`](DONE.md). `Config.draw`, `debit_growth()` and a `g` argument on `liquidation_prob` and
 `max_leverage`; a cash policy enters survival only as ν → ν − g, verified against a 400,000-path
 Monte Carlo carrying the debit and the book as separate objects. The consequences are folded into
-II-5, II-6 and II-12 below. What follows is the derivation, kept here only until §11 carries it.
+II-5, II-6 and II-12. The derivation it carried here for II-13 to lift has been lifted: [the
+constrained section](sections/11-constrained.md) now owns it, under "What the operator does with
+the cash".
 
-<details><summary>Derivation, for II-13 to lift</summary>
-
-**It enters as a shift in the drift, and every closed form of II-4 carries over unchanged.**
-Liquidation is a statement about the ratio of debit to market value, R = D/M. With inventory pinned
-at capacity, M moves only with the price, so ln M has drift ν and volatility σ; the debit compounds
-at the borrowing rate and is fed by the net cash drain, so ln D has drift
-
-    g  =  r_b + (draw − y)/D,
-
-y being the strategy's cash income. Then ln R is a Brownian motion with drift **g − ν** and
-volatility σ, started at ln(1 − 1/L) and absorbed at ln(1 − γ_s) — the same barrier, the same
-distance a = −ln f\*, the same reflection formula. Only the exponent changes:
-
-    θ_eff  =  2(ν − g) / σ².
-
-So `first_passage_prob`, `liquidation_prob` and `max_leverage` need no new machinery at all; they
-need ν − g where they currently read ν.
-
-**What that immediately reveals — the current static barrier is a policy, not an assumption.**
-g = 0 holds exactly when draw = y − r_b·D: the operator **services the interest and withdraws the
-rest**. That is a perfectly sensible operating rule, and II-4's numbers are its numbers. Two
-neighbours bracket it, and they are far apart:
-
-- **Withdraw everything, interest included** (draw = y): g = r_b exactly, so ν_eff = ν − r_b =
-  2.5% − 5% = **−2.5% < 0, and liquidation becomes certain at any leverage whatever.** The debt
-  compounds at 5% while the price's median growth is 2.5%; it is a race the borrower loses. Only
-  the dividend closes the gap, and a withdrawn dividend does not service a loan.
-- **Retain everything** (draw = 0): at the running example's saturated account — capacity 13.15
-  lots on A = 11.59, so a debit of **1.56** — the unconstrained 30-year income of **0.772/yr** is
-  half the debit again, ν_eff is strongly positive and liquidation becomes negligible. (The
-  *constrained* income is not that figure and is not a scaling of it: blocking cuts put premium
-  while the larger inventory raises call premium and dividends. It is II-6's to produce, and this
-  bullet's claim needs only the order of magnitude, which no plausible correction moves.)
-
-  **Produced 2026-07-29**, and the caution was right and the order of magnitude held: constrained
-  income runs **0.590/yr** against a thinned control's 0.647, a −8.7% correction rather than a
-  scaling. Retention is indeed the safe policy — **0.35%** eventual liquidation against a *frozen*
-  barrier's 0.92%, the only policy measured that comes out safer than the closed form.
-
-So the survival of a levered wheel turns almost entirely on **whether income is retained to service
-the debt** — a lever that is currently invisible in the model, and one an operator actually
-controls, unlike γ_s. **Confirmed by simulation** (II-6): across the four cash policies, eventual
-liquidation runs 0.35% / 1.11% / 3.95% / 8.64% while the frozen barrier reads 0.78–1.09% for all
-four. The cash policy moves survival by a factor of twenty-five; the barrier formula does not see
-it at all.
-
-**Three further reasons it earns its place.** It gives II-12's third failure mode a criterion in
-the same currency as the other two — lots return iff ν > 0, their capital returns iff m > σ², the
-**account survives iff ν > g**. It makes `r_b` and `fin_spread` (added in II-3, so far declared and
-unconsumed) do real work. And it converts the open question II-6 was left holding — which way the
-debit drifts under blocked arrivals — from an unknown into a parameter, with the simulator
-measuring where the linearization breaks rather than what the answer is.
-
-**Costs, stated honestly.** g is constant only when the net drain is proportional to the debit,
-which the two policies above satisfy *exactly* (g = 0 and g = r_b) and a fixed-dollar withdrawal
-does not — for that it is a linearization around the current debit, and II-6 is the check. Income y
-is likewise only steady once the account is saturated, which is the regime that matters but is not
-the whole path. And the parameter invites "what is the optimal withdrawal rate", which is a control
-problem the article does not want: it must be posed as **the maximum sustainable draw**, a
-constraint, not an optimization.
-
-**The default is g = 0** — the interest-servicing policy, derived — and not draw = 0, which is a
-*different* policy and would have moved every current figure. Agreed 2026-07-29.
-
-</details>
+## Part III — Many assets
 
 Neither file exists. This is Stage 3 of the restructure and the largest single block of
 remaining work. Both sections have their inputs already measured or already derived; what is
@@ -506,8 +351,9 @@ Part III drafts.
   **Quantified 2026-07-29 (II-7), and the warning has a second half that is worse than the
   first.** The mistake is not only that demand is bursty *around* its mean: the mean itself is a
   near-singular function of two parameters nobody knows exactly. A\* runs **7.97 / 19.23 / 48.97
-  / >126** across σ = 15/20/25/28% and diverges at 30%, an elasticity of **4.2** — a 1% relative
-  error in the volatility estimate is a 4% error in the equity required — while the dials the
+  / >126** across σ = 15/20/25/28% and diverges at 30%, a local elasticity of **3.5** rising to a
+  4.2 secant by σ = 25% — a 1% relative error in the volatility estimate is a 3.5% error in the
+  equity required, and the sensitivity worsens as volatility rises — while the dials the
   operator actually chooses (p\*, the cadence, n) move it proportionally and predictably. Sized
   for the running example and run on a σ = 25% stock, an account retains **39.3% throughput**.
   Both halves belong in this subsection: the distribution around the mean, and the fragility of

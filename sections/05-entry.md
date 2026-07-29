@@ -65,7 +65,7 @@ One thing the dial does *not* account for, and it belongs here so it is not mist
 
 Assignment tells us the stock finished below the strike; it does not say by how much, and that overshoot is what the lot must climb back out of. The quantity has a name here — the lot's **depth** — and its behaviour over time is the subject of everything that follows. At the moment of assignment,
 
-x₀  =  ln( K_c / S )  >  0,
+x₀  =  ln( K_c / S )  >  0    {#eq:x0-def}
 
 the log-distance from the price paid to the price the market is offering. Since the log price is normally distributed and assignment is precisely the event that it finished below ln k, the entry depth is a **truncated normal** — the tail of a bell curve, cut at zero and flipped around.
 

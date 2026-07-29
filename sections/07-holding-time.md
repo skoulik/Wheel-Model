@@ -55,7 +55,7 @@ This is also the point at which a track record will mislead its owner, and the l
 
 Siegmund's correction also gives a usable closed form. Treating the entry depth as a hole of size E[x₀] deepened by the grid tax, and dividing by the rate at which drift works it off,
 
-E[W]  ≈  ( E[x₀] + β·σ·√τ_c ) / ν  =  (0.0155 + 0.0323) / 0.025  =  **1.9 years**
+E[W]  ≈  ( E[x₀] + β·σ·√τ_c ) / ν  =  (0.0155 + 0.0323) / 0.025  =  **1.9 years**    {#eq:holding-siegmund}
 
 which lands 9% below the exact 2.10 and is the right formula to reason with. Every term is legible: the hole, the grid tax, and the drift that has to fill it. It also makes plain why the answer is so large — the numerator is dominated by a term that has nothing to do with how deep the assignment was, and the denominator is the small difference of three quantities of similar size.
 

@@ -54,9 +54,7 @@ Add all three and something striking happens:
 
 E[Π]  =  Track A income  +  E[I]·m  −  (mark loss)  −  (upside surrendered)    {#eq:econ-pnl}
 
-**True excess return  =  ( E[Π] − r · E[Capital] ) / E[Capital]**    {#eq:excess}
-
-= (0.7655 − 0.05 × 11.591) / 11.591 = **+1.60% per year**.
+**True excess return  =  ( E[Π] − r · E[Capital] ) / E[Capital]  =  (0.7655 − 0.05 × 11.591) / 11.591  =  +1.60% per year**    {#eq:excess}
 
 ## The two ledgers, side by side
 

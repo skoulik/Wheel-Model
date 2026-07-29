@@ -6,7 +6,7 @@ A lot has entered inventory. From here on the operator's situation is entirely d
 
 When a lot is assigned, its call strike is frozen at the price that was paid for it. The market then moves; the strike does not. Everything the operator will experience with that lot — how much premium its calls fetch, how likely it is to be called away, how long its capital stays committed — depends on one quantity, the gap between the frozen strike and the current price:
 
-**x  =  ln( K_c / S )**
+x  =  ln( K_c / S )    {#eq:depth-def}
 
 Positive x means the stock is below the strike and the lot is stuck; x = 0 means the stock has climbed back to the strike and the lot leaves. Call it the lot's **depth**.
 

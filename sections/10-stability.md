@@ -18,7 +18,7 @@ Counting lots is not counting money, as [the inventory section](#sec:inventory) 
 
 Follow one surviving lot for a call period. Its depth moves by −ν·τ_c + σ·√τ_c·Z, so its basis-to-price ratio is multiplied by e^(−ν·τ_c + σ·√τ_c·Z), whose expectation is
 
-E[ multiplier ]  =  e^( (σ² − m) · τ_c ).
+E[ multiplier ]  =  e^( (σ² − m) · τ_c )    {#eq:basis-multiplier}
 
 The lot's relative basis shrinks in expectation only if σ² < m. Equivalently — and this is the version worth remembering — the operator's capital is denominated in shares while their commitment is denominated in dollars paid, so what has to decay is E[1/S]. For a lognormal price that decays exactly when
 
@@ -26,7 +26,7 @@ The lot's relative basis shrinks in expectation only if σ² < m. Equivalently �
 
 The same condition appears from the other end. The depth census of [eq:census](#eq:census) has an exponentially decaying tail, ρ(x) ~ e^(−θ·x), with
 
-θ  =  2ν / σ²,
+θ  =  2ν / σ²    {#eq:theta}
 
 and capital integrates e^x against that census. The integral converges only if θ > 1 — which is [eq:capital-criterion](#eq:capital-criterion) again. The tail exponent is the single most informative number about a configuration of this strategy: it says how fast the deep strata thin out, and whether the money in them is bounded.
 
