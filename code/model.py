@@ -858,6 +858,8 @@ def leverage(C, u=None):
     ceiling u = 1 is L = 1/gamma_s: four times equity at portfolio margin,
     twice it under Reg T, and no leverage at all when shares must be paid for
     in full.  Defaults to the configured stopping rule u*.
+
+        L = u / gamma_s.                                     [eq:leverage]
     """
     return (C.u_star if u is None else u) / C.gamma_s
 
@@ -899,6 +901,7 @@ def first_passage_prob(a, nu, sigma, horizon=None):
 
         N((-a - nu*H)/(sigma*sqrt(H)))
           + e^(-2*nu*a/sigma^2) * N((-a + nu*H)/(sigma*sqrt(H))),
+                                                       [eq:first-passage]
 
     whose first term is the paths that end below the barrier and whose second
     is those that touched it and came back.  As H grows the first term dies
@@ -930,7 +933,8 @@ def debit_growth(C, debit, income):
     The debit compounds at the borrowing rate and is fed by whatever cash the
     operator takes out beyond what the strategy brings in:
 
-        dD/dt = r_b*D + draw - income      =>   g = r_b + (draw - income)/D.
+        dD/dt = r_b*D + draw - income
+          =>   g = r_b + (draw - income)/D.               [eq:debit-growth]
 
     `draw = None` is the policy that holds the debit flat -- the operator
     services the interest and withdraws the rest, draw = income - r_b*D -- so
@@ -968,8 +972,12 @@ def _drift(C, measure, g):
     capacity, ln M moves with the price alone, at drift nu; ln D grows at g;
     so ln R is Brownian with drift g - nu and volatility sigma, started at
     ln(1 - 1/L) and absorbed at ln(1 - gamma_s).  Same barrier, same distance
-    a = -ln f*, same reflection formula -- only nu is displaced.  Every
-    survival result therefore reads nu - g wherever it used to read nu, and
+    a = -ln f*, same reflection formula -- only nu is displaced:
+
+        theta_eff = 2*(nu - g) / sigma^2.                   [eq:theta-eff]
+
+    Every survival result therefore reads nu - g wherever it used to read nu,
+    and
 
         nu - g <= 0   =>   liquidation is certain at any leverage,
 
@@ -996,7 +1004,7 @@ def max_leverage(C, measure, eps, gamma_s=None, g=0.0):
 
     Inverting [eq:survive] through [eq:barrier] at f* = eps^(1/theta),
 
-        L_max = 1 / (1 - (1 - gamma_s) * eps^(1/theta)).
+        L_max = 1 / (1 - (1 - gamma_s) * eps^(1/theta)).         [eq:lmax]
 
     theta <= 0 leaves nothing to invert: the barrier is hit almost surely at
     any leverage whatever, so the answer is an unlevered book.  gamma_s = 1
@@ -1018,12 +1026,15 @@ def max_leverage(C, measure, eps, gamma_s=None, g=0.0):
 # be taken out of it
 #
 # The block above prices a barrier for a book of a GIVEN size.  This one asks
-# how big the book gets.  Equity A buys capacity L*A lots of stock, arrivals
-# are refused once the book is that big, and the account's steady state is
-# Little's law run backwards: inventory is pinned by capital, so the arrival
-# rate is the output rather than the input,
+# how big the book gets.  Equity A buys capacity
 #
-#     lambda_eff = capacity / E[W],
+#     I_max = L_max * A,                                     [eq:capacity]
+#
+# arrivals are refused once the book is that big, and the account's steady
+# state is Little's law run backwards: inventory is pinned by capital, so the
+# arrival rate is the output rather than the input,
+#
+#     lambda_eff = I_max / E[W],                           [eq:lambda-eff]
 #
 # and the binding resource is capital while the thing that consumes it is
 # holding time.  Everything here is that identity plus arithmetic.

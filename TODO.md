@@ -18,7 +18,7 @@ are unwritten**, and between them they remain the bulk of what is left.
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | written, and **reopened**: II-5…II-14 below; 11 does not exist |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | written, and **reopened**: II-9…II-14 below; 11 does not exist |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14, 15 do not exist**; outlook is a stub, currently on disk as `15-outlook.md` |
 
@@ -181,12 +181,15 @@ over σ, μ, p\*, n and T, each of which re-solves the walk; the write-up is in 
 
 ### Prose
 
-**II-8. §00 notation.** γ_p, γ_s, A, u\*, L, the financing spread, f\*, T_sat, and the new
-section's anchor. II-5 added five more that need symbols: **A\*** (the equity a wheel needs,
-E[I(∞)]/L_max), **λ_eff** and the throughput retention λ_eff/λ, **g_max** and the maximum
-sustainable draw. Carry the prose note that initial and maintenance requirements are deliberately
-merged — and a second one, that capacity, the barrier and the financing ledger all exclude the
-put collateral, which is 1.5% of a saturated account's capacity.
+**II-8 (§00 notation) was resolved on 2026-07-29**; the write-up is in [`DONE.md`](DONE.md). The
+symbols are fixed, γ is now **γ_p** throughout (seven occurrences in §09 moved with it), and the
+notation carries the three conventions — merged initial/maintenance requirements, the put
+collateral excluded uniformly, and the defaults being the unconstrained operator. **What it hands
+the prose items below is a set of equation anchors that are now promises**: §11 must display the
+twelve listed in §00 (`eq:leverage`, `eq:barrier`, `eq:first-passage`, `eq:survive`, `eq:lmax`,
+`eq:capacity`, `eq:astar`, `eq:lambda-eff`, `eq:debit-growth`, `eq:theta-eff`, `eq:gmax`,
+`eq:draw`) and §10 must display `eq:account-criterion`. Capacity in lots has a symbol it did not
+have in the code, **I_max = L_max·A**.
 
 **II-9. §04 strategy.** The exposure-versus-equity-required distinction belongs where the three
 tracks are defined. State plainly that Track B remains exposure at market and that the constraint
@@ -239,7 +242,8 @@ against two that are slow and invisible.
 
 **The third mode now has a boundary, in the same currency as the other two** (II-15, 2026-07-29).
 Lots return iff **ν > 0**; their capital returns iff **m > σ²**; the account survives iff
-**ν > g**, the price's median growth outrunning the debt's. Write the three as one list — the
+**ν > g**, the price's median growth outrunning the debt's. Write the three as one list, the third
+displayed and numbered as `eq:account-criterion` (II-8 registered the anchor) — the
 section is built around exactly this kind of comparison, and the third is the first one an
 operator can *move*, since g is a cash policy rather than a property of the stock. Its sharpest
 form: withdrawing income while the interest accrues puts g = r_b = 5% against ν = 2.5%, so the
@@ -258,7 +262,10 @@ evidence; do not quote g = r_b as a measured rate.
 
 **II-13. New section, the constrained wheel** (`sections/11-constrained.md`, `{#sec:constrained}`).
 The whole survival and steady-state analysis in one place, so the existing tables keep their
-unconstrained base case with a stated qualifier instead of doubling in width. It owes:
+unconstrained base case with a stated qualifier instead of doubling in width. **Its symbols and
+its twelve numbered displays are already fixed** by II-8 in [`00-notation.md`](sections/00-notation.md),
+five of them named to match the tags in `model.py`; the section is written against that list, not
+alongside it. It owes:
 
 - Little's law **run backwards** — inventory pinned by capacity, so the arrival rate becomes the
   output, λ_eff = capacity / E[W]. The binding resource is capital and the thing that consumes
