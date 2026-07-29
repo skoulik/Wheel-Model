@@ -506,6 +506,20 @@ def main():
           liquidation_prob(G, "Q", L10, horizon=30.0), 0.07312, 0.00005)
     check("Q-world L_max at eps = 10% is no leverage at all",
           max_leverage(G, "Q", 0.10), 1.0001, 0.0002)
+    # The reflection term needs log N(z) in a tail where NormalDist.cdf is
+    # exactly zero (below z = -8.3, erf having saturated), so the asymptotic
+    # has to take over while the two still agree.  It does, at -7; the visible
+    # disagreement further out is the CDF losing digits to cancellation, not
+    # the series.  Getting this threshold wrong made short horizons raise.
+    for z in (-3.0, -5.0, -6.9, -7.0):
+        check(f"log N({z}) across the asymptotic crossover",
+              model._log_ncdf(z) - log(N(z)), 0.0, 2e-5)
+    for H in (1e-9, 1e-3, 0.1, 1.0):
+        p = first_passage_prob(a10, nu_p, STD.sigma, H)
+        if not 0.0 <= p <= 1e-12:
+            FAILURES.append(f"first passage at H = {H:g} is not a small probability")
+    print(f"PASS  short horizons stay finite and tiny "
+          f"(H = 1e-9 .. 1y at a = {a10:.3f})")
 
     # ------------------------------------------------------------------
     if args.full:

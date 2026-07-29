@@ -92,6 +92,14 @@ Four decisions fixed before any code (2026-07-29):
   a finite capacity is a real threshold and needs none. A career-length horizon returns only as an
   annotation on the output.
 
+  **Amended 2026-07-29:** the decision stands, but T_sat turned out to answer a different question
+  than it was adopted for. It is the right convention-free clock for **throughput** — when the
+  account fills and arrivals start being refused — and it is *not* the horizon for **survival**,
+  because a saturated account stays levered afterwards rather than stopping. So the reframe still
+  takes no horizon as an input, and the price is that the survival horizon is unbounded, which is
+  what makes II-6 rather than II-5 the item that produces a quotable liquidation probability. See
+  II-5.
+
 Code before prose: the survival figures decide how much of [the stability
 section](#sec:stability) has to be restructured. The parameters and the survival closed forms
 (II-3, II-4) landed 2026-07-29; the capacity fixed point, the simulator and the sweep remain.
@@ -105,28 +113,56 @@ the numbers they settled are quoted below where later items need them. `model.py
 checks them under a structural heading. Note that **"II-3" names two items** — the 2026-07-28
 stress-table mislabel and the 2026-07-29 parameters — which `DONE.md` records.
 
-**II-5. Capacity → T_sat, and the fixed point.** Extend the transient inverse at
-`model.py:703` (`time_to_fraction`) so it maps an absolute capacity in lots to the first time
-E[I(t)] reaches it. Then close the loop:
-u\* sets L = u\*/γ_s, which sets capacity, which sets T_sat, which sets survival probability,
-which constrains u\*. Solve for u\* given (γ_s, A, ε). The output is a frontier, not a single
-number: for each configuration report T_sat, P(survive to T_sat), saturation leverage,
-throughput retention λ_eff/λ, and steady-state return on equity.
+**II-5. Capacity, T_sat and throughput. The fixed point is gone — see below.** Extend the
+transient inverse at `model.py:703` (`time_to_fraction`) so it maps an absolute capacity in lots
+to the first time E[I(t)] reaches it, interpolating inside the call period so the map is
+continuous in capacity rather than a 4-week step (worth 46 days at capacity 11.4). Then report
+the frontier over (γ_s, A, ε): capacity, T_sat, throughput retention λ_eff/λ, saturation
+leverage, and steady-state return on equity **net of financing**. Leverage itself is *not* solved
+for — it is II-4's closed form, for the reason below.
 
-**II-4 measured how much the horizon matters, and it is most of the answer.** At γ_s = 0.25 and
-the leverage carrying a 10% *eventual* liquidation risk (L = 1.1349, an 84% drawdown barrier),
-the finite-horizon probabilities are 1.2e-5 at 5y, 0.11% at 10y, **2.5% at 30y** and 7.8% at
-100y. So the infinite-horizon L_max is a very conservative dial and the frontier will be far more
-permissive at any T_sat a real account reaches — which is the case for making T_sat emergent
-rather than capping the horizon by hand, and also a warning: **report the horizon beside every
-survival figure**, because the same configuration reads an order of magnitude apart across them.
+**The pre-flight (2026-07-29) confirmed the two design points and then broke the third.**
+Monotonicity holds exactly: P(u\*) is non-decreasing over 30,000 scanned points at every (γ_s, A),
+with P = 0 below u\* = γ_s (L ≤ 1, no debt) and P = 1 at u\* = 1 (f\* = 1, violation on day one),
+so **the bracket [γ_s, 1] is valid and bisection is the right solver** — if there were anything to
+solve. And static capacity belongs here, moving capacity in II-6, as agreed.
 
-**II-6. The constrained simulator.** `wheel_sim.py --scenario constrained`: skip-when-blocked
-arrivals, debit tracking, mark-to-market equity, the liquidation trigger, premium income and
-call-away repayment. It exists to catch the three corrections the static barrier misses — new
-assignments grow the debit during exactly the declines that threaten the account, while premium
-income and called-away lots repay it, and the net sign is not obvious a priori. Shares no
-machinery with `model.py`, per the standing discipline; agreement is the evidence.
+**What broke: T_sat is not the survival horizon, so it drops out of the survival question.** The
+chain as written — "capacity sets T_sat, which sets survival probability" — assumes exposure ends
+at saturation. It does not. Once E[I(t)] reaches capacity, arrivals block, inventory *sits* at
+capacity with a fixed debit, and that is precisely the static-barrier configuration, held for
+unbounded time. T_sat is when full leverage **begins**, not when it ends. Evaluate the barrier
+over the correct horizon and the fixed point degenerates: solved u\* returns realized leverage
+equal to **L_max(γ_s, ε) to 2e-16 at every A where the stopping rule binds at all**. There is no
+frontier in leverage — II-4 already closed it.
+
+Above a critical equity the stopping rule stops binding entirely, because inventory never reaches
+capacity: realized leverage is min(capacity, E[I(∞)])/A, which falls below 1 and the account never
+borrows. The crossover is **A\* = E[I(∞)]/L_max**, and it is item II-13's headline (below).
+
+**Consequently II-6 is now load-bearing rather than confirmatory, and should probably run before
+the sweep.** The static answer is an upper bound of unknown tightness: a saturated, blocked
+account still collects premium, dividends and call-away proceeds with nowhere to redeploy them,
+so the debit is repaid and the account *deleverages* — until repayment frees capacity, a new lot
+arrives, and the debit grows again. That oscillation is the "net sign is not obvious a priori"
+the item already names, and it is now the only thing standing between the closed form and a
+survival number the article can quote. **Do not quote a liquidation probability from `model.py`
+alone.**
+
+**II-6. The constrained simulator — promoted, 2026-07-29.** `wheel_sim.py --scenario
+constrained`: skip-when-blocked arrivals, debit tracking, mark-to-market equity, the liquidation
+trigger, premium income and call-away repayment. It exists to catch the three corrections the
+static barrier misses — new assignments grow the debit during exactly the declines that threaten
+the account, while premium income and called-away lots repay it, and the net sign is not obvious a
+priori. Shares no machinery with `model.py`, per the standing discipline; agreement is the
+evidence.
+
+**It is no longer a check on II-5, it is the item that answers the survival question**, because
+II-5's pre-flight showed the analytic side has no fixed point left to solve and its static number
+is an upper bound of unknown tightness. Two things it must report that the barrier cannot: whether
+a saturated account's debit drifts up or down under blocked arrivals, and the **realized** leverage
+path against the static L. Consider running it before II-7, since the sweep has nothing worth
+sweeping until the survival number is trustworthy.
 
 **II-7. The sweep.** γ_s × A grid through `model.pmap()` (module-level worker, picklable args,
 called only from top level). Report the cell where **A equals the model's own E[Capital]** — an
@@ -150,9 +186,26 @@ the broker's spread equals the strategy's own excess return** — here 1.60%, ag
 spreads of 1–3%. Confirm the wheel-versus-buy-and-hold headline survives unchanged at every γ_s,
 since leverage applies identically to both sides; if it does not, something is wrong.
 
+**Measured 2026-07-29, and it makes the neutrality result nearly moot in the operator's favour.**
+Evaluated at survivable leverage rather than at arbitrary L, the whole effect is small: at
+γ_s = 0.25 the net excess runs **+1.82% at zero spread, +1.62% at 1.5%, +1.42% at 3%**, against
++1.60% unlevered. So leverage adds at most 22bp, and past the 1.60% crossover it *subtracts* —
+at a 3% retail spread a levered wheel earns less than an unlevered one. Say this plainly: the
+borrowing that survives the liquidation constraint is too small to pay for itself at any retail
+financing rate. The neutral-spread formula is the mechanism; this is the number.
+
 **II-11. §08 inventory.** Reframe "the equilibrium the operator will never see". The constrained
 operator *does* reach theirs, because a capacity ceiling truncates the slow tail that made the
 approach take ninety years. Note that T_sat is convention-free where the 90% was not.
+
+**Measured 2026-07-29, and the reframe needs a qualifier or it replaces one false comfort with
+another.** Small accounts reach equilibrium quickly — 0.9y at A = 3 lots, 2.4y at 5 — but T_sat
+rises explosively as capacity approaches the strategy's own stationary demand: **18.5y at A =
+11.59, 44y at 15, 254y at 19, never at A\* = 19.23**. So the truncation only helps an operator
+whose account is *far* below A\*, and it helps exactly in proportion to how little of the strategy
+they are running (60% throughput at 11.59, 5% at A = 1). The honest statement is the trade, not
+the escape: an operator reaches equilibrium quickly only by running a small fraction of the
+strategy, and an operator running all of it inherits the ninety years unchanged.
 
 **II-12. §10 stability.** Three changes. The two boundaries **do not move** — both are statements
 about e^x and E[1/S], and financing does not enter either. The second boundary is
@@ -167,10 +220,23 @@ The whole survival and steady-state analysis in one place, so the existing table
 unconstrained base case with a stated qualifier instead of doubling in width. It owes:
 
 - Little's law **run backwards** — inventory pinned by capacity, so the arrival rate becomes the
-  output, λ_eff = capacity / E[W], and therefore income ∝ A / (γ_s · E[W]). The binding resource
-  is capital and the thing that consumes capital is holding time, which makes [the holding-time
-  section](#sec:holding)'s 2.1 years the economically load-bearing number in the article rather
-  than merely its most surprising one;
+  output, λ_eff = capacity / E[W]. The binding resource is capital and the thing that consumes
+  capital is holding time, which makes [the holding-time section](#sec:holding)'s 2.1 years the
+  economically load-bearing number in the article rather than merely its most surprising one.
+  **But the stated proportionality income ∝ A/(γ_s·E[W]) is wrong and must not be written**
+  (measured 2026-07-29): it prices capacity at the *broker's* ceiling A/γ_s, and survivable
+  capacity is L_max·A, not A/γ_s. The correct form is **income ∝ L_max(γ_s, ε)·A / E[W]**, and
+  since L_max runs 1.00–1.16 the naive version overstates γ_s's contribution by **1.8× / 3.5× /
+  5.8×** at γ_s = 0.50 / 0.25 / 0.15. Written the wrong way it would say a portfolio-margin
+  account earns four times a cash account's income on the same equity. It earns 13% more;
+- **A\*, the equity a wheel actually needs, which is the sharpest form of the result.** Throughput
+  stops being lost at A\* = E[I(∞)]/L_max: **21.82 lots unlevered, 19.23 at portfolio margin,
+  18.88 at the most aggressive margin available**, against a broker's ceiling that would claim
+  3.27. So the broker's permission is **5.8× off the binding constraint**, and correctly risked,
+  the whole of that permission buys a **12% discount on required equity**. Capacity comes from
+  equity; leverage is nearly irrelevant to it. Below A\* the loss is severe and slow: an account
+  sized at the model's own 30-year capital (11.59) runs at **60% throughput** and takes **18.5
+  years** to get there, and T_sat then explodes — 44y at 78%, 254y at 98.8%, never at A\*;
 - the account **migrating to its own boundary**: a mechanical put-selling rule with no
   withdrawals converts the broker's permission into actual leverage without the operator ever
   deciding to lever, so the untended steady state is the state of maximum fragility, and the

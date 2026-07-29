@@ -735,11 +735,22 @@ def time_to_fraction(C, occ, frac=0.9):
 # ----------------------------------------------------------------------
 
 def _log_ncdf(z):
-    """log N(z), usable in the far left tail where N(z) itself underflows."""
-    if z > -20.0:
+    """log N(z), usable in the far left tail where N(z) itself underflows.
+
+    The crossover is -7 and not something more comfortable because
+    NormalDist.cdf is 0.5*(1 + erf(z/sqrt(2))) and erf saturates at -1 in
+    double precision: N(z) is *exactly* zero below z = -8.3, and the
+    cancellation in 1 + erf has already eaten most of the significant digits
+    by -8.  Below the crossover this uses the Mills-ratio asymptotic
+    N(z) = phi(z)/|z| * (1 - 1/z^2 + 3/z^4 - 15/z^6 + 105/z^8 - ...), whose
+    first dropped term is 945/z^10 -- 3e-6 relative at the crossover and
+    falling fast, against a term that is a probability being added to another.
+    """
+    if z > -7.0:
         return log(N(z))
-    zz = z * z                     # Mills-ratio asymptotic, ~1e-7 relative here
-    return -zz / 2 - log(-z) - log(2 * pi) / 2 + log(1 - 1 / zz + 3 / (zz * zz))
+    zz = z * z
+    series = 1 - 1 / zz + 3 / zz**2 - 15 / zz**3 + 105 / zz**4
+    return -zz / 2 - log(-z) - log(2 * pi) / 2 + log(series)
 
 
 def leverage(C, u=None):
