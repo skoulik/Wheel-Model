@@ -39,7 +39,7 @@ from model import (BETA, Config, N, assign_prob, bs_call, criteria,
                    liquidation_barrier, liquidation_prob, max_leverage,
                    max_debit_growth, max_sustainable_draw,
                    occupation, pmap, put_premium, q_exit,
-                   saturation, stationary,
+                   saturation, stationary, stationary_converged,
                    sticky_dividend_trap, sticky_dividend_yield, strike,
                    survival_utilization, time_to_fraction, time_to_inventory,
                    trapped_fraction)
@@ -706,6 +706,70 @@ def main():
     check("Q-world: a blocked levered wheel earns r less the withholding leak",
           ee_q + STD.delta * STD.withhold
           - STD.r * G25.gamma_p * strike(STD, "Q") / g["I"], 0.0, 0.003)
+
+    # ------------------------------------------------------------------
+    # The sensitivity sweep (II-7).  Section 11 is unwritten, so what is
+    # pinned here is structural: the one exact identity the sweep contains,
+    # the tail converger it needs, and the boundary guard that keeps it from
+    # trying to resolve a cell that has no answer.
+    print("--- Structural: the sensitivity sweep ---")
+
+    # A* along the CADENCE is an identity, not a measurement: selling puts
+    # half as often halves lambda and touches neither the walk nor E[W], so
+    # A* halves exactly.  It is checked off the running example's own solve,
+    # because reusing far_p for a different cadence is exactly the claim.
+    A_star_T = {}
+    for weeks in (1, 2, 4):
+        CT = Config(p_star=0.20, gamma_s=0.25, cadence=weeks / 52)
+        eT = economics(CT, "P", far_p)
+        A_star_T[weeks] = saturation(CT, "P", far_p, 0.10, equity=1.0,
+                                     econ=eT)["A*"]
+        if abs(eT["E[T]"] - f["E[T]"]) > 1e-12:
+            FAILURES.append(f"cadence moved E[W] at T = {weeks} weeks")
+    for weeks in (2, 4):
+        if abs(A_star_T[weeks] * weeks - A_star_T[1]) > 1e-9:
+            FAILURES.append(f"A* is not exactly 1/T at T = {weeks} weeks")
+    print(f"PASS  A* goes exactly as 1/T along the cadence "
+          f"({A_star_T[1]:.2f} / {A_star_T[2]:.2f} / {A_star_T[4]:.2f} lots "
+          f"at 1 / 2 / 4 weeks), and E[W] does not move")
+
+    # The article's own stationary figures must not move when the period cap
+    # is raised -- the sweep's converger exists for cells far from here, and
+    # this says the running example was never one of them.
+    check("doubling the period cap leaves the running example's E[J] alone",
+          stationary(STD, "P", j_max=16000)["E[J]"] / far_p["E[J]"], 1.0, 1e-4)
+
+    # Both sides of the converger's own verdict, on cheap cells.  A walk that
+    # dies inside the cap is converged and never doubles; a cap set far too
+    # low is a truncation and must be reported as one rather than averaged in.
+    lo_vol = stationary_converged(Config(p_star=0.20, sigma=0.15), "P")
+    if not lo_vol["tail_ok"] or lo_vol["tail_gap"] is not None:
+        FAILURES.append("the converger doubled a walk that had already died")
+    cut = stationary_converged(STD, "P", j_max=1000, j_cap=2000)
+    if cut["tail_ok"] or not cut["tail_gap"] > 1e-2:
+        FAILURES.append("a truncated tail was reported as converged")
+    print(f"PASS  the tail converger calls both cases "
+          f"(sigma=15% dies in {lo_vol['steps']} periods; a cap of 2000 is "
+          f"still growing at {cut['tail_gap']:.1%} a doubling)")
+
+    # The boundary guard.  sigma = 30% at mu = 7% is nu = 0 exactly, which
+    # floating point delivers as 7e-18: theta*x_max > 8 then asks for a grid
+    # of 4e18 cells.  The cell must be refused, not attempted.
+    edge = model._sweep_cell(Config(sigma=0.30), "P", 19.23, 0.25, 0.10)
+    if edge["resolved"] or not edge["count_ok"]:
+        FAILURES.append("the nu = 0 cell was not refused as unresolvable")
+    print(f"PASS  the sweep refuses the boundary cell rather than resolving it "
+          f"(sigma = 30%, mu = 7%: nu = {edge['nu']:.1e} > 0 by rounding alone)")
+
+    # One pinned cell, at the cheap end of the sweep: a quieter stock needs
+    # less than half the equity, and survivable leverage -- which is 1.13 at
+    # the running example -- is worth three times as much discount there.
+    quiet = model._sweep_cell(Config(sigma=0.15), "P", 19.23, 0.25, 0.10)
+    check("A* at sigma = 15%", quiet["A*"], 7.97, 0.02)
+    check("...where survivable leverage is much higher", quiet["L_max"],
+          1.5340, 0.001)
+    check("...and the equity discount leverage buys, against 12% at sigma=20%",
+          1 - 1 / quiet["L_max"], 0.348, 0.002)
 
     # ------------------------------------------------------------------
     # II-14's last requirement, and the only check in this file with teeth on

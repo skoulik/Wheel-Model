@@ -102,13 +102,13 @@ Four decisions fixed before any code (2026-07-29):
 
 Code before prose: the survival figures decide how much of [the stability
 section](#sec:stability) has to be restructured. The parameters, the survival closed forms, the
-capacity frontier and the constrained simulator (II-3, II-4, II-5, II-6) all landed 2026-07-29;
-**only the sweep remains, and II-7 below questions whether it is still an item.** The prose can
-start.
+capacity frontier, the constrained simulator and the sensitivity sweep (II-3 through II-7) all
+landed 2026-07-29. **The code half of the reframe is complete; everything remaining in Part II
+is prose.**
 
 ### Code
 
-**II-3, II-4, II-5 and II-6 were resolved on 2026-07-29**; the write-ups are in [`DONE.md`](DONE.md),
+**II-3 through II-7 were resolved on 2026-07-29**; the write-ups are in [`DONE.md`](DONE.md),
 and the numbers they settled are quoted below where later items need them. `model.py` now carries
 γ_p, γ_s, A, u\* and the financing spread, plus `liquidation_barrier`, `first_passage_prob`,
 `liquidation_prob`, `max_leverage` and `leverage` in a working-capital block, and a capacity block
@@ -162,16 +162,22 @@ on it:
 - the frontier's own cash policy (g = 0) **halves the throughput** it reports, because it holds the
   debit constant in dollars while the model counts an account in shares.
 
-**II-7. The sweep — and it may have nothing left to parallelize** (amended 2026-07-29). The brief
-was a γ_s × A grid through `model.pmap()`. II-5 then showed that **γ_s, A and ε never touch the
-depth walk**: one stationary solve (0.7 s) serves an entire frontier, and `frontier()` already
-prints the γ_s × A × ε cells including the one where **A equals the model's own E[Capital]**
-(A = 11.59: 60.3% throughput, T_sat 18.5y). A pool over that grid would parallelize arithmetic.
-So decide what this item actually is: either it folds into II-5's report, or it becomes the sweep
-that *does* need the pool — **σ, μ, p\* and the cadence**, each of which re-solves the walk and
-none of which the frontier currently varies. The second is the more useful item and is what the
-"sizing against the mean is the mistake" warning still wants quantified: how far A\* moves when
-the stock is not the running example's. Diff parallel against `WHEEL_WORKERS=1` before quoting.
+**II-7 was resolved on 2026-07-29** as the second of the two things it might have been — the sweep
+over σ, μ, p\*, n and T, each of which re-solves the walk; the write-up is in [`DONE.md`](DONE.md).
+`sensitivity()` in `model.py`, on by default, `--no-sweep` to skip. What it hands the prose:
+
+- **the parameters sort into two kinds.** The dials an operator chooses move A\* proportionally —
+  exactly as 1/T along the cadence, nearly as λ along p\*, sub-linearly in n. The two they only
+  estimate do not: A\* runs **7.97 / 19.23 / 48.97 / >126** across σ = 15/20/25/28% and diverges at
+  30%, and **3.74 / 6.81 / 19.23 / none** down μ = 13/10/7/4%. Elasticity to σ is **4.2**, so a 1%
+  relative error in the volatility estimate is a 4% error in the equity required;
+- **the effect compounds**, because survivable leverage collapses toward 1 exactly where inventory
+  demand explodes: the equity discount the broker's permission buys is **35% at σ = 15%, 12% at
+  20%, 0.4% at 25%**;
+- **sized for the wrong stock, an operator runs a fraction of the strategy**: at A = 19.23, a
+  σ = 25% stock retains **39.3% throughput and saturates in 29.9 years**;
+- and **ν = 0 is not a value the grid rule can be handed** — σ = 30% at μ = 7% is ν = +6.9e-18 by
+  rounding, which asks for a grid of 4e18 cells. Cells that flat are refused, not approximated.
 
 ### Prose
 
@@ -274,7 +280,13 @@ unconstrained base case with a stated qualifier instead of doubling in width. It
   the whole of that permission buys a **12% discount on required equity**. Capacity comes from
   equity; leverage is nearly irrelevant to it. Below A\* the loss is severe and slow: an account
   sized at the model's own 30-year capital (11.59) runs at **60% throughput** and takes **18.5
-  years** to get there, and T_sat then explodes — 44y at 78%, 254y at 98.8%, never at A\*;
+  years** to get there, and T_sat then explodes — 44y at 78%, 254y at 98.8%, never at A\*.
+  **Swept 2026-07-29 (II-7), and every figure in that bullet is a figure about one stock.** A\*
+  moves by an order of magnitude across a plausible range of σ and μ and diverges at a finite
+  boundary, so §11 must present A\* as *a function of the stock* and not as a number — and the
+  12% discount is itself the most stock-specific quantity of the lot, running **35% at σ = 15%
+  and 0.4% at 25%** because survivable leverage collapses toward 1 exactly where inventory demand
+  explodes. Whatever else the section says about leverage, it cannot say it once;
 - the account **migrating to its own boundary**: a mechanical put-selling rule with no
   withdrawals converts the broker's permission into actual leverage without the operator ever
   deciding to lever, so the untended steady state is the state of maximum fragility, and the
@@ -351,6 +363,10 @@ horizon, and the live-versus-frozen correction pinned as a regression. Uniform t
 deliberately *not* pinned there — at the levered configuration the run needs, most paths are
 liquidated inside it, so a census read off the survivors would be a survivorship artifact. It is
 measured instead by `wheel_sim.py --scenario constrained` at the prudent configuration.
+
+**II-7 added a fifth structural block on 2026-07-29** (6.5 s → 8.6 s): the exact 1/T identity in
+A\*, the running example's insensitivity to the period cap, both verdicts of the tail converger,
+the refusal of the ν = 0 cell, and one pinned sweep cell at σ = 15%.
 
 What remains for II-14 is only what §11 will need when it is written: **section-level** checks
 against the prose, which is II-13's to specify.
@@ -450,6 +466,16 @@ Part III drafts.
   capital. A practitioner-facing subsection on sizing against total capital belongs here, and
   the warning it must carry is that capital demand is bursty and heavy-tailed, so **sizing
   against mean capital is precisely the mistake**.
+
+  **Quantified 2026-07-29 (II-7), and the warning has a second half that is worse than the
+  first.** The mistake is not only that demand is bursty *around* its mean: the mean itself is a
+  near-singular function of two parameters nobody knows exactly. A\* runs **7.97 / 19.23 / 48.97
+  / >126** across σ = 15/20/25/28% and diverges at 30%, an elasticity of **4.2** — a 1% relative
+  error in the volatility estimate is a 4% error in the equity required — while the dials the
+  operator actually chooses (p\*, the cadence, n) move it proportionally and predictably. Sized
+  for the running example and run on a σ = 25% stock, an account retains **39.3% throughput**.
+  Both halves belong in this subsection: the distribution around the mean, and the fragility of
+  the mean.
 - **The live book's width** (was #24, figures restated 2026-07-27). The account sells puts
   across **95 names while holding inventory in 34**, so put margin is **$43.4k = 31% of Track B
   capital** against the single-name model's 1.6%. Premium is generated across a far wider book
@@ -629,3 +655,6 @@ deferred until the sections stabilise, which is now close: pick it once Part IV 
 redrawn as proper vector figures (TikZ or similar) at assembly. Worth reviewing at the same time
 whether Parts II–IV want figures they currently do without — the depth census, the survival
 curve and the live-versus-model comparisons are all natural candidates and none is drawn.
+**One more joined the list on 2026-07-29:** II-7's (σ, μ) plane, where both stability boundaries
+are curves rather than points and the band between them — lot count stationary, capital integral
+divergent — is visible as an area. `sensitivity()` prints it as a text grid; it wants to be drawn.

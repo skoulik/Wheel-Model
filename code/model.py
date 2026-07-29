@@ -49,6 +49,9 @@ kept as the reference and is used verbatim when numpy is absent.  The two
 agree to floating-point noise, which verify_examples.py checks.
 
 Run:  python code/model.py
+
+The sensitivity sweep re-solves the walk once per parameter cell and is most
+of the runtime; --no-sweep skips it.
 """
 
 import argparse
@@ -476,6 +479,55 @@ def stationary(C, measure, h=0.025, x_max=20.0, eps=1e-7, **kw):
     out["method"] = f"richardson({h:g}, {h / 2:g})"
     out["steps"] = j
     return out
+
+
+def stationary_converged(C, measure, tol=1e-2, j_max=8000, j_cap=32000, **kw):
+    """stationary(), with the period cap raised until the tail stops moving.
+
+    occupation() closes its survival sum with a geometric tail read off the
+    last ten periods.  That closure is exact once the killed walk has settled
+    into its slowest mode and an UNDERSTATEMENT before it has, and how long
+    settling takes is set by nu: the walk is diffusive until it has drifted
+    past its own noise, which takes of order sigma^2/nu^2 years.  At the
+    running example that is 64 years and the default cap of 8000 periods --
+    615 of them -- is comfortable, so doubling the cap moves E[J] by 5e-6.
+    Near the stability boundary it is not: at sigma = 28% the crossover is
+    2,300 years, and the default reads E[I] = 106 against 118 at twice the
+    cap and 129 at eight times it.
+
+    So: double the cap until either the walk dies of its own accord or a
+    doubling moves E[J] by less than `tol`, and report both the cap reached
+    and the last doubling's move, so a caller can say "at least" instead of
+    quoting a truncation.  The cap is deliberately low enough that the worst
+    cell costs seconds rather than minutes, because the cells it stops short
+    on cannot be converged at any affordable cost -- E[I] there is carried by
+    a tail millennia long, which is the same pathology the article already
+    warns about in depth, seen in time.
+
+    The independent read on those cells is Siegmund's E[T] ~ (E[x0] +
+    beta*sigma*sqrt(tau_c))/nu, which economics() reports beside the summed
+    one: a converged cell sits 5-12% ABOVE it across the whole sweep, and a
+    truncated cell reads below it.
+
+    Nothing the article quotes needs any of this -- stationary() is left
+    exactly as it was, and the running example's figures do not move -- it
+    exists for the sensitivity sweep, which walks parameters into regions the
+    defaults were never sized for.
+    """
+    # Converged means the walk died inside the cap, or a doubling barely moved
+    # the answer.  Anything else is a truncation, and the caller must present
+    # it as a lower bound rather than as a figure -- including the case where
+    # the caller starts at the cap, which measures no gap at all.
+    far = stationary(C, measure, j_max=j_max, **kw)
+    gap, ok = None, far["steps"] < j_max
+    while not ok and j_max < j_cap:
+        j_max *= 2
+        nxt = stationary(C, measure, j_max=j_max, **kw)
+        gap = abs(nxt["E[J]"] / far["E[J]"] - 1.0)
+        far = nxt
+        ok = gap < tol or far["steps"] < j_max
+    far["j_max"], far["tail_gap"], far["tail_ok"] = j_max, gap, ok
+    return far
 
 
 def _time_avg_weights(seq, tau_c, horizon):
@@ -1198,6 +1250,201 @@ def frontier(C, measure, far, econ, A_30, eps=0.10):
               f" {_fmt(s['draw'] / A_30, '>7.2%', 7)} {s['roe_excess']:>+8.3%}")
 
 
+# ----------------------------------------------------------------------
+# Sensitivity: how far the capacity result moves when the stock is not the
+# running example's
+#
+# A* = E[I(inf)]/L_max is the equity a wheel needs, and every number in the
+# block above is that quantity at ONE stock, sigma = 20% and mu = 7%.  This
+# is the only place the article asks how much of it belongs to the stock and
+# how much to the strategy, and the answer sorts the parameters into two
+# kinds that behave nothing alike.
+#
+# The dials an operator CHOOSES are benign and near-linear.  A* goes exactly
+# as 1/T along the cadence -- lambda ∝ 1/T with E[W] untouched, so it is an
+# identity rather than a fit -- nearly as lambda along p*, and sub-linearly
+# in the call length n.  Selling puts twice as often needs twice the equity,
+# which is what anyone would guess before computing anything.
+#
+# The two an operator only ESTIMATES are not benign.  A* runs 7.97 / 19.23 /
+# 49.0 / >126 across sigma = 15 / 20 / 25 / 28% and diverges at 30%, where
+# nu = 0 and lots stop returning at all; the elasticity d ln A*/d ln sigma is
+# about 4.2 at the running example, so a 1% relative error in the volatility
+# estimate is a 4% error in the equity required, and it is unbounded as the
+# boundary is approached.  Along mu it is 3.74 at 13% against 19.23 at 7%,
+# with no stationary state at all at 4%.  Two stocks a practitioner would
+# describe the same way -- "a quality name around 20 vol" -- differ by 2.5x
+# in the equity their wheels need if one of them is actually at 25.
+#
+# Both terms of A* = E[I(inf)]/L_max move the same way, which is why the
+# effect compounds: survivable leverage collapses toward 1 exactly where the
+# inventory demand explodes, so the equity discount the broker's permission
+# buys -- 12% at the running example -- is 35% at sigma = 15% and 0.4% at
+# sigma = 25%.  Leverage stops helping precisely where capital is scarcest.
+#
+# Two things this sweep deliberately does not report.  Income and RoE:
+# above sigma = 21.2% the capital integral diverges (m > sigma^2 fails) while
+# the lot count is still perfectly stationary, so every column here is
+# count-based and the divergence is flagged instead of being quietly
+# integrated.  And the Q-world: mu does not enter it, so half the sweep would
+# be a no-op -- the pricing measure's own version of these figures is
+# frontier()'s, printed under the Q heading of every report.
+# ----------------------------------------------------------------------
+
+def _sweep_cell(C, measure, A_ref, gamma_s, eps, x_cap=60.0):
+    """One sensitivity cell: a stationary solve and the capacity it implies.
+
+    `A_ref` is the account the throughput and fill-time columns are read at
+    -- one fixed equity across the whole sweep, so those two columns answer
+    "what does an operator who sized for the running example get on THIS
+    stock" -- and None means the unconstrained operator, which is how the
+    reference cell itself is solved.
+    """
+    crit = criteria(C, measure)
+    theta = crit["tail_exponent"]
+    cell = {"nu": crit["nu"], "theta": theta, "resolved": False,
+            "count_ok": crit["count_ok"], "capital_ok": crit["capital_ok"]}
+    if not crit["count_ok"]:
+        return cell                    # nothing stationary to report at all
+    # The census decays like e^{-theta*x}, so a grid sized for the running
+    # example's theta = 1.25 truncates a flatter one.  x_max is set by the
+    # same rule report() applies to the capital integral, theta*x_max > 8.
+    #
+    # Past x_cap the cell is refused rather than approximated.  It is not a
+    # cost dodge: theta -> 0 IS the stability boundary, where E[W] diverges,
+    # and nu there is a difference of two numbers that cancel -- sigma = 30%
+    # at mu = 7% is nu = 7e-18 rather than the exact zero it should be, which
+    # asks for a grid of 4e18 cells and takes the process down with it.  A
+    # cell this flat has no quotable answer at any grid; saying so is the
+    # honest report.
+    if 8.0 / theta > x_cap:
+        return cell
+    far = stationary_converged(C, measure, x_max=max(20.0, 8.0 / theta))
+    e = economics(C, measure, far)
+    s = saturation(replace(C, gamma_s=gamma_s), measure, far, eps,
+                   equity=A_ref, econ=e)
+    cell.update({k: s[k] for k in ("A*", "L_max", "throughput", "T_sat")})
+    cell.update({"I": e["I"], "E[W]": e["E[T]"], "lambda": e["lambda"],
+                 "siegmund": e["E[T]_siegmund"], "x_max": far["x_max"],
+                 "j_max": far["j_max"], "tail_gap": far["tail_gap"],
+                 "tail_ok": far["tail_ok"], "resolved": True})
+    return cell
+
+
+def _sweep_job(job):
+    """One cell of the sensitivity sweep.  A pmap worker."""
+    return _sweep_cell(*job)
+
+
+def _sweep_axes():
+    """(axis, label, Config) for every one-at-a-time cell of the sweep."""
+    cells = [("sigma", f"{s:.0%}", Config(sigma=s))
+             for s in (0.15, 0.20, 0.25, 0.28)]
+    cells += [("mu", f"{mu:.0%}", Config(mu=mu))
+              for mu in (0.04, 0.07, 0.10, 0.13)]
+    cells += [("p*", f"{p:.0%}", Config(p_star=p))
+              for p in (0.05, 0.10, 0.20, 0.35)]
+    cells += [("tau_c", f"n={n}", Config(n=n)) for n in (1, 2, 4, 8, 13)]
+    cells += [("cadence", f"T={w}wk", Config(cadence=w / 52)) for w in (1, 2, 4)]
+    return cells
+
+
+def sensitivity(measure="P", gamma_s=0.25, eps=0.10, workers=None):
+    """The sweep: A* along each parameter, and on the (sigma, mu) plane.
+
+    Every cell re-solves the depth walk, which is what makes this the one
+    sweep in the project that the process pool is for -- gamma_s, A and eps
+    never touch the walk, so a whole frontier comes out of a single solve,
+    and none of these parameters does.
+    """
+    base = Config()
+    ref = _sweep_cell(base, measure, None, gamma_s, eps)
+    A_ref = ref["A*"]
+
+    # Both tables go through the pool in ONE round.  Their slowest cells are
+    # the near-boundary ones and they sit in different tables, so two rounds
+    # would run those two back to back for no reason.
+    cells = _sweep_axes()
+    sig, mus = (0.15, 0.20, 0.25, 0.30), (0.04, 0.07, 0.10, 0.13)
+    plane = [Config(sigma=s, mu=mu) for s in sig for mu in mus]
+    got = pmap(_sweep_job, [(C, measure, A_ref, gamma_s, eps)
+                            for C in [c for _, _, c in cells] + plane],
+               workers=workers)
+    got, grid = got[:len(cells)], got[len(cells):]
+
+    print("\n" + "=" * 78)
+    print("SENSITIVITY: how far A* moves when the stock is not the running "
+          "example's")
+    print("=" * 78)
+    print(f"   A* = E[I(inf)]/L_max is the equity a wheel needs, in share "
+          f"prices, at gamma_s = {gamma_s:.2f} and eps = {eps:.0%}; E[I] is "
+          f"A* unlevered,\n   since L_max = 1 when shares are paid for in "
+          f"full.  A/A* and T_sat are what an account sized on the\n   running "
+          f"example (A = {A_ref:.2f}) gets on the stock in that row: the "
+          f"throughput it retains and the years\n   it takes to fill.  'never' "
+          f"is an account that is never full, the strategy demanding less "
+          f"than it may hold.\n   cap? is whether stationary CAPITAL converges "
+          f"(m > sigma^2); the count columns beside it are unaffected.  Each "
+          f"cell is solved until\n   doubling the period cap moves E[J] by "
+          f"less than 1%, so the figures below carry that much truncation.")
+    print(f"      {'axis':>7} {'cell':>6} {'nu':>8} {'theta':>6} {'lambda':>7}"
+          f" {'E[W]':>6} {'E[I]':>8} {'L_max':>7} {'A*':>8} {'A/A*':>6}"
+          f" {'T_sat':>7} {'cap?':>5}")
+
+    flags = []
+    for (axis, label, _), c in zip(cells, got):
+        if not c["resolved"]:
+            why = ("nu <= 0: lots never return, and no stationary anything"
+                   if not c["count_ok"] else
+                   "nu > 0 but at the boundary: E[W] is beyond any affordable "
+                   "grid")
+            print(f"      {axis:>7} {label:>6} {c['nu']:>+8.4f} "
+                  f"{c['theta']:>6.2f}   -- {why}")
+            continue
+        # A cell whose tail was still growing when the cap was reached is a
+        # LOWER BOUND, and says so in the two columns the truncation moves.
+        lb = " " if c["tail_ok"] else ">"
+        print(f"      {axis:>7} {label:>6} {c['nu']:>+8.4f} {c['theta']:>6.2f}"
+              f" {c['lambda']:>7.2f} {lb}{c['E[W]']:>5.2f} {lb}{c['I']:>7.2f}"
+              f" {c['L_max']:>7.4f} {lb}{c['A*']:>7.2f} {c['throughput']:>6.1%}"
+              f" {_fmt(c['T_sat'], '>7.1f', 7, never=True)}"
+              f" {'yes' if c['capital_ok'] else 'NO':>5}")
+        if not c["tail_ok"]:
+            moved = ("no doubling measured" if c["tail_gap"] is None
+                     else f"+{c['tail_gap']:.1%} on the last doubling")
+            flags.append(f"{axis}={label} ({moved}, E[W]/Siegmund = "
+                         f"{c['E[W]'] / c['siegmund']:.2f})")
+    if flags:
+        print(f"      [> = tail cap reached with the sum still growing, so a "
+              f"lower bound: {'; '.join(flags)}]")
+
+    # The one interaction worth a grid: sigma and mu meet only through
+    # nu = mu - delta - sigma^2/2 and theta = 2nu/sigma^2, so the plane is
+    # where the two stability boundaries of [the stability section] are
+    # curves rather than points, and where an operator reads off what drift
+    # a stock of their volatility needs before the wheel has a steady state.
+    print(f"\n   -- A* on the (sigma, mu) plane, same gamma_s and eps --")
+    print(f"      [count boundary nu = 0 at mu = delta + sigma^2/2; capital "
+          f"boundary at mu = delta + sigma^2, marked *:\n       inside it the "
+          f"lot COUNT is stationary and the capital integral is not.  'never' "
+          f"is nu <= 0; '~inf' is nu > 0\n       but so close to the boundary "
+          f"that E[W] is finite in principle and unquotable in practice]")
+    print(f"      {'':>9} " + "".join(f"{f'mu={mu:.0%}':>10}" for mu in mus))
+    for i, s in enumerate(sig):
+        row = grid[i * len(mus):(i + 1) * len(mus)]
+        out = []
+        for c in row:
+            if not c["count_ok"]:
+                out.append(f"{'never':>10}")
+            elif not c["resolved"]:
+                out.append(f"{'~inf':>10}")
+            else:
+                out.append(f"{'>' if not c['tail_ok'] else ' '}{c['A*']:>8.1f}"
+                           + ("*" if not c["capital_ok"] else " "))
+        print(f"      sigma={s:.0%} " + "".join(out))
+    print(f"      [the running example is sigma=20%, mu=7%: A* = {A_ref:.2f}]")
+
+
 def report(C, args):
     print("\n" + "=" * 78)
     print(f"REGIME: {C.label}   p*={C.p_star:.0%}  tau_p={C.tau_p:.4f}  "
@@ -1339,12 +1586,15 @@ def main():
     ap.add_argument("--far-h", type=float, default=0.025)
     ap.add_argument("--far-x-max", type=float, default=50.0)
     ap.add_argument("--no-far", dest="far", action="store_false")
+    ap.add_argument("--no-sweep", dest="sweep", action="store_false")
     ap.add_argument("--no-grid-check", dest="grid_check", action="store_false")
     args = ap.parse_args()
 
     for C in (Config(p_star=0.20, label="Standard"),
               Config(p_star=0.10, label="Conservative")):
         report(C, args)
+    if args.sweep:
+        sensitivity()
     if args.grid_check:
         convergence_check(args)
 
