@@ -18,7 +18,7 @@ are unwritten**, and between them they remain the bulk of what is left.
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | written, and **reopened**: II-3…II-14 below; 11 does not exist |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | written, and **reopened**: II-5…II-14 below; 11 does not exist |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14, 15 do not exist**; outlook is a stub, currently on disk as `15-outlook.md` |
 
@@ -93,38 +93,33 @@ Four decisions fixed before any code (2026-07-29):
   annotation on the output.
 
 Code before prose: the survival figures decide how much of [the stability
-section](#sec:stability) has to be restructured.
+section](#sec:stability) has to be restructured. The parameters and the survival closed forms
+(II-3, II-4) landed 2026-07-29; the capacity fixed point, the simulator and the sweep remain.
 
 ### Code
 
-**II-3. Parameters, and the regression guard.** `model.py`: rename `margin` → γ_p; add **γ_s**
-(stock margin fraction, swept over 1.00 / 0.50 / 0.25 / 0.15 — cash-secured, Reg T, portfolio
-margin, aggressive PM), the **financing spread** r_b − r, account equity **A** in share prices,
-and the stopping-rule utilization **u\***. Defaults must reproduce today exactly: γ_s = 1.0,
-spread = 0, A = ∞. `verify_examples.py` passes unchanged or the item is not done.
+**II-3 and II-4 were resolved on 2026-07-29**; both write-ups are in [`DONE.md`](DONE.md), and
+the numbers they settled are quoted below where later items need them. `model.py` now carries
+γ_p, γ_s, A, u\* and the financing spread, plus `liquidation_barrier`, `first_passage_prob`,
+`liquidation_prob`, `max_leverage` and `leverage` in a working-capital block; `verify_examples.py`
+checks them under a structural heading. Note that **"II-3" names two items** — the 2026-07-28
+stress-table mislabel and the 2026-07-29 parameters — which `DONE.md` records.
 
-**II-4. The survival closed forms.** In `model.py`, the one place formulas may live:
-
-- liquidation barrier **f\* = (1 − 1/L)/(1 − γ_s)**, the price ratio at which equity/MV crosses γ_s;
-- infinite-horizon **P = f\*^θ**, reusing the census tail exponent θ = 2ν/σ² of
-  [eq:capital-criterion](#eq:capital-criterion) — first passage to a lower barrier is governed by
-  the same constant, which is worth stating as a result rather than a coincidence;
-- the finite-horizon first passage,
-  N((−a − ν·T)/(σ·√T)) + e^(−2ν·a/σ²)·N((−a + ν·T)/(σ·√T)) with a = −ln f\*, which must collapse
-  to f\*^θ as T → ∞ (that limit is a unit test);
-- the inversion **L_max = 1 / (1 − (1−γ_s)·ε^(1/θ))**.
-
-Sanity target from the design discussion, to be confirmed or corrected, not assumed: at θ = 1.25
-and γ_s = 0.25, L_max ≈ 1.02 at ε = 1% and ≈ 1.14 at ε = 10% on the infinite horizon. **The
-figures quoted in that discussion were derived by hand and have no code behind them** — treat
-them as predictions to check, exactly the failure mode I-3 was withdrawn for.
-
-**II-5. Capacity → T_sat, and the fixed point.** Extend the transient inverse at `model.py:673`
-so it maps an absolute capacity in lots to the first time E[I(t)] reaches it. Then close the loop:
+**II-5. Capacity → T_sat, and the fixed point.** Extend the transient inverse at
+`model.py:703` (`time_to_fraction`) so it maps an absolute capacity in lots to the first time
+E[I(t)] reaches it. Then close the loop:
 u\* sets L = u\*/γ_s, which sets capacity, which sets T_sat, which sets survival probability,
 which constrains u\*. Solve for u\* given (γ_s, A, ε). The output is a frontier, not a single
 number: for each configuration report T_sat, P(survive to T_sat), saturation leverage,
 throughput retention λ_eff/λ, and steady-state return on equity.
+
+**II-4 measured how much the horizon matters, and it is most of the answer.** At γ_s = 0.25 and
+the leverage carrying a 10% *eventual* liquidation risk (L = 1.1349, an 84% drawdown barrier),
+the finite-horizon probabilities are 1.2e-5 at 5y, 0.11% at 10y, **2.5% at 30y** and 7.8% at
+100y. So the infinite-horizon L_max is a very conservative dial and the frontier will be far more
+permissive at any T_sat a real account reaches — which is the case for making T_sat emergent
+rather than capping the horizon by hand, and also a warning: **report the horizon beside every
+survival figure**, because the same configuration reads an order of magnitude apart across them.
 
 **II-6. The constrained simulator.** `wheel_sim.py --scenario constrained`: skip-when-blocked
 arrivals, debit tracking, mark-to-market equity, the liquidation trigger, premium income and
@@ -185,16 +180,25 @@ unconstrained base case with a stated qualifier instead of doubling in width. It
 - the **selectively distorted census**: blocking removes arrivals when the account is full, which
   is during drawdowns, so constrained inventory is missing precisely the lots that would have been
   bought cheapest;
-- the **Q-world matched pair**: at θ_Q = 0.25 the eventual-liquidation probability rises sharply,
-  so the market prices this stock as one whose levered wheel is liquidated — alongside [the
-  stability section](#sec:stability)'s "prices it as one whose inventory never clears". If the
-  pair does not come out, the machinery is wrong.
+- the **Q-world matched pair**, which **came out** (II-4, 2026-07-29): the leverage carrying a 10%
+  eventual-liquidation risk in the real world carries **63.1%** under the pricing measure, and
+  Q-world L_max at ε = 10% is 1.00008 — no leverage at all. The market prices this stock as one
+  whose levered wheel is liquidated, alongside [the stability section](#sec:stability)'s "prices it
+  as one whose inventory never clears". The machinery passes its own test;
+- **θ read twice**, which is the cleanest thing the reframe turned up: first passage to the
+  liquidation barrier is governed by the same 2ν/σ² as the census tail, so the constant that says
+  whether expected capital converges also says whether a levered account survives. State it as a
+  result, not as a convenience.
 
-Two results to report **as they come out**, agreed before seeing them: the reachable steady states
-may be small enough that the strategy is barely running, which is a legitimate negative result and
-is not to be softened into a range; and γ_s may turn out barely to matter, if survivable leverage
-lands near 1.1–1.2× whatever the broker allows — in which case the swept parameter earns its place
-by showing the broker's limit is nowhere near the binding one.
+Two results to report **as they come out**, agreed before seeing them. The first still stands: the
+reachable steady states may be small enough that the strategy is barely running, which is a
+legitimate negative result and is not to be softened into a range. **The second is now measured,
+and the guess was too generous** (II-4, 2026-07-29). γ_s barely matters — survivable leverage at
+ε = 10% runs **1.0000 / 1.0861 / 1.1349 / 1.1557** across γ_s = 1.00 / 0.50 / 0.25 / 0.15 against
+broker ceilings of 1 / 2 / 4 / 6.67, so the usable fraction of the broker's permission *falls*
+from 100% to 54% to 28% to 17%. Survivable leverage lands near 1.1–1.2× **total**, not 1.1–1.2×
+what the broker allows: the binding limit is near-independent of the permission, and the gap
+widens the more generous the broker is. That is the form the swept parameter earns its place in.
 
 **File numbering is deferred.** The new section takes 11, so Part III moves to 12/13 and Part IV
 to 14/15/16. Anchors are name-based, so nothing cross-referential breaks and only filenames move;
@@ -202,10 +206,13 @@ make the decision when Part III drafts rather than renumbering twice.
 
 ### Verification
 
-**II-14. Extend `verify_examples.py`.** Its own section, on the standing discipline. Required: the
-γ_s = 1.0 regression (every current figure byte-identical); the T → ∞ collapse of the
-finite-horizon first passage onto f\*^θ; agreement between `model.py` and the constrained
-simulator on T_sat and P(survive); and the **Q-world identity extended to the constrained case** —
+**II-14. Extend `verify_examples.py`.** Its own section, on the standing discipline. Two of the
+four are already in, under the structural heading (II-4, 2026-07-29): the **γ_s = 1.0 regression**
+— which must go on holding at every later step, not just today — and the **T → ∞ collapse** of the
+finite-horizon first passage onto f\*^θ, alongside the L_max round trip, the f\* = 1 recovery of
+the broker's ceiling and the Q-world pair. Still required: agreement between `model.py` and the
+constrained simulator on T_sat and P(survive); and the **Q-world identity extended to the
+constrained case** —
 at m = r − δ with r_b = r, a blocked, levered wheel must still earn exactly r on equity at every
 γ_s and every account size. Blocking arrivals creates no arbitrage, so any failure there is a bug
 in the new machinery, and this is the strongest free test the reframe gets.

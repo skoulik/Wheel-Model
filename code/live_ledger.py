@@ -64,7 +64,7 @@ from analyze_statement import (STATEMENTS_GLOB, build_lots,
                                excluded_symbols, parse)
 from model import bs_call, bs_put
 
-MARGIN = 0.20          # Track B margin on a short put, matching Config.margin
+MARGIN = 0.20          # Track B margin on a short put, matching Config.gamma_p
 RF = 0.05              # risk-free rate, matching the article's r
 MARK_SIGMA = 0.25      # implied vol for marking still-open short options
 

@@ -26,6 +26,14 @@ Two stability criteria fall out, and they are different:
                                    the killed walk's tail exponent 2nu/sigma^2
                                    must exceed 1)
 
+A third failure mode arrives with working capital, and it is the only fast
+one: an account carrying shares on borrowed money is liquidated the first time
+the price crosses a barrier fixed by its leverage.  That is a first passage
+governed by the same tail exponent 2nu/sigma^2, and the closed forms for it
+sit in their own block near the end of this file.  They are inert at the
+defaults -- gamma_s = 1, A = inf -- which is the unconstrained operator every
+figure in Parts I and II reports.
+
 Numerics: finite-horizon quantities come from occupation() on a near grid
 (default h = 0.01, x_max = 4), whose resolution is set by the per-period
 step sigma*sqrt(tau_c); the stationary ones come from stationary(), which
@@ -126,7 +134,16 @@ def bs_call(s, k, tau, sigma, r, delta=0.0):
 
 @dataclass
 class Config:
-    """Strategy and market parameters.  Defaults = the Standard regime."""
+    """Strategy and market parameters.  Defaults = the Standard regime.
+
+    The working-capital block is inert at its defaults, and deliberately so:
+    an operator who pays for shares in full (gamma_s = 1), has unlimited
+    equity (A = inf) and borrows at the risk-free rate (fin_spread = 0) never
+    has a put blocked and never receives a margin call.  That operator is the
+    one every figure in Parts I and II reports, so the defaults reproduce the
+    unconstrained model exactly and the constrained one is a departure from
+    them.  Nothing above the "Working capital" block below reads these fields.
+    """
 
     p_star: float = 0.20       # strike policy: assignment probability per put
     tau_p: float = 1 / 52      # put tenor: one week, the live-account cadence
@@ -138,12 +155,25 @@ class Config:
     delta: float = 0.025       # gross dividend yield
     withhold: float = 0.15
     iv_spread: float = 0.0     # sigma_IV = sigma + spread (0 = no vol risk premium)
-    margin: float = 0.20
+    gamma_p: float = 0.20      # margin fraction required against a short put
+    # -- working capital.  Initial and maintenance requirements are one
+    # parameter each, deliberately: the difference is small next to the
+    # question of whether the account survives at all.
+    gamma_s: float = 1.0       # equity fraction required against held shares:
+                               # 1.00 fully paid, 0.50 Reg T, 0.25 portfolio
+                               # margin, 0.15 aggressive PM
+    equity: float = float("inf")   # A, account equity in share prices (one
+                                   # unit = one share at today's spot)
+    u_star: float = 1.0        # utilization at which the operator stops
+                               # selling puts; u* = 1 runs to the broker's
+                               # own limit, where L = 1/gamma_s
+    fin_spread: float = 0.0    # r_b - r, charged on a debit balance
     label: str = "Standard"
 
     tau_c: float = field(init=False)
     delta_net: float = field(init=False)
     sigma_iv: float = field(init=False)
+    r_b: float = field(init=False)
 
     def __post_init__(self):
         if self.cadence is None:
@@ -151,6 +181,7 @@ class Config:
         self.tau_c = self.n * self.tau_p
         self.delta_net = self.delta * (1 - self.withhold)
         self.sigma_iv = self.sigma + self.iv_spread
+        self.r_b = self.r + self.fin_spread
 
     def world(self, measure):
         """(price drift m, dynamics volatility) of the chosen world."""
@@ -492,7 +523,7 @@ def economics(C, measure, occ, horizon=None):
                        for j, f in enumerate(occ["exitcost"]))
 
     inventory = lam * C.tau_c * sum_S
-    capital = C.margin * k + lam * C.tau_c * sum_basis * basis_factor
+    capital = C.gamma_p * k + lam * C.tau_c * sum_basis * basis_factor
     prem_income = c_p / C.cadence + lam * sum_prem
     div_income = inventory * C.delta_net
     income = prem_income + div_income
@@ -501,7 +532,7 @@ def economics(C, measure, occ, horizon=None):
     # current spot, whatever was paid for it), the acquisition mark loss booked
     # when it happens, and the unrealized appreciation of held shares counted.
     m_price = occ["m"]
-    mv_capital = C.margin * k + inventory
+    mv_capital = C.gamma_p * k + inventory
     acq_loss = lam * (entry_basis_ratio(C, measure) - 1.0)
     call_away_loss = lam * sum_cost
     econ_pnl = (prem_income + div_income + inventory * m_price
@@ -677,6 +708,143 @@ def time_to_fraction(C, occ, frac=0.9):
         if acc >= target:
             return (j + 1) * C.tau_c
     return float("inf")
+
+
+# ----------------------------------------------------------------------
+# Working capital: leverage, the liquidation barrier and survival
+#
+# Everything above describes an operator who buys whatever the puts assign.
+# A real account has a finite equity A and a broker who insists that equity
+# stay above a fraction gamma_s of what the shares are worth, and a book
+# carried on borrowed money therefore has a price below which it is sold out
+# from under the operator.  The account's life is a first-passage time.
+#
+# It is governed by the SAME exponent theta = 2nu/sigma^2 that decides whether
+# the depth census's capital integral converges ([eq:capital-criterion]).
+# That is not a coincidence: both are the exponent of the exponential
+# martingale of the same drifting walk, once as the decay rate of a stationary
+# tail and once as the decay rate of a hitting probability in the barrier.
+# One constant, read twice.
+#
+# The barrier below is STATIC: it holds the lot count fixed and lets only the
+# price move.  The wheel's own dynamics push both ways -- new assignments grow
+# the debit during exactly the declines that threaten the account, while
+# premium income and called-away lots repay it -- and the net sign is not
+# obvious a priori.  Settling it is the constrained simulator's job, not this
+# block's; these are the closed forms it will be checked against.
+# ----------------------------------------------------------------------
+
+def _log_ncdf(z):
+    """log N(z), usable in the far left tail where N(z) itself underflows."""
+    if z > -20.0:
+        return log(N(z))
+    zz = z * z                     # Mills-ratio asymptotic, ~1e-7 relative here
+    return -zz / 2 - log(-z) - log(2 * pi) / 2 + log(1 - 1 / zz + 3 / (zz * zz))
+
+
+def leverage(C, u=None):
+    """Gross exposure per unit of equity at utilization u.
+
+    Utilization is margin posted over equity.  Posting gamma_s per unit of
+    exposure, u of equity carries L = u/gamma_s of stock, so the broker's own
+    ceiling u = 1 is L = 1/gamma_s: four times equity at portfolio margin,
+    twice it under Reg T, and no leverage at all when shares must be paid for
+    in full.  Defaults to the configured stopping rule u*.
+    """
+    return (C.u_star if u is None else u) / C.gamma_s
+
+
+def liquidation_barrier(L, gamma_s):
+    """f*, the price ratio at which equity / market value crosses gamma_s.
+
+    A book worth M carried on equity A = M/L is financed by a debit
+    D = M*(1 - 1/L), and the debit does not move when the price does.  After
+    the price multiplies by f the broker weighs f*M - D against gamma_s*f*M,
+    and calls when
+
+        f* = (1 - 1/L) / (1 - gamma_s).                        [eq:barrier]
+
+    Two boundary cases are the formula telling the truth rather than special
+    pleading.  f* <= 0 is an unlevered book, which owes nothing and is never
+    called.  f* >= 1 is a position already in violation on the day it is put
+    on, and it happens exactly when L >= 1/gamma_s -- the broker's ceiling,
+    recovered from the barrier instead of assumed.
+    """
+    if L <= 1.0:
+        return 0.0
+    if gamma_s >= 1.0:                     # nothing may be borrowed at all
+        return float("inf")
+    return (1.0 - 1.0 / L) / (1.0 - gamma_s)
+
+
+def first_passage_prob(a, nu, sigma, horizon=None):
+    """P(the log price ever falls a below where it started), for a > 0.
+
+    ln(S_t/S_0) = nu*t + sigma*W_t, so this is first passage of a Brownian
+    motion with drift down to -a.  Over an unbounded horizon it is the
+    classical
+
+        P = exp(-2*nu*a/sigma^2) = e^(-theta*a) = f*^theta,     [eq:survive]
+
+    theta = 2nu/sigma^2 being the census tail exponent again; over [0, H] the
+    reflection principle gives
+
+        N((-a - nu*H)/(sigma*sqrt(H)))
+          + e^(-2*nu*a/sigma^2) * N((-a + nu*H)/(sigma*sqrt(H))),
+
+    whose first term is the paths that end below the barrier and whose second
+    is those that touched it and came back.  As H grows the first term dies
+    and the second collapses onto f*^theta -- checked as a unit test, since
+    the finite- and infinite-horizon forms are the pair the constrained
+    analysis reads in opposite directions.
+
+    With nu <= 0 the walk hits any barrier almost surely and the unbounded
+    answer is 1, which the exponential delivers on its own.
+    """
+    if a <= 0:
+        return 1.0
+    theta = 2 * nu / sigma**2
+    if horizon is None:
+        return min(1.0, exp(-theta * a))
+    if horizon <= 0:
+        return 0.0
+    sd = sigma * sqrt(horizon)
+    direct = N((-a - nu * horizon) / sd)
+    # For nu < 0 the exponential overflows while its companion N(.) underflows;
+    # their product is a probability either way, so they are paired in logs.
+    reflect = exp(min(0.0, -theta * a + _log_ncdf((-a + nu * horizon) / sd)))
+    return min(1.0, direct + reflect)
+
+
+def liquidation_prob(C, measure, L=None, horizon=None):
+    """P(a book levered L times is sold out), in `measure`'s world."""
+    m, s = C.world(measure)
+    f = liquidation_barrier(leverage(C) if L is None else L, C.gamma_s)
+    if f <= 0.0:
+        return 0.0
+    if f >= 1.0:
+        return 1.0
+    return first_passage_prob(-log(f), m - s**2 / 2, s, horizon)
+
+
+def max_leverage(C, measure, eps, gamma_s=None):
+    """Largest L whose eventual-liquidation probability is at most eps.
+
+    Inverting [eq:survive] through [eq:barrier] at f* = eps^(1/theta),
+
+        L_max = 1 / (1 - (1 - gamma_s) * eps^(1/theta)).
+
+    theta <= 0 leaves nothing to invert: the barrier is hit almost surely at
+    any leverage whatever, so the answer is an unlevered book.  gamma_s = 1
+    gives L_max = 1 for the same reason from the other side -- shares paid for
+    in full cannot be levered, whatever the tolerance.
+    """
+    g = C.gamma_s if gamma_s is None else gamma_s
+    theta = criteria(C, measure)["tail_exponent"]
+    if theta <= 0:
+        return 1.0
+    den = 1.0 - (1.0 - g) * eps ** (1.0 / theta)
+    return float("inf") if den <= 0 else 1.0 / den
 
 
 # ----------------------------------------------------------------------

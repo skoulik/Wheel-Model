@@ -35,7 +35,9 @@ from math import exp, log, sqrt
 import model
 from model import (BETA, Config, N, assign_prob, bs_call, criteria,
                    d2, depth_census, economics, entry_law, expected_drop,
-                   k_star_drift, occupation, pmap, put_premium, q_exit,
+                   first_passage_prob, k_star_drift, leverage,
+                   liquidation_barrier, liquidation_prob, max_leverage,
+                   occupation, pmap, put_premium, q_exit,
                    stationary,
                    sticky_dividend_trap, sticky_dividend_yield, strike,
                    time_to_fraction, trapped_fraction)
@@ -308,7 +310,7 @@ def main():
         check(f"30y census mass beyond x* ({meas})", sh[1], beyond, 0.006)
     # The rejected per-lot version, kept as a check that it is the cost-basis
     # capital in disguise -- an unfunded +1.24pp, which is why it is wrong.
-    naive = e30["dividends"] * ((e30["capital"] - STD.margin * e30["k"])
+    naive = e30["dividends"] * ((e30["capital"] - STD.gamma_p * e30["k"])
                                 / e30["I"] - 1)
     check("unfunded return from per-lot dividend anchoring (rejected)",
           naive / e30["mv_capital"], 0.0122, 0.0003)
@@ -335,8 +337,8 @@ def main():
                                   (30.0, 0.00084, 0.0001, -0.0008)]:
         xs, xcv = (economics(STD, "P", occ_p, horizon=H),
                    economics(CON, "P", occ_c, horizon=H))
-        o_s = STD.r * STD.margin * xs["k"] / xs["mv_capital"]
-        o_c = CON.r * CON.margin * xcv["k"] / xcv["mv_capital"]
+        o_s = STD.r * STD.gamma_p * xs["k"] / xs["mv_capital"]
+        o_c = CON.r * CON.gamma_p * xcv["k"] / xcv["mv_capital"]
         g_s = xs["econ_excess"] - buy_hold * xs["I"] / xs["mv_capital"]
         g_c = xcv["econ_excess"] - buy_hold * xcv["I"] / xcv["mv_capital"]
         check(f"Track C overcharge on collateral at {H:.0f}y (Standard)",
@@ -349,7 +351,7 @@ def main():
     # And the fully cash-secured convention, where collateral is k not gamma*k.
     check("cash-secured overcharge is ~4.5x the margin one (30y)",
           (e30["k"] / (e30["k"] + e30["I"]))
-          / (STD.margin * e30["k"] / e30["mv_capital"]), 4.7, 0.1)
+          / (STD.gamma_p * e30["k"] / e30["mv_capital"]), 4.7, 0.1)
 
     # ------------------------------------------------------------------
     print("--- Section 10: stability ---")
@@ -424,6 +426,86 @@ def main():
             resid = x["econ_excess"] + x["leak"] / x["mv_capital"]
             check(f"{label} @ {H:.0f}y: Q-world excess = -(withholding leak)",
                   resid, 0.0, 0.003)
+
+    # ------------------------------------------------------------------
+    # Section 11 is unwritten, so the working-capital closed forms sit with
+    # the structural checks rather than under a section heading: what is
+    # verified here is that the formulas agree with each other and with the
+    # exponent the census already uses, not that some paragraph is right.
+    print("--- Structural: the liquidation barrier and survival ---")
+    # The defaults are the unconstrained operator, and that is II-3's
+    # regression guard stated as a property rather than as a diff: shares paid
+    # for in full, so no leverage is available, so nothing is ever sold out.
+    check("default gamma_s is fully paid", STD.gamma_s, 1.0, 0.0)
+    check("default leverage at the stopping rule u*", leverage(STD), 1.0, 0.0)
+    check("an unlevered book is never liquidated", liquidation_prob(STD, "P"),
+          0.0, 0.0)
+    check("...nor over any finite horizon",
+          liquidation_prob(STD, "P", horizon=30.0), 0.0, 0.0)
+    # The barrier recovers the broker's own ceiling rather than assuming it:
+    # at L = 1/gamma_s the position violates the requirement on day one.
+    for g in (0.50, 0.25, 0.15):
+        check(f"f* = 1 at the broker's ceiling L = 1/{g:g}",
+              liquidation_barrier(1.0 / g, g), 1.0, 1e-12)
+    check("f* = 0 for an unlevered book", liquidation_barrier(1.0, 0.25), 0.0, 0.0)
+
+    # L_max over the gamma_s grid, on the unbounded horizon.  The hand figures
+    # from the design discussion were 1.02 at eps = 1% and 1.14 at eps = 10%
+    # for gamma_s = 0.25: the first is confirmed, the second is 1.13.
+    check("survival exponent is the census exponent, not a new constant",
+          crit_p["tail_exponent"], 1.25, 0.01)
+    LMAX = [(1.00, 1.0000, 1.0000), (0.50, 1.0127, 1.0861),
+            (0.25, 1.0192, 1.1349), (0.15, 1.0218, 1.1557)]
+    print(f"      {'gamma_s':>8} {'ceiling':>8} {'L(eps=1%)':>10}"
+          f" {'L(eps=10%)':>11} {'% of ceiling':>13}")
+    for g, l1, l10 in LMAX:
+        Cg = Config(p_star=0.20, gamma_s=g)
+        got1, got10 = max_leverage(Cg, "P", 0.01), max_leverage(Cg, "P", 0.10)
+        print(f"      {g:>8.2f} {1 / g:>8.2f} {got1:>10.4f} {got10:>11.4f}"
+              f" {got10 * g:>12.1%}")
+        check(f"L_max at gamma_s = {g:.2f}, eps = 1%", got1, l1, 0.0005)
+        check(f"L_max at gamma_s = {g:.2f}, eps = 10%", got10, l10, 0.0005)
+        for eps, L in ((0.01, got1), (0.10, got10)):
+            if L > 1.0:                     # gamma_s = 1 has nothing to invert
+                check(f"round trip at gamma_s = {g:.2f}: P at L_max = eps",
+                      liquidation_prob(Cg, "P", L), eps, 1e-12)
+
+    # What that leverage actually costs, and over what horizon.  The barrier
+    # is far away -- an unbounded horizon is what makes a 10% risk of reaching
+    # it -- so the finite-horizon form is the one an operator lives under.
+    G = Config(p_star=0.20, gamma_s=0.25)
+    L10 = max_leverage(G, "P", 0.10)
+    f10 = liquidation_barrier(L10, G.gamma_s)
+    check("barrier at the 10%-tolerance leverage", f10, 0.15849, 0.00005)
+    check("...which is a drawdown of", 1 - f10, 0.84151, 0.00005)
+    prev = -1.0
+    for H, want, tol in [(5.0, 0.0000116, 1e-7), (10.0, 0.0010614, 1e-6),
+                         (30.0, 0.0249255, 1e-6), (100.0, 0.0778552, 1e-6),
+                         (1000.0, 0.0999984, 1e-6)]:
+        got = liquidation_prob(G, "P", L10, horizon=H)
+        check(f"P(liquidated by {H:.0f}y) at L = {L10:.4f}", got, want, tol)
+        if got <= prev:
+            FAILURES.append(f"first passage not monotone in the horizon at {H}y")
+        prev = got
+    # The unit test the two forms owe each other: the finite-horizon first
+    # passage must collapse onto f*^theta as the horizon grows.
+    nu_p, th_p = crit_p["nu"], crit_p["tail_exponent"]
+    a10 = -log(f10)
+    check("T -> infinity collapse of the finite-horizon first passage",
+          first_passage_prob(a10, nu_p, STD.sigma, 1e6)
+          / first_passage_prob(a10, nu_p, STD.sigma) - 1.0, 0.0, 1e-12)
+    check("and that limit is f*^theta", f10 ** th_p, 0.10, 1e-9)
+
+    # The Q-world matched pair.  At theta_Q = 0.25 the same book is priced as
+    # one that gets sold out: the leverage carrying a 10% real-world risk
+    # carries 63% under the pricing measure, alongside section 10's "the
+    # market prices this stock as one whose inventory never clears".
+    check("Q-world liquidation probability at the P-world's L_max",
+          liquidation_prob(G, "Q", L10), 0.63096, 0.00005)
+    check("Q-world liquidation probability at 30y",
+          liquidation_prob(G, "Q", L10, horizon=30.0), 0.07312, 0.00005)
+    check("Q-world L_max at eps = 10% is no leverage at all",
+          max_leverage(G, "Q", 0.10), 1.0001, 0.0002)
 
     # ------------------------------------------------------------------
     if args.full:

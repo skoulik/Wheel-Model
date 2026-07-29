@@ -66,7 +66,7 @@ class Params:
     n: int = 4                 # tau_c = n * tau_p = 4 weeks
     cadence: float = None      # T >= tau_p; None -> T = tau_p
     r: float = 0.05
-    margin: float = 0.20
+    gamma_p: float = 0.20      # put margin fraction, matching model.Config
     mu: float = 0.07           # TOTAL expected return; price drifts at mu - delta
     sigma: float = 0.20
     delta: float = 0.0         # gross dividend yield
@@ -201,8 +201,8 @@ def run_path(P, rng, agg):
             # they are worth now -- and a share is worth one share however far
             # it has fallen, so Track B is just the lot count.  Their gap is
             # the accumulated paper loss on standing inventory.
-            cost_cap = P.margin * K + sum(l.basis for l in lots)
-            mv_cap = P.margin * kf + len(lots)
+            cost_cap = P.gamma_p * K + sum(l.basis for l in lots)
+            mv_cap = P.gamma_p * kf + len(lots)
             agg.cap_sum += cost_cap / S
             agg.mvcap_sum += mv_cap
             agg.cap_n += 1
@@ -296,7 +296,7 @@ def as_config(P, label="sim"):
     return Config(p_star=P.p_star, tau_p=P.tau_p, n=P.n, cadence=P.cadence,
                   r=P.r, mu=P.mu, sigma=P.sigma, delta=P.delta,
                   withhold=P.withhold, iv_spread=P.iv_spread,
-                  margin=P.margin, label=label)
+                  gamma_p=P.gamma_p, label=label)
 
 
 def closed_forms(P):
