@@ -18,7 +18,7 @@ are unwritten**, and between them they remain the bulk of what is left.
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | written, and **reopened**: II-9…II-14 below; 11 does not exist |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | written, and **reopened**: II-9…II-16 below; 11 does not exist |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14, 15 do not exist**; outlook is a stub, currently on disk as `15-outlook.md` |
 
@@ -62,7 +62,8 @@ commits the article to five results that do not yet exist anywhere:
   power to test** (contribution 7 → IV-1). *Nothing currently delivers this one* — see IV-1.
 
 Either the sections deliver these or §02 is rewritten. Check the list against the finished
-Parts III and IV before assembly.
+Parts III and IV before assembly. **II-16 is the other item on this list** — the constrained
+account, which the list does not mention at all — so §02 gets one editing pass, not two.
 
 ## Part II — One asset
 
@@ -347,6 +348,29 @@ widens the more generous the broker is. That is the form the swept parameter ear
 **File numbering is deferred.** The new section takes 11, so Part III moves to 12/13 and Part IV
 to 14/15/16. Anchors are name-based, so nothing cross-referential breaks and only filenames move;
 make the decision when Part III drafts rather than renumbering twice.
+
+**II-16. §02 introduction** (raised 2026-07-29, when II-8 landed). The contributions list runs to
+seven items and **none of them is the constrained account**, though the reframe added a whole
+section to Part II — and §02 is the one section whose job is to promise the reader what the
+article delivers. It owes three things:
+
+- **a contribution for the finite account**: A\* is 5.8× the broker's ceiling, capacity comes from
+  equity rather than from permission, survivable leverage is near-independent of what the broker
+  allows, and the account has a failure mode the unlevered wheel does not;
+- **a fix to contribution 3**, whose "the equilibrium takes decades to approach, so the
+  operator-relevant numbers are never the equilibrium ones" is exactly what II-11 reframes with
+  T_sat. It must carry II-11's qualifier rather than the escape alone: the truncation helps only
+  an account far below A\*, and in proportion to how little of the strategy it is running;
+- **a decision on contribution 5**, headlined "**Two** stability boundaries, not one" against [the
+  stability section](#sec:stability)'s three. II-12 has already decided the third belongs *beside*
+  the other two rather than above them, since it alone does not bind an unlevered account, so the
+  likely resolution is a qualifier and not a recount — but the headline cannot stand unexamined.
+  The same sentence exists as a forward reference in [the inventory section](#sec:inventory)
+  ("two boundaries instead of one"), which is II-12's to keep in sync.
+
+Note that **I-4 is the other item on this same list** — it checks contributions 6 and 7 against
+the finished Parts III and IV. Resolve both in one pass over §02, at assembly time, rather than
+editing the list twice.
 
 ### Verification
 
