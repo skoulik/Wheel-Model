@@ -18,7 +18,7 @@ are unwritten**, and between them they remain the bulk of what is left.
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | written, and **reopened**: II-9…II-16 below; 11 does not exist |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · **11 constrained** | written, and **reopened**: II-10…II-16 below; 11 does not exist |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14, 15 do not exist**; outlook is a stub, currently on disk as `15-outlook.md` |
 
@@ -192,9 +192,14 @@ twelve listed in §00 (`eq:leverage`, `eq:barrier`, `eq:first-passage`, `eq:surv
 `eq:draw`) and §10 must display `eq:account-criterion`. Capacity in lots has a symbol it did not
 have in the code, **I_max = L_max·A**.
 
-**II-9. §04 strategy.** The exposure-versus-equity-required distinction belongs where the three
-tracks are defined. State plainly that Track B remains exposure at market and that the constraint
-runs on a different quantity.
+**II-9 (§04 strategy) was resolved on 2026-07-29**; the write-up is in [`DONE.md`](DONE.md). The
+tracks now carry the exposure-versus-equity-required distinction, and §04 flags the "a put every
+period regardless of inventory" rule as the unconstrained idealization rather than the definition.
+Two things it hands forward: the argument against dividing by equity required is made **as a
+statement about financing rather than as an arithmetic error** — the levered number is correct and
+answers a different question — so II-10 and II-13 must not re-argue it as a mistake; and §04 now
+promises the reader that **everything before §11 is the unconstrained limit §11 recovers**, which
+II-13 owes a demonstration of rather than an assertion.
 
 **II-10. §09 returns.** An equity-required row in the capital table, plus the leverage result:
 net excess on equity = excess·L − spread·(L−1), so **leverage is exactly neutral at every L when
