@@ -37,10 +37,12 @@ from model import (BETA, Config, N, assign_prob, bs_call, criteria,
                    d2, depth_census, economics, entry_law, expected_drop,
                    debit_growth, first_passage_prob, k_star_drift, leverage,
                    liquidation_barrier, liquidation_prob, max_leverage,
+                   max_debit_growth, max_sustainable_draw,
                    occupation, pmap, put_premium, q_exit,
-                   stationary,
+                   saturation, stationary,
                    sticky_dividend_trap, sticky_dividend_yield, strike,
-                   time_to_fraction, trapped_fraction)
+                   survival_utilization, time_to_fraction, time_to_inventory,
+                   trapped_fraction)
 
 FAILURES = []
 
@@ -86,7 +88,7 @@ def _stationary_job(job):
     """A Richardson-extrapolated stationary solve (two grids, run serially)."""
     cfg, measure = job
     occ = stationary(cfg, measure)
-    return economics(cfg, measure, occ), time_to_fraction(cfg, occ, 0.9)
+    return occ, economics(cfg, measure, occ), time_to_fraction(cfg, occ, 0.9)
 
 
 def main():
@@ -554,11 +556,160 @@ def main():
           f"{liquidation_prob(G,'P',L10,g=0.01):.4f} at g = -1%, 0, +1%)")
 
     # ------------------------------------------------------------------
+    # Capacity needs the stationary survival curve -- the transient inverse
+    # runs centuries into the tail, where a single grid's O(h^2) bias has
+    # accumulated -- so the extrapolated pair is solved here rather than under
+    # --full, and --full reuses it.
+    (far_p, f, t90), (far_q, g, _) = pmap(
+        _stationary_job, [(STD, "P"), (STD, "Q")])
+
+    print("--- Structural: capacity, saturation and the sustainable draw ---")
+    G25 = Config(p_star=0.20, gamma_s=0.25)
+    I_inf, lam = f["I"], f["lambda"]
+    L_max = max_leverage(G25, "P", 0.10)
+    A_star = I_inf / L_max
+    check("A*, the equity a wheel needs at portfolio margin (eps = 10%)",
+          A_star, 19.23, 0.02)
+    check("...unlevered, which is just E[I(inf)]",
+          I_inf / max_leverage(STD, "P", 0.10), 21.82, 0.02)
+    check("...and at the most aggressive margin available",
+          I_inf / max_leverage(Config(p_star=0.20, gamma_s=0.15), "P", 0.10),
+          18.88, 0.02)
+    check("the stopping rule implementing a 10% tolerance",
+          survival_utilization(G25, "P", 0.10), 0.25 * L_max, 1e-15)
+
+    # The transient inverse.  Both entry points must agree exactly, since a
+    # capacity of frac*E[I(inf)] lots IS a fraction frac of the stationary
+    # inventory -- the two differ only in what units the caller thinks in.
+    check("time_to_inventory and time_to_fraction are one map",
+          time_to_inventory(STD, far_p, lam, 0.9 * I_inf)
+          - time_to_fraction(STD, far_p, 0.9), 0.0, 1e-9)
+    # Interpolating inside the call period: the answer must land in the period
+    # the staircase named, and strictly below it (the staircase rounds up).
+    worst, prev_t = 0.0, -1.0
+    for cap in (1.0, 5.0, 11.4, 13.15, 17.02, 21.5):
+        t = time_to_inventory(STD, far_p, lam, cap)
+        # what the map returned before interpolation: the right-hand end of
+        # whichever call period the target fell in.
+        acc, step = 0.0, float("inf")
+        for j, S in enumerate(far_p["surv"]):
+            acc += S
+            if acc >= cap / (lam * STD.tau_c):
+                step = (j + 1) * STD.tau_c
+                break
+        if not t <= step:
+            FAILURES.append(f"interpolated T_sat above its own period at {cap}")
+        if t <= prev_t:
+            FAILURES.append(f"T_sat is not increasing in capacity at {cap}")
+        prev_t, worst = t, max(worst, step - t)
+    print(f"PASS  interpolation stays inside its call period "
+          f"(worst {worst * 365:.1f} days of {STD.tau_c * 365:.0f})")
+    check("...and it barely moves the 90%-of-stationary figure", t90, 90.4, 0.1)
+
+    # Throughput retention is A/A* exactly, and the stopping rule binds --
+    # realized leverage IS L_max -- everywhere below A*.  Above it the account
+    # never fills, so capacity stops mattering and leverage falls away.
+    for frac in (0.05, 0.30, 0.60, 0.99):
+        s = saturation(G25, "P", far_p, 0.10, equity=frac * A_star, econ=f)
+        if abs(s["throughput"] - frac) > 1e-12 or abs(s["L"] - L_max) > 1e-12:
+            FAILURES.append(f"throughput/leverage off at A = {frac}*A*")
+    print("PASS  below A*: throughput = A/A* and realized leverage = L_max")
+    sat_star = saturation(G25, "P", far_p, 0.10, equity=A_star, econ=f)
+    check("at A* the account fills exactly, and never saturates",
+          sat_star["throughput"], 1.0, 1e-12)
+    if sat_star["T_sat"] != float("inf"):
+        FAILURES.append("T_sat is finite at A*")
+    check("just below A* it does saturate, but only after centuries",
+          saturation(G25, "P", far_p, 0.10, equity=0.99 * A_star,
+                     econ=f)["T_sat"], 270.0, 5.0)
+    for A, want in ((11.59, 18.5), (15.0, 44.4), (5.0, 2.4)):
+        check(f"T_sat at A = {A} lots, years",
+              saturation(G25, "P", far_p, 0.10, equity=A, econ=f)["T_sat"],
+              want, 0.1)
+
+    # The unconstrained limit, which is II-3's regression guard carried into
+    # the capacity block: unlimited equity never blocks, never borrows, and
+    # earns exactly the risk-free rate on the equity it is not using.
+    inf_sat = saturation(STD, "P", far_p, 0.10, equity=float("inf"), econ=f)
+    check("unlimited equity: full throughput", inf_sat["throughput"], 1.0, 0.0)
+    check("...no debit", inf_sat["debit"], 0.0, 0.0)
+    check("...and excess return on equity of zero (it all sits in cash)",
+          inf_sat["roe_excess"], 0.0, 0.0)
+    if inf_sat["T_sat"] != float("inf"):
+        FAILURES.append("an account of unlimited equity saturates")
+    full = saturation(STD, "P", far_p, 0.10, equity=10.0, econ=f)
+    check("fully paid shares (the default gamma_s): capacity is the equity",
+          full["capacity"], 10.0, 1e-12)
+    check("...and A* is the stationary inventory itself", full["A*"], I_inf, 1e-12)
+
+    # The gap between this block's shares-only excess and economics()'s Track B
+    # excess is exactly the put collateral, deliberately excluded from capacity,
+    # from the barrier and from the financing ledger alike.
+    check("the excluded put collateral, as a formula",
+          full["econ_excess_shares"] - f["econ_excess"],
+          f["econ_pnl"] * (f["mv_capital"] - I_inf) / (I_inf * f["mv_capital"]),
+          1e-15)
+
+    # The draw.  g_max inverts the same equation as L_max, in the other
+    # variable, so at L = L_max(eps) it must return exactly the policy that
+    # equation was solved under: g = 0, the operator who services the interest
+    # and withdraws the rest.  That is a tautology and it is the point -- the
+    # draw axis has no slack wherever the stopping rule binds.
+    check("g_max at the survivable leverage is the interest-servicing policy",
+          max_debit_growth(G25, "P", L_max, 0.10), 0.0, 1e-15)
+    for L in (1.05, 1.1349, 1.25, 1.5, 2.0):
+        gm = max_debit_growth(G25, "P", L, 0.10)
+        if abs(liquidation_prob(G25, "P", L, g=gm) - 0.10) > 1e-12:
+            FAILURES.append(f"g_max round trip fails at L = {L}")
+        D, y = (L - 1.0) * 11.59, 0.6095
+        draw = max_sustainable_draw(G25, "P", L, 0.10, y, D)
+        if abs(debit_growth(Config(p_star=0.20, gamma_s=0.25, draw=draw),
+                            D, y) - gm) > 1e-12:
+            FAILURES.append(f"draw does not deliver g_max at L = {L}")
+    print("PASS  g_max round-trips through the barrier, and the draw delivers it")
+    check("an unlevered book may withdraw its income and no more",
+          max_sustainable_draw(G25, "P", 1.0, 0.10, 0.6095, 0.0), 0.6095, 0.0)
+    # -inf will not go through check(), which subtracts: inf - inf is nan.
+    if max_debit_growth(G25, "P", 4.0, 0.10) != float("-inf"):
+        FAILURES.append("some draw is sustainable at the broker's ceiling")
+    print("PASS  nothing whatever is sustainable at the broker's ceiling "
+          "(f* = 1, so g_max = -inf)")
+    # The draw at the leverage an untended account drifts to: it is negative,
+    # which is a demand for deposits rather than a permission to withdraw, and
+    # it happens at a leverage whose reported return on equity is HIGHER.
+    L_reach = I_inf / 11.59
+    drift = saturation(G25, "P", far_p, 0.10, equity=11.59,
+                       L_max=L_reach, econ=f)
+    check("the leverage an untended account drifts to at A = 11.59",
+          L_reach, 1.883, 0.001)
+    check("...where the sustainable draw is a deposit, per year",
+          drift["draw"], -0.248, 0.001)
+    check("...while its excess return on equity reads higher, not lower",
+          drift["roe_excess"], 0.0315, 0.0005)
+
+    # II-14's constrained no-arbitrage identity, in its analytic half.  Under
+    # the pricing measure a blocked, levered wheel must still earn r on equity
+    # up to the withholding leak, at every gamma_s and every account size:
+    # blocking arrivals creates no arbitrage.  Uniform thinning makes the RATE
+    # invariant, so the A-independence below is structural rather than
+    # evidential -- what is evidential is the LEVEL, which no part of the
+    # capacity block was fitted to.
+    ee_q = saturation(STD, "Q", far_q, 0.10, equity=10.0,
+                      econ=g)["econ_excess_shares"]
+    for gs in (1.00, 0.50, 0.25, 0.15):
+        Cg = Config(p_star=0.20, gamma_s=gs)
+        for A in (1.0, 10.0, 50.0, 200.0):
+            s = saturation(Cg, "Q", far_q, 0.10, equity=A, econ=g)
+            if s["L"] > 0 and abs(s["roe_excess"] / s["L"] - ee_q) > 1e-12:
+                FAILURES.append(f"Q-world RoE not r + ee*L at gamma_s={gs}, A={A}")
+    print("PASS  Q-world return on equity is r + ee*L at every gamma_s and A")
+    check("Q-world: a blocked levered wheel earns r less the withholding leak",
+          ee_q + STD.delta * STD.withhold
+          - STD.r * G25.gamma_p * strike(STD, "Q") / g["I"], 0.0, 0.003)
+
+    # ------------------------------------------------------------------
     if args.full:
         print("--- Stationary figures, Richardson-extrapolated (slow) ---")
-        # Each solve is two grids run serially inside its own worker; the two
-        # worlds run side by side.
-        (f, t90), (g, _) = pmap(_stationary_job, [(STD, "P"), (STD, "Q")])
         check("stationary E[T] (Standard, P), years", f["E[T]"], 2.10, 0.03)
         check("Siegmund closed form for E[T]", f["E[T]_siegmund"], 1.91, 0.03)
         check("stationary E[I] (Standard, P)", f["I"], 21.82, 0.30)

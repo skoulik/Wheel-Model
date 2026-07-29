@@ -703,14 +703,41 @@ def trapped_fraction(C, measure):
     return 1 - exp(-theta * BETA * sc) * e_x0
 
 
+def _time_to_survival_sum(surv, tau_c, need):
+    """First t with sum_{j: j*tau_c < t} S_j = `need`, interpolated in-period.
+
+    E[I(t)] = lambda * integral_0^t P(W > s) ds, and the walk holds a lot at
+    one depth for a whole call period, so P(W > s) is the step function S_j on
+    [j*tau_c, (j+1)*tau_c) and E[I(t)] is piecewise LINEAR between grid points.
+    Interpolating inside the period is therefore the model's own continuum
+    rather than a smoothing of it, and it is what makes the inverse -- the time
+    at which the account reaches a given size -- continuous in that size
+    instead of a staircase with one call period of tread.
+    """
+    acc = 0.0
+    for j, S in enumerate(surv):
+        if acc + S >= need:
+            return (j + (need - acc) / S if S > 0 else j) * tau_c
+        acc += S
+    return float("inf")
+
+
 def time_to_fraction(C, occ, frac=0.9):
     """Years for E[I(t)] to reach `frac` of its stationary value."""
-    target, acc = frac * occ["E[J]"], 0.0
-    for j, S in enumerate(occ["surv"]):
-        acc += S
-        if acc >= target:
-            return (j + 1) * C.tau_c
-    return float("inf")
+    return _time_to_survival_sum(occ["surv"], C.tau_c, frac * occ["E[J]"])
+
+
+def time_to_inventory(C, occ, lam, target):
+    """Years for E[I(t)] to reach `target` LOTS, at arrival rate lam.
+
+    The inverse of the transient inventory curve.  E[I(j*tau_c)] is
+    lam*tau_c*sum_{i<j} S_i, so a target in lots is a target in survival-sum
+    units after dividing by lam*tau_c; `inf` means the target is above the
+    stationary inventory and is never reached.
+    """
+    if target <= 0:
+        return 0.0
+    return _time_to_survival_sum(occ["surv"], C.tau_c, target / (lam * C.tau_c))
 
 
 # ----------------------------------------------------------------------
@@ -911,8 +938,229 @@ def max_leverage(C, measure, eps, gamma_s=None, g=0.0):
 
 
 # ----------------------------------------------------------------------
+# Capacity: what a finite account can carry, when it fills, and what may
+# be taken out of it
+#
+# The block above prices a barrier for a book of a GIVEN size.  This one asks
+# how big the book gets.  Equity A buys capacity L*A lots of stock, arrivals
+# are refused once the book is that big, and the account's steady state is
+# Little's law run backwards: inventory is pinned by capital, so the arrival
+# rate is the output rather than the input,
+#
+#     lambda_eff = capacity / E[W],
+#
+# and the binding resource is capital while the thing that consumes it is
+# holding time.  Everything here is that identity plus arithmetic.
+#
+# Two approximations, both deliberate and both the constrained simulator's to
+# correct (they are why this file must not be the source of a quoted survival
+# probability):
+#
+#  * UNIFORM THINNING.  The constrained steady state is taken to be the
+#    unconstrained stationary one scaled by lambda_eff/lambda.  Blocking in
+#    truth removes arrivals when the account is full, which is during
+#    drawdowns, so the constrained book is missing precisely the lots that
+#    would have been bought cheapest and its depth census is not the
+#    stationary census scaled.  Thinning gets the count right and the
+#    composition approximately.
+#  * THE PUT COLLATERAL IS LEFT OUT of capacity, of the barrier and of the
+#    financing ledger alike -- one exclusion, applied uniformly.  Capacity is
+#    a statement about shares.  The collateral against the one open put is
+#    gamma_p*k* ~ 0.196, which is 1.5% of a saturated running example's
+#    capacity, and the price of carrying it through three formulas is worse
+#    than the price of naming it once.  It is the whole of the gap between
+#    this block's `econ_excess_shares` and economics()'s `econ_excess`.
+# ----------------------------------------------------------------------
+
+def survival_utilization(C, measure, eps, g=0.0):
+    """u*, the stopping rule that implements a survival tolerance.
+
+    Config.u_star is a free dial whose default (1.0) is the broker's own
+    ceiling -- where f* = 1 and the account is in violation on the day it
+    saturates.  The dial an operator can actually reason about is a tolerance
+    for being sold out, and it fixes u* completely: u = gamma_s*L, so the
+    utilization delivering L_max is gamma_s*L_max.  Solving for u* was this
+    item's original design and there is nothing left to solve -- the leverage
+    a saturated account realizes IS L_max, because saturation pins the book at
+    capacity and capacity was defined as L_max*A.
+    """
+    return C.gamma_s * max_leverage(C, measure, eps, g=g)
+
+
+def max_debit_growth(C, measure, L, eps):
+    """g_max: the fastest a debit may grow while liquidation risk stays <= eps.
+
+    [eq:survive] is one equation, f*^theta_eff = eps, in two unknowns.
+    max_leverage() reads it as an equation in L at g = 0; read instead as an
+    equation in g at a given L, theta_eff = 2(nu - g)/sigma^2 gives
+
+        nu - g  =  sigma^2 * ln(eps) / (2 * ln f*),                [eq:gmax]
+
+    both logarithms being negative, so g_max falls as the barrier is
+    approached.  An unlevered book owes nothing and has no barrier to hit, so
+    nothing bounds its debit growth (+inf); a book at the broker's ceiling is
+    in violation already, and no cash policy whatever rescues it (-inf).
+    """
+    f = liquidation_barrier(L, C.gamma_s)
+    if f <= 0.0:
+        return float("inf")
+    if f >= 1.0:
+        return float("-inf")
+    m, s = C.world(measure)
+    return m - s**2 / 2 - s**2 * log(eps) / (2 * log(f))
+
+
+def max_sustainable_draw(C, measure, L, eps, income, debit):
+    """Cash per year an operator may take out and still survive at `eps`.
+
+    [eq:gmax] inverted through g = r_b + (draw - income)/D:
+
+        draw_max  =  income + (g_max - r_b) * D.                   [eq:draw]
+
+    A constraint, not an optimum: it says what a chosen leverage costs in
+    drawing power, and the whole point of reporting it is that the answer goes
+    NEGATIVE -- a demand for deposits rather than a permission to withdraw --
+    well below the leverage a broker allows.  With no debit there is no
+    barrier and no interest, and the binding statement is the obvious one:
+    withdraw the income and the account never borrows.
+    """
+    if debit <= 0:
+        return income
+    g = max_debit_growth(C, measure, L, eps)
+    if g == float("inf"):
+        return income
+    return income + (g - C.r_b) * debit
+
+
+def saturation(C, measure, occ, eps, equity=None, L_max=None, econ=None):
+    """One frontier cell: an account of equity A run to its capacity.
+
+    `occ` must be a STATIONARY occupation measure (the Richardson pair from
+    stationary()): the transient inverse below runs centuries into the tail,
+    where a single grid's O(h^2) bias has accumulated.  `L_max` overrides the
+    stopping rule, for walking the leverage axis at a fixed account size.
+
+    Leverage is not solved for.  It is L_max(gamma_s, eps) whenever the
+    stopping rule binds at all, and above the critical equity
+
+        A* = E[I(inf)] / L_max                                     [eq:astar]
+
+    it stops binding, because the book never grows into its capacity: the
+    account holds the unconstrained stationary inventory and its leverage is
+    whatever that happens to be, falling through 1 (no borrowing at all) at
+    A = E[I(inf)].  A* is the equity a wheel actually needs, and throughput
+    retention below it is exactly A/A*.
+    """
+    A = C.equity if equity is None else equity
+    e = economics(C, measure, occ) if econ is None else econ
+    I_inf, lam = e["I"], e["lambda"]
+    if L_max is None:
+        L_max = max_leverage(C, measure, eps)
+    A_star = I_inf / L_max
+
+    cap = float("inf") if A == float("inf") else L_max * A
+    I_bar = min(cap, I_inf)                  # the steady state actually reached
+    thr = I_bar / I_inf                      # = lambda_eff/lambda = min(1, A/A*)
+    L_real = I_bar / A
+    debit = max(0.0, I_bar - A)
+
+    # Uniform thinning: every flow and every stock scales with the throughput,
+    # so every RATE -- the excess return, and hence the return on equity -- is
+    # invariant to it, and only leverage moves them.
+    income = e["income"] * thr
+    ee = (e["econ_pnl"] - C.r * I_inf) / I_inf      # shares-only, see the header
+    g_max = max_debit_growth(C, measure, L_real, eps)
+    return {
+        "A": A, "A*": A_star, "L_max": L_max, "L": L_real,
+        "u*": C.gamma_s * L_max,
+        "capacity": cap, "I": I_bar, "throughput": thr,
+        "lambda_eff": lam * thr, "T_sat": time_to_inventory(C, occ, lam, cap),
+        "debit": debit, "income": income,
+        "econ_excess_shares": ee,
+        "g_max": g_max,
+        "draw": max_sustainable_draw(C, measure, L_real, eps, income, debit),
+        # roe*A = pnl - r_b*D + r*(idle cash), and idle - D = A - I_bar, so
+        # the whole ledger collapses to the excess earned on leverage less the
+        # spread paid on the borrowed part -- section 9's formula, exactly.
+        "roe_excess": ee * L_real - C.fin_spread * max(0.0, L_real - 1.0),
+    }
+
+
+# ----------------------------------------------------------------------
 # Report
 # ----------------------------------------------------------------------
+
+def _fmt(v, spec, width, never=False):
+    """Format to `spec`, but let the two infinities say what they mean."""
+    if v == float("inf"):
+        return f"{'never' if never else '+inf':>{width}}"
+    if v == float("-inf"):
+        return f"{'-inf':>{width}}"
+    return format(v, spec)
+
+
+def frontier(C, measure, far, econ, A_30, eps=0.10):
+    """The (gamma_s, A, eps) frontier for a finite account.
+
+    Three readings of one steady state.  The first says how much equity the
+    strategy needs and how little of the broker's permission survives; the
+    second, what an account smaller than that gets instead; the third, what
+    leverage costs in the only currency an operator spends -- cash taken out.
+    """
+    I_inf = econ["I"]
+    print(f"   -- finite account: capacity, saturation and the draw "
+          f"(eps = {eps:.0%}) --")
+    print(f"      {'gamma_s':>7} {'ceiling':>7} {'u*':>6}  {'L(1%)':>7}"
+          f" {'A*(1%)':>7}  {'L(10%)':>7} {'A*(10%)':>7} {'% ceil':>7}")
+    for g in (1.00, 0.50, 0.25, 0.15):
+        Cg = replace(C, gamma_s=g)
+        l1, l10 = max_leverage(Cg, measure, 0.01), max_leverage(Cg, measure, 0.10)
+        print(f"      {g:>7.2f} {1 / g:>7.2f} {g * l10:>6.3f}  {l1:>7.4f}"
+              f" {I_inf / l1:>7.2f}  {l10:>7.4f} {I_inf / l10:>7.2f}"
+              f" {l10 * g:>7.1%}")
+
+    Cg = replace(C, gamma_s=0.25)
+    sat = saturation(Cg, measure, far, eps, equity=1.0, econ=econ)
+    A_star = sat["A*"]
+    print(f"      at gamma_s = 0.25:  L_max = {sat['L_max']:.4f},"
+          f"  A* = {A_star:.2f} lots,  E[W] = {econ['E[T]']:.2f}y")
+    print(f"      {'A':>6} {'cap':>7} {'T_sat':>7} {'thruput':>7} {'debit':>6}"
+          f" {'income':>6} {'draw':>7} {'draw/A':>6} {'RoE-r':>7}")
+    grid = [1.0, 3.0, 5.0, A_30] + [x * A_star for x in (0.78, 0.99, 1.0, 1.10)]
+    for A in sorted(grid) + [float("inf")]:
+        s = saturation(Cg, measure, far, eps, equity=A, econ=econ)
+        print(f"      {A:>6.2f} {s['capacity']:>7.2f}"
+              f" {_fmt(s['T_sat'], '>7.1f', 7, never=True)} {s['throughput']:>7.1%}"
+              f" {s['debit']:>6.3f} {s['income']:>6.4f}"
+              f" {_fmt(s['draw'], '>7.4f', 7)} {s['draw'] / A:>6.2%}"
+              f" {s['roe_excess']:>+7.3%}")
+
+    # The leverage axis stops at whichever of two ceilings comes first: the
+    # broker's, and the STRATEGY's own -- a book cannot grow past the
+    # stationary demand E[I(inf)], so realized leverage is capped at
+    # E[I(inf)]/A however much is permitted.  Drifting up to that cap is
+    # II-13's untended account, which levers itself without anyone deciding to.
+    L_reach, L_broker = I_inf / A_30, 1.0 / Cg.gamma_s
+    L_cap = min(L_reach, L_broker)
+    print(f"      the draw constraint at A = {A_30:.2f} (the model's own 30y"
+          f" capital), gamma_s = 0.25:")
+    print(f"      [L <= {L_cap:.3f}: the broker permits {L_broker:.2f} and the"
+          f" wheel demands E[I(inf)]/A = {L_reach:.2f}, whichever binds first]")
+    print(f"      {'L':>7} {'f*':>7} {'drawdown':>8} {'P(liq)':>7} {'g_max':>8}"
+          f" {'draw':>8} {'draw/A':>7} {'RoE-r':>8}")
+    ladder = (1.0, max_leverage(Cg, measure, 0.01), sat["L_max"],
+              1.25, 1.5, 2.0, 3.0, L_cap)
+    # Dedupe on what the column will SHOW, but compute on the exact value: in
+    # the Q-world two rungs of the ladder are the same 1.0001 to four places.
+    rungs = {round(L, 4): L for L in ladder if L <= L_cap}
+    for L in sorted(rungs.values()):
+        s = saturation(Cg, measure, far, eps, equity=A_30, L_max=L, econ=econ)
+        f = liquidation_barrier(L, Cg.gamma_s)
+        print(f"      {L:>7.4f} {f:>7.4f} {1 - f:>8.1%}"
+              f" {liquidation_prob(Cg, measure, L):>7.4f}"
+              f" {_fmt(s['g_max'], '>+8.4f', 8)} {_fmt(s['draw'], '>8.4f', 8)}"
+              f" {_fmt(s['draw'] / A_30, '>7.2%', 7)} {s['roe_excess']:>+8.3%}")
+
 
 def report(C, args):
     print("\n" + "=" * 78)
@@ -980,7 +1228,8 @@ def report(C, args):
               f" {far['steps']} periods, escaped {far['escaped']:.2e}):")
         print(f"     E[T] = {f['E[T]']:.2f}y ({f['E[J]']:.1f} call periods)"
               f"   Siegmund {f['E[T]_siegmund']:.2f}y"
-              f"   E[I] = {f['I']:.2f}   time to 90% of it: {t90:.0f}y")
+              f"   E[I] = {f['I']:.2f}   time to 90% of it: "
+              f"{'never' if t90 == float('inf') else f'{t90:.0f}y'}")
         if crit["capital_ok"]:
             wide = economics(C, measure, occupation(
                 C, measure, h=args.far_h, x_max=args.far_x_max, eps=1e-7))
@@ -992,6 +1241,8 @@ def report(C, args):
         else:
             print("     stationary capital = INFINITE (m < sigma^2): the mean is "
                   "carried by depths the system reaches only over centuries.")
+
+        frontier(C, measure, far, f, x30["mv_capital"])
 
 
 def _grid_job(job):
