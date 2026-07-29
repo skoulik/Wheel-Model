@@ -35,7 +35,7 @@ from math import exp, log, sqrt
 import model
 from model import (BETA, Config, N, assign_prob, bs_call, criteria,
                    d2, depth_census, economics, entry_law, expected_drop,
-                   first_passage_prob, k_star_drift, leverage,
+                   debit_growth, first_passage_prob, k_star_drift, leverage,
                    liquidation_barrier, liquidation_prob, max_leverage,
                    occupation, pmap, put_premium, q_exit,
                    stationary,
@@ -520,6 +520,38 @@ def main():
             FAILURES.append(f"first passage at H = {H:g} is not a small probability")
     print(f"PASS  short horizons stay finite and tiny "
           f"(H = 1e-9 .. 1y at a = {a10:.3f})")
+
+    # The cash policy enters as a displacement of nu, so the whole survival
+    # block above is the g = 0 case: an operator who services the interest and
+    # withdraws the rest.  The two policies that pin g exactly bracket it.
+    D_ex, y_ex = 1.56, 0.772          # a saturated account's debit and income
+    check("draw = None holds the debit flat", debit_growth(STD, D_ex, y_ex),
+          0.0, 0.0)
+    hold = Config(p_star=0.20, gamma_s=0.25, draw=y_ex - STD.r_b * D_ex)
+    check("...and so does the draw that policy names",
+          debit_growth(hold, D_ex, y_ex), 0.0, 1e-15)
+    allout = Config(p_star=0.20, gamma_s=0.25, draw=y_ex)
+    check("withdrawing income and accruing the interest gives g = r_b",
+          debit_growth(allout, D_ex, y_ex), STD.r, 1e-15)
+    check("survival exponent at g = 0 is the census exponent",
+          2 * model._drift(STD, "P", 0.0)[0] / STD.sigma**2, th_p, 1e-12)
+    # nu - g <= 0 is the third boundary: the debt outgrows the price's median.
+    check("the drift the debit-to-value ratio sees, at g = r_b",
+          model._drift(STD, "P", STD.r_b)[0], -0.025, 1e-12)
+    check("liquidation is certain once the debt outgrows the price",
+          liquidation_prob(G, "P", L10, g=STD.r_b), 1.0, 0.0)
+    check("...and no leverage survives it", max_leverage(G, "P", 0.10, g=STD.r_b),
+          1.0, 0.0)
+    check("the boundary sits at g = nu", nu_p, 0.025, 1e-12)
+    # A deposit runs it the other way: g < 0 buys leverage back.
+    if not (liquidation_prob(G, "P", L10, g=-0.01)
+            < liquidation_prob(G, "P", L10)
+            < liquidation_prob(G, "P", L10, g=0.01)):
+        FAILURES.append("liquidation probability is not monotone in g")
+    print(f"PASS  deposits lower and withdrawals raise the risk "
+          f"({liquidation_prob(G,'P',L10,g=-0.01):.4f} < "
+          f"{liquidation_prob(G,'P',L10):.4f} < "
+          f"{liquidation_prob(G,'P',L10,g=0.01):.4f} at g = -1%, 0, +1%)")
 
     # ------------------------------------------------------------------
     if args.full:

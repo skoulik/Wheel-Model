@@ -168,6 +168,9 @@ class Config:
                                # selling puts; u* = 1 runs to the broker's
                                # own limit, where L = 1/gamma_s
     fin_spread: float = 0.0    # r_b - r, charged on a debit balance
+    draw: float = None         # cash withdrawn per year, in share prices;
+                               # negative deposits.  None = the policy that
+                               # holds the debit flat (see debit_growth)
     label: str = "Standard"
 
     tau_c: float = field(init=False)
@@ -827,18 +830,65 @@ def first_passage_prob(a, nu, sigma, horizon=None):
     return min(1.0, direct + reflect)
 
 
-def liquidation_prob(C, measure, L=None, horizon=None):
-    """P(a book levered L times is sold out), in `measure`'s world."""
+def debit_growth(C, debit, income):
+    """g, the log growth rate of the debit under the configured cash policy.
+
+    The debit compounds at the borrowing rate and is fed by whatever cash the
+    operator takes out beyond what the strategy brings in:
+
+        dD/dt = r_b*D + draw - income      =>   g = r_b + (draw - income)/D.
+
+    `draw = None` is the policy that holds the debit flat -- the operator
+    services the interest and withdraws the rest, draw = income - r_b*D -- so
+    g = 0 and the barrier of [eq:barrier] is static, which is what everything
+    before this function assumed.  That default is a *policy*, not the absence
+    of one, and it is not the same as draw = 0: retaining all income repays
+    the debit and gives a strongly negative g.
+
+    Exact only when the net drain is proportional to the debit, which the two
+    natural policies satisfy on the nose (g = 0, and g = r_b for an operator
+    who withdraws income and lets the interest accrue).  For a fixed cash
+    draw it is a linearization around the current debit; the constrained
+    simulator is what says where that breaks.
+    """
+    if C.draw is None:
+        return 0.0
+    if debit <= 0:
+        return 0.0                         # nothing borrowed, nothing to grow
+    return C.r_b + (C.draw - income) / debit
+
+
+def _drift(C, measure, g):
+    """(nu - g, sigma): the drift the debit-to-value ratio actually sees.
+
+    Liquidation is a statement about R = D/M.  With inventory pinned at
+    capacity, ln M moves with the price alone, at drift nu; ln D grows at g;
+    so ln R is Brownian with drift g - nu and volatility sigma, started at
+    ln(1 - 1/L) and absorbed at ln(1 - gamma_s).  Same barrier, same distance
+    a = -ln f*, same reflection formula -- only nu is displaced.  Every
+    survival result therefore reads nu - g wherever it used to read nu, and
+
+        nu - g <= 0   =>   liquidation is certain at any leverage,
+
+    which is the third stability boundary: the price's median growth has to
+    outrun the debt's.
+    """
     m, s = C.world(measure)
+    return m - s**2 / 2 - g, s
+
+
+def liquidation_prob(C, measure, L=None, horizon=None, g=0.0):
+    """P(a book levered L times is sold out), in `measure`'s world."""
+    nu_eff, s = _drift(C, measure, g)
     f = liquidation_barrier(leverage(C) if L is None else L, C.gamma_s)
     if f <= 0.0:
         return 0.0
     if f >= 1.0:
         return 1.0
-    return first_passage_prob(-log(f), m - s**2 / 2, s, horizon)
+    return first_passage_prob(-log(f), nu_eff, s, horizon)
 
 
-def max_leverage(C, measure, eps, gamma_s=None):
+def max_leverage(C, measure, eps, gamma_s=None, g=0.0):
     """Largest L whose eventual-liquidation probability is at most eps.
 
     Inverting [eq:survive] through [eq:barrier] at f* = eps^(1/theta),
@@ -848,13 +898,15 @@ def max_leverage(C, measure, eps, gamma_s=None):
     theta <= 0 leaves nothing to invert: the barrier is hit almost surely at
     any leverage whatever, so the answer is an unlevered book.  gamma_s = 1
     gives L_max = 1 for the same reason from the other side -- shares paid for
-    in full cannot be levered, whatever the tolerance.
+    in full cannot be levered, whatever the tolerance.  A debit growing at
+    g >= nu reaches theta <= 0 and lands in the first case.
     """
-    g = C.gamma_s if gamma_s is None else gamma_s
-    theta = criteria(C, measure)["tail_exponent"]
+    gs = C.gamma_s if gamma_s is None else gamma_s
+    nu_eff, s = _drift(C, measure, g)
+    theta = 2 * nu_eff / s**2
     if theta <= 0:
         return 1.0
-    den = 1.0 - (1.0 - g) * eps ** (1.0 / theta)
+    den = 1.0 - (1.0 - gs) * eps ** (1.0 / theta)
     return float("inf") if den <= 0 else 1.0 / den
 
 

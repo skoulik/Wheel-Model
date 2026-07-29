@@ -121,6 +121,13 @@ the frontier over (γ_s, A, ε): capacity, T_sat, throughput retention λ_eff/λ
 leverage, and steady-state return on equity **net of financing**. Leverage itself is *not* solved
 for — it is II-4's closed form, for the reason below.
 
+**The frontier gained a second axis on 2026-07-29 and it is the more useful one.** With the cash
+rate in (II-15), the quantity an operator can actually act on is the **maximum sustainable draw**:
+survival at tolerance ε needs ν − g ≥ σ²·ln ε / (2·ln f\*), which inverts through
+g = r_b + (draw − y)/D to a cash withdrawal per year. Report it beside T_sat and throughput —
+"how much can be taken out of this account" is a question the article can now answer in closed
+form, and it is the one a reader has. Pose it as a **constraint**, never as an optimization.
+
 **The pre-flight (2026-07-29) confirmed the two design points and then broke the third.**
 Monotonicity holds exactly: P(u\*) is non-decreasing over 30,000 scanned points at every (γ_s, A),
 with P = 0 below u\* = γ_s (L ≤ 1, no debt) and P = 1 at u\* = 1 (f\* = 1, violation on day one),
@@ -158,11 +165,16 @@ priori. Shares no machinery with `model.py`, per the standing discipline; agreem
 evidence.
 
 **It is no longer a check on II-5, it is the item that answers the survival question**, because
-II-5's pre-flight showed the analytic side has no fixed point left to solve and its static number
-is an upper bound of unknown tightness. Two things it must report that the barrier cannot: whether
-a saturated account's debit drifts up or down under blocked arrivals, and the **realized** leverage
-path against the static L. Consider running it before II-7, since the sweep has nothing worth
-sweeping until the survival number is trustworthy.
+II-5's pre-flight showed the analytic side has no fixed point left to solve. Consider running it
+before II-7, since the sweep has nothing worth sweeping until the survival number is trustworthy.
+
+**II-15 narrowed what it owes** (2026-07-29). The debit's drift is no longer unknown — it is the
+parameter g, and the closed form is verified against a Monte Carlo of the debit and book as
+separate objects. What the simulator must now measure is **where the linearization breaks**:
+g = r_b + (draw − y)/D is exact only when the net drain is proportional to the debit, so a
+fixed-dollar draw drifts as D moves, and income y is steady only after saturation. Report the
+realized g against the assumed one over the path, and the realized leverage against the static L.
+That is a narrower and much more answerable question than "which way does it drift".
 
 **II-7. The sweep.** γ_s × A grid through `model.pmap()` (module-level worker, picklable args,
 called only from top level). Report the cell where **A equals the model's own E[Capital]** — an
@@ -214,6 +226,16 @@ throughput collapsing to zero and the account quietly ceasing to be a wheel. And
 mode** joins the two, which needs the section's summary rewritten — it currently reads "neither
 is losing money on a trade", and forced liquidation is exactly that, and is the only fast one
 against two that are slow and invisible.
+
+**The third mode now has a boundary, in the same currency as the other two** (II-15, 2026-07-29).
+Lots return iff **ν > 0**; their capital returns iff **m > σ²**; the account survives iff
+**ν > g**, the price's median growth outrunning the debt's. Write the three as one list — the
+section is built around exactly this kind of comparison, and the third is the first one an
+operator can *move*, since g is a cash policy rather than a property of the stock. Its sharpest
+form: withdrawing income while the interest accrues puts g = r_b = 5% against ν = 2.5%, so the
+boundary is not merely crossed but crossed by a factor of two, and liquidation becomes certain at
+any leverage. Note also that the third boundary is the only one of the three that **does not**
+bind an unlevered account, which is why it belongs beside them rather than above them.
 
 **II-13. New section, the constrained wheel** (`sections/11-constrained.md`, `{#sec:constrained}`).
 The whole survival and steady-state analysis in one place, so the existing tables keep their
@@ -283,7 +305,69 @@ at m = r − δ with r_b = r, a blocked, levered wheel must still earn exactly r
 γ_s and every account size. Blocking arrivals creates no arbitrage, so any failure there is a bug
 in the new machinery, and this is the strongest free test the reframe gets.
 
-## Part III — Many assets
+**II-15 (the cash drawing rate) was resolved on 2026-07-29**; the write-up is in
+[`DONE.md`](DONE.md). `Config.draw`, `debit_growth()` and a `g` argument on `liquidation_prob` and
+`max_leverage`; a cash policy enters survival only as ν → ν − g, verified against a 400,000-path
+Monte Carlo carrying the debit and the book as separate objects. The consequences are folded into
+II-5, II-6 and II-12 below. What follows is the derivation, kept here only until §11 carries it.
+
+<details><summary>Derivation, for II-13 to lift</summary>
+
+**It enters as a shift in the drift, and every closed form of II-4 carries over unchanged.**
+Liquidation is a statement about the ratio of debit to market value, R = D/M. With inventory pinned
+at capacity, M moves only with the price, so ln M has drift ν and volatility σ; the debit compounds
+at the borrowing rate and is fed by the net cash drain, so ln D has drift
+
+    g  =  r_b + (draw − y)/D,
+
+y being the strategy's cash income. Then ln R is a Brownian motion with drift **g − ν** and
+volatility σ, started at ln(1 − 1/L) and absorbed at ln(1 − γ_s) — the same barrier, the same
+distance a = −ln f\*, the same reflection formula. Only the exponent changes:
+
+    θ_eff  =  2(ν − g) / σ².
+
+So `first_passage_prob`, `liquidation_prob` and `max_leverage` need no new machinery at all; they
+need ν − g where they currently read ν.
+
+**What that immediately reveals — the current static barrier is a policy, not an assumption.**
+g = 0 holds exactly when draw = y − r_b·D: the operator **services the interest and withdraws the
+rest**. That is a perfectly sensible operating rule, and II-4's numbers are its numbers. Two
+neighbours bracket it, and they are far apart:
+
+- **Withdraw everything, interest included** (draw = y): g = r_b exactly, so ν_eff = ν − r_b =
+  2.5% − 5% = **−2.5% < 0, and liquidation becomes certain at any leverage whatever.** The debt
+  compounds at 5% while the price's median growth is 2.5%; it is a race the borrower loses. Only
+  the dividend closes the gap, and a withdrawn dividend does not service a loan.
+- **Retain everything** (draw = 0): at the running example's saturated account — capacity 13.15
+  lots on A = 11.59, so a debit of **1.56** — the unconstrained 30-year income of **0.772/yr** is
+  half the debit again, ν_eff is strongly positive and liquidation becomes negligible. (The
+  *constrained* income is not that figure and is not a scaling of it: blocking cuts put premium
+  while the larger inventory raises call premium and dividends. It is II-6's to produce, and this
+  bullet's claim needs only the order of magnitude, which no plausible correction moves.)
+
+So the survival of a levered wheel turns almost entirely on **whether income is retained to service
+the debt** — a lever that is currently invisible in the model, and one an operator actually
+controls, unlike γ_s.
+
+**Three further reasons it earns its place.** It gives II-12's third failure mode a criterion in
+the same currency as the other two — lots return iff ν > 0, their capital returns iff m > σ², the
+**account survives iff ν > g**. It makes `r_b` and `fin_spread` (added in II-3, so far declared and
+unconsumed) do real work. And it converts the open question II-6 was left holding — which way the
+debit drifts under blocked arrivals — from an unknown into a parameter, with the simulator
+measuring where the linearization breaks rather than what the answer is.
+
+**Costs, stated honestly.** g is constant only when the net drain is proportional to the debit,
+which the two policies above satisfy *exactly* (g = 0 and g = r_b) and a fixed-dollar withdrawal
+does not — for that it is a linearization around the current debit, and II-6 is the check. Income y
+is likewise only steady once the account is saturated, which is the regime that matters but is not
+the whole path. And the parameter invites "what is the optimal withdrawal rate", which is a control
+problem the article does not want: it must be posed as **the maximum sustainable draw**, a
+constraint, not an optimization.
+
+**The default is g = 0** — the interest-servicing policy, derived — and not draw = 0, which is a
+*different* policy and would have moved every current figure. Agreed 2026-07-29.
+
+</details>
 
 Neither file exists. This is Stage 3 of the restructure and the largest single block of
 remaining work. Both sections have their inputs already measured or already derived; what is
