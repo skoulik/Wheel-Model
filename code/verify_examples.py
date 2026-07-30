@@ -45,8 +45,9 @@ import argparse
 from math import exp, log, sqrt
 
 import model
-from model import (BETA, Config, N, criteria, depth_census, economics,
-                   entry_law, debit_growth, first_passage_prob, leverage,
+from model import (BETA, Config, N, buy_hold_excess, criteria, depth_census,
+                   economics, entry_law, debit_growth, equity_required,
+                   first_passage_prob, leverage, levered_excess,
                    liquidation_barrier, liquidation_prob, max_leverage,
                    max_debit_growth, max_sustainable_draw,
                    occupation, pmap, saturation, stationary,
@@ -158,7 +159,35 @@ def main():
                                 / e30["I"] - 1)
     check("unfunded return from per-lot dividend anchoring (rejected)",
           naive / e30["mv_capital"], 0.0122, 0.0003)
-
+    # Section 09's leverage result rests on two identities in L, and
+    # `examples/returns_leverage.py` can only pin the article's own points on
+    # them.  Both are checked here across the whole axis instead.
+    #
+    # Neutrality: the spread at which leverage is exactly neutral is the
+    # strategy's own excess return, at EVERY leverage.  A single case cannot
+    # show "at every L", which is the whole content of the claim.
+    ex30 = e30["econ_excess"]
+    for L in (1.0, 1.0861, 1.1349, 1.5, 2.0, 4.0, 10.0):
+        check(f"leverage is neutral at L = {L:g} when the spread is the excess",
+              levered_excess(ex30, L, ex30), ex30, 1e-12)
+    check("an unlevered book pays no spread, whatever the rate",
+          levered_excess(ex30, 1.0, 0.03), ex30, 1e-12)
+    # And the verdict is invariant to financing: the same L and the same spread
+    # apply to a levered buy-and-hold, so the gap merely scales by L.  If this
+    # ever fails, the wheel-versus-stock headline has become a claim about
+    # borrowing.
+    bh30 = buy_hold_excess(STD, "P") * e30["I"] / e30["mv_capital"]
+    for L in (1.0861, 1.1349, 1.1557, 2.0):
+        for spread in (0.0, 0.015, 0.03):
+            gap = levered_excess(ex30, L, spread) - levered_excess(bh30, L, spread)
+            check(f"wheel - buy-and-hold at L = {L:.4f}, spread {spread:.1%},"
+                  f" scales by L", gap / L - (ex30 - bh30), 0.0, 1e-15)
+    # The equity-required row against the capital it is a fraction of: shares
+    # paid for in full require the whole of Track B, which is the row's
+    # definition checked from the boundary rather than restated.
+    check("equity required at gamma_s = 1 is Track B itself",
+          equity_required(Config(gamma_s=1.0), e30) - e30["mv_capital"],
+          0.0, 1e-12)
 
     # ------------------------------------------------------------------
     print("--- Section 10: stability ---")

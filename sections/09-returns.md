@@ -71,12 +71,15 @@ E[Π]  =  Track A income  +  E[I]·m  −  L_acq  −  L_call    {#eq:econ-pnl}
 | lots held | 5.41 | 7.39 | 11.40 |
 | capital, market value | 5.61 | 7.59 | 11.59 |
 | capital, cost basis | 6.70 | 9.83 | 18.23 |
+| equity required, at portfolio margin | 1.55 | 2.04 | 3.04 |
 | **true excess return** | **+1.60%** | **+1.60%** | **+1.60%** |
 | cash income on cost basis | +4.11% | +1.81% | −0.77% |
 
 The true excess return is flat across horizons to three decimal places, as a genuine risk premium should be: the position earns what it earns, whatever size it has grown to.
 
 The cash-on-cost-basis line does something else entirely, and it is worth understanding because **it is what an operator's own records will show them**. Early on it is spectacular — a strategy apparently earning 4.1% over T-bills. Then it decays, crosses zero somewhere around year twenty, and keeps falling. Nothing in the strategy has changed. What changes is that cost basis keeps inflating relative to market value as deep lots accumulate, so the denominator grows while the numerator does not. An operator watching this happen will conclude the strategy has stopped working. It has not; the measurement was wrong at both ends — too flattering at the start, too damning later.
+
+**The third row is not a rival to the other two.** An operator does not have to *have* 11.59 in order to hold 11.59, because a broker will lend against held shares: at portfolio margin they must keep a quarter of the shares' market value in the account, plus the margin standing behind the live put, which the broker does not lend against either. That is γ_p·k + γ_s·E[I] — **3.04** at thirty years, about a quarter of what is committed, and a steady quarter of it at every horizon. It is the **equity required** of [the strategy section](#sec:strategy), and it is a second ledger line rather than a third measure of capital: it answers "what must be *in* the account?", where the two rows above it answer "what is committed?". [The strategy section](#sec:strategy) has already set out why a return is not divided by it — briefly, the resulting number is a fact about financing rather than about the strategy — and [the constrained section](#sec:constrained) is where the question it does answer, how much of the wheel a given balance can run, is worked out. What that leaves for this section is the price of the borrowing itself, taken up further down.
 
 > **A pitfall worth naming.** There is a second, popular way to get this wrong. Under the "net cost basis" convention an assigned lot is booked at strike minus premium, so the exit at the strike shows a *capital gain of exactly the put premium* — the premium apparently recovered a second time at the exit door. The recycling image is appealing and the arithmetic is a double count: the premium was already booked as income when it was received. Any of these conventions is fine applied consistently; the failure mode is mixing the income of one with the capital of another, which is exactly what "cash income on cost basis" does.
 
@@ -102,9 +105,36 @@ The per-lot accounts make the same point in miniature: over its lifetime a lot c
 
 What the machinery *does* determine is everything other than the mean: how much capital is required to run the strategy, how long it stays committed, how large the inventory grows, and under what conditions the whole thing stops resolving. Those are not small questions — they decide whether the strategy is operable — but they are questions about capital and risk, not about return.
 
+## The leverage that survives does not pay for itself
+
+Everything so far is an unlevered account, earning [eq:excess](#eq:excess)'s +1.60% on capital the operator owns outright. Borrowing changes the arithmetic in exactly one place. Equity earns the strategy's excess on every share it carries and pays the financing spread on the part that was borrowed — the risk-free leg of the carry is already what "excess" is measured against — so for a book of leverage L financed at r_b:
+
+net excess on equity  =  excess · L  −  (r_b − r) · (L − 1)    {#eq:levered-excess}
+
+Read as an equation in the spread, that gives the whole result at once. The two terms cancel for **every** L when r_b − r = excess: borrowing is exactly neutral, in whatever quantity, when the broker's spread equals the strategy's own excess return. The break-even spread, in other words, *is* the excess return — **1.60%** here, [eq:excess](#eq:excess)'s own number rather than a coincidence resembling it. Retail financing spreads of 1–3% straddle it, and above it leverage does not merely stop helping: it subtracts.[^eq-levered-excess]
+
+The tempting reading is the capital table's equity-required row. An account holding the thirty-year book on the broker's minimum equity of 3.04 is levered **3.81 times**, and at no spread at all [eq:levered-excess](#eq:levered-excess) reports **+6.11%** — which is [the strategy section](#sec:strategy)'s "close to four times the excess return", arrived at as a number. Two things happen to it. Financing eats it: at a 1.5% spread it is **+1.90%**, twenty-nine basis points of extra return for nearly four times the exposure, and at 3% it is **−2.31%**. And nobody holds that book anyway, because [the constrained section](#sec:constrained)'s barrier sits **1.7% below today's price** at that leverage — the account is sold out on the first bad afternoon, with an eventual probability of **97.9%**. So the four-times number is not a return an operator collects. It is a return they are liquidated out of.
+
+The number worth computing is therefore the one at leverage that survives, which [the constrained section](#sec:constrained) puts at L_max = **1.1349** at portfolio margin and a 10% eventual-liquidation tolerance. Across every account type:
+
+| net excess on equity | fully paid | Reg T | portfolio margin | aggressive PM |
+|---|---|---|---|---|
+| survivable leverage L_max | 1.0000 | 1.0861 | 1.1349 | 1.1557 |
+| financed at r (spread 0) | +1.60% | +1.74% | +1.82% | +1.85% |
+| spread 1.5% | +1.60% | +1.61% | +1.62% | +1.62% |
+| spread 3.0% | +1.60% | +1.48% | +1.42% | +1.39% |
+
+**The borrowing that survives the liquidation constraint is too small to pay for itself at any retail financing rate.** At the keenest of them — a spread of 1.5% — the whole ladder collapses onto +1.61% to +1.62%, within two basis points of the unlevered +1.60%; at 3% every levered account earns *less* than the unlevered one. Even financed at the risk-free rate itself, the entire effect is 22 basis points at portfolio margin and 25 at the most aggressive margin available. And the real effect is smaller still, because an account does not sit at its ceiling: [the constrained section](#sec:constrained) measures the prudent account's realized leverage at **0.745** against a permitted 1.1349, a book refilled one lot a week being under its stopping rule most of the time. Most of the time there is no debit to pay a spread on, and no multiple to collect.
+
+The same verdict arrives in the only currency an operator actually spends. [The constrained section](#sec:constrained) computes the largest draw compatible with a fixed liquidation risk, and it is **4.63% of equity unlevered against 4.58% at survivable leverage** — flat to a few basis points as far as the leverage that survives, then collapsing through zero beyond it. Borrowing that survives buys no drawing power either. Two cautions travel with that figure, both that section's: it holds the *liquidation risk* constant rather than the account, and the draw that keeps the *business* stationary is **2.12% of equity a year** — two numbers both called sustainable, a factor of two apart.
+
+None of this touches the verdict of the previous subsection, and the reason is that [eq:levered-excess](#eq:levered-excess) does not know what the capital is invested in. The same loan, at the same spread and against the same barrier, is available to someone who buys the shares and sells no options at all, so both sides of the wheel-against-the-stock comparison are multiplied by the same L and charged the same spread. The spread cancels between them exactly, and what is left is the unlevered gap multiplied by L: it *scales*, and does not change sides. At each account type's own survivable leverage it runs from 0.7 to 0.8 basis points against 0.7 unlevered — **+0.01% at every γ_s**, the same one basis point of numerical noise as before. **Leverage multiplies the wheel and the stock identically, so it cannot decide between them.**
+
+(One reconciliation, for a reader who checks this against [the constrained section](#sec:constrained)'s own return-on-equity column, which reads +1.90% where the table above reads +1.82% at the same leverage. That section excludes the put collateral from both sides of the ledger, uniformly, and so levers an excess of 1.68% rather than this section's 1.60%. The 8-basis-point difference between them is the collateral overcharge of the footnote above, and nothing else.)
+
 ## So where could an edge come from?
 
-Only from options being priced richer than fair. That is not a hypothetical: implied volatility exceeds subsequently realized volatility systematically, by 2–4 points on liquid equities, and this **volatility risk premium** is the documented source of return in every put-write and covered-call study.
+Not from borrowing, then. Only from options being priced richer than fair. That is not a hypothetical: implied volatility exceeds subsequently realized volatility systematically, by 2–4 points on liquid equities, and this **volatility risk premium** is the documented source of return in every put-write and covered-call study.
 
 The model can price exactly how much of it is needed. Holding everything else fixed and raising only the volatility at which premiums are quoted:
 
@@ -198,5 +228,7 @@ That leaves the real result, which is the invariance. The choice of strike moves
 [^eq-capital]: Reproduced by `python code/examples/returns_capital.py` — [eq:capital](#eq:capital), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
 
 [^eq-income]: Reproduced by `python code/examples/returns_income.py` — [eq:income](#eq:income), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
+
+[^eq-levered-excess]: Reproduced by `python code/examples/returns_leverage.py --gamma-s 0.25` — [eq:levered-excess](#eq:levered-excess), and the other readings quoted here are `gamma-s 0.25 --fin-spread 0.015`; `gamma-s 0.25 --fin-spread 0.03`. Pass `--help` for the full parameter set.
 
 [^eq-mark-loss]: Reproduced by `python code/examples/returns_ledger.py` — [eq:mark-loss](#eq:mark-loss), [eq:giveaway](#eq:giveaway), [eq:econ-pnl](#eq:econ-pnl), [eq:excess](#eq:excess), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.

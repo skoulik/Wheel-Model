@@ -8,8 +8,8 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, II-1 through II-9, II-11 through II-15, INF-1 — mean those
-items are in `DONE.md`.
+recycled or closed up: the gaps — I-3, II-1 through II-15, INF-1 — mean those items are in
+`DONE.md`.
 
 Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section carries such a
 flag** (checked 2026-07-30), and that is the intended steady state: an in-text flag is a promise
@@ -20,13 +20,13 @@ to a reader and should be added only when the text genuinely defers something.
 Thirteen of the seventeen planned section files exist, plus a generated reproduction appendix
 (`sections/99-reproduction.md`, produced by `python -m examples --appendix`, never edited by
 hand). Part I is written bar two stubs; **Part II's code and its own new section are complete and
-three prose edits remain**; **Part III and Part IV are unwritten**, and between them they remain
+two prose edits remain**; **Part III and Part IV are unwritten**, and between them they remain
 the bulk of what is left.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | all seven written; three prose edits outstanding (II-10, II-16, II-17) |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | all seven written; two prose edits outstanding (II-16, II-17) |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -85,46 +85,13 @@ below is an edit to a section written before it. The reframe's four founding dec
 article conventions rather than open questions — Track B stays exposure and equity required is a
 second ledger line and never a denominator (§04); a blocked put is skipped whole (§00); initial
 and maintenance requirements are one parameter (§00); no horizon is an input, saturation being
-emergent (§11) — and the write-ups for II-1 through II-9 and II-11 through II-15 are in
-[`DONE.md`](DONE.md). Two of those decisions constrain the items below and are repeated where they
-bite.
+emergent (§11) — and the write-ups for II-1 through II-15 are in [`DONE.md`](DONE.md). Two of
+those decisions constrain the items below and are repeated where they bite.
 
 One standing discipline the code half ended on, which does not close with any item: **every number
 a section quotes gets a check under that section's heading.** For anything with a formula behind it
 that is now enforced mechanically by INF-5's coverage test; INF-2 carries the rest into Parts III
 and IV.
-
-**II-10. §09 returns.** An equity-required row in the capital table, plus the leverage result:
-net excess on equity = excess·L − spread·(L−1), so **leverage is exactly neutral at every L when
-the broker's spread equals the strategy's own excess return** — here 1.60%, against retail
-spreads of 1–3%. Confirm the wheel-versus-buy-and-hold headline survives unchanged at every γ_s,
-since leverage applies identically to both sides; if it does not, something is wrong.
-
-**Measured 2026-07-29, and it makes the neutrality result nearly moot in the operator's favour.**
-Evaluated at survivable leverage rather than at arbitrary L, the whole effect is small: at
-γ_s = 0.25 the net excess runs **+1.82% at zero spread, +1.62% at 1.5%, +1.42% at 3%**, against
-+1.60% unlevered. So leverage adds at most 22bp, and past the 1.60% crossover it *subtracts* —
-at a 3% retail spread a levered wheel earns less than an unlevered one. Say this plainly: the
-borrowing that survives the liquidation constraint is too small to pay for itself at any retail
-financing rate. The neutral-spread formula is the mechanism; this is the number. And the real
-effect is smaller still, because **realized leverage after saturation is 0.745 against a permitted
-1.1349** (II-6) — a book refilled one lot a week sits under its ceiling most of the time.
-
-**The same verdict arrives in cash currency** (II-5, II-13), which is worth one sentence here and
-the full treatment in §11: the maximum sustainable draw is **4.63% of equity unlevered and 4.58%
-at survivable leverage**, so borrowing that survives buys no drawing power either. Two
-independent ledgers, one conclusion. Two qualifiers if this section quotes the draw at all.
-It is **not monotone in leverage** — it rises 2bp from L = 1.0000 to 1.0192 before collapsing, so
-the phrasing is "flat to a few basis points as far as survivable leverage, then collapsing through
-zero", not "falls, then goes negative". And **say which "sustainable" is meant**: the 4.58–4.63%
-holds the *liquidation risk* constant, while holding the *business* stationary costs a draw of
-**2.12% of equity per year** (II-6) — two figures both called sustainable, a factor of two apart.
-
-**Do not re-argue the equity-required denominator as an arithmetic error** (II-9). §04 already
-makes the case as a statement about financing: the levered number is correct and answers a
-question about financing while appearing to answer one about the strategy, and the same borrowing
-multiplies both sides of the wheel-versus-stock comparison. Contradicting that here would put two
-sections at odds.
 
 **II-16. §02 introduction** (raised 2026-07-29, when II-8 landed). The contributions list runs to
 seven items and **none of them is the constrained account**, though the reframe added a whole

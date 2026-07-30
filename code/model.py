@@ -874,6 +874,43 @@ def buy_hold_excess(C, measure):
     return m + C.delta_net - C.r
 
 
+def equity_required(C, econ):
+    """The operator's own money needed to hold the book, gamma_p*k + gamma_s*E[I].
+
+    Not a return denominator -- Track B is, and section 04 makes that case as a
+    statement about financing rather than as an arithmetic error.  This is the
+    second ledger line beside the three tracks: what must be IN the account,
+    which is smaller than what is committed by whatever the broker lends.  The
+    broker lends against held shares only, so the put collateral is posted in
+    full here; section 11 drops it from capacity instead, one exclusion applied
+    uniformly there and named in section 00.
+    """
+    return C.gamma_p * econ["k"] + C.gamma_s * econ["I"]
+
+
+def levered_excess(excess, L, spread):
+    """Excess return on equity for a book of leverage L financed at r + spread.
+
+        net excess on equity  =  excess*L - spread*(L - 1)   [eq:levered-excess]
+
+    The whole ledger collapses to this: equity earns the excess on everything
+    it carries and pays the spread on the borrowed part, since the risk-free
+    leg of the carry is already what "excess" is measured against.  Two
+    consequences the returns section reports.  It is **exactly neutral at every
+    L when spread = excess** -- the broker's charge and the strategy's own edge
+    are the same quantity, so borrowing buys a multiple of nothing -- and above
+    that spread leverage SUBTRACTS.  And it applies identically to the wheel and
+    to a levered buy-and-hold, so the difference between them scales by L and
+    the article's verdict is invariant to financing.
+
+    The clamp is the one thing here the displayed form leaves out, because the
+    section only ever reads it at L >= 1: a net creditor pays no spread, and the
+    idle cash it holds instead earns r rather than r_b, so the borrowing term
+    does not run backwards below L = 1.
+    """
+    return excess * L - spread * max(0.0, L - 1.0)
+
+
 def depth_census(C, measure, edges, horizon=None, h=0.02, x_max=8.0,
                  j_max=8000, eps=1e-9):
     """How standing inventory is distributed over depth ([eq:census]).
@@ -1358,10 +1395,10 @@ def saturation(C, measure, occ, eps, equity=None, L_max=None, econ=None):
         "econ_excess_shares": ee,
         "g_max": g_max,
         "draw": max_sustainable_draw(C, measure, L_real, eps, income, debit),
-        # roe*A = pnl - r_b*D + r*(idle cash), and idle - D = A - I_bar, so
-        # the whole ledger collapses to the excess earned on leverage less the
-        # spread paid on the borrowed part -- section 9's formula, exactly.
-        "roe_excess": ee * L_real - C.fin_spread * max(0.0, L_real - 1.0),
+        # roe*A = pnl - r_b*D + r*(idle cash), and idle - D = A - I_bar, so the
+        # whole ledger collapses to section 9's [eq:levered-excess] -- the
+        # excess earned on leverage less the spread paid on the borrowed part.
+        "roe_excess": levered_excess(ee, L_real, C.fin_spread),
     }
 
 

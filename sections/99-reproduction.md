@@ -85,6 +85,9 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 |  | `python code/examples/returns_ledger.py --sticky` | sticky_F = 1.020 1.039 1.113, sticky_delta_eff = 2.55% 2.60% 2.78%, sticky_excess = 1.59% 1.58% 1.56%, sticky_change = -0.01% -0.01% -0.04%, sticky_gap = 0.03% 0.01% 0.01%, sticky_inv_rise = 3.4%, sticky_capital_rise = 5.1% |
 |  | `python code/examples/returns_ledger.py --trap` | trap_xstar = 0.693, trap_below = 50.0%, trap_beyond = 16.0% |
 |  | `python code/examples/returns_ledger.py --measure Q --trap` | trap_xstar = 0.182, trap_below = 16.7%, trap_beyond = 69.0% |
+| `eq:levered-excess` | `python code/examples/returns_leverage.py --gamma-s 0.25` | equity_req = 3.04, equity_frac = 26.3%, L_ceiling = 3.81, dd_ceiling = 1.7%, p_liq_ceiling = 97.9%, net_ceiling = +6.11%, L_max = 1.1349, net_survivable = +1.82%, unlevered = +1.60%, neutral_spread = 1.60%, diff_levered = +0.008%, L_ladder = 1.0000 1.0861 1.1349 1.1557, net_ladder = +1.60% +1.74% +1.82% +1.85%, diff_ladder = +0.007% +0.007% +0.008% +0.008% |
+|  | `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.015` | net_ceiling = +1.90%, net_survivable = +1.62%, net_ladder = +1.60% +1.61% +1.62% +1.62% |
+|  | `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.03` | net_ceiling = -2.31%, net_survivable = +1.42%, net_ladder = +1.60% +1.48% +1.42% +1.39% |
 
 ## 10-stability.md
 
