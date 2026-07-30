@@ -20,7 +20,7 @@ The cost of this is not small, and it has a known size. For a walk sampled at di
 
 β · σ·√τ_c ,   β = −ζ(1/2)/√(2π) ≈ 0.5826    {#eq:siegmund}
 
-a classical correction due to Siegmund. At the running parameters this **call-grid tax** is 0.5826 × 0.20 × √(1/13) = **0.032** — which is **2.1 times the typical entry depth of 0.0155**.
+a classical correction due to Siegmund. At the running parameters this **call-grid tax** is 0.5826 × 0.20 × √(1/13) = **0.032** — which is **2.1 times the typical entry depth of 0.0155**.[^eq-siegmund]
 
 Read that again, because it reorders the intuition completely. The hole a lot has to climb out of is not mainly the 1.6% it fell through at assignment. It is mostly the *sampling* — the requirement that the recovery be standing on the right day, once every four weeks. **The exit grid, not the entry overshoot, is what keeps lots in inventory.** An operator worried about being assigned too deep is worrying about the smaller half of the problem.
 
@@ -67,7 +67,7 @@ Everything above assumed ν > 0. If the drift is unfavourable — ν ≤ 0 — t
 
 P( J = ∞ )  =  1 − E[ exp( −2|ν|·(x₀ + β·σ·√τ_c) / σ² ) ]    {#eq:trapped}
 
-At σ = 40% with the same μ and δ, ν = −3.5% and this comes to **4.1% of every assignment permanently trapped**. Not delayed — trapped, with no mechanism in the strategy that will ever release them. The rest of the inventory keeps recycling around them while the trapped stratum grows by λ × 4.1% ≈ 0.43 lots a year, without bound. The per-assignment fraction is *smaller* than it would be on a slower call clock — a finer grid gives a doomed lot more chances to slip out early — but the arrival rate is more than four times higher, which more than undoes it. Selling more often traps a smaller share of more lots, and the arithmetic favours the arrivals.
+At σ = 40% with the same μ and δ, ν = −3.5% and this comes to **4.1% of every assignment permanently trapped**. Not delayed — trapped, with no mechanism in the strategy that will ever release them. The rest of the inventory keeps recycling around them while the trapped stratum grows by λ × 4.1% ≈ 0.43 lots a year, without bound. The per-assignment fraction is *smaller* than it would be on a slower call clock — a finer grid gives a doomed lot more chances to slip out early — but the arrival rate is more than four times higher, which more than undoes it. Selling more often traps a smaller share of more lots, and the arithmetic favours the arrivals.[^eq-trapped]
 
 This is the first appearance of something the model will keep saying in different ways: the wheel does not fail by losing money on trades. It fails by accumulating positions that never resolve. [The stability section](#sec:stability) makes the boundary precise.
 
@@ -76,3 +76,7 @@ This is the first appearance of something the model will keep saying in differen
 The naive 1/q calculation said ten weeks. The correct answer is a median of eight weeks and a mean of two years — and the gap between those two numbers is not a technicality, because capital is committed for the *mean*, not the median. Every lot that leaves quickly frees its capital quickly; the operator's balance sheet is dominated by the ones that don't.
 
 Turning "a mean holding time of 2.10 years" into "how much stock am I holding and what does it cost me" takes one more step, and it is a famous one. That is [the inventory section](#sec:inventory).
+
+[^eq-siegmund]: Reproduced by `python code/examples/holding_time.py` — [eq:siegmund](#eq:siegmund), [eq:survival](#eq:survival), [eq:holding](#eq:holding), [eq:holding-siegmund](#eq:holding-siegmund), and the other readings quoted here are `measure Q`. Pass `--help` for the full parameter set.
+
+[^eq-trapped]: Reproduced by `python code/examples/holding_trapped.py` — [eq:trapped](#eq:trapped), and the other readings quoted here are `sigma 0.40`. Pass `--help` for the full parameter set.

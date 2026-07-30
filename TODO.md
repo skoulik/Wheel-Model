@@ -307,6 +307,22 @@ Note that **I-4 is the other item on this same list** — it checks contribution
 the finished Parts III and IV. Resolve both in one pass over §02, at assembly time, rather than
 editing the list twice.
 
+**II-17. §11's live-account material belongs in Part IV — but a survey found almost none of it**
+(raised 2026-07-30, deferred the same day). The flag was that the parts of the constrained
+section which reference the live account should move to [the live-account section](#sec:live).
+Checked: §11 contains no figures from the real account at all. Its two occurrences of "live
+account" (lines 233 and 311) mean *an operating book* — the simulator's live barrier as against
+its frozen shadow — and are modelling results, not measurements.
+
+So the item to resolve is **the terminology collision, not a move**. Everywhere else in the
+article "the live account" names the author's brokerage account; §11 uses the same phrase for
+"an account that is being operated rather than held still". A reader meeting both will conflate
+them, and the sentence at line 311 — "the static barrier understates a live account's
+liquidation risk by a factor of 3.6" — reads as a claim about the real account when it is a
+claim about the model. Rename §11's usage (**operating book** against **frozen book** is the
+distinction it actually means) and keep "the live account" reserved for Part IV. Confirm the
+scope before acting: if the original flag meant something broader, it has not been found.
+
 ### Verification
 
 **II-14 (extending `verify_examples.py`) was resolved on 2026-07-29**; the write-up is spread over
@@ -528,6 +544,50 @@ piece of that episode worth keeping is the **per-lot call-strike classification*
 scored against the layers actually held when it was written, not against one basis per name.
 It exists nowhere in `code/`; the reconstruction that withdrew I-3 was ad hoc. Put it in
 `analyze_statement.py` beside the lot lifecycle, where it can be re-run.
+
+**INF-5. Every quoted number gets a formula, a runnable script and a footnote** (agreed
+2026-07-30; **the infrastructure landed the same day, two items of follow-up remain — see the
+end of this entry**). Read as an independent reviewer, the article quotes numbers that
+appear from nowhere: they are backed by `code/`, but the code is invisible from the text, so
+there is no way to ask "where did this come from" and get an answer. The policy adopted:
+
+- every worked example is produced by a **standalone CLI** in `code/examples/`, which the reader
+  can re-run with different parameters;
+- each such module exports the same interface, and `verify_examples.py` becomes a shell that
+  discovers them and checks the article's own figures — so the published recipe and the verified
+  recipe are the same code. A `Case` carries **a command line, not a parameter dict**, so the
+  command a footnote prints is literally the command the test runs;
+- **the closed form must be in the prose too.** The audit that motivated this found the larger
+  half of the problem: roughly as many distinct computational recipes are quoted without any
+  formula as there are numbered formulas in the whole article. [eq:econ-pnl](#eq:econ-pnl) is
+  the worst case — a numbered formula whose terms ("mark loss", "upside surrendered") are quoted
+  as 0.1632 and 0.3559 and defined nowhere;
+- one footnote per numbered formula (not per number), plus a **generated** reproduction appendix
+  mapping every figure to its script and flags;
+- and the policy is enforced rather than aspirational: the verifier asserts that every
+  `{#eq:...}` has a registered example and every example is cited.
+
+Compositions that currently exist only inside `verify_examples.py` are promoted into `model.py`,
+which remains the single source of every formula; the example modules are presentation only.
+
+**What landed 2026-07-30.** `code/examples/` with a harness (`_harness.py`), 19 modules covering
+all 46 numbered formulas, 67 frozen cases, a generated appendix
+(`sections/99-reproduction.md`), and the coverage test wired into `verify_examples.py`. Eleven
+functions were promoted into `model.py`: `screen_prob`, `screen_gap`, `put_delta`, `grid_tax`,
+`median_periods`, `arrival_rate`, `period_step`, `period_drift`, `inventory_at`,
+`basis_multiplier`, `stability_bounds`, `buy_hold_excess`, plus `premiums_put`/`premiums_call`
+and `appreciation` on `economics()`. Three errors the exercise surfaced were fixed in the prose,
+and are recorded in [`DONE.md`](DONE.md).
+
+**One item of follow-up.**
+
+- **Five lower-value formula gaps remain**, all of them numbers quoted without a displayed
+  formula: the census moments (§08's mean depth 38% and weighted q 0.066), the cost-basis
+  capital of §09 (18.23, where `eq:capital` gives market value only), the volatility-premium
+  slope ("about 45 basis points" per point, a finite difference over the sweep), the
+  sticky-dividend fixed point (§09:151, described in prose but never displayed), and
+  x\* = ln(1 + ν/δ) (§09, displayed inline but unnumbered). Each is backed by a script and a
+  footnote already; what is missing is only the display in the prose.
 
 **INF-3. The LaTeX assembly pipeline.** Unicode-math → LaTeX conversion, `{#sec:...}` anchors →
 `\label`/`\ref`, `{#eq:...}` → numbered `equation` environments with `\eqref`. Tooling decision

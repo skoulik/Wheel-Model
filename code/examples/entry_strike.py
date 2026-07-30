@@ -1,0 +1,77 @@
+"""The strike dial: pick an assignment probability, read off the strike.
+
+    python code/examples/entry_strike.py
+    python code/examples/entry_strike.py --p-star 0.10
+    python code/examples/entry_strike.py --p-star 0.10 --sigma 0.297
+
+Backs eq:kstar and eq:p-screen in section 05.  Closed form throughout, so
+there is nothing expensive to declare -- this is the exemplar for a module
+that needs no walk.  See `holding_time.py` for one that does.
+"""
+
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from examples._harness import Case, run_cli                   # noqa: E402
+import model                                                  # noqa: E402
+
+TITLE = "Entry: the strike dial"
+SECTION = "sec:entry"
+EQ = ["eq:kstar", "eq:p-screen", "eq:screen-gap"]
+
+FIELDS = [
+    ("k", "k*, strike fraction", ".4f"),
+    ("otm", "out of the money", ".2%"),
+    ("p_real", "realized assignment rate", ".2%"),
+    ("p_screen", "p_screen = N(-d2), the screen's number", ".2%"),
+    ("gap_z", "  the two worlds' gap, in d2 units", ".4f"),
+    ("gap_p", "  the same gap, in probability", ".4f"),
+    ("delta", "delta = N(-d1), what the screen shows instead", ".2%"),
+]
+
+
+def requires(cfg, measure="P", horizon=None, **kw):
+    return []
+
+
+def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
+    cfg = cfg if cfg is not None else model.Config()
+    k, p_real, _, _ = model.entry_law(cfg, measure)
+    return {
+        "k": k,
+        "otm": 1 - k,
+        "p_real": p_real,
+        "p_screen": model.screen_prob(cfg, measure),
+        "gap_z": model.screen_gap(cfg),
+        "gap_p": model.screen_gap(cfg, in_prob=True),
+        "delta": model.put_delta(cfg, measure),
+    }
+
+
+CASES = [
+    Case("", {
+        "k": (0.9774, 0.0005),          # section 05: "k* ~ 0.9774"
+        "otm": (0.0226, 0.0005),        # "about 2.3% below the market"
+        "p_real": (0.20, 1e-9),         # p* is real-world: no correction
+        "p_screen": (0.2039, 0.001),    # "comes to 20.4%"
+        "gap_z": (0.0139, 0.0005),      # eq:screen-gap, the shift in d2
+        "gap_p": (0.0039, 0.0005),      # "0.4 percentage points" once converted
+        "delta": (0.1961, 0.002),       # "N(-d1) ~ 19.6% here"
+    }, note="Standard regime"),
+    Case("--measure Q", {
+        "k": (0.9770, 0.0005),
+    }, note="the same dial read under the pricing drift"),
+    Case("--p-star 0.10", {
+        "k": (0.9655, 0.0005),          # "k* ~ 0.9655, about 3.5% below"
+        "otm": (0.0345, 0.0005),
+    }, note="Conservative regime"),
+    Case("--p-star 0.10 --sigma 0.297", {
+        "otm": (0.051, 0.001),          # "a one-in-ten strike sits 5.1% out"
+    }, note="the live account's names, at their own volatility"),
+]
+
+
+if __name__ == "__main__":
+    run_cli(sys.modules[__name__])

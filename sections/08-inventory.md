@@ -18,7 +18,7 @@ and each stays E[W] = 2.10 years by [eq:holding](#eq:holding). So
 
 E[I]  =  λ · E[W]  =  10.4 × 2.10  =  **21.8 lots**    {#eq:little}
 
-Twenty-two lots. The strategy was described at the outset as one that sells puts and occasionally takes assignment; at equilibrium it is a strategy that owns twenty-two lots of stock and sells puts on the side. And it earned that inventory honestly: 10.4 assignments a year, each lingering two years, is twenty-two.
+Twenty-two lots. The strategy was described at the outset as one that sells puts and occasionally takes assignment; at equilibrium it is a strategy that owns twenty-two lots of stock and sells puts on the side. And it earned that inventory honestly: 10.4 assignments a year, each lingering two years, is twenty-two.[^eq-lambda]
 
 Note what Little's law let us skip. Nothing here needed the exits to be independent, or the arrival stream to be smooth, or the holding times to follow any particular distribution — all of which are false for a single stock, whose lots ride one price path and are called away in batches. The average is exact regardless. That robustness is why this identity, rather than any distributional argument, is the load-bearing step of the article.
 
@@ -26,12 +26,19 @@ Note what Little's law let us skip. Nothing here needed the exits to be independ
 
 Twenty-two lots is where the system settles. It is not where it will be found.
 
-The wheel starts empty, and filling it is slow — because filling it requires the *tail* of the holding-time distribution to populate, and that tail is measured in decades. Integrating the survival curve gives the whole trajectory:
+The wheel starts empty, and filling it is slow — because filling it requires the *tail* of the holding-time distribution to populate, and that tail is measured in decades. Before equilibrium, inventory is the arrival rate against however much of the survival curve has had time to accumulate:
 
-    after           5 y     10 y     30 y     equilibrium
-    E[I]           5.41     7.39    11.40        21.82
+E[I(t)]  =  λ · ∫₀^t S(u) du    {#eq:little-finite}
 
-Reaching 90% of the equilibrium level takes **90 years**. An operator running this strategy for a full career sees inventory a little over half of where it is heading, still rising, with no indication from the recent past that it is going to keep rising.
+which recovers [eq:little](#eq:little) as t grows, since the whole integral is E[W]. Two readings of that trajectory matter, and they are different numbers:
+
+    horizon H                          5 y     10 y     30 y     equilibrium
+    E[I(H)], holdings at H            7.95    10.57    15.42        21.82
+    average over [0, H]               5.41     7.39    11.40        21.82
+
+The first row is what the operator is holding when the horizon arrives. The second is the average across the whole period, and it is the one the rest of Part II reports, because a return earned over a window has to be measured against the capital committed *throughout* that window rather than at its end. Every horizon-indexed figure from [the returns section](#sec:returns) onward is an average of the second kind, and the distinction is worth carrying: at thirty years the two differ by a third.
+
+Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W]. An operator running this strategy for a full career holds about **seven tenths** of where it is heading, still rising, with no indication from the recent past that it is going to keep rising.
 
 This is worth stating plainly because it inverts the usual relationship between a model and its reader. The stationary answer, the one a queueing textbook would call *the* answer, is here a statement about a limit that no participant reaches. **The operator-relevant numbers are the finite-horizon ones**, and every table in the rest of Part II is therefore indexed by horizon rather than reported at equilibrium.
 
@@ -53,7 +60,7 @@ That composition is the last piece. Write ρ(x) for the **depth census**: how th
 
 ρ(x)  ∝  Σ_j  P( x_j ∈ dx,  J > j )    {#eq:census}
 
-For the Standard regime over a thirty-year horizon:
+For the Standard regime over a thirty-year horizon:[^eq-census]
 
     depth of lot below its strike     share of held time     q at mid-depth
     0 –  2%                                   8%                  0.442
@@ -88,3 +95,7 @@ That difference is not a detail. It is why [the returns section](#sec:returns) h
 Everything above concerns averages, which is all Little's law provides and all the economics needs. The *distribution* of I on a single stock is another matter: it is not the tidy bell-shaped thing a queueing course would suggest, because lots on one name share one price path — they deepen together and are called away in batches. The realized distribution is heavily skewed, with long empty stretches punctuated by deep pile-ups, and its variance runs several times its mean.
 
 The classical result — that an infinite-server queue settles into a **Poisson** distribution, whose variance equals its mean — needs arrivals and departures to be independent. That is false for one stock and true across many. So the distributional claims belong to [the portfolio section](#sec:portfolio), where they are earned, rather than here, where they would be assumed. [The verification section](#sec:verification) reports what the single-name distribution actually looks like.
+
+[^eq-census]: Reproduced by `python code/examples/inventory_census.py` — [eq:census](#eq:census), and the other readings quoted here are `stationary`. Pass `--help` for the full parameter set.
+
+[^eq-lambda]: Reproduced by `python code/examples/inventory_little.py` — [eq:lambda](#eq:lambda), [eq:little](#eq:little), [eq:little-finite](#eq:little-finite). Pass `--help` for the full parameter set.

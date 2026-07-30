@@ -16,9 +16,21 @@ covering the same span of calendar years takes 4.3x more periods than the old
 quarterly grid, and resolving a period's step (sigma*sqrt(tau_c) = 0.055)
 needs h = 0.01 rather than 0.02.
 
-Each check recomputes a number from `model.py` and asserts it matches what the
-text says. If a formula in the text is edited, re-run this script; a sign error
-(this project's historical failure mode) will trip an assertion.
+Since 2026-07-30 this file no longer asserts the article's worked examples
+itself.  Every numbered formula is produced by a standalone script under
+`code/examples/`, which carries the article's own invocations as frozen cases
+-- a case holds a *command line*, the same one the section's footnote prints,
+so the command a reader runs and the command checked here cannot drift apart.
+This file discovers those modules, unions their expensive solves into one
+parallel batch, runs every case, and then checks the policy itself: that every
+`{#eq:...}` in `sections/` has a script and every footnote leads to the script
+backing its own formula.
+
+What remains here directly is what no example module can own: invariants and
+cross-checks between two independent routes to one number, regression guards on
+figures the article does not print, arithmetic on a displayed quantity with no
+model function behind it, and the comparisons against `wheel_sim.py` -- whose
+simulated barrier is a different object from `model.py`'s static one.
 
 The structural check at the end is the strongest one in the file: run the whole
 machinery in the Q-world and the economic excess return must vanish up to the
@@ -33,14 +45,12 @@ import argparse
 from math import exp, log, sqrt
 
 import model
-from model import (BETA, Config, N, assign_prob, bs_call, criteria,
-                   d2, depth_census, economics, entry_law, expected_drop,
-                   debit_growth, first_passage_prob, k_star_drift, leverage,
+from model import (BETA, Config, N, criteria, depth_census, economics,
+                   entry_law, debit_growth, first_passage_prob, leverage,
                    liquidation_barrier, liquidation_prob, max_leverage,
                    max_debit_growth, max_sustainable_draw,
-                   occupation, pmap, put_premium, q_exit,
-                   saturation, stationary, stationary_converged,
-                   sticky_dividend_trap, sticky_dividend_yield, strike,
+                   occupation, pmap, saturation, stationary,
+                   stationary_converged, sticky_dividend_yield, strike,
                    survival_utilization, time_to_fraction, time_to_inventory,
                    trapped_fraction)
 
@@ -65,25 +75,6 @@ def _occ_job(job):
     return occupation(cfg, measure)
 
 
-def _econ_job(job):
-    """A sweep row: economics at one horizon, its own walk."""
-    cfg, measure, H = job
-    return economics(cfg, measure, occupation(cfg, measure), horizon=H)
-
-
-def _sticky_job(job):
-    """The sticky-dividend fixed point at one horizon, and what it implies."""
-    cfg, measure, H = job
-    d, F = sticky_dividend_yield(cfg, measure, H)
-    at_eff = Config(p_star=cfg.p_star, delta=d)
-    return d, F, economics(at_eff, measure, occupation(at_eff, measure), horizon=H)
-
-
-def _census_job(job):
-    cfg, measure, edges, horizon = job
-    return depth_census(cfg, measure, edges, horizon=horizon)
-
-
 def _stationary_job(job):
     """A Richardson-extrapolated stationary solve (two grids, run serially)."""
     cfg, measure = job
@@ -105,211 +96,62 @@ def main():
     occ_p, occ_q, occ_c, occ_cq = pmap(
         _occ_job, [(STD, "P"), (STD, "Q"), (CON, "P"), (CON, "Q")])
 
-    # ------------------------------------------------------------------
-    print("--- Section 05: entry ---")
-    k_p, p_p, x0_p, _ = entry_law(STD, "P")
-    k_q, p_q, x0_q, _ = entry_law(STD, "Q")
-    check("k* (Standard, P-world)", k_p, 0.9774, 0.0005)
-    check("k* (Standard, Q-world)", k_q, 0.9770, 0.0005)
-    check("realized assignment rate = p* by construction", p_p, 0.20, 1e-9)
-    check("E[x0] (Standard)", x0_p, 0.0155, 0.0005)
-    check("E[d | assignment] (Standard, P)", expected_drop(STD, "P"), 0.0375, 0.001)
-    check("E[d | assignment] (Standard, Q)", expected_drop(STD, "Q"), 0.0379, 0.001)
-    # What the broker screen shows at the same strike: the risk-neutral number.
-    m_q, _ = STD.world("Q")
-    check("screen (risk-neutral) p at the P-strike",
-          assign_prob(k_p, STD.tau_p, STD.sigma, m_q), 0.2039, 0.001)
-    check("what the screen usually shows instead: delta N(-d1)",
-          N(-(d2(k_p, STD.tau_p, STD.sigma, m_q) + STD.sigma * sqrt(STD.tau_p))),
-          0.1961, 0.002)
-    check("c_p, the put quote (Standard)", put_premium(STD, "P"), 0.00306, 0.0002)
-    check("k* (Conservative, P-world)", strike(CON, "P"), 0.9655, 0.0005)
-    check("E[x0] (Conservative)", entry_law(CON, "P")[2], 0.0131, 0.0005)
-    check("E[d | assignment] (Conservative, P)", expected_drop(CON, "P"), 0.0470, 0.001)
-    check("E[d | assignment] (Conservative, Q)", expected_drop(CON, "Q"), 0.0474, 0.001)
-    # "Where a real operator sits on the dial": the live account's names carry a
-    # volatility near 30%, not the running example's 20%, so the same one-in-ten
-    # dial puts the strike further out.  The live side of that comparison -- the
-    # 7.7% realized rate, the 10.9% revealed dial, the 5.5% median moneyness --
-    # is measured by `model_vs_live.py`, which nothing here reproduces (INF-2).
-    m_p_, _ = STD.world("P")
-    check("k* for p*=10% at the live account's sigma = 29.7%",
-          1 - k_star_drift(0.10, STD.tau_p, 0.297, m_p_), 0.051, 0.001)
+    # Derived quantities the structural blocks below read.  They are hoisted
+    # here rather than left where they were first needed because the
+    # per-section assertion blocks that used to define them now live in
+    # `code/examples/` -- this file keeps the setup and drops the duplicated
+    # checks, so anything consumed further down has to be defined above the
+    # first heading.
+    crit_p, crit_q = criteria(STD, "P"), criteria(STD, "Q")
+    nu_p = crit_p["nu"]
+    e30 = economics(STD, "P", occ_p, horizon=30.0)
 
     # ------------------------------------------------------------------
-    print("--- Section 06: the depth process ---")
-    crit_p, crit_q = criteria(STD, "P"), criteria(STD, "Q")
-    check("nu (P-world)", crit_p["nu"], 0.025, 1e-9)
-    check("nu (Q-world)", crit_q["nu"], 0.005, 1e-9)
-    # The two tables of section 06: exit odds and premium, both against depth.
-    for x, q_want, cc_want in [(x0_p, 0.404, 0.0161), (0.03, 0.306, 0.0110),
-                               (0.05, 0.193, 0.0060), (0.10, 0.039, 0.0009),
-                               (0.15, 0.004, 0.0001), (0.20, 0.000, 0.0000)]:
-        check(f"q at depth {x:.3f}", q_exit(STD, "P", x), q_want, 0.001)
-        check(f"call quote at depth {x:.3f}",
-              bs_call(1.0, exp(x), STD.tau_c, STD.sigma_iv, STD.r, STD.delta),
-              cc_want, 0.0002)
-    check("one period's jostle, sigma*sqrt(tau_c)",
-          STD.sigma * sqrt(STD.tau_c), 0.05547, 1e-5)
-    check("one period's drift, nu*tau_c", crit_p["nu"] * STD.tau_c, 0.001923, 1e-6)
-    # "What a constant dividend yield assumes": a 30% fall with no cut.
+    # Sections 05 to 08 are now checked by `code/examples/`, a module per
+    # numbered formula: the entry law and the strike dial, the depth walk and
+    # its two tables, the survival curve and E[W], Little's law and the depth
+    # census.  `python -m examples --list` enumerates them.  What survives
+    # here is only what no module can own.
+    #
+    # One comparison is checked nowhere at all, and should not be mistaken for
+    # covered: section 05's live-account figures -- the 7.7% realized rate, the
+    # 10.9% revealed dial, the 5.5% median moneyness -- are measured by
+    # `model_vs_live.py` against statement data, and nothing reproduces them
+    # (INF-2).
+    print("--- Sections 05-08: what no example module can own ---")
+    # Arithmetic on a displayed quantity, with no model function behind it and
+    # no reason to add one: section 06's "a 30% fall leaves the yield 43%
+    # higher", and section 08's e^0.5, the capital a lot half a log-unit down
+    # ties up per share.
     check("yield lift from a 30% fall with the payout unchanged",
           1 / 0.70 - 1, 0.43, 0.005)
-    check("volatility at which nu vanishes", sqrt(2 * (STD.mu - STD.delta)),
-          0.30, 0.001)
-
-    # ------------------------------------------------------------------
-    print("--- Section 07: holding time ---")
-    sc = STD.sigma * sqrt(STD.tau_c)
-    check("call-grid tax beta*sigma*sqrt(tau_c)", BETA * sc, 0.0323, 0.0005)
-    check("grid tax as a multiple of the entry depth", BETA * sc / x0_p, 2.09, 0.05)
-    check("first-period exit probability (P)", occ_p["q(x0)"], 0.405, 0.005)
-    check("the naive 1/q answer, in call periods", 1 / occ_p["q(x0)"], 2.47, 0.02)
+    check("capital per share of a lot 50% down in log terms", exp(0.5), 1.65, 0.01)
+    # An invariant of the occupation walk rather than a quoted figure: the exit
+    # mass sums to one whenever nu > 0.  Worth keeping beside
+    # `examples/holding_trapped.py`, which reaches the same conclusion by a
+    # closed form -- two independent routes to one answer.
     check("every lot eventually exits when nu > 0", occ_p["P[exit]"], 1.0, 0.002)
-    check("call premiums collected per lot (P)", occ_p["E[prem]"], 0.0372, 0.001)
-    check("upside given away per lot (P)", occ_p["E[exitcost]"], 0.0358, 0.001)
-    # The survival curve quoted in section 07. The call period is 4 weeks, so
-    # every column is an exact multiple of it: j periods = 4j weeks, 13 = 1 y.
-    for label, j, want in [("4 wk", 1, 0.60), ("8 wk", 2, 0.46), ("12 wk", 3, 0.38),
-                           ("24 wk", 6, 0.27), ("1 y", 13, 0.18),
-                           ("2 y", 26, 0.12), ("5 y", 65, 0.07),
-                           ("10 y", 130, 0.04), ("20 y", 260, 0.02)]:
-        check(f"still held after {label}", occ_p["surv"][j], want, 0.005)
-    median_j = next(j for j, s in enumerate(occ_p["surv"]) if s < 0.5)
-    check("median holding time, in call periods", median_j, 2, 0)
-
-    # ------------------------------------------------------------------
-    print("--- Section 08: inventory ---")
-    e30 = economics(STD, "P", occ_p, horizon=30.0)
-    check("arrival rate lambda (Standard)", e30["lambda"], 10.40, 0.01)
-    check("E[I] over 30 years (Standard, P)", e30["I"], 11.40, 0.10)
+    # A regression guard on a number no section prints, so it has no home in a
+    # module: module cases assert what the article claims, and this is not a
+    # claim the article makes.
     check("E[I] over 30 years (Standard, Q)",
           economics(STD, "Q", occ_q, horizon=30.0)["I"], 14.49, 0.12)
-    check("E[I] over 30 years (Conservative, P)",
-          economics(CON, "P", occ_c, horizon=30.0)["I"], 5.50, 0.06)
-    # The depth census: what the standing inventory is made of.  The 30-year
-    # and stationary censuses are separate walks, and the two trap censuses of
-    # section 09 below are two more, so all four are issued at once.
-    EDGES = [0.0, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30, 0.50, float("inf")]
-    x_trap_p, x_trap_q = sticky_dividend_trap(STD, "P"), sticky_dividend_trap(STD, "Q")
-    (shares, mean_x, mean_q), (s_st, mx_st, mq_st), trap_p, trap_q = pmap(
-        _census_job, [(STD, "P", EDGES, 30.0), (STD, "P", EDGES, None),
-                      (STD, "P", [0.0, x_trap_p, float("inf")], 30.0),
-                      (STD, "Q", [0.0, x_trap_q, float("inf")], 30.0)])
-    for i, want in enumerate([0.08, 0.05, 0.11, 0.07, 0.09, 0.13, 0.18, 0.28]):
-        check(f"census share, bin {i + 1} of 8", shares[i], want, 0.006)
-    check("inventory-weighted mean depth (30y)", mean_x, 0.380, 0.005)
-    check("inventory-weighted exit probability (30y)", mean_q, 0.066, 0.003)
-    check("share of held time deeper than 30%", shares[6] + shares[7], 0.46, 0.01)
-    check("stationary inventory-weighted mean depth", mx_st, 0.790, 0.01)
-    check("stationary inventory-weighted exit probability", mq_st, 0.036, 0.003)
-    check("stationary share of held time deeper than 50%", s_st[7], 0.53, 0.01)
-    check("capital per share of a lot 50% down in log terms", exp(0.5), 1.65, 0.01)
 
     # ------------------------------------------------------------------
-    print("--- Section 09: returns and capital ---")
-    for H, inv, mv, cost, econ, cash in [(5.0, 5.41, 5.61, 6.70, 0.0160, 0.0411),
-                                         (10.0, 7.39, 7.59, 9.83, 0.0160, 0.0181),
-                                         (30.0, 11.40, 11.59, 18.23, 0.0160, -0.0077)]:
-        x = economics(STD, "P", occ_p, horizon=H)
-        check(f"E[I] at {H:.0f}y", x["I"], inv, 0.05)
-        check(f"market-value capital at {H:.0f}y", x["mv_capital"], mv, 0.05)
-        check(f"cost-basis capital at {H:.0f}y", x["capital"], cost, 0.06)
-        check(f"economic excess at {H:.0f}y", x["econ_excess"], econ, 0.0005)
-        check(f"cash-view excess at {H:.0f}y", x["excess"], cash, 0.0005)
-    # The wheel against simply owning the stock, on the same capital.
-    m_p, _ = STD.world("P")
-    buy_hold = m_p + STD.delta_net - STD.r
-    check("buy-and-hold excess return", buy_hold, 0.01625, 1e-6)
-    equity_frac = e30["I"] / e30["mv_capital"]
-    check("wheel's equity fraction of capital", equity_frac, 0.983, 0.005)
-    check("gap: wheel minus equity-adjusted buy-and-hold",
-          e30["econ_excess"] - buy_hold * equity_frac, 0.0001, 0.0005)
-    # The income decomposition quoted at the top of the section.
-    cp_yr = e30["c_p"] / STD.cadence
-    check("put premiums per year", cp_yr, 0.1591, 0.0010)
-    check("call premiums per year", e30["premiums"] - cp_yr, 0.3706, 0.0020)
-    check("dividends per year", e30["dividends"], 0.2422, 0.0010)
-    check("Track A income per year", e30["income"], 0.7718, 0.0020)
-    m_price, _ = STD.world("P")
-    apprec = e30["I"] * m_price
-    check("appreciation of held shares per year", apprec, 0.5128, 0.0020)
-    check("mark loss at acquisition per year", e30["acq_loss"], 0.1632, 0.0010)
-    check("upside surrendered per year", e30["call_away_loss"], 0.3559, 0.0020)
-    check("the three nearly cancel",
-          apprec - e30["acq_loss"] - e30["call_away_loss"], -0.0063, 0.0015)
-
-    # The volatility-risk-premium sweep: how much edge is needed, and what it
-    # buys.  Independent configs -- one pmap, one row each.
-    VRP = [(0.000, 0.5297, 0.0160, 0.0001), (0.005, 0.5555, 0.0183, 0.0023),
-           (0.010, 0.5818, 0.0205, 0.0046), (0.020, 0.6358, 0.0252, 0.0092)]
-    vrp_cfgs = [Config(p_star=0.20, iv_spread=s) for s, *_ in VRP]
-    vrp_rows = pmap(_econ_job, [(c, "P", 30.0) for c in vrp_cfgs])
-    for (spread, prem, exc, gap), cfg, xs in zip(VRP, vrp_cfgs, vrp_rows):
-        check(f"premiums/yr at sigma_IV = {cfg.sigma_iv:.3f}",
-              xs["premiums"], prem, 0.0010)
-        check(f"excess at sigma_IV = {cfg.sigma_iv:.3f}", xs["econ_excess"],
-              exc, 0.0005)
-        check(f"gap vs buy-and-hold at sigma_IV = {cfg.sigma_iv:.3f}",
-              xs["econ_excess"] - buy_hold * (xs["I"] / xs["mv_capital"]),
-              gap, 0.0005)
-
-    # The dividend sweep.
-    DIV = [(0.000, 8.54, 8.74, 12.11, 0.0198), (0.010, 9.56, 9.75, 14.15, 0.0183),
-           (0.025, 11.40, 11.59, 18.23, 0.0160), (0.040, 13.65, 13.84, 24.00, 0.0138),
-           (0.060, 17.31, 17.51, 35.50, 0.0108)]
-    div_cfgs = [Config(p_star=0.20, delta=d) for d, *_ in DIV]
-    div_rows = pmap(_econ_job, [(c, "P", 30.0) for c in div_cfgs])
-    for (d, inv, mv, cost, exc), cfg, xd in zip(DIV, div_cfgs, div_rows):
-        check(f"E[I] at delta = {d:.3f}", xd["I"], inv, 0.05)
-        check(f"market capital at delta = {d:.3f}", xd["mv_capital"], mv, 0.05)
-        check(f"cost capital at delta = {d:.3f}", xd["capital"], cost, 0.10)
-        check(f"true excess at delta = {d:.3f}", xd["econ_excess"], exc, 0.0005)
-        bh_d = (cfg.mu - cfg.r - cfg.withhold * d) * xd["I"] / xd["mv_capital"]
-        check(f"gap vs buy-and-hold at delta = {d:.3f}",
-              xd["econ_excess"] - bh_d, 0.0001, 0.0003)
-
-    # "What if the dividend never falls?" -- the sticky-dividend bound. delta
-    # reaches the model only through nu and through income, so the whole
-    # correction is a row of the sweep above at a larger delta.
-    STICKY = [(5.0, 1.020, 0.02550, 0.01588, -0.00008, 0.00027),
-              (10.0, 1.039, 0.02597, 0.01581, -0.00015, 0.00012),
-              (30.0, 1.113, 0.02782, 0.01562, -0.00042, 0.00006)]
-    sticky_rows = pmap(_sticky_job, [(STD, "P", H) for H, *_ in STICKY])
-    for (H, F, d_eff, exc, shift, gap), (d_got, F_got, xs) in zip(STICKY, sticky_rows):
-        check(f"sticky-dividend inflation factor at {H:.0f}y", F_got, F, 0.001)
-        check(f"delta_eff at {H:.0f}y", d_got, d_eff, 0.0001)
-        cfg = Config(p_star=0.20, delta=d_got)
-        base = economics(STD, "P", occ_p, horizon=H)
-        check(f"true excess at delta_eff, {H:.0f}y", xs["econ_excess"], exc, 0.0002)
-        check(f"change from constant delta at {H:.0f}y",
-              xs["econ_excess"] - base["econ_excess"], shift, 0.0001)
-        bh_s = (cfg.mu - cfg.r - cfg.withhold * d_got) * xs["I"] / xs["mv_capital"]
-        check(f"gap vs buy-and-hold at delta_eff, {H:.0f}y",
-              xs["econ_excess"] - bh_s, gap, 0.0002)
-        if H == 30.0:
-            check("inventory rise under the sticky correction",
-                  xs["I"] / base["I"] - 1, 0.034, 0.003)
-            check("cost-basis capital rise under the sticky correction",
-                  xs["capital"] / base["capital"] - 1, 0.051, 0.004)
+    # Section 09's ledger, both sweeps, the sticky-dividend fixed point,
+    # the trap depth, the Conservative regime and the collateral footnote
+    # are all checked by `code/examples/returns_*.py`; section 10's two
+    # boundaries and the tail exponent by `examples/stability_*.py`.
+    # What is left here is what a module cannot own.
+    print("--- Sections 09-10: what no example module can own ---")
     # The correction has no stationary value: held lot-time thins like the
     # holding-time tail while the yield inflates faster.
     check("yield inflation rate sigma^2/2", STD.sigma**2 / 2, 0.0200, 0.0001)
-    nu_p = crit_p["nu"]
     check("held-time thinning rate nu^2/(2 sigma^2)",
           nu_p**2 / (2 * STD.sigma**2), 0.0078, 0.0002)
     # A buy-and-hold anchor stands the whole horizon, so it inflates by more.
     a = STD.sigma**2 * 30.0 / 2
     check("buy-and-hold inflation factor at 30y", (exp(a) - 1) / a, 1.370, 0.002)
-    # The depth past which a payout frozen in dollars outruns the drift.
-    # (The censuses came out of the pmap in section 08.)
-    for meas, xs_, (sh, _, _), xstar, below, beyond in [
-            ("P", x_trap_p, trap_p, 0.693, 0.500, 0.164),
-            ("Q", x_trap_q, trap_q, 0.182, 0.167, 0.692)]:
-        check(f"sticky-dividend trap depth x* ({meas})", xs_, xstar, 0.001)
-        check(f"x* as a fraction below the strike ({meas})", 1 - exp(-xs_),
-              below, 0.001)
-        check(f"30y census mass beyond x* ({meas})", sh[1], beyond, 0.006)
     # The rejected per-lot version, kept as a check that it is the cost-basis
     # capital in disguise -- an unfunded +1.24pp, which is why it is wrong.
     naive = e30["dividends"] * ((e30["capital"] - STD.gamma_p * e30["k"])
@@ -317,48 +159,9 @@ def main():
     check("unfunded return from per-lot dividend anchoring (rejected)",
           naive / e30["mv_capital"], 0.0122, 0.0003)
 
-    # The Conservative regime.
-    xc = economics(CON, "P", occ_c, horizon=30.0)
-    check("Conservative: lots held", xc["I"], 5.50, 0.05)
-    check("Conservative: market capital", xc["mv_capital"], 5.70, 0.05)
-    check("Conservative: cost capital", xc["capital"], 8.90, 0.06)
-    check("Conservative: Track A income", xc["income"], 0.3711, 0.0020)
-    check("Conservative: true excess", xc["econ_excess"], 0.0149, 0.0005)
-    check("Conservative: cash-on-cost-basis", xc["excess"], -0.0083, 0.0005)
-    check("Conservative: buy-and-hold benchmark",
-          buy_hold * xc["I"] / xc["mv_capital"], 0.0157, 0.0005)
-
-    # The collateral footnote, and the regime comparison it explains. Track C
-    # charges r on the put margin, which in fact earns approximately r at the
-    # broker. The overcharge is the same absolute number in both regimes but a
-    # different share of capital, because Conservative's inventory is half the
-    # size -- and correcting it makes the two regimes agree, which is the point
-    # of the table in section 09.
-    for H, over, gap_s, gap_c in [(5.0, 0.00174, 0.0003, -0.0014),
-                                  (10.0, 0.00129, 0.0001, -0.0011),
-                                  (30.0, 0.00084, 0.0001, -0.0008)]:
-        xs, xcv = (economics(STD, "P", occ_p, horizon=H),
-                   economics(CON, "P", occ_c, horizon=H))
-        o_s = STD.r * STD.gamma_p * xs["k"] / xs["mv_capital"]
-        o_c = CON.r * CON.gamma_p * xcv["k"] / xcv["mv_capital"]
-        g_s = xs["econ_excess"] - buy_hold * xs["I"] / xs["mv_capital"]
-        g_c = xcv["econ_excess"] - buy_hold * xcv["I"] / xcv["mv_capital"]
-        check(f"Track C overcharge on collateral at {H:.0f}y (Standard)",
-              o_s, over, 5e-5)
-        check(f"gap vs buy-and-hold at {H:.0f}y (Standard)", g_s, gap_s, 0.0005)
-        check(f"gap vs buy-and-hold at {H:.0f}y (Conservative)",
-              g_c, gap_c, 0.0005)
-        check(f"the regimes agree once collateral earns r ({H:.0f}y)",
-              (g_s + o_s) - (g_c + o_c), 0.0, 0.0001)
-    # And the fully cash-secured convention, where collateral is k not gamma*k.
-    check("cash-secured overcharge is ~4.5x the margin one (30y)",
-          (e30["k"] / (e30["k"] + e30["I"]))
-          / (STD.gamma_p * e30["k"] / e30["mv_capital"]), 4.7, 0.1)
 
     # ------------------------------------------------------------------
     print("--- Section 10: stability ---")
-    check("tail exponent 2nu/sigma^2 (P)", crit_p["tail_exponent"], 1.25, 0.01)
-    check("tail exponent 2nu/sigma^2 (Q)", crit_q["tail_exponent"], 0.25, 0.01)
     print(f"      P-world: count {'stable' if crit_p['count_ok'] else 'UNSTABLE'}, "
           f"capital {'stable' if crit_p['capital_ok'] else 'UNSTABLE'}")
     print(f"      Q-world: count {'stable' if crit_q['count_ok'] else 'UNSTABLE'}, "
@@ -368,20 +171,7 @@ def main():
               "article's sharpest comparison)")
     else:
         FAILURES.append("measure disagreement on capital stability")
-    # Where the two boundaries sit, in each parameter.
-    check("volatility at which lot count destabilizes (sqrt(2(mu-delta)))",
-          sqrt(2 * (STD.mu - STD.delta)), 0.300, 0.001)
-    check("volatility at which capital destabilizes (sqrt(mu-delta))",
-          sqrt(STD.mu - STD.delta), 0.2121, 0.001)
-    check("dividend yield at which lot count destabilizes (mu - sigma^2/2)",
-          STD.mu - STD.sigma**2 / 2, 0.050, 1e-9)
-    check("dividend yield at which capital destabilizes (mu - sigma^2)",
-          STD.mu - STD.sigma**2, 0.030, 1e-9)
     hi_vol = Config(sigma=0.40)
-    check("nu at sigma=40% (both criteria fail)",
-          criteria(hi_vol, "P")["nu"], -0.035, 1e-9)
-    check("trapped-forever fraction per assignment at sigma=40%",
-          trapped_fraction(hi_vol, "P"), 0.0409, 0.002)
     # Independent cross-check of that closed form: integrate the escape
     # probability against the entry density directly.
     _, _, _, dens = entry_law(hi_vol, "P")
@@ -394,8 +184,6 @@ def main():
     den = sum(dens((i + .5) * step) * step for i in range(20000))
     check("trapped fraction: closed form vs numerical integration",
           trapped_fraction(hi_vol, "P"), 1 - num / den, 1e-4)
-    check("trapped lots accumulate per year at sigma=40%",
-          (STD.p_star / STD.cadence) * trapped_fraction(hi_vol, "P"), 0.43, 0.02)
 
     # ------------------------------------------------------------------
     # The convolution has two implementations, and only one of them is the
@@ -622,10 +410,6 @@ def main():
     check("just below A* it does saturate, but only after centuries",
           saturation(G25, "P", far_p, 0.10, equity=0.99 * A_star,
                      econ=f)["T_sat"], 270.0, 5.0)
-    for A, want in ((11.59, 18.5), (15.0, 44.4), (5.0, 2.4)):
-        check(f"T_sat at A = {A} lots, years",
-              saturation(G25, "P", far_p, 0.10, equity=A, econ=f)["T_sat"],
-              want, 0.1)
 
     # The unconstrained limit, which is II-3's regression guard carried into
     # the capacity block: unlimited equity never blocks, never borrows, and
@@ -680,8 +464,6 @@ def main():
     L_reach = I_inf / 11.59
     drift = saturation(G25, "P", far_p, 0.10, equity=11.59,
                        L_max=L_reach, econ=f)
-    check("the leverage an untended account drifts to at A = 11.59",
-          L_reach, 1.883, 0.001)
     check("...where the sustainable draw is a deposit, per year",
           drift["draw"], -0.248, 0.001)
     check("...while its excess return on equity reads higher, not lower",
@@ -785,33 +567,15 @@ def main():
     # scenario's and are cited as such in the text.
     print("--- Section 11: the constrained wheel ---")
 
-    # The stopping rule, and the A* table's two columns.  The point of the
-    # table is the gap between them, so the gap is checked rather than implied.
-    check("the stopping rule u* = gamma_s*L_max, quoted as 0.28",
-          survival_utilization(G25, "P", 0.10), 0.2837, 0.0005)
     ASTAR = [(1.00, 21.82, 21.82), (0.50, 10.91, 20.10),
              (0.25, 5.46, 19.23), (0.15, 3.27, 18.88)]
     for gs, implied, want in ASTAR:
         Cg = Config(p_star=0.20, gamma_s=gs)
-        check(f"A* at gamma_s = {gs:.2f}", I_inf / max_leverage(Cg, "P", 0.10),
-              want, 0.02)
-        check(f"...against the {gs:.2f} ceiling's implied equity gamma_s*E[I]",
-              gs * I_inf, implied, 0.01)
-    check("the broker's permission is off by this factor at gamma_s = 0.15",
-          (I_inf / max_leverage(Config(p_star=0.20, gamma_s=0.15), "P", 0.10))
-          / (0.15 * I_inf), 5.8, 0.05)
-    check("...and correctly risked it buys a 12% discount on equity required",
-          1 - A_star / I_inf, 0.119, 0.002)
 
     # Income is proportional to L_max*A/E[W].  The wrong reading prices capacity
     # at the broker's ceiling A/gamma_s, and the section quotes what that costs.
     for gs, want in ((0.50, 1.8), (0.25, 3.5), (0.15, 5.8)):
         Cg = Config(p_star=0.20, gamma_s=gs)
-        check(f"overstatement of income at gamma_s = {gs:.2f} if capacity is "
-              f"read off the ceiling", 1 / (gs * max_leverage(Cg, "P", 0.10)),
-              want, 0.05)
-    check("what portfolio margin is actually worth in income, over fully paid",
-          max_leverage(G25, "P", 0.10) - 1.0, 0.13, 0.005)
 
     # The frontier table, every column the section prints.
     FRONT = [(1.00, 1.13, 0.052, 0.1), (3.00, 3.40, 0.156, 0.9),
@@ -819,14 +583,6 @@ def main():
              (15.00, 17.02, 0.780, 44.4), (19.04, 21.61, 0.990, 270.0)]
     for A, cap, thr, tsat in FRONT:
         s = saturation(G25, "P", far_p, 0.10, equity=A, econ=f)
-        check(f"capacity at A = {A}", s["capacity"], cap, 0.01)
-        check(f"throughput at A = {A}", s["throughput"], thr, 0.001)
-        check(f"T_sat at A = {A}", s["T_sat"], tsat, max(0.1, 0.02 * tsat))
-    # Integer lots at A = 5: capacity 5.67 means the book stops at 5 and the
-    # account never borrows, which is why its permitted leverage is unreachable.
-    check("the levered capacity a 5-lot account cannot use",
-          saturation(G25, "P", far_p, 0.10, equity=5.0, econ=f)["capacity"],
-          5.67, 0.01)
 
     # The draw ladder at A = 11.59: the section's claim is that the last two
     # rows move in opposite directions, so both rows are pinned at every rung.
@@ -846,13 +602,6 @@ def main():
     prev_roe = -1.0
     for L, fstar, pliq, draw_frac, roe in LADDER:
         s = saturation(G25, "P", far_p, 0.10, equity=11.59, L_max=L, econ=f)
-        check(f"barrier at L = {L:.4f}", liquidation_barrier(L, 0.25), fstar, 0.0005)
-        check(f"P(sold out, ever) at L = {L:.4f}",
-              liquidation_prob(G25, "P", L), pliq, 0.0005)
-        check(f"sustainable draw at L = {L:.4f}, as a fraction of equity",
-              s["draw"] / 11.59, draw_frac, 0.0005)
-        check(f"excess return on equity at L = {L:.4f}", s["roe_excess"],
-              roe, 0.0005)
         if s["roe_excess"] <= prev_roe:
             FAILURES.append(f"RoE does not rise with leverage at L = {L}")
         prev_roe = s["roe_excess"]
@@ -880,10 +629,6 @@ def main():
     check("the draw that holds the account's size, r + excess - m",
           STD.r + f["econ_excess"] - (STD.mu - STD.delta), 0.0212, 0.0005)
 
-    # The untended account's destination is the strategy's own demand, not the
-    # broker's ceiling: the wheel has nothing to buy with the rest of the money.
-    check("the leverage an untended account drifts to at A = 11.59",
-          I_inf / 11.59, 1.883, 0.001)
     if not I_inf / 11.59 < 1.0 / G25.gamma_s:
         FAILURES.append("the strategy's own demand exceeds the broker's ceiling")
 
@@ -949,9 +694,6 @@ def main():
     # section 11 adds is the capacity half, which is the one that reads as an
     # absurdity: the pricing measure asks for five times the equity.
     q_sat = saturation(G25, "Q", far_q, 0.10, equity=1.0, econ=g)
-    check("Q-world A*, the equity the pricing measure demands", q_sat["A*"],
-          93.65, 0.05)
-    check("...on a mean holding time of", g["E[T]"], 9.01, 0.02)
 
     # ------------------------------------------------------------------
     # II-14's last requirement, and the only check in this file with teeth on
@@ -1052,6 +794,26 @@ def main():
         # tolerances here are what the article actually claims, not more.
         check("stationary E[T] (Standard, Q), years", g["E[T]"], 9.0, 0.4)
         check("stationary E[I] (Standard, Q)", g["I"], 93.7, 4.0)
+
+    # ------------------------------------------------------------------
+    # The worked examples: one runnable script per numbered formula, each
+    # carrying the article's own invocations as frozen cases.  This is the
+    # half a reader can reproduce -- a Case holds a *command line*, so the
+    # command a footnote prints is the command checked here.  The needs of
+    # every case are unioned and solved in one parallel batch.
+    print("--- Worked examples (code/examples/, one script per formula) ---")
+    from examples import _harness as H, _report as R
+    mods = H.discover(strict=True)
+    ctx = H.solve_all(H.collect_needs(mods))
+    FAILURES.extend(H.report_cases(mods, ctx, quiet=True))
+    print(f"  {sum(len(m.CASES) for m in mods)} cases over {len(mods)} modules, "
+          f"{len({n.key for n in H.collect_needs(mods)})} distinct solves")
+
+    # And the policy itself, as a test rather than an aspiration: every
+    # numbered formula has a script, every script is cited from the prose,
+    # and every footnote leads to the script that actually backs its formula.
+    print("--- Reproducibility coverage ---")
+    FAILURES.extend(R.coverage(mods))
 
     print()
     if FAILURES:

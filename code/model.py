@@ -251,6 +251,63 @@ def expected_drop(C, measure):
     return 1 - exp(m * C.tau_p) * N(-_d1) / N(-_d2)
 
 
+def screen_prob(C, measure):
+    """N(-d2) at the policy's strike, read in the pricing world.
+
+    What a broker's screen calls the probability of assignment, and what
+    practitioners quote to each other.  It is the same strike the policy
+    picked in `measure`, priced under Q -- so it differs from p* by the
+    asset's Sharpe ratio over the tenor, and by nothing else.
+    """
+    m, s = C.world("Q")
+    return assign_prob(strike(C, measure), C.tau_p, s, m)
+
+
+def screen_gap(C, in_prob=False):
+    """The distance between the two worlds at the same strike.
+
+    The drifts differ by mu - r, so over one tenor the d2 argument shifts by
+    the asset's Sharpe ratio times sqrt(tau_p):
+
+        gap_z  =  (mu - r) * sqrt(tau_p) / sigma
+
+    That is a shift in *d2 units*, not in probability.  Converting costs one
+    factor of the normal density at the threshold, phi(N^-1(p*)) -- near the
+    money about 0.28, so the probability gap is roughly a quarter of gap_z.
+    """
+    gap_z = (C.mu - C.r) * sqrt(C.tau_p) / C.sigma
+    return gap_z * phi(Ninv(C.p_star)) if in_prob else gap_z
+
+
+def put_delta(C, measure):
+    """N(-d1): the short put's delta, which is what the screen usually shows
+    instead of screen_prob.  Close to it for short tenors, and not the same."""
+    m, s = C.world("Q")
+    k = strike(C, measure)
+    return N(-(d2(k, C.tau_p, s, m) + s * sqrt(C.tau_p)))
+
+
+def grid_tax(C, measure):
+    """beta*sigma*sqrt(tau_c), Siegmund's correction.
+
+    A lot may only leave when a call expires, so the walk is sampled on the
+    call grid rather than watched continuously.  That places the effective
+    exit barrier this much deeper than the true one -- the depth a lot must
+    climb past purely to be standing on the right side on the right day.
+    """
+    _, s = C.world(measure)
+    return BETA * s * sqrt(C.tau_c)
+
+
+def median_periods(occ):
+    """The first period with S_j < 1/2: the median lifetime, in call periods.
+
+    None if the survival curve never crosses a half, which happens when a
+    fixed fraction of lots is trapped (see trapped_fraction).
+    """
+    return next((j for j, s in enumerate(occ["surv"]) if s < 0.5), None)
+
+
 def q_exit(C, measure, x):
     """One-step (per call period) exit probability from depth x."""
     m, s = C.world(measure)
@@ -561,7 +618,7 @@ def economics(C, measure, occ, horizon=None):
     """
     k, p_real, mean_x0, _ = entry_law(C, measure)
     c_p = put_premium(C, measure)
-    lam = p_real / C.cadence                   # arrivals per year
+    lam = arrival_rate(C, measure)             # arrivals per year
     basis_factor = 1 - c_p / k                 # basis / strike
 
     if horizon is None:
@@ -579,7 +636,13 @@ def economics(C, measure, occ, horizon=None):
 
     inventory = lam * C.tau_c * sum_S
     capital = C.gamma_p * k + lam * C.tau_c * sum_basis * basis_factor
-    prem_income = c_p / C.cadence + lam * sum_prem
+    # The two premium legs are reported separately as well as summed: the
+    # article's income decomposition quotes them individually, and the fact
+    # that the calls out-earn the puts more than two to one is one of its
+    # points about a strategy named after selling puts.
+    prem_put = c_p / C.cadence
+    prem_call = lam * sum_prem
+    prem_income = prem_put + prem_call
     div_income = inventory * C.delta_net
     income = prem_income + div_income
 
@@ -600,12 +663,34 @@ def economics(C, measure, occ, horizon=None):
         "k": k, "p_real": p_real, "E[x0]": mean_x0, "E[d]": expected_drop(C, measure),
         "c_p": c_p, "lambda": lam, "nu": occ["nu"], "m": occ["m"],
         "q(x0)": occ["q(x0)"], "E[J]": occ["E[J]"], "E[T]": occ["E[J]"] * C.tau_c,
-        "E[T]_siegmund": (mean_x0 + BETA * occ["sigma"] * sqrt(C.tau_c))
-                         / occ["nu"] if occ["nu"] > 0 else float("inf"),
+        "E[T]_siegmund": (mean_x0 + grid_tax(C, measure)) / occ["nu"]
+                         if occ["nu"] > 0 else float("inf"),
         "I": inventory, "capital": capital,
         "income": income, "premiums": prem_income, "dividends": div_income,
+        "premiums_put": prem_put, "premiums_call": prem_call,
+        "appreciation": inventory * m_price,
         "excess": (income - C.r * capital) / capital,
     }
+
+
+def inventory_at(C, measure, occ, t):
+    """E[I(t)] = lambda * integral_0^t S(u) du -- inventory *at* time t.
+
+    Deliberately distinct from economics(horizon=t)["I"], which is the time
+    *average* of E[I(u)] over [0,t].  Both are wanted and they are far apart
+    while the system is still filling: at the running example they read 15.42
+    and 11.40 at thirty years.  The average is the one a return is measured
+    against, since capital committed across a window is what the window's
+    return has to be divided by; this one is what the operator is holding
+    when the horizon arrives.
+    """
+    total = 0.0
+    for j, S in enumerate(occ["surv"]):
+        a, b = j * C.tau_c, (j + 1) * C.tau_c
+        if a >= t:
+            break
+        total += S * (min(b, t) - a)
+    return arrival_rate(C, measure) * total
 
 
 def sticky_dividend_yield(C, measure, horizon, iters=40, tol=1e-10):
@@ -692,6 +777,77 @@ def criteria(C, measure):
     return {"nu": m - s**2 / 2, "count_ok": m - s**2 / 2 > 0,
             "m": m, "sigma2": s**2, "capital_ok": m > s**2,
             "tail_exponent": 2 * (m - s**2 / 2) / s**2}
+
+
+def arrival_rate(C, measure):
+    """lambda = p*/T, lots per year.
+
+    One put per cadence period, assigned with probability p*, so the arrival
+    rate is exactly the dial divided by the cadence -- no walk required, and
+    exact whatever the grid does.  economics() reports the same number.
+    """
+    _, p_real, _, _ = entry_law(C, measure)
+    return p_real / C.cadence
+
+
+def period_step(C, measure):
+    """sigma*sqrt(tau_c): one call period's random jostle in depth.
+
+    The scale on which depth matters.  Shortening the call period does not
+    merely change the units -- it moves the cliff edge in q(x) closer.
+    """
+    _, s = C.world(measure)
+    return s * sqrt(C.tau_c)
+
+
+def period_drift(C, measure):
+    """nu*tau_c: one call period's deterministic pull toward exit.
+
+    Quoted beside period_step because the comparison is the point: at the
+    running example the jostle is nearly thirty times the drift, so a lot
+    escapes by luck in the short run and by drift only in the long one.
+    """
+    return criteria(C, measure)["nu"] * C.tau_c
+
+
+def basis_multiplier(C, measure):
+    """E[e^(-nu*tau_c + sigma*sqrt(tau_c)*Z)] = e^((sigma^2 - m)*tau_c).
+
+    What one call period does to a surviving lot's basis-to-price ratio, in
+    expectation.  It shrinks only if sigma^2 < m, which is the capital
+    criterion -- the multiplier is that criterion written as a number.
+    """
+    m, s = C.world(measure)
+    return exp((s**2 - m) * C.tau_c)
+
+
+def stability_bounds(C, measure):
+    """Each criterion solved for the parameter that crosses it.
+
+    Both criteria compare m = (total return) - delta against sigma, so each
+    reads either as a ceiling on volatility at the current yield or as a
+    ceiling on yield at the current volatility.  These are the four figures
+    the stability section tabulates.
+    """
+    m, s = C.world(measure)
+    total = m + C.delta                        # mu under P, r under Q
+    return {
+        "sigma_count": sqrt(2 * m) if m > 0 else 0.0,
+        "sigma_capital": sqrt(m) if m > 0 else 0.0,
+        "delta_count": total - s**2 / 2,
+        "delta_capital": total - s**2,
+    }
+
+
+def buy_hold_excess(C, measure):
+    """mu - r - w*delta: owning the stock outright, over the risk-free rate.
+
+    The benchmark the article actually cares about.  The withholding leak is
+    the only friction a buy-and-hold position carries here, and the wheel
+    pays exactly the same one, so it does not tilt the comparison.
+    """
+    m, _ = C.world(measure)
+    return m + C.delta_net - C.r
 
 
 def depth_census(C, measure, edges, horizon=None, h=0.02, x_max=8.0,

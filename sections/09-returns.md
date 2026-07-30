@@ -12,7 +12,7 @@ Take the Standard regime at a thirty-year horizon, which by [the inventory secti
     ------------------------------------
     Track A income    0.7718 per year    {#eq:income}
 
-Three quarters of a share price per year, in cash, realized. It is a genuinely impressive-looking number, and it is the number that makes this strategy popular. Note also what the composition says: **the calls out-earn the puts more than two to one**, and the dividends out-earn the puts as well. The strategy is named after selling puts, but by the time it is running at scale, put premium is its smallest cash source.
+Three quarters of a share price per year, in cash, realized. It is a genuinely impressive-looking number, and it is the number that makes this strategy popular. Note also what the composition says: **the calls out-earn the puts more than two to one**, and the dividends out-earn the puts as well. The strategy is named after selling puts, but by the time it is running at scale, put premium is its smallest cash source.[^eq-income]
 
 The number is also, on its own, meaningless. It says nothing until we ask what had to be tied up to earn it.
 
@@ -28,7 +28,7 @@ The gap between them — 6.6 share prices — is the accumulated paper loss on t
 
 The right choice for measuring *return* is market value, and the reason is worth stating carefully because the other choice is so tempting. Capital committed means capital that could otherwise be doing something else. A share bought at 100 and now worth 60 does not commit 100 to the strategy; it commits 60, because 60 is what selling it would release. The other 40 is gone — it is a loss that has already happened, not an ongoing commitment. Charging opportunity cost on it counts the same loss twice: once when the price fell, and again every year afterwards.
 
-This is also what [the strategy section](#sec:strategy) promised — Track B was defined as capital at market prices — and it is the definition that survives the consistency test in [the verification section](#sec:verification), which the cost-basis version fails.
+This is also what [the strategy section](#sec:strategy) promised — Track B was defined as capital at market prices — and it is the definition that survives the consistency test in [the verification section](#sec:verification), which the cost-basis version fails.[^eq-capital]
 
 E[Capital]  =  γ_p·k  +  E[I]    {#eq:capital}
 
@@ -36,11 +36,19 @@ E[Capital]  =  γ_p·k  +  E[I]    {#eq:capital}
 
 Cash accounting is internally consistent but it is not a return, because two real economic events pass through it without leaving a trace.
 
-**The mark loss at acquisition.** A lot is bought at the strike while the market offers less. That difference is a loss the moment it happens. Track A calls it "acquisition at the operator's chosen basis" and books nothing. Over a year of arrivals it comes to **0.1632**.
+**The mark loss at acquisition.** A lot is bought at the strike while the market offers less. That difference is a loss the moment it happens. Track A calls it "acquisition at the operator's chosen basis" and books nothing. Each arrival pays K for something worth S′, so per unit of the price it was paid against the loss is e^(x₀) − 1, and at λ arrivals a year
 
-**The upside surrendered at call-away.** When a lot is called away, the shares are delivered at the strike while the market is *above* the strike — that is precisely why the call was exercised. The operator hands over something worth more than what they receive. Track A sees an exit at the same price as the entry and books nothing. Over a year this comes to **0.3559**, more than twice the put premiums.
+L_acq  =  λ · ( E[ e^(x₀) ] − 1 )  =  **0.1632** per year    {#eq:mark-loss}
 
-Against those, one real gain is also invisible to Track A: the **appreciation of shares held**, which for 11.40 lots drifting at m = 4.5% is **0.5128** a year.
+the expectation being taken over the entry law of [eq:x0-law](#eq:x0-law).[^eq-mark-loss]
+
+**The upside surrendered at call-away.** When a lot is called away, the shares are delivered at the strike while the market is *above* the strike — that is precisely why the call was exercised. The operator hands over something worth more than what they receive. Track A sees an exit at the same price as the entry and books nothing. A lot leaving at depth x ≤ 0 delivers a share worth 1 for a strike of e^x, so it gives up 1 − e^x, and summing over every period in which a lot might leave,
+
+L_call  =  λ · Σ_j  E[ ( 1 − e^(x_j) ) · 1{ x_j ≤ 0 } ]  =  **0.3559** per year    {#eq:giveaway}
+
+where the indicator picks out only the periods the lot actually exits in. That is more than twice the put premiums.
+
+Against those, one real gain is also invisible to Track A: the **appreciation of shares held**, which is simply the inventory drifting at the price's own rate, E[I]·m — for 11.40 lots at m = 4.5%, **0.5128** a year.
 
 Add all three and something striking happens:
 
@@ -52,7 +60,7 @@ Add all three and something striking happens:
 
 **They cancel** — to within about one percent of the largest of them. The gain that Track A ignores is almost exactly consumed by the two costs Track A ignores. That is not a coincidence — it is what near-fair option pricing means — and it has a convenient consequence: the honest economic return is Track A's cash income, measured against *market-value* capital.
 
-E[Π]  =  Track A income  +  E[I]·m  −  (mark loss)  −  (upside surrendered)    {#eq:econ-pnl}
+E[Π]  =  Track A income  +  E[I]·m  −  L_acq  −  L_call    {#eq:econ-pnl}
 
 **True excess return  =  ( E[Π] − r · E[Capital] ) / E[Capital]  =  (0.7655 − 0.05 × 11.591) / 11.591  =  +1.60% per year**    {#eq:excess}
 
@@ -186,3 +194,9 @@ Half the assignments, half the inventory, half the capital — and a slightly *w
 The last two rows agree to a third of a basis point at every horizon, which is far tighter than either is separately determined. **The entire visible difference between the two regimes is an accounting convention, not a property of the strategy** — and it is a useful reminder that a deficit of a few basis points in a table like this is more likely to be a ledger artifact than a discovery.
 
 That leaves the real result, which is the invariance. The choice of strike moves everything the operator experiences — how often they are assigned, how much capital they need, how large the book grows, how busy the account is — and moves the expected return not at all. It is the tidiest illustration in the article of what the model is for: the dial the operator actually turns is a dial over their own experience of the strategy, not over its returns.
+
+[^eq-capital]: Reproduced by `python code/examples/returns_capital.py` — [eq:capital](#eq:capital), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
+
+[^eq-income]: Reproduced by `python code/examples/returns_income.py` — [eq:income](#eq:income), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
+
+[^eq-mark-loss]: Reproduced by `python code/examples/returns_ledger.py` — [eq:mark-loss](#eq:mark-loss), [eq:giveaway](#eq:giveaway), [eq:econ-pnl](#eq:econ-pnl), [eq:excess](#eq:excess), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.

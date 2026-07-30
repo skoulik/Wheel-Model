@@ -8,7 +8,7 @@ When a lot is assigned, its call strike is frozen at the price that was paid for
 
 x  =  ln( K_c / S )    {#eq:depth-def}
 
-Positive x means the stock is below the strike and the lot is stuck; x = 0 means the stock has climbed back to the strike and the lot leaves. Call it the lot's **depth**.
+Positive x means the stock is below the strike and the lot is stuck; x = 0 means the stock has climbed back to the strike and the lot leaves. Call it the lot's **depth**.[^eq-depth-def]
 
 Two features make it the right variable. First, it is *self-contained*: two lots at the same depth face identical prospects regardless of what was paid for them or when, so a single function of x answers every question about a lot. Second, it is a *logarithm*, which converts the stock's multiplicative wandering into ordinary addition — and a quantity that moves by independent additive jolts is the most thoroughly understood object in probability.
 
@@ -54,7 +54,7 @@ A lot at depth x is called away at the end of the current call period if the sto
 
 q(x)  =  N( (ν·τ_c − x) / (σ·√τ_c) )    {#eq:qx}
 
-This is the same recovery probability a practitioner would compute for a freshly assigned lot, but written as a *function* rather than a constant — and that difference is the entire content of this article. Evaluated for the running example, four-week calls:
+This is the same recovery probability a practitioner would compute for a freshly assigned lot, but written as a *function* rather than a constant — and that difference is the entire content of this article. Evaluated for the running example, four-week calls:[^eq-qx]
 
     depth x        0.0155     0.03      0.05      0.10      0.15      0.20
     q(x)            0.404     0.306     0.193     0.039     0.004     0.000
@@ -91,3 +91,7 @@ Since ν is the only channel through which μ, δ and σ reach the model, their 
 - **Higher dividend yield lowers ν** point for point, while adding δ_net of carry. That trade — a slower climb, paid for in cash — looks like it might be neutral. [The returns section](#sec:returns) shows it is not.
 
 And since ν enters everything downstream, one more observation is worth registering now: **the model has essentially one parameter.** Two configurations with the same ν, σ and τ_c behave identically no matter how they got there — high growth with high yield behaves exactly like modest growth with no yield.
+
+[^eq-qx]: Reproduced by `python code/examples/depth_tables.py` — [eq:qx](#eq:qx), [eq:ccx](#eq:ccx), and the other readings quoted here are `depths 0.0155,0.03,0.05`. Pass `--help` for the full parameter set.
+
+[^eq-depth-def]: Reproduced by `python code/examples/depth_walk.py` — [eq:depth-def](#eq:depth-def), [eq:depth-walk](#eq:depth-walk), [eq:nu](#eq:nu), and the other readings quoted here are `measure Q`; `sigma 0.30`. Pass `--help` for the full parameter set.

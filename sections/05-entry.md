@@ -35,7 +35,7 @@ Operators rarely pick a strike directly. They pick how often they are willing to
 
 k\*  =  exp( N⁻¹(p\*) · σ·√τ_p  +  (m − σ²/2) · τ_p )    {#eq:kstar}
 
-For the **Standard** regime — p\* = 20%, weekly puts, σ = 20%, total return μ = 7%, δ = 2.5%, so m = 4.5% — this gives k\* ≈ **0.9774**, a strike about 2.3% below the market. For the **Conservative** regime, p\* = 10%, it gives k\* ≈ **0.9655**, about 3.5% below. Because p\* is defined in the real world, the realized assignment rate *is* p\*: one put in five, or one in ten. No correction is needed and none is applied.
+For the **Standard** regime — p\* = 20%, weekly puts, σ = 20%, total return μ = 7%, δ = 2.5%, so m = 4.5% — this gives k\* ≈ **0.9774**, a strike about 2.3% below the market. For the **Conservative** regime, p\* = 10%, it gives k\* ≈ **0.9655**, about 3.5% below. Because p\* is defined in the real world, the realized assignment rate *is* p\*: one put in five, or one in ten. No correction is needed and none is applied.[^eq-kstar]
 
 The strikes are close to the money because the tenor is short. A week is not long enough for a 20%-volatility stock to travel far, so a one-in-five chance of finishing below the strike is only 2.3% away. This is the first appearance of a theme that runs through the whole article: **the cadence sets the scale of everything**, and quantities that look comparable at one cadence are not at another.
 
@@ -43,7 +43,13 @@ Read the other way round — fixing that strike and asking the market what it th
 
 p_screen  =  N(−d₂),   d₂ = [ −ln(k) + (r − δ − σ²/2)·τ_p ] / (σ·√τ_p)    {#eq:p-screen}
 
-which comes to **20.4%** at the Standard strike, a little higher than the 20% that will actually occur. This is worth knowing because p_screen is what a broker's screen displays and what practitioners quote to each other. The gap between the two worlds is (μ − r)·√τ_p/σ in probability units — the asset's Sharpe ratio times the square root of the tenor. It is small for short-dated options, and it is the *entire* difference between them.
+which comes to **20.4%** at the Standard strike, a little higher than the 20% that will actually occur. This is worth knowing because p_screen is what a broker's screen displays and what practitioners quote to each other.
+
+The gap between the two worlds has a closed form, and it is the *entire* difference between them. The two drifts differ by μ − r, so over one tenor the argument of N(·) shifts by the asset's Sharpe ratio times the square root of the tenor:
+
+Δd₂  =  (μ − r)·√τ_p / σ  =  0.0139    {#eq:screen-gap}
+
+That is a shift in d₂, not in probability, and the distinction is worth keeping because the two differ by a factor of four here. Converting costs one evaluation of the bell curve at the threshold, φ(N⁻¹(p\*)) ≈ 0.28, which turns 0.0139 into **0.4 percentage points** — precisely the distance from 20.0% to 20.4%. Both readings are small for short-dated options, and both shrink as √τ_p.
 
 (Strictly, the screen usually shows the option's **delta**, N(−d₁) ≈ 19.6% here, rather than the probability of finishing in the money, N(−d₂) ≈ 20.4%. The two are close for short-dated options and traders conflate them freely. This article always means a probability.)
 
@@ -67,7 +73,7 @@ Assignment tells us the stock finished below the strike; it does not say by how 
 
 x₀  =  ln( K_c / S )  >  0    {#eq:x0-def}
 
-the log-distance from the price paid to the price the market is offering. Since the log price is normally distributed and assignment is precisely the event that it finished below ln k, the entry depth is a **truncated normal** — the tail of a bell curve, cut at zero and flipped around.
+the log-distance from the price paid to the price the market is offering. Since the log price is normally distributed and assignment is precisely the event that it finished below ln k, the entry depth is a **truncated normal** — the tail of a bell curve, cut at zero and flipped around.[^eq-x0-def]
 
 > **Detour: truncated distributions and conditional expectation.** An ordinary expectation averages over all scenarios. A **conditional expectation** averages only over those in which some event occurred — "the average size of an insurance claim, *given* that a claim was filed". Computing one means cutting the distribution at the event's boundary and averaging what remains; the remaining piece is called a *truncated* distribution. For the normal distribution these truncated averages have closed forms built from the same N(·) used everywhere else. Any text deriving the Black–Scholes formula computes one along the way; Hull covers it.
 
@@ -90,3 +96,7 @@ Live assignments support the shallow picture, and sharpen it in one respect wort
 ## A caveat on exercise style
 
 Both probabilities here are terminal: they ask where the stock is *at expiration*. Listed equity options are American and may be exercised early. For short puts the approximation is good — early exercise of a put is rare, and slightly raises the effective assignment rate. For covered calls on dividend payers it is not negligible: a deep in-the-money call is often exercised the day before the stock goes ex-dividend, which shortens holding periods and therefore *helps* the strategy, so omitting it is conservative. There is also a path-versus-endpoint distinction — the stock may cross a strike mid-period and come back, which a terminal probability never sees. [The holding-time section](#sec:holding) turns that from a caveat into a quantity, because on the call leg the same effect has a name and a measurable size.
+
+[^eq-x0-def]: Reproduced by `python code/examples/entry_depth.py` — [eq:x0-def](#eq:x0-def), [eq:x0-law](#eq:x0-law), [eq:d-mean](#eq:d-mean), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --measure Q`. Pass `--help` for the full parameter set.
+
+[^eq-kstar]: Reproduced by `python code/examples/entry_strike.py` — [eq:kstar](#eq:kstar), [eq:p-screen](#eq:p-screen), [eq:screen-gap](#eq:screen-gap), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --sigma 0.297`. Pass `--help` for the full parameter set.

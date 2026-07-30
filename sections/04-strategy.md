@@ -35,7 +35,7 @@ For the two call clocks the ratio
 
 n = τ_c / τ_p ≥ 1    {#eq:n}
 
-is the natural bookkeeping unit. Every worked example in this article uses the rhythm of the live account behind it: **a put sold every week, T = τ_p = 1/52, and calls written for four weeks, so n = 4** and τ_c = 1/13 of a year. Why would an operator choose τ_c > τ_p at all? Longer-dated calls collect more premium per contract and give a depressed stock more time to recover before the next decision point; shorter puts let the operator re-price the entry strike more frequently as conditions change. The trade-off is exactly what the model quantifies — and [the holding-time section](#sec:holding) finds that the length of the call period matters for a reason nobody expects.
+is the natural bookkeeping unit. Every worked example in this article uses the rhythm of the live account behind it: **a put sold every week, T = τ_p = 1/52, and calls written for four weeks, so n = 4** and τ_c = 1/13 of a year. Why would an operator choose τ_c > τ_p at all? Longer-dated calls collect more premium per contract and give a depressed stock more time to recover before the next decision point; shorter puts let the operator re-price the entry strike more frequently as conditions change. The trade-off is exactly what the model quantifies — and [the holding-time section](#sec:holding) finds that the length of the call period matters for a reason nobody expects.[^eq-n]
 
 ## Three accounting tracks
 
@@ -51,10 +51,14 @@ The number that ultimately matters is the **true excess return**:
 
 (economic profit − Track C) / Track B, annualized    {#eq:excess-return}
 
-where the economic profit is Track A's cash *plus* the two things cash accounting cannot see — the shares' change in value, and the mark loss taken at the moment of assignment. [The returns section](#sec:returns) assembles it precisely.
+where the economic profit is Track A's cash *plus* the two things cash accounting cannot see — the shares' change in value, and the mark loss taken at the moment of assignment. [The returns section](#sec:returns) assembles it precisely.[^eq-excess-return]
 
 **Exposure is not the same as equity required.** Track B answers "what is committed?", and its answer does not depend on how the commitment was paid for: ten thousand dollars of stock is ten thousand dollars of capital at market whether it was bought outright or half on credit. A finite account asks a second question — "what must be *in* the account to hold that?" — and its answer is smaller, because a broker lends against held shares and requires only a fraction of their value in the operator's own money: all of it for shares paid for in full, a quarter of it in a portfolio-margin account, where the same ten thousand dollars of stock can be carried on twenty-five hundred of the operator's own. Call that quantity the **equity required**. It is not a fourth track, and it never displaces Track B in a return calculation.
 
 The temptation to divide by it instead is worth naming, because the resulting number is not arithmetically wrong — it is answering a question about financing while appearing to answer one about the strategy. At portfolio margin it reports close to four times the excess return, and an account financed that way really would earn four times as much on its own money, and lose it four times as fast. But the same borrowing is available to someone who simply buys the shares and sells no options at all, so it multiplies both sides of the comparison [the returns section](#sec:returns) actually makes — the wheel against owning the stock — and settles nothing about either. What the margin fraction governs is **capacity**: how much of the strategy a given balance can run before it must start refusing trades, and how far the price may fall before the broker sells the book out from under it. Those are the questions of [the constrained section](#sec:constrained), which finds the leverage an account can actually survive to be a small fraction of what the broker permits, and where equity required appears as a second ledger line beside the three tracks — never as a replacement for one.
 
 Keeping the tracks separate is a discipline enforced on every formula in this article. It is not pedantry: the most natural-looking formula for this strategy's return mixes the income of one track with the capital of another, and the resulting number is both far too flattering in the early years and far too damning later.
+
+[^eq-excess-return]: Reproduced by `python code/examples/returns_benchmark.py` — [eq:excess-return](#eq:excess-return), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
+
+[^eq-n]: Reproduced by `python code/examples/strategy_cadence.py` — [eq:n](#eq:n), and the other readings quoted here are `n 1`; `n 13`. Pass `--help` for the full parameter set.
