@@ -1,6 +1,8 @@
-# Stability: Two Ways to Be Buried {#sec:stability}
+# Stability: Two Ways to Be Buried, and a Third if You Borrow {#sec:stability}
 
 The wheel never stops selling puts. Lots arrive whatever else is happening, and they leave only when the market comes back to fetch them. So the question that decides whether the strategy is operable at all is whether the warehouse stays finite — and it turns out there are two separate ways for the answer to be no, with two different boundaries, and the stricter one is not the one people worry about.
+
+Both of those are properties of the stock. An operator who borrows to hold the warehouse acquires a third that is a property of themselves, and it is the only one of the three that is fast.
 
 ## The first boundary: do lots come back?
 
@@ -41,9 +43,46 @@ At σ = 20% and δ = 2.5%, the strategy clears the capital boundary by 1.2 volat
 
 Between the two boundaries lies a regime worth naming, because it is genuinely counterintuitive: **every lot comes back, and the capital still runs away.** Inventory is finite, each individual position resolves eventually, nothing looks broken from the inside — and expected capital is unbounded, because the rare very deep lots cost exponentially more than the common shallow ones. An operator in this band who reasons "every position I have ever held has eventually recycled" is stating something true and irrelevant.
 
+### What the divergence looks like to someone with a balance
+
+Unbounded expected capital is a statement about an operator with unlimited money, and no real account has any. [The constrained section](#sec:constrained) gives capacity a ceiling set by the account's equity, and a put whose assignment would breach it is not sold. Nothing can then diverge: the account holds what it can pay for and refuses the rest.
+
+So past the capital boundary what runs away is not the capital committed but the capital *demanded* — A\*, the equity at which the ceiling stops binding — and what shrinks is the fraction of the strategy the account manages to run. Reading that fraction for an account sized at the running example's own A\* of 19.23 share prices, and moving the stock underneath it:
+
+| σ | where it sits | A\* | share of the strategy that account runs |
+|---|---|---|---|
+| 20.0% | inside both | 19.23 | 100% |
+| 21.2% | *on* the capital boundary | 23.69 | 81% |
+| 25.0% | past it | 48.97 | 39% |
+| 30.0% | on the count boundary | infinite | 0% |
+
+The crossing is not a cliff. At the capital boundary itself the account is still running four fifths of the wheel, and the fraction reaches zero only at the *first* boundary, where holding time itself is infinite. What the second boundary marks is where the equity required begins to move much faster than the stock does: 25% volatility is not a different asset class from 21%, and it asks for more than twice the money.
+
+And note what that failure mode looks like from the inside: **no margin call, no loss, nothing a statement would show.** An account past the capital boundary holds a handful of deep lots, sells a put only when one of them finally leaves, and has quietly stopped being a wheel while every position in it still resolves exactly as promised.
+
+## The third boundary: does the account outrun its own debt?
+
+Neither boundary so far moves when the operator buys the stock on borrowed money. [eq:count-criterion](#eq:count-criterion) is a statement about the drift of a random walk and [eq:capital-criterion](#eq:capital-criterion) one about E[1/S]; financing changes who paid for the shares, not how the price moves. What borrowing adds is a boundary of its own, and it is derived in [the constrained section](#sec:constrained) by the same first-passage argument as everything else here.
+
+Its two ingredients are a race. A book carried on a debit is sold out when the debit rises to a fixed fraction of what the book is worth at market; the market value moves with the price, whose median grows at ν; and the debit grows at a rate the operator sets by deciding what to do with the income — call it g, defined in [eq:debit-growth](#eq:debit-growth). The ratio of the two is one more drifting walk against one more barrier, and it drifts away from that barrier rather than toward it only if
+
+**ν  >  g**    {#eq:account-criterion}
+
+Three things about it earn it a place beside the other two rather than above them.[^eq-account-criterion]
+
+**It is the only one of the three that spares an unlevered account.** An operator who borrows nothing has no debit, no barrier, and no exposure to this boundary whatever the stock does. That is the whole reason it is third rather than first: the other two bind everybody.
+
+**It is the only one of the three the operator can move.** ν belongs to the stock, and all an operator can do about it is own something else. g is a cash policy, revisited every time income arrives, and it moves survival by a factor of twenty-five: measured over the thirty years after an account fills up, retaining all income gets **0.35%** of accounts sold out, and withdrawing the income while the interest accrues gets **8.64%** — on identical stocks, at identical leverage, on the same price paths. Retained income repays the debit and de-levers the account; withdrawn income leaves the interest compounding against a price whose median grows at 2.5% while the loan costs 5%. [The constrained section](#sec:constrained) has all four policies and the mechanism in full.
+
+**And it is the fast one.** The other two can be crossed for years before an operator notices, because all they withhold is recoveries that were never on a schedule to begin with. This one ends the account on a particular morning, at a price someone else chose, and the recovery that follows is no use because the shares are gone.
+
+One caution about the arithmetic, which the same section carries in full. The closed form pins the withdraw-everything policy at g = r_b = 5%, which would cross ν = 2.5% by a clean factor of two; simulated, the rate that policy actually realizes is **+1.3%**, because withdrawing the income shrinks the account faster than the interest compounds the debit. So the boundary is crossed by rather less than the closed form advertises, and it is crossed nonetheless. The criterion is ν > g, and the evidence for it is the ranking of the policies, not any nominal rate.
+
+(The two liquidation figures are from `python code/wheel_sim.py --scenario constrained --paths 4000`, at a fixed seed.)
+
 ## What the option market thinks
 
-Now run the same two tests under the market's pricing drift, m = r − δ = 2.5%, which by [the entry section](#sec:entry) is a full reading of the model rather than a different model:
+Now run both of the stock's own tests under the market's pricing drift, m = r − δ = 2.5%, which by [the entry section](#sec:entry) is a full reading of the model rather than a different model:
 
 | | real world (m = 4.5%) | the market's prices (m = 2.5%) |
 |---|---|---|
@@ -54,7 +93,7 @@ Now run the same two tests under the market's pricing drift, m = r − δ = 2.5%
 | mean holding time | 2.1 years | ≈ 9 years |
 | equilibrium lots | 21.8 | ≈ 94 |
 
-**The option market prices this stock as one whose wheel inventory never clears.** Under the measure that sets the premiums the operator collects, holding times run to nine years, equilibrium inventory approaches a hundred lots, and expected capital is infinite.
+**The option market prices this stock as one whose wheel inventory never clears.** Under the measure that sets the premiums the operator collects, holding times run to nine years, equilibrium inventory approaches a hundred lots, and expected capital is infinite. The third boundary tightens in step, since ν is the ceiling on g: the room a levered operator has to take cash out of the account falls from 2.5% a year to half a point.
 
 This is the sharpest statement in the article, and it is not a paradox. Risk-neutral pricing is what the market charges to bear risk; it deliberately assumes away the compensation for holding equities. Reading the wheel in that measure therefore shows the strategy stripped of its only real engine — and what remains does not clear. **The entire difference between a wheel that recycles in two years and one that never recycles is the equity risk premium μ − r = 2%.** The strategy is not an income machine that happens to hold stock. It is a leveraged bet that stocks go up, wearing the costume of an income machine, and its stability rests on the same assumption its returns do.
 
@@ -91,16 +130,19 @@ One last reason the boundaries are closer than they look. The model treats μ, �
 - **Dividend cuts** arrive in exactly the same conditions, and δ falling helps ν — but a cut usually signals a fall in μ that more than offsets it.
 - **The operator's own μ estimate** is at its least reliable precisely when it matters most, since the "fundamentally sound" judgment that justifies μ > 0 is being tested by the same event.
 
-The effect compounds: everything downstream depends on ν, ν is a difference of quantities of similar size, and stress attacks every term in it simultaneously. A configuration calibrated comfortably inside both boundaries in calm markets can be outside both in a quarter, and the transition is not gradual — [eq:trapped](#eq:trapped) turns on as soon as ν changes sign.
+The effect compounds: everything downstream depends on ν, ν is a difference of quantities of similar size, and stress attacks every term in it simultaneously. A configuration calibrated comfortably inside both of the stock's boundaries in calm markets can be outside both in a quarter, and the transition is not gradual — [eq:trapped](#eq:trapped) turns on as soon as ν changes sign. The borrower's boundary goes the same way and for the same reason, since ν is one side of it too: the cash policy that was survivable at 20% volatility need not be at 30%, and nothing about the policy has changed.
 
 ## Summary
 
-The wheel has two failure modes, and neither is "losing money on a trade":
+The wheel has three failure modes. The first two are slow, silent, and are not "losing money on a trade":
 
 1. **ν ≤ 0** — lots stop coming back, and a fixed fraction of every year's assignments is trapped permanently.
-2. **m ≤ σ²** — lots come back but the capital in them does not converge, so the strategy's demands grow without bound even while every individual position eventually resolves.
+2. **m ≤ σ²** — lots come back but the capital in them does not converge, so the strategy's demands grow without bound even while every individual position eventually resolves. Inside a finite account nothing can diverge, and the same crossing appears instead as the equity the strategy demands running away from the equity the account has, with the share of the strategy it manages to run decaying behind it.
+3. **ν ≤ g** — the debit outgrows the price and someone else closes the account. This one *is* losing money on a trade, and it is the fast one; it is also the only one an unlevered operator is exempt from, and the only one any operator can move.
 
-The second boundary is the tighter one and the less intuitive one, and at the article's own running parameters it is 1.2 volatility points away. Whether an operator is inside it is not a matter of temperament or conviction about the company; it is arithmetic on three numbers.
+Of the two that bind everybody, the second is the tighter and the less intuitive, and at the article's own running parameters it is 1.2 volatility points away. Whether an operator is inside it is not a matter of temperament or conviction about the company; it is arithmetic on three numbers. Whether they are inside the third is not arithmetic on the stock at all — it is arithmetic on what they do with the cash.
+
+[^eq-account-criterion]: Reproduced by `python code/examples/stability_criteria.py` — [eq:account-criterion](#eq:account-criterion), and the other readings quoted here are `g 0.05`; `g 0.025`. Pass `--help` for the full parameter set.
 
 [^eq-basis-multiplier]: Reproduced by `python code/examples/stability_basis.py` — [eq:basis-multiplier](#eq:basis-multiplier), [eq:theta](#eq:theta), and the other readings quoted here are `measure Q`; `sigma 0.212`. Pass `--help` for the full parameter set.
 

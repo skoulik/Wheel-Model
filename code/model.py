@@ -771,12 +771,36 @@ def sticky_dividend_trap(C, measure):
     return log(1 + nu / C.delta)
 
 
-def criteria(C, measure):
-    """The two stability criteria and their margins."""
+def criteria(C, measure, g=0.0):
+    """The three stability criteria and their margins.
+
+    Two are properties of the stock and the third is a property of the
+    operator:
+
+        nu = m - sigma^2/2 > 0   lots come back            [eq:count-criterion]
+        m > sigma^2              their capital comes back  [eq:capital-criterion]
+        nu > g                   the account survives      [eq:account-criterion]
+
+    The first two do not move when the shares are bought on margin.  One is a
+    statement about the drift of a walk and the other about E[1/S], and
+    neither knows who paid for the stock.  The third exists only for a
+    borrower: g is the growth rate of the debit under the operator's cash
+    policy (`debit_growth`), the debit-to-value ratio drifts at g - nu
+    (`_drift`), and once the debt outgrows the price's median the barrier is
+    reached with certainty at any leverage whatever.
+
+    The default g = 0 -- service the interest, withdraw the rest -- is the
+    policy every static-barrier figure in this file assumes, and there the
+    third criterion collapses onto the first and adds nothing.  It bites at
+    g > 0, and it does not bind an unlevered account at all: with no debit
+    there is no barrier to reach.
+    """
     m, s = C.world(measure)
+    nu_eff, _ = _drift(C, measure, g)
     return {"nu": m - s**2 / 2, "count_ok": m - s**2 / 2 > 0,
             "m": m, "sigma2": s**2, "capital_ok": m > s**2,
-            "tail_exponent": 2 * (m - s**2 / 2) / s**2}
+            "tail_exponent": 2 * (m - s**2 / 2) / s**2,
+            "g": g, "nu_minus_g": nu_eff, "account_ok": nu_eff > 0}
 
 
 def arrival_rate(C, measure):

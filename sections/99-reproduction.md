@@ -93,8 +93,10 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 | `eq:basis-multiplier`, `eq:theta` | `python code/examples/stability_basis.py` | theta = 1.2500, m = 0.0450, sigma2 = 0.0400, basis_shrinks = 1, capital_converges = 1 |
 |  | `python code/examples/stability_basis.py --measure Q` | theta = 0.2500, basis_shrinks = 0, capital_converges = 0 |
 |  | `python code/examples/stability_basis.py --sigma 0.212` | theta = 1.0000 |
-| `eq:count-criterion`, `eq:capital-criterion` | `python code/examples/stability_criteria.py` | nu = +0.0250, count_ok = 1, m = 0.0450, sigma2 = 0.0400, capital_ok = 1, theta = 1.2500, sigma_count = 30.00%, sigma_capital = 21.20%, delta_count = 5.00%, delta_capital = 3.00% |
-|  | `python code/examples/stability_criteria.py --measure Q` | nu = +0.0050, count_ok = 1, m = 0.0250, capital_ok = 0, theta = 0.2500 |
+| `eq:count-criterion`, `eq:capital-criterion`, `eq:account-criterion` | `python code/examples/stability_criteria.py` | nu = +0.0250, count_ok = 1, m = 0.0450, sigma2 = 0.0400, capital_ok = 1, nu_minus_g = +0.0250, account_ok = 1, theta = 1.2500, sigma_count = 30.00%, sigma_capital = 21.20%, delta_count = 5.00%, delta_capital = 3.00% |
+|  | `python code/examples/stability_criteria.py --measure Q` | nu = +0.0050, count_ok = 1, m = 0.0250, capital_ok = 0, nu_minus_g = +0.0050, theta = 0.2500 |
+|  | `python code/examples/stability_criteria.py --g 0.05` | nu_minus_g = -0.0250, account_ok = 0, count_ok = 1, capital_ok = 1 |
+|  | `python code/examples/stability_criteria.py --g 0.025` | nu_minus_g = +0.0000 |
 |  | `python code/examples/stability_criteria.py --sigma 0.30` | nu = +0.0000, theta = 0.0000 |
 |  | `python code/examples/stability_criteria.py --sigma 0.212` | theta = 1.0000 |
 |  | `python code/examples/stability_criteria.py --delta 0.05` | nu = +0.0000, theta = 0.0000 |

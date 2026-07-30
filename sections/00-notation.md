@@ -63,7 +63,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 
 ## Working capital and the finite account
 
-Everything above describes an operator who buys whatever the puts assign. A real account has a finite balance and a broker with an opinion about it, and [the constrained section](#sec:constrained) is where that operator appears. These symbols are used there and nowhere earlier.
+Everything above describes an operator who buys whatever the puts assign. A real account has a finite balance and a broker with an opinion about it, and [the constrained section](#sec:constrained) is where that operator appears. These symbols are used there and nowhere earlier, with one exception: [the stability section](#sec:stability) states the third stability boundary as ν > g ([eq:account-criterion](#eq:account-criterion)), because that is where the three boundaries are set beside each other, and leaves g's derivation to the constrained section.
 
 | Symbol | Meaning |
 |---|---|
@@ -81,7 +81,7 @@ Everything above describes an operator who buys whatever the puts assign. A real
 | D | **Debit balance**: cash borrowed from the broker, D = max(0, I − A) for an account at capacity |
 | r_b | Rate charged on the debit, r_b = r + the **financing spread**. The spread is 0 in the article's base case, so that leverage is priced at no worse than fair; retail brokers charge 1–3% |
 | draw | Cash withdrawn from the account per year, in share prices. Negative is a deposit |
-| g | Growth rate of the debit under the operator's cash policy, g = r_b + (draw − income)/D ([eq:debit-growth](#eq:debit-growth)). The default g = 0 is a policy and not the absence of one: the operator services the interest and withdraws the rest |
+| g | Growth rate of the debit under the operator's cash policy, g = r_b + (draw − income)/D ([eq:debit-growth](#eq:debit-growth)). The default g = 0 is a policy and not the absence of one: the operator services the interest and withdraws the rest. The third stability boundary is a race between it and ν: the account survives iff ν > g ([eq:account-criterion](#eq:account-criterion)) |
 | θ_eff | The tail exponent θ with the cash policy in it, θ_eff = 2(ν − g)/σ² ([eq:theta-eff](#eq:theta-eff)). A cash policy enters survival in exactly one way, by displacing the drift, so every survival formula reads ν − g where it would read ν |
 | g_max | Fastest a debit may grow while liquidation risk stays within ε ([eq:gmax](#eq:gmax)) |
 | draw_max | **Maximum sustainable draw**: the cash per year that may be taken out at that same tolerance ([eq:draw](#eq:draw)). A constraint, not an optimum — it says what a chosen leverage costs in spendable cash, and it goes negative, becoming a demand for deposits, well below the leverage a broker permits |

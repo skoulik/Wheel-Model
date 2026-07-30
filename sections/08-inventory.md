@@ -22,7 +22,7 @@ Twenty-two lots. The strategy was described at the outset as one that sells puts
 
 Note what Little's law let us skip. Nothing here needed the exits to be independent, or the arrival stream to be smooth, or the holding times to follow any particular distribution — all of which are false for a single stock, whose lots ride one price path and are called away in batches. The average is exact regardless. That robustness is why this identity, rather than any distributional argument, is the load-bearing step of the article.
 
-## The equilibrium the operator will never see
+## The equilibrium the unconstrained operator will never see
 
 Twenty-two lots is where the system settles. It is not where it will be found.
 
@@ -40,7 +40,11 @@ The first row is what the operator is holding when the horizon arrives. The seco
 
 Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W]. An operator running this strategy for a full career holds about **seven tenths** of where it is heading, still rising, with no indication from the recent past that it is going to keep rising.
 
-This is worth stating plainly because it inverts the usual relationship between a model and its reader. The stationary answer, the one a queueing textbook would call *the* answer, is here a statement about a limit that no participant reaches. **The operator-relevant numbers are the finite-horizon ones**, and every table in the rest of Part II is therefore indexed by horizon rather than reported at equilibrium.
+That 90% is a convention, and an arbitrary one: nine tenths of an asymptote is a threshold chosen by whoever is writing, not a date on which anything happens. An operator with a finite account gets a real threshold instead. A ceiling on how much stock the account can carry truncates exactly the slow deep tail that made the approach take a lifetime, and the date the ceiling starts refusing puts is a fact about the account rather than a choice about reporting. [The constrained section](#sec:constrained) computes it: **0.9 years** for an account of three share prices, 2.4 for five, **18.5** for the 11.59 that the rest of Part II reports this strategy as consuming, 270 for 19.04 — and never for an account of 19.23 or more, where the ceiling never binds at all and the ninety years come back in full.
+
+Read that as the trade it is and not the escape it resembles. The accounts that arrive at equilibrium quickly are the accounts running almost none of the strategy: at 11.59 share prices the wheel turns at **60%** of its unconstrained rate, and the fraction falls with the account until, at one share price, it is a twentieth. An operator who wants to be at equilibrium within a few years buys that by running a quarter of a wheel; an operator running the whole of it inherits the ninety years unchanged. Even the 60% is the count-based figure, and [the constrained section](#sec:constrained) qualifies what an account following its own cash policy actually achieves.
+
+This is worth stating plainly because it inverts the usual relationship between a model and its reader. The stationary answer, the one a queueing textbook would call *the* answer, is here a statement about a limit an operator reaches only by not running the strategy. **The operator-relevant numbers are the finite-horizon ones**, and every table in the rest of Part II is therefore indexed by horizon rather than reported at equilibrium.
 
 The slowness also explains a trap in live data. An account three years into this strategy has inventory well below both its own eventual level and its own model-implied level, and every year of experience it accumulates *confirms* the comfortable reading. The strategy looks like it is working, and is, and is also filling up.
 
@@ -88,7 +92,7 @@ Over the full stationary limit the picture is starker still: mean depth 79%, inv
 
 One warning before the economics. The census above counts *lots*, and every lot is one lot no matter how deep. Capital is not like that. A lot's cost basis relative to the current price is e^x — a lot 50% down in log terms ties up 65% more capital per share than a fresh one, and one 100% down ties up nearly triple. Capital therefore weights the deep tail *exponentially*, while the lot count weights it linearly.
 
-That difference is not a detail. It is why [the returns section](#sec:returns) has to be careful about which capital it means, and why [the stability section](#sec:stability) ends up with two boundaries instead of one.
+That difference is not a detail. It is why [the returns section](#sec:returns) has to be careful about which capital it means, and why [the stability section](#sec:stability) needs a separate boundary for the capital from the one for the lot count.
 
 ## A note on the shape of the distribution
 

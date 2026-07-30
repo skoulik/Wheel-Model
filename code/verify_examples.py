@@ -333,6 +333,13 @@ def main():
     check("...and no leverage survives it", max_leverage(G, "P", 0.10, g=STD.r_b),
           1.0, 0.0)
     check("the boundary sits at g = nu", nu_p, 0.025, 1e-12)
+    # And it is independent of the other two, which is what earns it a place
+    # beside them in section 10 rather than a footnote: at g = r_b the account
+    # fails on a stock whose own two criteria are untouched by the financing.
+    c_g = criteria(STD, "P", g=STD.r_b)
+    if not (c_g["count_ok"] and c_g["capital_ok"] and not c_g["account_ok"]):
+        FAILURES.append("the account criterion is not independent of the other two")
+    print("PASS  the account criterion fails where both of the stock's hold")
     # A deposit runs it the other way: g < 0 buys leverage back.
     if not (liquidation_prob(G, "P", L10, g=-0.01)
             < liquidation_prob(G, "P", L10)
@@ -567,31 +574,18 @@ def main():
     # scenario's and are cited as such in the text.
     print("--- Section 11: the constrained wheel ---")
 
-    ASTAR = [(1.00, 21.82, 21.82), (0.50, 10.91, 20.10),
-             (0.25, 5.46, 19.23), (0.15, 3.27, 18.88)]
-    for gs, implied, want in ASTAR:
-        Cg = Config(p_star=0.20, gamma_s=gs)
-
-    # Income is proportional to L_max*A/E[W].  The wrong reading prices capacity
-    # at the broker's ceiling A/gamma_s, and the section quotes what that costs.
-    for gs, want in ((0.50, 1.8), (0.25, 3.5), (0.15, 5.8)):
-        Cg = Config(p_star=0.20, gamma_s=gs)
-
-    # The frontier table, every column the section prints.
-    FRONT = [(1.00, 1.13, 0.052, 0.1), (3.00, 3.40, 0.156, 0.9),
-             (5.00, 5.67, 0.260, 2.4), (11.59, 13.15, 0.603, 18.5),
-             (15.00, 17.02, 0.780, 44.4), (19.04, 21.61, 0.990, 270.0)]
-    for A, cap, thr, tsat in FRONT:
-        s = saturation(G25, "P", far_p, 0.10, equity=A, econ=f)
-
-    # The draw ladder at A = 11.59: the section's claim is that the last two
-    # rows move in opposite directions, so both rows are pinned at every rung.
-    LADDER = [(1.0000, 0.0000, 0.0000, 0.0463, 0.01675),
-              (1.0192, 0.0251, 0.0100, 0.0465, 0.01707),
-              (1.1349, 0.1585, 0.1000, 0.0458, 0.01900),
-              (1.2500, 0.2667, 0.1916, 0.0430, 0.02093),
-              (1.5000, 0.4444, 0.3629, 0.0286, 0.02512),
-              (1.8829, 0.6252, 0.5559, -0.0214, 0.03153)]
+    # Three of this section's tables are now `examples/account_capacity.py`'s
+    # cases and are not repeated here: the A* table down gamma_s (with the
+    # income overstatement 1/(gamma_s*L_max) as its `permission_gap` column),
+    # the throughput-and-T_sat frontier down account size, and the Q-world
+    # A* of 93.65.  Section 08 quotes three of the T_sat figures too, and they
+    # are those same cases -- one check, cited from two sections.
+    #
+    # The draw ladder at A = 11.59.  Every column of it is a case in
+    # `examples/account_cash.py`; what is left here is the SHAPE the section
+    # claims, which no single case can assert -- the two bottom rows of the
+    # table move in opposite directions all the way up the ladder.
+    LADDER = (1.0000, 1.0192, 1.1349, 1.2500, 1.5000, 1.8829)
     # The draw is NOT monotone at the bottom of the ladder: from L = 1 to
     # L = 1.0192 it rises by 2bp, because a barrier that far away (f* = 0.025,
     # a 97.5% drawdown) tolerates a debit that GROWS at 1.25%/yr, which is worth
@@ -600,7 +594,7 @@ def main():
     # within a few basis points as far as the survivable leverage and collapses
     # past it, while the reported return rises the whole way.
     prev_roe = -1.0
-    for L, fstar, pliq, draw_frac, roe in LADDER:
+    for L in LADDER:
         s = saturation(G25, "P", far_p, 0.10, equity=11.59, L_max=L, econ=f)
         if s["roe_excess"] <= prev_roe:
             FAILURES.append(f"RoE does not rise with leverage at L = {L}")
@@ -660,14 +654,15 @@ def main():
     # carries the whole "A* is a function of the stock" argument.  Six cells,
     # each its own stationary solve, so they go out together rather than one
     # after another -- serially they are half this script's runtime.
-    loud, lo, hi, mu10, mu13, dead = pmap(
+    loud, lo, hi, mu10, mu13, dead, edge = pmap(
         model._sweep_job,
         [(Config(sigma=0.25), "P", 19.23, 0.25, 0.10),
          (Config(sigma=0.195), "P", 19.23, 0.25, 0.10),
          (Config(sigma=0.205), "P", 19.23, 0.25, 0.10),
          (Config(mu=0.10), "P", 19.23, 0.25, 0.10),
          (Config(mu=0.13), "P", 19.23, 0.25, 0.10),
-         (Config(mu=0.04), "P", 19.23, 0.25, 0.10)])
+         (Config(mu=0.04), "P", 19.23, 0.25, 0.10),
+         (Config(sigma=0.212), "P", 19.23, 0.25, 0.10)])
     check("A* at sigma = 25%", loud["A*"], 48.97, 0.05)
     check("...E[W] there", loud["E[W]"], 4.73, 0.02)
     check("...what an account sized for the running example retains",
@@ -690,10 +685,20 @@ def main():
         FAILURES.append("mu = 4% should have no stationary anything")
     print("PASS  at mu = 4% there is no A* at all (nu <= 0: lots never return)")
 
-    # The Q-world pair.  Its leverage half is pinned in the barrier block; what
-    # section 11 adds is the capacity half, which is the one that reads as an
-    # absurdity: the pricing measure asks for five times the equity.
-    q_sat = saturation(G25, "Q", far_q, 0.10, equity=1.0, econ=g)
+    # Section 10's reinterpretation of the capital boundary (II-12), which is a
+    # figure about section 10 read off section 11's machinery, so it rides along
+    # with the sweep batch rather than under the stability heading.  The point
+    # of the cell is that theta = 1 is NOT a cliff for an account with a
+    # balance: what diverges past the capital boundary is the equity demanded,
+    # and the collapse to zero throughput belongs to the COUNT boundary.
+    if abs(edge["theta"] - 1.0) > 0.005:
+        FAILURES.append("sigma = 21.2% is not the capital boundary")
+    check("A* on the capital boundary itself (sigma = 21.2%)",
+          edge["A*"], 23.69, 0.05)
+    check("...what an account sized for the running example still runs there",
+          edge["throughput"], 0.812, 0.005)
+    if not (edge["throughput"] > loud["throughput"] > 0.0):
+        FAILURES.append("throughput does not decay across the capital boundary")
 
     # ------------------------------------------------------------------
     # II-14's last requirement, and the only check in this file with teeth on
