@@ -8,7 +8,7 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, II-1 through II-15, INF-1 — mean those items are in
+recycled or closed up: the gaps — I-3, the whole of Part II, INF-1 — mean those items are in
 `DONE.md`.
 
 Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section carries such a
@@ -19,14 +19,14 @@ to a reader and should be added only when the text genuinely defers something.
 
 Thirteen of the seventeen planned section files exist, plus a generated reproduction appendix
 (`sections/99-reproduction.md`, produced by `python -m examples --appendix`, never edited by
-hand). Part I is written bar two stubs; **Part II's code and its own new section are complete and
-two prose edits remain**; **Part III and Part IV are unwritten**, and between them they remain
-the bulk of what is left.
+hand). Part I is written bar two stubs; **Part II is complete** as of 2026-07-31; **Part III and
+Part IV are unwritten**, and between them they are now the whole of what is left besides those
+stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | all seven written; two prose edits outstanding (II-16, II-17) |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **complete** |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -63,83 +63,21 @@ be honest until Parts III and IV fix what the article concludes.
 commits the article to five results that do not yet exist anywhere:
 
 - diversification leaves expected return and expected capital **completely unchanged** while
-  removing only the noise around them (contribution 6 → III-1);
+  removing only the noise around them (contribution 7 → III-1);
 - correlations rising toward one in a crisis is **the mechanism the strategy is most exposed
-  to**, not a tail scenario (contribution 6 → III-2);
+  to**, not a tail scenario (contribution 7 → III-2);
 - the live comparison confirms the model **link by link** — entry law to within a percent, the
-  depth census to within five (contribution 7 → IV-1);
+  depth census to within five (contribution 8 → IV-1);
 - the account's advantage came entirely from the excluded lever while the option machinery
-  earned nothing distinguishable from zero (contribution 7 → IV-2);
+  earned nothing distinguishable from zero (contribution 8 → IV-2);
 - the article shows **which of the model's predictions a career-length track record has no
-  power to test** (contribution 7 → IV-1). *Nothing currently delivers this one* — see IV-1.
+  power to test** (contribution 8 → IV-1). *Nothing currently delivers this one* — see IV-1.
 
 Either the sections deliver these or §02 is rewritten. Check the list against the finished
-Parts III and IV before assembly. **II-16 is the other item on this list** — the constrained
-account, which the list does not mention at all, plus one stale figure — so §02 gets one editing
-pass, not two.
-
-## Part II — One asset
-
-The working-capital reframe (agreed 2026-07-29) is **complete in code and in §11**; everything
-below is an edit to a section written before it. The reframe's four founding decisions are now
-article conventions rather than open questions — Track B stays exposure and equity required is a
-second ledger line and never a denominator (§04); a blocked put is skipped whole (§00); initial
-and maintenance requirements are one parameter (§00); no horizon is an input, saturation being
-emergent (§11) — and the write-ups for II-1 through II-15 are in [`DONE.md`](DONE.md). Two of
-those decisions constrain the items below and are repeated where they bite.
-
-One standing discipline the code half ended on, which does not close with any item: **every number
-a section quotes gets a check under that section's heading.** For anything with a formula behind it
-that is now enforced mechanically by INF-5's coverage test; INF-2 carries the rest into Parts III
-and IV.
-
-**II-16. §02 introduction** (raised 2026-07-29, when II-8 landed). The contributions list runs to
-seven items and **none of them is the constrained account**, though the reframe added a whole
-section to Part II — and §02 is the one section whose job is to promise the reader what the
-article delivers. It owes four things:
-
-- **a contribution for the finite account**: A\* is 5.8× the broker's ceiling, capacity comes from
-  equity rather than from permission, survivable leverage is near-independent of what the broker
-  allows, and the account has a failure mode the unlevered wheel does not;
-- **a fix to contribution 3**, whose "the equilibrium takes decades to approach, so the
-  operator-relevant numbers are never the equilibrium ones" is what II-11 reframed on 2026-07-30.
-  §08 now carries the refusal date and its qualifier, so what §02 owes is the same qualifier and
-  not the escape alone: the truncation helps only an account far below A\*, and in proportion to
-  how little of the strategy it is running;
-- **a decision on contribution 5**, headlined "**Two** stability boundaries, not one" against [the
-  stability section](#sec:stability)'s three. **The mismatch is live as of 2026-07-30**: II-12
-  displayed the third boundary and retitled §10 "Two Ways to Be Buried, and a Third if You
-  Borrow", which is the qualifier-not-recount answer applied to a title — the third does not bind
-  an unlevered account, so it sits beside the other two rather than making the count three. §02's
-  headline is now the only one of the three places that says two flatly; §08's forward reference
-  was rewritten to name the mechanism instead of counting, so it cannot go stale again;
-- **one stale figure, found 2026-07-30.** Contribution 5 ends "the difference between a wheel that
-  clears in **four years** and one that never clears is exactly the equity risk premium". Four
-  years is the pre-weekly-cadence mean holding time; it is **2.10 years** now, and §10's own
-  version of the sentence says "two years". Nothing catches this class of drift — it is a prose
-  number with no formula attached — so read §02's other figures in the same pass. The rest were
-  checked on 2026-07-30 and agree (1.6% entry depth, ten weeks against eight, 0.77 income).
-
-Note that **I-4 is the other item on this same list** — it checks contributions 6 and 7 against
-the finished Parts III and IV. Resolve both in one pass over §02, at assembly time, rather than
-editing the list twice.
-
-**II-17. §11's live-account material belongs in Part IV — but a survey found almost none of it**
-(raised 2026-07-30, deferred the same day). The flag was that the parts of the constrained
-section which reference the live account should move to [the live-account section](#sec:live).
-Checked: §11 contains no figures from the real account at all. Its two occurrences of "live
-account" (lines 233 and 311) mean *an operating book* — the simulator's live barrier as against
-its frozen shadow — and are modelling results, not measurements.
-
-So the item to resolve is **the terminology collision, not a move**. Everywhere else in the
-article "the live account" names the author's brokerage account; §11 uses the same phrase for
-"an account that is being operated rather than held still". A reader meeting both will conflate
-them, and the sentence at line 311 — "the static barrier understates a live account's
-liquidation risk by a factor of 3.6" — reads as a claim about the real account when it is a
-claim about the model. Rename §11's usage (**operating book** against **frozen book** is the
-distinction it actually means, and §11 already uses both phrases elsewhere) and keep "the live
-account" reserved for Part IV. Confirm the scope before acting: if the original flag meant
-something broader, it has not been found.
+Parts III and IV before assembly. **This is now a check, not a rewrite**: II-16 made the other
+editing pass over §02 on 2026-07-31, which added the finite account as contribution 6 and pushed
+portfolios to 7 and the live comparison to 8 — hence the numbering above. Items 1 through 6 are
+delivered and were re-read for stale figures in that pass; only 7 and 8 are still promises.
 
 ## Part III — Many assets
 
@@ -329,6 +267,14 @@ rather than pending. If a tranche arrives before the article is assembled, the a
 the out-of-sample result; if not, §14 says the test is pre-registered and pending.
 
 ## Infrastructure and assembly
+
+One standing discipline, inherited from Part II's code half and closing with no item: **every
+number a section quotes gets a check under that section's heading.** For anything with a formula
+behind it that is now enforced mechanically by INF-5's coverage test; INF-2 carries the rest into
+Parts III and IV. Prose figures with no formula behind them are the residue it cannot reach —
+II-16's stale "four years" survived the weekly-cadence change of 2026-07-26 for exactly that
+reason — so a section's narrative numbers still have to be re-read by hand when a running
+parameter moves.
 
 **INF-2. Extend `verify_examples.py` to Parts III and IV — and decide about the live figures.**
 Every number in §12–§15 needs a check, on the same section-by-section discipline as the rest, and

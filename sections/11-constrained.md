@@ -230,7 +230,7 @@ Simulate the same paths twice. Once with the book frozen at the moment the accou
 
 What they describe is not an operator. The same paths, with the account operating:
 
-    thirty years past saturation      frozen book       live account
+    thirty years past saturation      frozen book    operating book
     P(sold out)                            1.09%             3.95%
     standard error                        +-0.17            +-0.33
 
@@ -308,7 +308,7 @@ The finite account changes four things and leaves one alone.
 
 What it leaves alone is the return. Leverage multiplies both the wheel and the buy-and-hold benchmark it is measured against, so [the returns section](#sec:returns)'s verdict survives the reframe untouched. The finite account is not a story about making more money. It is a story about how much of the strategy an operator can actually run, how long it takes them to find out, and who closes the position when it goes wrong.
 
-And one warning that outranks all four. **The closed forms in this section are right about capacity and wrong about survival**, and by a knowable amount: uniform thinning holds to under 1%, T_sat lands at 18.9 years simulated against 18.5 analytic, and the static barrier understates a live account's liquidation risk by a factor of 3.6 because a book that is refilled after every recovery ratchets its barrier upward and never lowers it. Every survival figure here should be read as a lower bound on what an operating account faces.
+And one warning that outranks all four. **The closed forms in this section are right about capacity and wrong about survival**, and by a knowable amount: uniform thinning holds to under 1%, T_sat lands at 18.9 years simulated against 18.5 analytic, and the static barrier understates an operating book's liquidation risk by a factor of 3.6 because a book that is refilled after every recovery ratchets its barrier upward and never lowers it. Every survival figure here should be read as a lower bound on what an operating account faces.
 
 (The simulated figures in this section come from `python code/wheel_sim.py --scenario constrained --paths 4000`, at a fixed seed; the analytic ones from `python code/model.py`.)
 

@@ -777,17 +777,17 @@ def main():
     # test that share none of its machinery.
     nu_sim = crit_p["nu"]
     rows = W.survival_rows(con, nu_sim, STD.sigma, (5.0, 10.0, 20.0))
-    print(f"      {'H':>4} {'paths':>6} {'closed':>8} {'frozen':>8} {'live':>8}"
-          f" {'live-frozen':>12} {'frozen-closed':>16}")
+    print(f"      {'H':>4} {'paths':>6} {'closed':>8} {'frozen':>8} {'operating':>9}"
+          f" {'operating-frozen':>16} {'frozen-closed':>16}")
     for H, n, cl, st, dy, co, er in rows:
-        print(f"      {H:>3.0f}y {n:>6} {cl[0]:>8.4f} {st[0]:>8.4f} {dy[0]:>8.4f}"
+        print(f"      {H:>3.0f}y {n:>6} {cl[0]:>8.4f} {st[0]:>8.4f} {dy[0]:>9.4f}"
               f" {co[0]:>+8.4f} +-{co[1]:.4f} {er[0]:>+11.4f} +-{er[1]:.4f}")
         if abs(er[0]) > 3 * er[1] + 1e-12:
             FAILURES.append(f"frozen barrier disagrees with the closed form at {H}y")
     print("PASS  the frozen barrier matches liquidation_prob within 3 s.e. "
           "at every horizon")
 
-    # And the answer the item exists to produce: the live account is sold out
+    # And the answer the item exists to produce: the operating book is sold out
     # MORE often than the frozen barrier says, and by a margin that grows with
     # the horizon.  A frozen book de-levers as the price rises; an operator
     # running a utilization rule buys instead, so the leverage that the closed
@@ -798,7 +798,7 @@ def main():
               want, 0.03)
         if co[0] <= 0:
             FAILURES.append(f"the correction is not adverse at {H}y")
-    check("live-account liquidation by 20y at L = 2", rows[2][4][0], 0.6236,
+    check("operating-book liquidation by 20y at L = 2", rows[2][4][0], 0.6236,
           0.05)
     check("...against the closed form's", rows[2][2][0], 0.4312, 0.001)
     # The mechanism is a ratchet: a price rise lets the operator sell more

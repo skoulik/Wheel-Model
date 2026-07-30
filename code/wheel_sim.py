@@ -408,12 +408,12 @@ def run_path(P, rng, agg):
         t = te
 
         if ledger:
-            live = (not dead) and lots and P.gamma_s < 1.0 and (d_a > 0.0 or d_b > 0.0)
+            operating = (not dead) and lots and P.gamma_s < 1.0 and (d_a > 0.0 or d_b > 0.0)
             shadow = b_frozen > 0.0 and t_stat == float("inf")
-            if live or shadow:
+            if operating or shadow:
                 u = rng.random()
                 var = sig_step**2 * dt
-                if live:
+                if operating:
                     den = (1.0 - P.gamma_s) * len(lots)
                     if bridge_hit(s_a, S, d_a / den, d_b / den, var, u):
                         dead, t_liq, t_end = True, t, t
@@ -902,8 +902,10 @@ def survival_rows(agg, nu, sigma, horizons):
     leave realized leverage a little below the stopping rule's; the frozen
     barrier is that same statement measured rather than computed, and its
     agreement is the test of the ledger, the bridge and the price machinery
-    together; and the live account is the answer, differing from the frozen
-    one only by what the wheel itself does to the debit.
+    together; and the operating book is the answer, differing from the frozen
+    one only by what the wheel itself does to the debit.  ("Operating" against
+    "frozen", never "live": in the article "the live account" is the author's
+    real brokerage account, which none of this touches.)
     """
     from model import first_passage_prob
     rows = []
@@ -1097,7 +1099,8 @@ def report_constrained(P, agg, ctl, ref, name):
 
     print("\n-- survival from FIRST SATURATION: what the closed form prices --")
     print(f"   {'H':>5} {'paths':>6} {'closed':>8} {'frozen (sim)':>17}"
-          f" {'live (sim)':>17} {'live - frozen':>17} {'frozen - closed':>17}")
+          f" {'operating (sim)':>17} {'operating-frozen':>17}"
+          f" {'frozen - closed':>17}")
     for H, n, cl, st, dy, co, er in survival_rows(
             agg, crit["nu"], P.sigma, (5.0, 10.0, 30.0)):
         if n == 0:
@@ -1109,8 +1112,8 @@ def report_constrained(P, agg, ctl, ref, name):
               f" {er[0]:>+10.4f} +-{er[1]:.4f}")
     print("   (frozen = the barrier as it stood at saturation with the price "
           "alone moving it, which is model.py's")
-    print("    assumption measured rather than computed; live = the account's "
-          "own barrier.  Same paths, same draws.)")
+    print("    assumption measured rather than computed; operating = the "
+          "account's own barrier.  Same paths, same draws.)")
 
     print("\n-- the census: is a blocked book the unconstrained one, thinned? --")
     sh_fin, x_fin, _ = model.depth_census(C, "P", DEPTH_EDGES, horizon=P.years)
