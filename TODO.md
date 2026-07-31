@@ -8,7 +8,7 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, the whole of Part II, INF-1 — mean those items are in
+recycled or closed up: the gaps — I-3, II-1 through II-17, INF-1 — mean those items are in
 `DONE.md`.
 
 Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section carries such a
@@ -19,14 +19,16 @@ to a reader and should be added only when the text genuinely defers something.
 
 Thirteen of the seventeen planned section files exist, plus a generated reproduction appendix
 (`sections/99-reproduction.md`, produced by `python -m examples --appendix`, never edited by
-hand). Part I is written bar two stubs; **Part II is complete** as of 2026-07-31; **Part III and
-Part IV are unwritten**, and between them they are now the whole of what is left besides those
-stubs and the assembly work.
+hand). Part I is written bar two stubs; **Part II is written, with four items outstanding**
+(II-18 through II-21 — two corrections and two additions, all raised by the literature pass of
+2026-07-31, which reopened Part II the day it closed); **Part III and Part IV are unwritten**,
+and between them they are still the bulk of what is left besides those stubs and the assembly
+work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **complete** |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **four open items** (II-18 – II-21), all in §09 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -50,11 +52,39 @@ it (`prices.py`, `live_ledger.py`, `model_vs_live.py`, `iv_panel.py`, `selection
 
 ## Part I — Setup
 
-**I-1. Prior work is a stub.** `sections/03-prior-work.md` needs a real literature pass before
-assembly: the PUT and BXM indices, the volatility risk premium literature, Whaley, Israelov &
-Nielsen. It must also **verify the novelty claim** for the inventory/queueing framing rather
-than assert it — that claim is load-bearing for the article's contribution and is currently
-unchecked.
+**I-1. Prior work is a stub — the reading is done, the section is not.** The literature pass this
+item asked for happened on 2026-07-31 and is written up in
+[`drafts/2026-07-31-prior-work-literature-pass.md`](drafts/2026-07-31-prior-work-literature-pass.md):
+six strands, a twenty-row cross-check of our findings against theirs, eleven harvest items and a
+reading list. Nothing in `sections/` was changed by it. Downloaded PDFs are in `literature/`,
+which is gitignored — reference copies, not ours to redistribute.
+
+**Read levels bind.** Every source in that list carries **[F]** (full text read), **[P]**
+(partial) or **[A]** (abstract or secondary description only). *Do not quote a number from an
+`[A]` source without opening the paper.* Merton–Scholes–Gladstein (1978, 1982) is the live case:
+secondary summaries describe it as showing option strategies beating buy-and-hold, which would
+sit badly against contribution 4 and against the whole of the pass's Strand B. **Do not cite it
+either way until someone has read it** — that read is **I-5**, and this prohibition stands until
+it closes.
+
+What remains is writing `sections/03-prior-work.md`, for which §6 of the draft proposes a
+six-subsection skeleton. Two things it must carry:
+
+- **The novelty claim is now verified, and it survives narrowed in three places.** No published
+  index or academic study tracks the wheel — CBOE's CMBO is the nearest and is *not* it, holding
+  a short put and a short call simultaneously and permanently where the wheel alternates and the
+  share count is the state variable. But **the ingredients are all standard and §03 should say
+  so**: the barrier shift is Broadie–Glasserman–Kou, the tail exponent is the Lundberg
+  adjustment coefficient, the first-passage machinery is Siegmund's, grid-monitored knockouts are
+  the autocallable literature's daily business. And **"Little's law applied to a portfolio of
+  positions" cannot be claimed at all** — Little's own 50th-anniversary paper offers "the dollar
+  rate of return on the ith asset in a portfolio of assets" as the canonical illustration of the
+  generalised law. What is ours is the *assembly*: the depth process that supplies W, and the
+  census that supplies the weighting function.
+- **Its subsection 4 is the citation half of II-18**, the index/single-name volatility-premium gap.
+
+The pass's remaining findings are being converted into items one at a time, so more may land here.
+**This item cannot close until §03 is written**, whatever else that conversion produces.
 
 **I-2. The abstract is written last.** `sections/01-abstract.md` is a stub by design; it cannot
 be honest until Parts III and IV fix what the article concludes.
@@ -79,18 +109,286 @@ editing pass over §02 on 2026-07-31, which added the finite account as contribu
 portfolios to 7 and the live comparison to 8 — hence the numbering above. Items 1 through 6 are
 delivered and were re-read for stale figures in that pass; only 7 and 8 are still promises.
 
+**I-5. Read Merton–Scholes–Gladstein, or decide §03 will not mention them. Low priority.**
+(Divergence D5 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md);
+converted 2026-07-31.)
+
+Two papers: *J. Business* **51**:183–242 (1978) and **55**:1–55 (1982), the original large-scale
+simulation studies of covered-call and put-writing programmes. Secondary summaries describe the
+conclusion as those strategies "outperforming buy-and-hold", which would sit badly against
+contribution 4 and against everything in the pass's Strand B. The pass could not obtain the full
+text.
+
+**Why it is low priority.** **Nothing depends on it.** No section cites them (checked
+2026-07-31; §03's stub mentions Merton 1973, which is the option-pricing paper and unrelated),
+`literature/` has no copy, and I-1 already forbids citing them either way. The only risk it
+mitigates is a reader raising a famous old paper the article has no answer to.
+
+**Two ways to close it, and either is acceptable.**
+
+1. **Read them.** *Journal of Business* ceased publication in 2006 and its back catalogue is on
+   JSTOR, which is the likely route — unverified, and the pass failed to get there. Then record
+   what they actually concluded, in `DONE.md`, whichever way it cuts.
+2. **Descope.** Decide §03 does not mention the early simulation literature at all. That is a
+   legitimate close for a general-audience article, and it costs nothing — but it must be a
+   *decision*, written down, not a silent omission.
+
+**The prediction on the table**, worth recording so the read is a test rather than a browse: the
+papers most likely report **distributional** differences under fair Black–Scholes pricing rather
+than risk-adjusted outperformance — which would make them a *supporting* citation, since fair
+pricing is exactly our σ_IV = σ case and we find the same thing there. If instead they claim
+genuine risk-adjusted outperformance, that is a real finding and contribution 4 needs an explicit
+answer to it.
+
+**Do not close this by searching.** The whole point of D5 is that the secondary descriptions are
+untrustworthy; another search returns more of the same evidence class we already rejected. Only
+the full text discharges it — or option 2 does.
+
+## Part II — One asset
+
+Part II closed on 2026-07-31 and was reopened the same day by the literature pass. **All four
+open items land in §09**, and IV-5 edits it a fifth time, so read them together before touching
+the section. None changes a formula or a verdict. Two are corrections to what the section already
+says — **II-18** the level of the volatility premium, **II-19** its missing tenor axis — and two
+are additions the section never attempted: **II-20** the first risk statistic anywhere in the
+article, and **II-21** the detour that keeps II-20 from being read as a comparison it is not.
+II-19 and II-20 add frozen cases; neither adds model machinery beyond what `model.py` already
+has.
+
+**II-18. §09 quotes the *index* volatility risk premium at a single-name model.** (Divergence D1
+of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); raised 2026-07-31.)
+
+[The returns section](#sec:returns) says implied volatility exceeds subsequently realised
+volatility "by **2–4 points on liquid equities**" (§09:137), and then "against a documented
+premium of 2–4 points, the whole of it is edge" (§09:148). **2–4 points is the index figure** —
+SPX 3.3 points, VIX minus realised 4.2. The single-name literature, which is the one a
+single-name model is entitled to, says materially less:
+
+- **Bakshi & Kapadia (2003, *J. Derivatives*)** — 25 large US caps, 1991–1995: implied exceeds
+  realised by **1.5 points** across all options, **1.07** once contracts with a dividend before
+  expiry are dropped, against **3.3 for SPX on the same measure**. Delta-hedged gains lose 0.03%
+  of the underlying for single names against 0.07% for the index. **[F]**
+- **Carr & Wu (2009)** — variance risk premia are **insignificant for 32 of 35 individual
+  stocks**, and strongly negative for every index. **[A]**
+- **Driessen, Maenhout & Vilkov (2009)** — the mechanism: the index premium is substantially a
+  **correlation** risk premium, which by construction has no single-name counterpart. **[A]**
+- **Bakshi & Kapadia again — idiosyncratic volatility is not priced at all.** What little premium
+  single-name options carry is the *market* volatility premium leaking through beta.
+
+**What it costs.** At §09's own ~45 bp of edge per volatility point, 2–4 points reads as
+**90–180 bp/yr** over buy-and-hold. The single-name range supports **48–68 bp**, and something
+statistically indistinguishable from **zero** on a variance basis. The qualitative verdict is
+untouched — break-even is still zero, every point is still worth about 45 bp, the edge is still
+the whole of the volatility risk premium and nothing else. What moves is **the size of the
+prize**, by a factor of two to three, and that is the number a reader deciding whether to run
+this will take away.
+
+**The item is a gain, not only a correction, and should be written as one.** σ_IV = σ is
+currently presented (§00, §05) as an assumption made to strip the machinery bare. The single-name
+literature makes it **the correct default for a single-name model**, not merely a conservative
+one — which is a stronger statement than the article makes for it anywhere. §09 should say so.
+
+**Three edits to §09.**
+
+- **§09:137** — replace the flat 2–4 with the index/single-name split, and make the gap itself the
+  point: why every study a reader has heard of quotes 2–4, and why none of it is theirs.
+- **§09:148** — restate "against a documented premium of 2–4 points, the whole of it is edge" at
+  the single-name figure. The σ_IV sweep is already frozen at 0.5, 1.0 and 2.0 points of richness
+  in `examples/returns_benchmark.py`, which brackets the single-name range; **add one case at
+  `--iv-spread 0.015`** so the top of that range is quoted from a check rather than interpolated.
+- **§09:152** — "several points clear of the 2–4 the literature reports" measures the live
+  account's put leg against a baseline that is now wrong. **Strip the baseline, and do not print
+  the multiple.** Say the account's puts were dear by somewhat more than the single-name
+  literature would predict and leave the size to [the live section](#sec:live): how much of that
+  gap is skew rather than premium is a measurement question (D2 of the pass, not yet converted),
+  and §09 must not brag about the live account's spread ahead of it.
+
+**No formula, code or frozen case changes** beyond that one new sweep case. Nothing recomputes.
+
+**Deliberately not touched** (decided with Sergei, 2026-07-31 — do not re-litigate):
+[the introduction](#sec:introduction)'s contribution 4 and [the entry section](#sec:entry)'s
+forward reference both carry the claim without digits — "the entire edge of the strategy is the
+volatility risk premium", "implied volatility is *systematically higher*" — and both survive at
+one point. §05 explicitly forwards the quantitative statement to §09, so §09 carries the whole of
+it and is the only place the numbers need to be right.
+
+**Related, and not this item.** The citations belong in §03 (**I-1**, whose subsection 4 is this
+item's other half). The live account's own spread wants an ATM-matched, tenor-matched re-cut of
+`iv_panel.py` before §15 quotes either figure — D2 of the pass, now **IV-5**, which also edits
+§09 three lines away from this item and should be sequenced with it. And the structure Bakshi &
+Kapadia imply, a single-name premium scaling with beta rather than a flat scalar, is outlook
+material (**IV-3**), not a change to the spine.
+
+**II-19. §09's single σ_IV has no tenor axis, and the model's cadence-neutrality is not honest
+without one.** (Divergence D3 of
+[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); the neutrality test D3
+asked for was run on 2026-07-31 and is reported here.)
+
+**The fact the model cannot produce.** Bondarenko (2019), 2006–2018: PUT, the monthly ATM SPX
+put-write, compounded **5.97%** at Sharpe **0.50**; WPUT, the weekly programme, compounded
+**4.51%** at Sharpe **0.40** — having collected **37.1%** of notional a year against PUT's
+**22.1%**. More premium, less money.
+
+**The test, run.** Holding n = 4 and sweeping absolute cadence over a 13× range at fair prices
+(σ_IV = σ, 30y horizon):
+
+| cadence | τ_c | lots/yr | E[I] | capital | excess | vs buy-and-hold |
+|---|---|---|---|---|---|---|
+| weekly 1/52 | 0.0769 | 10.40 | 11.40 | 11.59 | +1.60% | +0.01% |
+| biweekly 1/26 | 0.1538 | 5.20 | 8.02 | 8.21 | +1.59% | +0.00% |
+| monthly 1/12 | 0.3333 | 2.40 | 5.42 | 5.61 | +1.56% | −0.01% |
+| quarterly 1/4 | 1.0000 | 0.80 | 3.09 | 3.28 | +1.47% | −0.07% |
+
+**The excess moves 13 bp across a 13× change in cadence, against an empirical gap of 146 bp.**
+So the model is cadence-neutral at fair prices, as D3 expected — and it is worse than silent: at
+a *flat* volatility premium it harvests **45.0 bp per point weekly against 42.0 monthly**, because
+premium volume scales as 1/√τ and a flat spread pays on volume. **The model's residual tilt
+favours weekly; the record favours monthly.** At fair prices the two collapse to ±1 bp, which is
+Israelov & Nielsen's Myth 4 confirmed — more frequent writing multiplies cash, not profit. The
+Q-world identity holds at every cadence (7.9 / 10.3 / 13.1 / 14.5 bp), so this is the model
+behaving correctly rather than a bug.
+
+**The mechanism, derivable from Bondarenko's own table.** An ATM premium is ≈ 0.4·σ_IV·√τ, so a
+programme writing 1/τ contracts a year collects ≈ 0.4·σ_IV/√τ. Pure √-scaling predicts WPUT
+should collect √(52/12) = **2.08×** PUT's premium; it collected **1.68×**. So the weekly
+programme's implied volatility ran at **1.68/2.08 = 0.81 of the monthly's** — roughly **3
+volatility points lower** at those levels. The name a reader will recognise is the **VIX term
+structure in contango**: VIX9D normally sits below VIX, so short-dated options are quoted cheaper
+in volatility terms and a weekly programme harvests a smaller spread against the same realised
+volatility. At §09's own ~45 bp per point, three points is the right order to close a 146 bp gap.
+*Indicative arithmetic on published aggregates: the ratio is robust, the absolute levels depend
+on that 0.4.*
+
+**What §09 is missing.** "What the single σ_IV leaves out" names **Across strikes** and **With
+depth**, and closes on premium volume. **It does not name tenor** — and the article's own running
+example straddles that axis, writing weekly puts against four-week calls. If the term structure
+is real, the flat σ_IV **flatters the put leg** relative to the call leg by something like three
+points, a first-order bias in the leg the strategy leans on. IV-5's corrected panel points the
+same way: puts ≤1wk at 30.8% against calls ~monthly at 33.6% on a session clock — weekly below
+monthly, as contango predicts, though confounded by moneyness.
+
+**Two edits to §09.**
+
+- **A cadence sweep**, formatted like the dividend sweep it sits beside and carrying the same
+  shape of conclusion — this dial barely moves the return per unit of capital and greatly moves
+  how much capital the position needs. Three rows is enough.
+- **"Across tenor"**, as a third bolded axis in "What the single σ_IV leaves out", with the sign
+  stated and the magnitude sourced to Bondarenko's ratio. **This is what makes the sweep
+  honest**: without it §09 reports cadence-neutrality as a result while the literature holds a
+  146 bp counterexample the model cannot see.
+
+**Precondition: INF-6.** The frozen cases this needs — `--tau-p` variants in
+`returns_benchmark.py` for the excess and the difference, `returns_capital.py` for lots, E[I] and
+capital — are *wrong* until the harness stops overriding `cadence`. `--tau-p 0.08333` currently
+reports +1.74% against the correct +1.56%, because it sells a monthly put every week.
+
+**Handed forward to III-1, not claimed here.** Capital per name is 11.59 weekly against 3.28
+quarterly, so a 100-share-price account carries **8.6 names doing 89.7 lots/yr, or 30.5 names
+doing 24.4 lots/yr, at the same ~1.5% return on capital** — cadence buys names by giving up
+throughput. That is a sizing statement and III-1 owns sizing; §09 states the invariance and
+points there. **Do not let §09 claim the extra names reduce variance**: that is §12's question and
+nothing answers it yet. And it is *not* a capital-efficiency gain — capital per lot of throughput
+**rises** 3.7× as cadence slows, from 1.11 to 4.10.
+
+**II-20. The article reports no risk statistic anywhere, and the two it is missing cost a line
+each.** (Divergence D4 of
+[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), with harvest H4;
+converted 2026-07-31, and the betas below were computed while converting it.)
+
+**The gap.** Israelov & Nielsen (2015) attribute **~25% of a covered call's risk** to a dynamic
+*equity reversal* exposure — the position lengthens as the underlying falls — carrying Sharpe
+≈ 0.10, essentially uncompensated. Under GBM that exposure *cannot* be compensated, so the model
+is right to assign it no return. But the article never **reports** it, because it quotes
+expectations and capital and no risk statistic anywhere. A reader arriving from the covered-call
+literature will ask what the wheel's beta is and whether it is asymmetric the way BXM's is, and
+the machinery to answer already exists.
+
+**Computed 2026-07-31** — terminal payoff over one call period against the depth census,
+inventory only, P-measure, 30y census. Indicative, done outside the model:
+
+| configuration | up-beta | down-beta | gap |
+|---|---|---|---|
+| Standard p\* = 20%, n = 4 | 0.828 | **1.000** | 0.172 |
+| Conservative p\* = 10%, n = 4 | 0.823 | **1.000** | 0.177 |
+| n = 1, calls on the put clock | 0.927 | **1.000** | 0.073 |
+| n = 13, quarterly calls | 0.683 | **1.000** | 0.317 |
+| σ = 30% | 0.870 | **1.000** | 0.130 |
+
+**Two results, neither of them anywhere in the article.**
+
+- **Down-beta is exactly 1.000 in every configuration.** Below its strike a lot is pure stock, so
+  the wheel absorbs the whole decline. That is Israelov & Nielsen's **Myth 2** — covered calls
+  provide downside protection — disproved inside our own model, and Myth 2 is the wheel's own
+  marketing. **With the put leg included it exceeds 1**: the operator holds the shares *and* is
+  short a put that is losing. Say it that way; the wheel is more than fully exposed on the
+  downside, and that is the sentence a reader will remember.
+- **The asymmetry is governed by n** — 0.073 / 0.172 / 0.317 at n = 1, 4, 13 — and barely by p\*
+  (0.828 against 0.823). That is [the holding-time section](#sec:holding)'s √n grid tax showing up
+  in *risk* rather than in holding time: one lever, a second consequence, and the article
+  currently draws only the first. Higher volatility *reduces* the asymmetry (0.870 up at σ = 30%)
+  because lots run deeper and their calls sit further out of the money.
+
+**What the subsection must carry.**
+
+- **Include the put leg.** Everything above is inventory only, and the put is exactly what carries
+  down-beta past 1.
+- **Keep the delta-against-price framing beside the betas**, not instead of them: book delta rises
+  toward 1 per lot as the price falls and toward 0 as it rises, which is analytic from `bs_call`
+  and exhibits the reversal directly rather than as a regression coefficient. **Cross-reference
+  Israelov & Nielsen's "equity reversal exposure" explicitly and consider adopting their term** —
+  the article has no name for this at all, and theirs is the one a reader will recognise (agreed
+  with Sergei, 2026-07-31).
+- **Do not claim comparability with BXM's 0.63 / 0.78.** Ours is a different estimator, and
+  **II-21** is where that comparison is made and where it stays a detour.
+- Harvest **H5** — mapping our premium / mark-loss / giveaway / dividends onto their passive
+  equity + short volatility + equity reversal — is adjacent, unconverted, and would sit naturally
+  in the same subsection if it earns its space.
+
+**No new machinery**: the census and `bs_call` are both in `model.py`. It needs an example module
+and frozen cases under INF-5's policy.
+
+**II-21. Replicate BXM's beta estimator against ours — a detour, deliberately not load-bearing.**
+(Scoped with Sergei, 2026-07-31, out of II-20.)
+
+**Why it exists.** Validating II-20's estimator on a degenerate census — a book permanently at the
+money, which is a plain ATM covered call — returns **up-beta 0.000, down-beta 1.000** against
+BXM's published **0.63 / 0.78**. That is not an error. A terminal-payoff regression on a truly
+at-the-money call *must* return exactly 0 and 1, because the payoff is kinked precisely at the
+strike. The published figures come from **calendar-monthly** returns misaligned with the
+third-Friday roll, with strikes set at the first listing above spot; the misalignment smears the
+kink and pulls the two numbers toward each other.
+
+**The trap it closes.** H4 prescribes "regress the ledger's period returns on the underlying's,
+split by sign" and compare with BXM. Followed literally, that yields a number which *looks*
+comparable to 0.63 / 0.78 and is not: "the wheel's up-beta is 0.83 against BXM's 0.63" would read
+as a like-for-like risk comparison and would be wrong.
+
+**What to do.** On `wheel_sim.py` paths — this needs paths, because the analytic core cannot see
+calendar misalignment — compute the split beta BXM's way: calendar-monthly returns, strike at the
+first listing above spot, roll on expiry. Then put the two estimators side by side on the same
+book. Two questions worth answering: how much of the gap is *misalignment* against how much is
+the *strike offset*, and whether the two estimators agree once both are run on the same
+simulated account.
+
+**Keep it a detour.** A blockquote detour in §09 in the article's established style, or a
+footnote. **§09's headline risk numbers stay ours**, and no conclusion in the article may depend
+on this comparison landing any particular way.
+
 ## Part III — Many assets
 
 Neither file exists. This is Stage 3 of the restructure and the largest single block of
 remaining work. Both sections have their inputs already measured or already derived; what is
-missing is the derivation and the prose.
+missing is the derivation and the prose. **III-3 is not a third section** — it is a constraint on
+how the other two are written, and it is recorded now precisely because it must bind before they
+are drafted rather than be discovered afterwards.
 
 **III-1. Write §12, the portfolio section** (`{#sec:portfolio}`). It owes four things:
 
 - **The diversification result** §02 promises: expected return and expected capital are
   unchanged by diversification, which removes only the variance around them. Little's law needs
   no independence assumption and so carries over directly; the statement to be careful with is
-  what *does* change.
+  what *does* change. **III-3 names one thing that does, and the literature quantifies it**: the
+  premium, which is a single-name price and not an index one.
 - **The distributional claims the single-name analysis handed forward** (was #1). The article
   states that ±√I\* and e^(−I\*) belong to a diversified portfolio of independent wheels, not to
   one name — on one name the inventory is nothing like Poisson (Var/Mean ≈ 4.8, P(I = 0) ≈ 14%
@@ -126,7 +424,49 @@ missing is the derivation and the prose.
   to be used.
 - **Correlation → 1 in a crisis**, framed as §02 promises it: the mechanism the strategy is
   most exposed to, not a tail scenario. Every diversification benefit claimed in §12 is a
-  benefit that fails in exactly the state that matters.
+  benefit that fails in exactly the state that matters — **and the premium never paid for it**,
+  which is III-3 and is the sentence that joins this section to §12.
+
+**III-3. §12 and §13 are the same fact seen twice, and Part III has to be written that way.**
+(Divergence D6 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md);
+converted **speculatively** on 2026-07-31, before either section exists, because it constrains how
+they are written — recording it afterwards would be recording it too late.)
+
+**The promise.** §02's contribution 7: diversification "leave[s] the expected return and expected
+capital *completely unchanged* while removing only the noise around them — and … correlations
+rising toward one in a crisis is not a tail scenario but the mechanism the strategy is most
+exposed to." One sentence, two clauses, currently reading as two topics.
+
+**The quantity side is safe.** Little's law is additive across streams and needs no independence
+assumption, so E[I] = λ·E[W] carries to a book of N names directly, and H = λG with it. Nothing
+about the expectation half of contribution 7 is in danger.
+
+**The price side is not, and the literature names the mechanism.** Driessen, Maenhout & Vilkov
+(2009): the index variance risk premium is substantially a **correlation** risk premium, and the
+components do not carry it. II-18 supplies the magnitudes — SPX **3.3 points** against
+**1.07–1.5** for single names — and **that gap is the correlation premium**. So a diversified book
+of single-name wheels collects the **single-name** premium, the small one, while in a crisis, as
+correlations rise toward one, it carries **index-like** risk.
+
+**Index-like risk, single-name pay.** That is one sentence and it is both halves of Part III.
+§12's benefit and §13's vulnerability are not two subjects; they are one quantity with opposite
+signs, and it is the same quantity II-18 is correcting §09 for.
+
+**One counterweight the section must carry, or the argument misleads.** DMV also find the
+correlation premium **cannot be harvested once realistic frictions are imposed**. So the
+conclusion is *not* "write index options instead" — it is that the diversification benefit is
+smaller than it looks, and that the compensation for the risk left over was never actually
+available to anyone.
+
+**What this constrains in III-1 and III-2.**
+
+- **Say which comparison is being made.** "Diversification leaves the expectation unchanged" is a
+  statement about going from one name to N names, and as such it is true. It is **not** the
+  statement that a basket of single-name wheels equals a wheel on the index — different trades at
+  different prices. A reader will run the two together unless stopped, and contribution 7's
+  wording does nothing to stop them.
+- **Write the two sections as one argument**, or at minimum have §12 end where §13 begins.
+  Contribution 7 already puts them in a single sentence; the sections should earn it.
 
 ## Part IV — Reality
 
@@ -237,11 +577,16 @@ live data, not only simulation.
   that closes the gap**: puts per name-year × the per-put assignment rate should reproduce lots
   per name-year, which at the current digits it does (18.1 × 7.7% ≈ 1.4). If it stops doing so,
   one of the three is measured over the wrong denominator.
-- **The implied-volatility panel** (was #23). The put leg's spread over subsequent realised
-  volatility runs **~+10 points, roughly double the call leg's**, and the within-name depth
-  slope is **+30–40% relative IV** from shallow to deep. This is the measurement behind the
-  article's decision to carry one scalar σ_IV; report it here and let [the returns
-  section](#sec:returns)'s stated bias direction be checked against it.
+- **The implied-volatility panel** (was #23). The within-name depth slope is **+30–40% relative
+  IV** from shallow to deep. This is the measurement behind the article's decision to carry one
+  scalar σ_IV; report it here and let [the returns section](#sec:returns)'s stated bias direction
+  be checked against it. **The level is withdrawn pending IV-5**: the panel's "~+10 points,
+  roughly double the call leg's" is measured on a calendar clock against a session-annualised
+  realised volatility, and about six of those ten points is that mismatch. Do not write §15 from
+  the old figure — re-run the panel once IV-5 lands and quote what it says then. The depth slope
+  is unaffected (within-leg, within-name and within-tenor, so the clock cancels), but it rests on
+  **8 contracts in the deepest bucket** of a column that is not monotone; quote it with that
+  qualifier or not at all.
 - **The regime caveat, which bounds everything above:** the universe returned +8.96%/yr over the
   window and the held names +34.36%/yr, and **a covered-call overlay must lag in a strong
   up-market**. That is mechanical, not evidence. Neither the overlay nor the selection result is
@@ -256,6 +601,85 @@ drift. That list is accurate and should survive. What it cannot be written aroun
 III and IV land is the forward-looking half: what the model should become, given what the live
 comparison actually showed. Write last, and rename the file to `16-outlook.md` when Part III
 takes §12 and §13.
+
+**One addition to that list, from II-19:** a **σ_IV(τ) term structure** is the minimal extension
+that would let the model speak to cadence at all. Cadence is currently the one dial the model
+reports as nearly free — 13 bp across a 13× range — where the record says it is not, and the
+model's residual tilt even points the wrong way. II-19 carries the size of the slope the record
+implies. It is also the first thing a practitioner would ask for.
+
+**IV-5. `iv_panel.py` measures implied against realised volatility on two different clocks, and
+the article quotes the difference.** (Divergence D2 of
+[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); the clock half was found
+while converting it, 2026-07-31. **Must land before §15 is written**, and it edits §09.)
+
+**The claim at issue.** IV-2 records the put leg running **~+10 points** over subsequent realised
+volatility, roughly double the call leg. Against the *index* premium of 2–4 points that reads as
+"several points clear"; against the single-name baseline II-18 installs (1.07–1.5 points) it
+would be tenfold, which is too large to leave as an aside — the article uses it in two places at
+once, as evidence the premium is real and as evidence the premium does not arrive.
+
+**Most of it is a units mismatch.** `iv_panel.py` inverts Black–Scholes with
+`tau = (exp - open).days / 365` — calendar time — while `forward_vol` annualises realised
+volatility over **252 sessions**. The two coincide at monthly tenors and diverge badly at weekly
+ones: a four-day put is priced with too little diffusion, so the inversion hands back too much
+volatility to match the premium. Priced on session time at a true 20% and inverted on calendar
+time, a weekly put reads **26.6%**; the same test on a 25-day call reads **19.8%**. **An artifact
+that inflates only the short leg is exactly the shape of the reported finding.**
+
+Measured per contract against the real session calendar, the inflation factor is **1.204** at
+≤1wk, 1.089 at 1–3wk, ~1.04 at monthly and 1.016 at longer. Indicative effect on the panel's own
+medians (computed outside the script, 2026-07-31 — the re-cut must redo it per contract):
+
+| leg / tenor | as measured | on a session clock | RV | spread |
+|---|---|---|---|---|
+| puts ≤1wk (n=493) | 37.1% | 30.8% | 26.7% | **+10.5 → ~+4.1** |
+| calls ~monthly (n=78) | 34.8% | 33.6% | 31.0% | **+3.8 → ~+2.6** |
+
+So roughly **six of the ten points is the clock**, and the put/call asymmetry falls from ~2.8× to
+~1.6×. This is the same mismatch IV-1 documents for `model_vs_live.py` — the 1.35 factor at the
+median put — which nobody had connected to `iv_panel.py`. **The article's own
+formulas are unaffected**: τ_p = 1/52 is 4.85 sessions, so its week is already a trading week.
+
+**The skew half is measurable after all, and cheaply.** The pass prescribed an ATM-matched
+re-cut and doubted the data supported one. It does, on the call leg only, and *by design*: the
+call strike is frozen at the lot's basis, so a shallow lot writes a near-money call. Cross-tabbing
+the call leg by moneyness on a session clock gives a clean monotone skew signature —
+**+1.6 (ATM, n=43) / +3.1 / +4.1 / +6.7 (>+10%, n=65)**. The put leg has no ATM cell by design and
+never will; the 35 near-money puts in the current skew table are accidents and behave like one
+(median IV 18.1% against 45.7% two buckets out).
+
+**What to do, in order, with an early exit.**
+
+1. **Fix the clock.** Put the comparison on session time (τ = sessions spanned / 252, counted
+   from the price series, which knows the real calendar) and print the as-quoted calendar IV
+   beside it so the panel still ties to what the broker screen showed. This is a measurement
+   change, not a modelling one.
+2. **Add the missing cross-tab**: IV − RV by leg × moneyness × tenor. The panel currently reports
+   IV − RV by tenor and IV by moneyness and never crosses them, which is why the skew confound
+   was invisible.
+3. **Read the residual and stop.** If it lands near the single-name literature, the remaining
+   work is a confirmation, not a rescue.
+
+**Do not buy option-chain data for this.** Historical chains on ~500 name-days would be needed to
+match ATM on the put leg, and `prices.py` fetches underlying OHLC only — that is a paid-data
+question (OptionMetrics/ORATS/CBOE DataShop), not a scripting one. The ATM call cell already
+exists for free, and **it can characterise but not calibrate**: split by tenor it is 28 / 6 / 9
+contracts reading −3.0 / +2.0 / +9.1, so the cell that actually matches Bakshi & Kapadia's
+near-money short-dated object rests on nine contracts. That is why II-18 calibrates §09 from
+published figures and not from ours. If a fallback is ever wanted for the put leg, fitting a smile
+per name-date from the operator's own cross-section and evaluating at x = 0 is interpolation
+rather than new data — model-dependent, and it must be reported as such.
+
+**Two consequences, one of them in live text.**
+
+- **§09:162 says "the put leg's spread over realised volatility ran to roughly twice the call
+  leg's."** That rests on the uncorrected panel and is ~1.6× after the fix. Whoever runs this item
+  edits that sentence; it is the only Part II text IV-5 touches, and II-18 is working three lines
+  away in the same section.
+- **IV-2's "~+10 points, roughly double the call leg" is withdrawn pending this item** — see the
+  note on that bullet. **The depth slope survives**: it divides by each name's own median IV
+  within one leg at one tenor, so the clock cancels, and §09:164's "roughly a third" is untouched.
 
 **IV-4. The next tranche of live data — standing.** The out-of-sample pre-registration
 (`drafts/2026-07-27-out-of-sample-preregistration.md`) fixes twelve predictions and a procedure,
@@ -333,3 +757,23 @@ are in [`DONE.md`](DONE.md). **Two items of follow-up remain.**
   matches the displayed set exactly, per section. That closes the one remaining way a numbered
   formula can be promised and not exist — and it is the guard that would have caught
   `eq:account-criterion` sitting promised-but-absent for a day.
+
+**INF-6. The example harness overrides `cadence`, so any `--tau-p` case is silently wrong.**
+(Found 2026-07-31, while running II-19's cadence test.)
+
+`build_parser` in `code/examples/_harness.py` takes each flag's default from a **post-init**
+reference `Config()`. By then `__post_init__` has already resolved `cadence` from `None` to
+`tau_p`, so the parser's default for `--cadence` is 1/52 and every CLI-built Config passes it
+explicitly — the `if self.cadence is None` branch never fires. Passing `--tau-p 0.08333`
+therefore builds a book that **sells a monthly put every week**: 52 arrivals a year instead of
+12, and `returns_benchmark.py` reports **+1.74%** excess against the correct **+1.56%**.
+
+**Nothing is wrong today and the trap is live.** `cadence` is the only field whose declared
+default differs from its post-init value, and no existing Case varies `--tau-p` or `--cadence`,
+so **no frozen number is currently affected**. It bites the first time someone adds one, which is
+exactly what II-19 does.
+
+**The fix is one line**: take each default from the dataclass field, `default=f.default`, rather
+than `getattr(ref, f.name)`. Every other init field's declared default already equals its
+post-init value, so nothing else moves and `ref` becomes unused. Add a case that varies `--tau-p`
+and asserts the arrival rate, so the trap cannot reopen.

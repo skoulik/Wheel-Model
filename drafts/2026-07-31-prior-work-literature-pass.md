@@ -49,6 +49,50 @@ our model has no mechanism for** (weekly put-writing has historically underperfo
 and **one claim that must be softened** (the novelty of applying Little's law to a portfolio of
 assets — John Little himself gives that example).
 
+### Disposition — what this pass turned into
+
+Conversion into [`TODO.md`](../TODO.md) items began 2026-07-31 and is **in progress**, one
+finding at a time. This table is the map, and the inline markers below repeat it at each finding.
+**Nothing here edits the findings themselves**: a converted finding keeps its original text, and
+the TODO item is where the decisions, the corrections and any later amendments live.
+
+| finding | became | |
+|---|---|---|
+| **D1** — index VRP quoted at a single-name model | **TODO II-18** | §03's citation half stays with I-1 |
+| **D2** — the live account's +10 points | **TODO IV-5** | reshaped on conversion, see below |
+| **D3** — weekly against monthly cadence | **TODO II-19** + **INF-6** + a line in **IV-3** | the test D3 asked for was run, see below |
+| **D4** — the risk decomposition we cannot report | **TODO II-20** + **II-21** | H4's prescription contained a trap, see below |
+| **D5** — Merton–Scholes–Gladstein unverified | **TODO I-5**, prohibition in **I-1** | low priority: nothing cites them, so the read can also be closed by descoping |
+| **D6** — Part III's diversification pricing problem | **TODO III-3**, with pointers in III-1 and III-2 | converted speculatively — it constrains sections not yet written |
+| **N1–N3** — the novelty claim | **TODO I-1** | all three narrowings folded into the rewritten item |
+| **H1–H11** — the harvest | *none yet converted* | |
+
+**Three findings changed materially on conversion. The TODO items, not this document, carry the
+corrected version.**
+
+- **D2.** Most of the +10 points is a **clock mismatch**, not skew: `iv_panel.py` inverts with
+  calendar τ while realised volatility is annualised over 252 sessions, which inflates only the
+  short leg — about six of the ten points, and it reproduces the put-versus-call asymmetry on its
+  own. D2's prescription also turned out to be *feasible*, which D2 doubted: the call strike is
+  frozen at the lot's basis, so shallow lots write near-money calls by design, and the cross-tab
+  can be built for free. It remains too thin to calibrate from.
+- **D3.** Cadence-neutrality resolved as D3 expected (13 bp across a 13× range), but the mechanism
+  is derivable from Bondarenko's own table: WPUT collected 1.68× PUT's premium where √-scaling
+  predicts 2.08×, so weekly implied volatility ran at 0.81 of monthly. D3 also missed that §09's
+  list of what the single σ_IV omits has **no tenor axis**, while the running example straddles
+  one. Running the test surfaced an unrelated harness defect, hence INF-6.
+- **D4 / H4.** The split beta was computed on conversion: **up 0.83, down exactly 1.000**, the
+  asymmetry governed by n rather than by p\*. But **H4's prescription contains a trap**. Validated
+  on a permanently at-the-money book it returns up 0.000 / down 1.000 against BXM's published
+  0.63 / 0.78 — a terminal-payoff regression on an ATM call must, because the payoff is kinked at
+  the strike, while BXM's figures come from calendar-monthly returns misaligned with the roll.
+  Followed literally, H4 would have produced "the wheel's up-beta is 0.83 against BXM's 0.63" as
+  though it were like-for-like. II-21 exists to keep that comparison a detour.
+
+**One defect in this document, recorded rather than corrected.** Strand B cites
+Merton–Scholes–Gladstein as "[A — unverified, see **D7**]"; the divergence is numbered **D5**, as
+the reading list has it, so that pointer dangles. Left as written, since drafts are historical.
+
 ---
 
 ## 1. The literature, in six strands
@@ -348,6 +392,10 @@ Each carries what would settle it. **None of these was acted on; no section was 
 
 ### D1 — §09 attributes an index-level volatility risk premium to single names
 
+> **→ TODO II-18**, converted 2026-07-31. §03's citation half stays with I-1. The §09:152
+> sentence is rewritten without printing a multiple, deferring the live account's own spread to
+> §15 — the size of that gap is D2's measurement, not this one's.
+
 **The claim.** `sections/09-returns.md:137` reads: *"implied volatility exceeds subsequently
 realized volatility systematically, by 2–4 points on liquid equities, and this volatility risk
 premium is the documented source of return in every put-write and covered-call study."*
@@ -385,6 +433,13 @@ currently measuring a different object.
 
 ### D2 — The live account's +10 points against the literature's ~1
 
+> **→ TODO IV-5**, converted 2026-07-31, **and materially reshaped** — read the item before this
+> section. Explanations 1 and 2 below (moneyness, tenor) are joined by one this section missed:
+> the panel measures implied and realised volatility on **two different clocks**, which inflates
+> the short leg alone by about six of the ten points. The ATM-matched re-cut this section doubted
+> is feasible on the call leg, whose strike is frozen at the lot's basis. IV-2's quotation of the
+> +10 figure is withdrawn pending the re-cut; §09:162's "roughly twice" is affected too.
+
 **The claim.** IV-2 records the put leg running **~+10 points** over subsequent realised
 volatility, roughly double the call leg, with a within-name depth slope of +30–40% relative IV.
 §09:152 already hedges this as "several points clear of the 2–4 the literature reports" and
@@ -414,6 +469,13 @@ figure.
 
 ### D3 — Weekly put-writing has historically underperformed monthly, and our model has no mechanism for it
 
+> **→ TODO II-19**, plus **INF-6** and a line in **IV-3**; converted 2026-07-31. Test (a) below
+> was run: the model is cadence-neutral at fair prices to 13 bp across a 13× range, and its
+> residual tilt at a flat premium favours weekly, the wrong way. So (b) applies — but not as an
+> outlook item only. §09's list of what the single σ_IV omits has **no tenor axis** while the
+> running example straddles one, so II-19 edits §09 as well. The term-structure slope this
+> section calls "the sharper candidate" is quantified there from Bondarenko's own table.
+
 **The fact.** 2006–2018: PUT (monthly ATM) compounded **5.97%** at Sharpe **0.50**; WPUT (weekly
 ATM) compounded **4.51%** at Sharpe **0.40**, having collected **37.1%** of notional per year in
 premium against PUT's **22.1%**. More premium, less money — 1.7× the gross for ~75% of the return.
@@ -441,6 +503,13 @@ practitioner would ask of it.
 
 ### D4 — Our model cannot see a risk that the literature says is 25% of the total
 
+> **→ TODO II-20**, plus **II-21**; converted 2026-07-31. §09 gains its first risk statistic:
+> up-beta 0.83, **down-beta exactly 1.000**, which is Myth 2 disproved inside our own model, and
+> above 1 once the put leg is in. The asymmetry turns out to be governed by **n**, not by p\* —
+> the √n grid tax appearing in risk. **H4's prescription contains a trap** and II-21 is the
+> quarantine for it; read that item before comparing anything to BXM. This section's pointer to
+> H5 stands: the three-way mapping is still unconverted.
+
 Israelov & Nielsen (2015) attribute ~25% of a covered call's *risk* to the dynamic equity
 reversal exposure, with essentially no return. Under GBM that exposure cannot be compensated —
 which is why our model, correctly, assigns it no return. But our model also does not **report**
@@ -453,6 +522,13 @@ See harvest H5.
 
 ### D5 — Merton–Scholes–Gladstein, unverified
 
+> **→ TODO I-5**, converted 2026-07-31; the prohibition itself lives in **I-1** and stands until
+> I-5 closes. **Explicitly low priority**: nothing in `sections/` cites these papers, so I-5 may
+> be closed either by reading them *or* by deciding §03 will not mention the early simulation
+> literature — provided that decision is written down. One instruction the item adds: **do not
+> close it by searching**, since more secondary description is the evidence class this finding
+> exists to reject.
+
 Secondary sources describe the 1978/1982 simulation studies as showing option strategies
 outperforming buy-and-hold. If that is the actual claim it sits awkwardly against contribution 4
 and against everything in Strand B, and it is old enough and famous enough that a reader may raise
@@ -462,6 +538,15 @@ Black–Scholes pricing rather than risk-adjusted outperformance, in which case 
 supporting citation rather than a contradicting one.
 
 ### D6 — Part III's diversification promise has a pricing problem the literature identifies
+
+> **→ TODO III-3**, with pointers added to III-1 and III-2; converted 2026-07-31. Converted
+> **speculatively and on purpose**: it constrains how §12 and §13 are written, so waiting for
+> them would be waiting until it is too late to apply. The conversion also sharpened it —
+> II-18's magnitudes make the gap concrete (SPX 3.3 points against 1.07–1.5 single-name, and
+> **that gap is the correlation premium**), which compresses this finding to **"index-like risk,
+> single-name pay."** DMV's caveat that the correlation premium is unharvestable net of frictions
+> is carried too, so the item cannot be read as "write index options instead". Separately, II-19
+> hands III-1 an unrelated sizing result on the same subsection.
 
 Not a divergence yet, because §12 does not exist. Recorded so it is not discovered late.
 
@@ -483,6 +568,10 @@ correlation as separate topics.
 `sections/03-prior-work.md` currently asserts: *"We are not aware of prior work treating the wheel
 specifically as an inventory/queueing system with layered, depth-dependent exit rates and deriving
 stability conditions for it."*
+
+> **→ TODO I-1**, converted 2026-07-31. All three narrowings are folded into the rewritten item,
+> which now reads "the reading is done, the section is not". I-1 also carries the read-level rule
+> and D5's prohibition, and **cannot close until §03 is written**.
 
 **Verdict: the claim survives, but it must be narrowed in three places.**
 
@@ -520,6 +609,13 @@ Kou (1997) would be a stronger test. Recommend doing that before publication, no
 ---
 
 ## 5. Harvest — what to actually take
+
+> **None of H1–H11 is converted** as of 2026-07-31; the conversion pass took the divergences
+> first. Three are spoken for by items raised elsewhere: **H4** (report a beta) went into
+> **II-20** with D4 — *and its prescribed BXM comparison is the trap II-21 quarantines, so do not
+> follow H4's last paragraph as written*; **H5** (the three-way decomposition) is flagged as
+> adjacent in II-20 but not adopted; and **H10** (Muravyev & Pearson on transaction costs)
+> belongs to IV-3's descope list. The rest are unclaimed.
 
 Ordered by how much they change the article.
 
