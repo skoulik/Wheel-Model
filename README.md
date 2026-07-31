@@ -34,4 +34,4 @@ The article text is licensed under [CC BY 4.0](https://creativecommons.org/licen
 
 ## Status
 
-The article is in four parts. **Part I (setup)** and **Part II (one asset)** are written: the model has a single state variable — a lot's *depth* below its own frozen call strike — and the entry law, holding time, standing inventory, returns and two stability boundaries all follow from that one random walk. **Part III (portfolios and correlation)** and **Part IV (verification, the live account, outlook)** are not yet written; see [TODO.md](TODO.md).
+The article is in four parts. **Part I (setup)** and **Part II (one asset)** are written: the model has a single state variable — a lot's *depth* below its own frozen call strike — and the entry law, holding time, standing inventory, returns, three stability boundaries and the capacity of an account with a finite balance all follow from that one random walk. **Part III (portfolios and correlation)** and **Part IV (verification, the live account, outlook)** are not yet written, and the abstract and prior-work survey are written last; see [TODO.md](TODO.md).
