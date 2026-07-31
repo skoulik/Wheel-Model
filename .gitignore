@@ -6,3 +6,6 @@ data/
 
 # Python bytecode cache (analyze_statement imports verify_examples)
 __pycache__/
+
+# Downloaded papers for the prior-work pass — reference only, not ours to redistribute
+literature/
