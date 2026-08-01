@@ -681,14 +681,41 @@ rather than new data — model-dependent, and it must be reported as such.
   note on that bullet. **The depth slope survives**: it divides by each name's own median IV
   within one leg at one tenor, so the clock cancels, and §09:164's "roughly a third" is untouched.
 
-**IV-4. The next tranche of live data — standing.** The out-of-sample pre-registration
-(`drafts/2026-07-27-out-of-sample-preregistration.md`) fixes twelve predictions and a procedure,
-and it may not be edited once new data is examined. **Trigger: six months of new statements or
-20 new completed lots, whichever comes first.** Rules that bind: refit, do not re-specify; no
-new features in `selection_fit.py` without a dated amendment; classify the regime *before*
-computing results; report failures as failures, in a dated appendix. P12 (impairment) is retired
-rather than pending. If a tranche arrives before the article is assembled, the article reports
-the out-of-sample result; if not, §14 says the test is pre-registered and pending.
+**IV-4. Live data keeps arriving — standing.** Statements land roughly monthly and will keep
+landing until the article is frozen for release. **Every tranche is ingested when it arrives and
+every live figure is recomputed on the whole corpus to date**; the procedure is
+[`drafts/tranche-record.md`](drafts/tranche-record.md), which also holds the running record and
+the exact command list.
+The out-of-sample pre-registration
+(`drafts/2026-07-27-out-of-sample-preregistration.md`) fixes twelve predictions and a procedure;
+**Appendix B, 2026-08-01, retired the trigger** and replaced it with that record, for the reason
+the article should keep in view — the pre-registration bound estimation and inference with one
+rule, and only the second needed protecting.
+
+What still binds, and is not negotiable per tranche: refit, do not re-specify; no new features in
+`selection_fit.py` without a dated amendment; classify the regime from the tranche's own universe
+return *before* reading anything else off the refresh; report failures as failures, in a dated
+appendix. P12 (impairment) is retired rather than pending.
+
+**Scoring happens once, at freeze, against the accumulated record** — never tranche by tranche,
+because a month is three or four lots against an excess whose interval is twenty-five points
+wide. And the wording is fixed now, so it is not decided by whoever writes §14: the predictions
+were **recorded before the data existed and checked afterwards, with the data examined
+continuously in between**. They are not an out-of-sample test and the phrase must not appear.
+P7's blind was partly opened on 2026-08-01 — the extended-window excess was seen before Appendix
+B was drafted — and the scoring appendix says so.
+
+**What P8 and P7's concavity are waiting for is a regime, not a tranche.** No quantity of monthly
+data in a rising market tests "the selection edge shrinks when dips stop recovering". Both rows
+of the record so far are labelled rally. That is the limitation the record exists to outlast.
+
+**One thing to know before scoring.** Appendix A's restated P11 baseline of 56 d cannot be
+reproduced by today's code: the same pre-tranche corpus now gives a Kaplan–Meier median of
+**49 d**. Changes landed after that appendix was written on 2026-07-27 — the seam dedupe that
+removed a phantom TSCO lot (56 → 55 lots, `8d6b592`) and the exclusion of EMLC and 9988
+(`6aaf681`) are the candidates. Score P11 against a baseline re-measured with the code of the
+day, and say so. (With tranche 3 the figure reads 56 d again — two different corpora agreeing by
+coincidence, not the prediction landing.)
 
 ## Infrastructure and assembly
 
@@ -777,3 +804,22 @@ exactly what II-19 does.
 than `getattr(ref, f.name)`. Every other init field's declared default already equals its
 post-init value, so nothing else moves and `ref` becomes unused. Add a case that varies `--tau-p`
 and asserts the arrival rate, so the trap cannot reopen.
+
+**INF-7. Pin the live-figure window before release.** (Raised 2026-08-01, when tranche 3
+arrived; deferred to release by the operator, who wants the figures tracking the data until
+then.)
+
+Every script that reads the statements derives its own window from the data — `live_ledger.main`
+takes `end = max(close dates)`, and `model_vs_live`, `selection_fit` and `iv_panel` follow it.
+None of them has a cutoff. So **dropping a file into `statements/` silently restates every live
+figure the article quotes**, in §02, §05, §07, §09 and §15, with nothing recording which window
+a sentence was measured on. That is INF-2's "no check reproduces the live-account figures at
+all", arriving as a fact rather than a risk: the 2026-08-01 refresh moved seven prose figures
+and every bullet of IV-1 and IV-2.
+
+The fix is an as-of cut applied at read time in `analyze_statement._read_rows`, so every
+consumer inherits it, plus `--as-of` on each script. Cutting on the **posting** date reproduces
+an earlier corpus exactly — verified 2026-08-01, where the pre-tranche cut reproduced the whole
+of the previous ledger, T1's 71.5/90.3 pair and the 27.4%/8.0% bucket to the digit. At release,
+freeze the default at whatever date the article is measured on and print the window in the
+banner, so a later tranche cannot restate a published number without someone typing the flag.

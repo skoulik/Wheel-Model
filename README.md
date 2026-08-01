@@ -16,7 +16,7 @@ The end product will be a LaTeX article for a general, numerate audience.
 | `code/` | Supplementary scripts. `verify_examples.py` recomputes every worked numerical example quoted in the text. |
 | `TODO.md` | Open modeling and writing issues, grouped by article part. |
 | `DONE.md` | Completed work, resolved questions, and what is deliberately out of scope. |
-| `drafts/` | Historical drafts. Superseded by `sections/` — the initial draft contains a since-corrected P&L formula. |
+| `drafts/` | Historical drafts, superseded by `sections/` — the initial draft contains a since-corrected P&L formula. Also `tranche-record.md`, the one living file there: the account's statements as they arrive, and the path of every headline figure across them. |
 
 ## Verifying the numbers
 

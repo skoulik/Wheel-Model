@@ -226,3 +226,68 @@ enough to dominate selection is a lot whose call gave the run away — and it is
 the jump tail the lognormal lacks, showing up in the ledger. Future tranches
 should expect the same concentration and must not treat it as an outlier to be
 trimmed.
+
+
+## Appendix B, 2026-08-01: the trigger is retired, and what that costs
+
+**New data has been examined**, which is what makes this an appendix rather than
+an edit. On 2026-08-01 the third statement tranche arrived and the article's
+live figures were refreshed on the full corpus rather than held at this file's
+window — the operator's decision, on the ground that more data is a cleaner
+estimate. Tranches will keep arriving monthly until the article is frozen for
+release. This appendix rewrites the *procedure* to match that, states plainly
+what it costs, and leaves the twelve predictions exactly as written.
+
+**Why the procedure needed rewriting rather than relaxing.** It bound two
+different things with one rule. Most of what the live account contributes to the
+article is **estimation** — mean depth, the share of lot-days above the call
+strike, the Kaplan–Meier median, the entry law's aggregate error, the by-leg
+split, the IV panel. Nothing is selected on and nothing is tested; more data is
+strictly better and there is nothing to protect. A few are **inferential** — P7,
+P8, P9, P4 — and those are what a pre-registration is for. Procedure item 1
+gated the first behind a rule written for the second.
+
+**What changes.**
+
+1. **Item 1's trigger is retired.** No minimum tranche. Every tranche is
+   ingested and every figure refreshed when it arrives.
+2. **A tranche is never scored on its own, and no window is ever chosen.** The
+   window is always *everything to date*, and each refresh appends a row to
+   [`tranche-record.md`](tranche-record.md): what arrived, the regime label, and the
+   headline figures as they stood. The path of the estimates is the record.
+   Because every intermediate state is on it, no one can select a favourable
+   sub-window afterwards — and any sub-window a reader wants is computable from
+   the rows.
+3. **Item 5 becomes a labelling rule rather than a gate.** Each tranche is
+   classified — rally > +8%/yr, flat, drawdown < −8%/yr — from the traded
+   universe's equal-weighted return over that tranche alone, computed
+   mechanically as part of the refresh, and recorded whether or not anyone is
+   scoring a prediction that month.
+4. **Items 2, 3 and 4 stand unchanged**: no new features in `selection_fit.py`
+   without a dated amendment, refit rather than re-specify, report failures as
+   failures. They gate nothing and delay nothing; they are what stops the
+   specification drifting until it agrees, and they are doing most of the work
+   this file was written to do.
+5. **The predictions are scored once, at freeze, against the accumulated
+   record** — not tranche by tranche. A monthly tranche is three or four lots
+   against an excess whose 90% interval is twenty-five points wide; a
+   per-tranche score would be noise with a sign, and writing up the interesting
+   ones is precisely the failure this file exists to prevent.
+
+**What it costs, stated rather than dressed up.** P1–P11 are no longer a sealed
+out-of-sample test. They are **expectations recorded in advance and checked
+later, with the data examined continuously in between**. That is a weaker claim,
+and §14 and §15 must make it in those words: "recorded before the data existed"
+is true and worth saying; "out-of-sample" is not, and must not be written.
+
+Part of that strength was gone before this appendix was drafted. The
+extended-window overlay excess had already been seen on 2026-08-01 — −4.37%/yr,
+90% CI −18.1% to +6.9% clustered by name — so P7 in particular can no longer be
+scored blind, and the appendix that eventually scores it must say so.
+
+**What survives, and is worth more than it looks.** P8 is untouched: it predicts
+the selection edge shrinks when drawdowns stop mean-reverting, and no quantity of
+monthly data in a rising market manufactures the regime that tests it. The same
+holds for P7's concavity. Those two wait on the world rather than on the
+procedure — and the table exists so that when the world does turn, what was
+believed beforehand is already written down.
