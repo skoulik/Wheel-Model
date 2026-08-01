@@ -62,7 +62,7 @@ text, and the TODO item is where the decisions, the corrections and any later am
 | **D2** — the live account's +10 points | **TODO IV-5** | reshaped on conversion, see below |
 | **D3** — weekly against monthly cadence | **TODO II-19** + **INF-6** + a line in **IV-3** | the test D3 asked for was run, see below |
 | **D4** — the risk decomposition we cannot report | **TODO II-20** + **II-21** | H4's prescription contained a trap, see below |
-| **D5** — Merton–Scholes–Gladstein unverified | **TODO I-5**, prohibition in **I-1** | low priority: nothing cites them, so the read can also be closed by descoping |
+| **D5** — Merton–Scholes–Gladstein unverified | **TODO I-5** — **closed 2026-08-01** | read in full; the summaries were wrong and both papers support us. Four items fell out |
 | **D6** — Part III's diversification pricing problem | **TODO III-3**, with pointers in III-1 and III-2 | converted speculatively — it constrains sections not yet written |
 | **N1–N3** — the novelty claim | **TODO I-1** | all three narrowings folded into the rewritten item |
 | **H1** — Brumelle's H = λG | **TODO II-22** | the identity was checked numerically on conversion, see below |
@@ -596,6 +596,14 @@ See harvest H5.
 > literature — provided that decision is written down. One instruction the item adds: **do not
 > close it by searching**, since more secondary description is the evidence class this finding
 > exists to reject.
+>
+> **Closed 2026-08-01, by option 1 — reading them.** The expectation recorded below was correct:
+> both papers price at Black–Scholes with trailing realised variance and report *distributional*
+> differences at that price, which makes them a **supporting** citation. What it did not
+> anticipate is 1982's uncovered put writing beating covered call writing in all six pairings and
+> beating the DJ stock portfolio outright at E/S = 1.1 — so §03 may not cite them as "option
+> writing underperforms". [`DONE.md`](../DONE.md) carries the verdict; the read also raised
+> **II-27**, **II-28**, **III-4** and **IV-8**, and a bullet in **II-18**.
 
 Secondary sources describe the 1978/1982 simulation studies as showing option strategies
 outperforming buy-and-hold. If that is the actual claim it sits awkwardly against contribution 4
@@ -909,7 +917,8 @@ Downloaded copies are in `literature/` (gitignored). Read levels as defined in �
 - Bondarenko, O. (2019). Historical Performance of Put-Writing Strategies. CBOE. **[F]** — https://cdn.cboe.com/resources/education/research_publications/PutWriteCBOE19_v14_by_Prof_Oleg_Bondarenko_as_of_June_14.pdf · `bondarenko-2019-put-writing-strategies.pdf`
 - Israelov, R. et al. Covering the World: Global Evidence on Covered Calls. AQR. **[downloaded, unread]** — `israelov-et-al-covering-the-world-global-covered-calls.pdf` — *read owed by **I-1**, before §03's subsection 2, which is otherwise all US index data*
 - Israelov, R. & Tummala, H. (2017). Which Index Options Should You Sell? *J. Investment Strategies*. **[A]** — https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2990542
-- Merton, R., Scholes, M. & Gladstein, M. (1978). *J. Business* 51:183–242; (1982) *J. Business* 55:1–55. **[A — unverified, D5]**
+- **Merton, R., Scholes, M. & Gladstein, M. (1978). The Returns and Risk of Alternative *Call* Option Portfolio Investment Strategies. *J. Business* 51(2):183–242. [F]** — `merton-scholes-gladstein-1978-call-option-portfolio-strategies.pdf` — *covered writing below the underlying in all eight comparisons; the premium-sensitivity experiment (II-27); the portfolio-dispersion result (III-4); Appendix C's market-vs-model premiums (II-18)*
+- **Merton, R., Scholes, M. & Gladstein, M. (1982). The Returns and Risks of Alternative *Put*-Option Portfolio Investment Strategies. *J. Business* 55(1):1–55. [F]** — `merton-scholes-gladstein-1982-put-option-portfolio-strategies.pdf` — *the wheel's own leg: uncovered put writing, put early-exercise frequencies and the stop-loss that does not transfer (II-28), the conversion strategy as an empirical no-arbitrage test (IV-8)*
 - Cboe S&P 500 Covered Combo Index (CMBO) methodology. **[A]** — https://cdn.cboe.com/api/global/us_indices/governance/CMBO_Methodology.pdf
 
 **Volatility risk premium**

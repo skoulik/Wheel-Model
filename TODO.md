@@ -8,8 +8,9 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, II-1 through II-17, INF-1 — mean those items are in
-`DONE.md`.
+recycled or closed up: the gaps — I-3, I-5, II-1 through II-17, IV-6, IV-7, INF-1 — mean those
+items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
+numbered around them; they closed on 2026-07-28 and had been missing from it since.)
 
 Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section carries such a
 flag** (checked 2026-07-30), and that is the intended steady state: an in-text flag is a promise
@@ -19,16 +20,16 @@ to a reader and should be added only when the text genuinely defers something.
 
 Thirteen of the seventeen planned section files exist, plus a generated reproduction appendix
 (`sections/99-reproduction.md`, produced by `python -m examples --appendix`, never edited by
-hand). Part I is written bar two stubs; **Part II is written, with nine items outstanding**
-(II-18 through II-26 — all raised by the literature pass of 2026-07-31, which reopened Part II
-the day it closed, and none of which changes a formula or a verdict); **Part III and Part IV are
-unwritten**, and between them they are still the bulk of what is left besides those stubs and the
-assembly work.
+hand). Part I is written bar two stubs; **Part II is written, with eleven items outstanding**
+(II-18 through II-28 — nine from the literature pass of 2026-07-31, which reopened Part II the
+day it closed, and two more from the Merton–Scholes–Gladstein read of 2026-08-01 that closed I-5;
+none of them changes a formula or a verdict); **Part III and Part IV are unwritten**, and between
+them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **nine open items** (II-18 – II-26) — five in §09, the rest in §05, §07, §08 and §10, and II-23 also touches §00, §02 and §11 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **eleven open items** (II-18 – II-28) — six in §09, the rest in §05, §07, §08 and §10, and II-23 also touches §00, §02 and §11 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -61,11 +62,27 @@ which is gitignored — reference copies, not ours to redistribute.
 
 **Read levels bind.** Every source in that list carries **[F]** (full text read), **[P]**
 (partial) or **[A]** (abstract or secondary description only). *Do not quote a number from an
-`[A]` source without opening the paper.* Merton–Scholes–Gladstein (1978, 1982) is the live case:
-secondary summaries describe it as showing option strategies beating buy-and-hold, which would
-sit badly against contribution 4 and against the whole of the pass's Strand B. **Do not cite it
-either way until someone has read it** — that read is **I-5**, and this prohibition stands until
-it closes.
+`[A]` source without opening the paper.* Merton–Scholes–Gladstein was the live case and **the
+prohibition is lifted**: both papers were read in full on 2026-08-01 and the secondary summaries
+were wrong, in the direction that helps — [`DONE.md`](DONE.md) records what they actually
+concluded. They are the reason the rule exists, and the rule stands for everything else.
+
+**What §03 owes them, stated carefully.** These are the earliest large-scale simulations of
+these strategies and a reader may raise them, so §03 should cite them — but **not** as "option
+writing underperforms". 1978 has fully covered call writing below the underlying in all eight
+strike-by-universe comparisons; 1982 has *uncovered put writing above covered call writing in
+all six*, and above the DJ stock portfolio outright at E/S = 1.1 (5.1% against 4.6% semiannual,
+at less than half the standard deviation). What both papers actually support is contribution 4:
+at model prices these strategies trade expected return for risk, and whether they beat the
+underlying ex post depends on the underlying's realised run — which is what MSG say each time,
+in almost those words. Two further things §03 can use. Their **insurance framing** (1982 §VI:
+the uncovered put writer "is supplying the service of providing insurance … he expects to be
+compensated for this service, and the form of the compensation is an expected return in excess
+of the return on riskless fixed-income securities") is the clearest general-audience statement
+of why a volatility risk premium should exist at all, and it is by Merton and Scholes. And 1982
+**restates the 1978 call results over the full 14 years** unchanged — Table 5's covered-call
+columns against 1978's Table 7 — so the 1978 conclusion is not an artefact of its window. The
+premium-sensitivity half of both papers is **II-27** and belongs in §09, not here.
 
 **A second prohibition, and it is likelier to bite than the first** (added 2026-08-01). **Kuang &
 Lin (2025)**, arXiv:2512.01123 **[P]**, is the *only* recent academic item on the wheel by name,
@@ -130,41 +147,6 @@ Parts III and IV before assembly. **This is now a check, not a rewrite**: II-16 
 editing pass over §02 on 2026-07-31, which added the finite account as contribution 6 and pushed
 portfolios to 7 and the live comparison to 8 — hence the numbering above. Items 1 through 6 are
 delivered and were re-read for stale figures in that pass; only 7 and 8 are still promises.
-
-**I-5. Read Merton–Scholes–Gladstein, or decide §03 will not mention them. Low priority.**
-(Divergence D5 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md);
-converted 2026-07-31.)
-
-Two papers: *J. Business* **51**:183–242 (1978) and **55**:1–55 (1982), the original large-scale
-simulation studies of covered-call and put-writing programmes. Secondary summaries describe the
-conclusion as those strategies "outperforming buy-and-hold", which would sit badly against
-contribution 4 and against everything in the pass's Strand B. The pass could not obtain the full
-text.
-
-**Why it is low priority.** **Nothing depends on it.** No section cites them (checked
-2026-07-31; §03's stub mentions Merton 1973, which is the option-pricing paper and unrelated),
-`literature/` has no copy, and I-1 already forbids citing them either way. The only risk it
-mitigates is a reader raising a famous old paper the article has no answer to.
-
-**Two ways to close it, and either is acceptable.**
-
-1. **Read them.** *Journal of Business* ceased publication in 2006 and its back catalogue is on
-   JSTOR, which is the likely route — unverified, and the pass failed to get there. Then record
-   what they actually concluded, in `DONE.md`, whichever way it cuts.
-2. **Descope.** Decide §03 does not mention the early simulation literature at all. That is a
-   legitimate close for a general-audience article, and it costs nothing — but it must be a
-   *decision*, written down, not a silent omission.
-
-**The prediction on the table**, worth recording so the read is a test rather than a browse: the
-papers most likely report **distributional** differences under fair Black–Scholes pricing rather
-than risk-adjusted outperformance — which would make them a *supporting* citation, since fair
-pricing is exactly our σ_IV = σ case and we find the same thing there. If instead they claim
-genuine risk-adjusted outperformance, that is a real finding and contribution 4 needs an explicit
-answer to it.
-
-**Do not close this by searching.** The whole point of D5 is that the secondary descriptions are
-untrustworthy; another search returns more of the same evidence class we already rejected. Only
-the full text discharges it — or option 2 does.
 
 **I-6. A citation-graph pass on the novelty claim, before release.** (From §4's own caveat and
 the second-pass list of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md);
@@ -234,6 +216,16 @@ single-name model is entitled to, says materially less:
   **correlation** risk premium, which by construction has no single-name counterpart. **[A]**
 - **Bakshi & Kapadia again — idiosyncratic volatility is not priced at all.** What little premium
   single-name options carry is the *market* volatility premium leaking through beta.
+- **Merton–Scholes–Gladstein (1978), Appendix C [F]** — the earliest measurement of this gap that
+  exists, and it is ~zero. 694 six-month single-name contracts, April 1973 – November 1975.
+  Pooled, market premiums do run richer than Black–Scholes at trailing realised variance: ATM
+  **11.7% of spot against 11.2%** (138 observations), OTM **7.5% against 7.1%** (96). But
+  weighting each of the 14 dates equally the gap disappears — ATM **11.7% against 11.6%**,
+  average difference **−0.1%**, which they call insignificant; OTM difference **0.0%**. Added
+  2026-08-01 with the MSG read. **Caveat-grade and it cannot carry a number**: fourteen dates
+  over 2.5 years, on *calls*, in the first years of the listed market. It earns a clause because
+  it is the only pre-1990 single-name evidence anyone has and it points the same way as the rest
+  of this list.
 
 **What it costs.** At §09's own ~45 bp of edge per volatility point, 2–4 points reads as
 **90–180 bp/yr** over buy-and-hold. The single-name range supports **48–68 bp**, and something
@@ -699,6 +691,122 @@ the third reduced to a clause. **§03 (I-1) carries all of these sources properl
 pointer, on the rule II-23 states: the reader should meet the claim and its attribution in the
 same place.
 
+**II-27 competes for the same space and outranks bullets 3 and 4** (noted 2026-08-01). It brings
+§09 a measured *slope* rather than a matching conclusion, which is a closer fit to the claim the
+section is defending. If the two items are written together and §09 cannot hold both, cut Track B
+(row 5) first and Hill et al. (row 4) second; bullets 1 and 2 are one citation and stay.
+
+**II-27. §09's 45 bp slope has two independent precedents, and converting them to volatility
+points is the work.** (From the Merton–Scholes–Gladstein read of 2026-08-01, which closed I-5.
+The conversion below was done while raising the item and is **indicative, not a result**.)
+
+[The returns section](#sec:returns) says every point of volatility richness is worth about **45
+basis points** of excess return a year, and that break-even sits at **zero** points. That is the
+article's central quantitative claim about where the edge comes from, and §09 supports it with
+nothing outside our own sweep. **Both MSG papers ran the same experiment**: price the options at
+model value, then re-run the entire simulation with the premium scaled from 70% to 130% of it.
+
+| % of model premium | 70 | 80 | 90 | **100** | 110 | 120 | 130 |
+|---|---|---|---|---|---|---|---|
+| 1978, ATM covered calls, 136-stock (Table 8) | 0.8 | 1.8 | 2.7 | **3.7** | 4.7 | 5.7 | 6.8 |
+| — its standard deviation | 6.8 | 6.8 | 7.0 | **7.1** | 7.2 | 7.3 | 7.5 |
+| 1982, ATM uncovered puts, 136-stock (Table 7) | 1.7 | 2.5 | 3.3 | **4.1** | 4.9 | 5.7 | 6.5 |
+| — its standard deviation | 5.2 | 5.3 | 5.4 | **5.6** | 5.7 | 5.9 | 6.1 |
+
+Semiannual percentages. Their own summaries: a 10% rise in premium is worth "roughly an
+additional 100 basis points" of semiannual average return on the 1978 calls and **80 bp** on the
+1982 puts (70 bp for the DJ universe in both), while the standard deviation is "virtually
+unaffected". **Return moves and risk does not** — precisely the shape of §09's claim, found
+twice, on both legs, on real price paths, by authors with no stake in our conclusion.
+
+**Why this is an item and not a citation.** Their axis is *percent of model premium*, ours is
+*volatility points*, and the bridge has to be built. Indicatively, on the 1982 puts: their ATM
+six-month put premium runs about **8.5%** of spot (1978 fn. 11 puts the ATM six-month *call* at
+10% of stock price for the 136-stock sample in H1 1973; 1982 p. 8 gives an average put/call price
+ratio of **84.9%** at E/S = 1.0); net investment is 100·E − P, about 91.5% of spot; and
+Black–Scholes vega at T = 0.5 makes one volatility point worth roughly **3.2%** of that premium
+at σ = 30%. Ten percent of premium is then ≈ 3.1 points, and 80 bp per half-year becomes
+**≈ 50 bp per point per year, against our 45**.
+
+**Treat that as a sketch.** σ = 30% is assumed rather than read — they report premium *levels* in
+figures and never tabulate the variance rates behind them — the capital bases differ (they post
+100·E in commercial paper per put; we carry inventory at market plus collateral), and the 1978
+call leg needs its own conversion. Doing it properly *is* the item, and it is worth doing even if
+the answer lands further from 45 than this sketch: an independent estimate of the same slope off
+1963–77 data is a stronger thing to set beside §09's finite difference than any of II-26's four,
+and a material disagreement would itself be a finding.
+
+**Where it lands.** §09, beside the volatility-premium slope, as the answer to the reader's
+natural objection that surely something eats part of each point. **Sequence with II-26 and
+II-18** — all three edit the same subsection, II-18 moves the size of the prize, and II-26 is
+choosing which citations survive; see its density note for what this displaces.
+
+**II-28. The put leg's early exercise, where MSG 1982 supplies a number and a warning — and one
+headline result that must not be imported.** (From the same read; **the put-side twin of II-25**,
+which sized this question for calls and found it did not bind. This one binds differently.)
+
+II-25 established that early exercise does not reach our *calls*: they are out of the money on
+every date one is written, and the American premium lives near the money. **The put leg has had
+no equivalent treatment.**
+
+**The frequencies.** Six-month puts, 136-stock sample, July 1963 – June 1977 (Table 1), percent
+exercised early / at expiration / never:
+
+| | early | at expiry | never |
+|---|---|---|---|
+| OTM, E = 0.9·S | 24.7 | 3.0 | 72.3 |
+| ATM, E = 1.0·S | 43.7 | 3.1 | 53.2 |
+| ITM, E = 1.1·S | 65.4 | 3.2 | 31.4 |
+
+DJ never-exercised: 73.7 / 52.3 / 25.2. Ours are OTM by construction, which is the top row — but
+these are *six-month* puts under 1970s rates and dividend yields against our weekly ones, so the
+window in which early exercise can pay is a fraction of theirs. Quote 24.7% with the tenor
+attached or it will read as a claim about us.
+
+**The warning is theirs** (p. 23): *"any simulation of put-option strategies that assumes all put
+positions are held until the expiration date will systematically understate the returns to the
+buyers of puts and overstate the returns to the writers of puts."* Our model is European; that
+sentence is aimed at what we do.
+
+**What it costs is the tail, not the mean**, and their own tables measure it. Table 6 re-runs the
+simulation with the same premiums and early exercise switched off:
+
+| 136-stock, ATM | with early exercise | held to expiry |
+|---|---|---|
+| average return % | 4.1 | 4.1 |
+| standard deviation % | 5.6 | 6.6 |
+| lowest return % | −6.4 | −13.2 |
+| skewness | +0.44 | −0.44 |
+
+The mean does not move. The left tail roughly doubles and the skew changes sign.
+
+**The result that must not be imported, and the item's reason to exist.** In Table 5 uncovered
+put writing beats fully covered call writing on every axis in all six strike-by-universe
+pairings — higher return, lower standard deviation, positive skew, smaller worst loss — and beats
+the DJ stock portfolio outright at E/S = 1.1. A reader who has met MSG will expect the wheel's
+put leg to inherit that. **It does not.** The advantage is early exercise acting as a
+*stop-loss*: when the stock falls far enough MSG repurchase the put at intrinsic value and the
+proceeds sit in commercial paper for the balance of the period, so the position is closed and the
+loss truncated. **The wheel has no such exit.** Assignment does not end our exposure; it converts
+the short put into a lot that then rides the depth process to its own barrier, which is the whole
+of Part II. So the wheel's put leg should be expected to resemble their Table 6 rather than their
+Table 5 — and the European treatment is the *right* model of it for a reason unrelated to the
+American premium being small.
+
+**What to do.** Extend §05's caveat on exercise style — calls-only after II-25 — with one
+paragraph for puts: the observed frequency at OTM strikes and six-month tenor, why a weekly tenor
+sees far less of it, and the structural point that assignment in the wheel is an *entry* and not
+an exit, so MSG's stop-loss is absent by construction. **This does not reopen the descope**, no
+formula changes, and like II-25 it turns an assertion into a sized one. Append the dated
+`**Amended:**` note to `DONE.md`'s American-vs-European entry alongside II-25's.
+
+**One smaller thing, folded in here rather than given an item.** 1982 pp. 9–11 finds the put–call
+parity model systematically understates American put values, worst in high-rate periods (1969,
+1974), concluding that "for all but the 'roughest' of evaluations, the parity model is not an
+appropriate put-pricing model". **We are not exposed today** — `model.py:120`'s `bs_put` is a
+direct European formula and does not go through `bs_call` — but parity is the natural shortcut
+for anyone extending the pricing, and §05's caveat is the place to spend a clause on it.
+
 ## Part III — Many assets
 
 Neither file exists. This is Stage 3 of the restructure and the largest single block of
@@ -813,6 +921,54 @@ diversifying short-option books. **The read levels bind** (I-1): DMV is **[A]** 
 which is why this item states its mechanism qualitatively and takes its *magnitudes* from II-18's
 Bakshi & Kapadia and Carr & Wu instead. Nothing here may be upgraded to a quoted DMV number until
 someone opens the paper, and §13 must not lean on it further than the item already does.
+
+**III-4. A portfolio of nonlinear positions is not the nonlinear position on the portfolio, and
+contribution 7's wording invites the confusion.** (From the Merton–Scholes–Gladstein read of
+2026-08-01. **Sits under III-3's constraint** rather than beside it: III-3 says §12 and §13 are
+one argument, and this is a second way that argument can be got wrong.)
+
+**The mechanism, in their worked example** (1978 fn. 14). Two at-the-money fully covered
+positions: 100 shares of each stock at $100, one call written on each for $1,000, net investment
+$18,000, semiannual dividend yield 1.5% on both. Let the ex post average price appreciation
+across the two names be zero. If both end at $100 the covered portfolio earns **+12.8%**. If one
+ends at $70 and the other at $130 — same average, identical stock-portfolio return — the covered
+portfolio **loses 4.7%**. The intrinsic value of one call is $3,000 in the second case and zero
+in the first, and the average conceals it entirely.
+
+**It is not a constructed case.** Appendix C.II gives the real one: DJ sample, second half of
+1973. The equally weighted stock portfolio returned **+0.9%** with dividends. The average
+percentage premium was **8.3%**, so the single-position analogy predicts about **+9.0%**. The
+portfolio of fully covered positions returned **+0.5%** — because 11 of the 30 names rose and 19
+fell, and seven of the eleven rose more than 20%. Their own warning (p. 206) is that using one
+covered position on a stock portfolio as a surrogate for a portfolio of covered positions "will
+be biased high if the premium received for the single option is assumed equal to the average
+premium received in the writing portfolio".
+
+**What this does and does not do to contribution 7.** The promise is that diversification "leaves
+the expected return and expected capital *completely unchanged* while removing only the noise
+around them". **The expectation half is safe, and III-3 already says why** — expectation is
+linear, so E[portfolio] is the average of E[position] whatever the dependence structure, and
+Little's law carries across streams with no independence assumption. MSG's point is about the *ex
+post* relation between a book's realised return and its constituents' average realised return,
+which is a different object and is not a counterexample to the promise. **But "removing only the
+noise" is the phrase that will mislead.** It invites the reader to picture a distribution
+narrowing around a fixed centre. What actually happens to a book of concave positions is that
+cross-sectional dispersion is a cost which does not average away: every lot's upside is capped
+against *its own* frozen strike, so spread among the names converts into forgone gains no matter
+how many there are. Diversification shrinks the noise and leaves that intact — and on our own
+ledger the forgone gain is [eq:giveaway](#eq:giveaway), already the largest negative term.
+
+**Why it belongs to Part III and not to §02.** The contributions list is not wrong and does not
+need rewriting; the claim is true as stated. What is missing is the sentence §12 has to carry so
+a reader does not over-read it — the same shape as III-3's "say which comparison is being made",
+and a constraint on how §12 is written rather than a correction to §02. Only if §12 cannot say it
+cleanly should contribution 7's wording be revisited, under I-4's standing "check, not a rewrite".
+
+**It is also the one piece of hard evidence Part III has on its own subject.** III-3 records that
+the literature on diversifying short-option books is the thinnest we have, and that DMV — the
+anchor — is **[A]**, an abstract. MSG 1978 is **[F]**, is precisely on this question, and comes
+with both a worked example and a dated real portfolio. Use it in §12 where the diversification
+benefit is first claimed.
 
 ## Part IV — Reality
 
@@ -1088,6 +1244,56 @@ rather than new data — model-dependent, and it must be reported as such.
 - **IV-2's "~+10 points, roughly double the call leg" is withdrawn pending this item** — see the
   note on that bullet. **The depth slope survives**: it divides by each name's own median IV
   within one leg at one tenor, so the clock cancels, and §09:164's "roughly a third" is untouched.
+
+**IV-8. MSG's two methodological cautions, one of which delivers a promise nothing currently
+delivers.** (From the Merton–Scholes–Gladstein read of 2026-08-01. Numbered **IV-8** and not IV-6: IV-6 and
+IV-7 both closed on 2026-07-28 and are in `DONE.md`.)
+
+**First, and this is the valuable half.** I-4 records that §02's contribution 8 promises the
+article will show **which of the model's predictions a career-length track record has no power to
+test**, and that *nothing currently delivers it*. MSG 1982 p. 33 is the precedent, and it is
+about as authoritative as one gets:
+
+> "The observed sensitivity of the average returns to the level of premiums should also serve as
+> a further warning against placing great significance on the levels of measured average return
+> even over a 14-year period."
+
+1978 p. 214 says it of its own results too — the levels "reported in this or any other similar
+study are rather sensitive to the assumed premiums". **Fourteen years, 136 stocks, 28 semiannual
+observations, and the authors decline to read the levels.** Our record is shorter, narrower and
+overlapping. That is not an argument for reporting nothing; it is the citation that lets §14 say
+what the record cannot settle without sounding like an excuse, and it turns a promise §02 has
+been carrying unbacked into a sourced one. The arithmetic of *our* version is II-27's: if a point
+of volatility is worth 45 bp, then telling a two-point edge from a zero-point one asks a track
+record to resolve 90 bp/yr.
+
+**Second, the presentation discipline for a selection-driven result.** IV-2's verdict is that the
+account's advantage came entirely from the excluded lever while the option machinery earned
+nothing distinguishable from zero. MSG 1978 had the same problem — their 136 CBOE-listed names
+were chosen by the exchanges partly on past performance — and solved it by **running everything
+twice and reporting both**: the biased universe (beta 1.17, semiannual alpha **4.2%**) beside the
+DJ 30 (beta 0.98, alpha **0.5%**), with the statement that the truth for a broadly diversified
+holding lies somewhere between. 1982 fn. 25 repeats it over the extended window — S&P 500
+semiannual 3.87%, sd 13.09%; 136-stock beta 1.17, alpha 3.68%; DJ beta 1.00, alpha 0.71%. **They
+name the bias, in the direction that hurts them, before reporting a single strategy result.** §15
+makes a claim of the same kind about one account with no control universe at all, and the honest
+form of it is theirs: name the bias, size it where possible, and lead with the comparison that
+does not depend on it. **Sequence with II-20 and II-21**, which want a beta reported and have no
+precedent to point at for how one should be presented.
+
+**And a pointer into IV-1.** MSG 1982 §III simulates the put/call **conversion** — long stock,
+long put, short call at one strike and expiry, riskless under parity — against rolling commercial
+paper. Average excess return: **−0.051 / −0.059 / −0.095%** per half-year across the three
+strikes on the 136-stock sample and **−0.061 / −0.119 / −0.209%** on the DJ (Table 3). Small,
+negative, and *explained* rather than shrugged at: converters pay above the parity price for an
+American put, and the position is slightly bearish, so a return a little below r is what theory
+asks for. **That is the empirical ancestor of the free test** — run at m = r − δ and the economic
+excess must vanish — which IV-1 carries in its "two internal checks" bullet as a check we run on
+ourselves. One sentence noting the same test was run on real 1963–77 price paths, landing 5–21 bp
+per half-year from zero with the residual accounted for, tells the reader both that the test is
+the standard one and that a small non-zero residual is the expected outcome rather than a
+failure. **Do not present the two as numerically comparable**: different construction, capital
+base and measure. It is the shape of the check that transfers, not the size.
 
 **IV-4. Live data keeps arriving — standing.** Statements land roughly monthly and will keep
 landing until the article is frozen for release. **Every tranche is ingested when it arrives and
