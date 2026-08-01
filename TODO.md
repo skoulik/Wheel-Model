@@ -28,7 +28,7 @@ assembly work.
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **eight open items** (II-18 – II-25) — four in §09, the rest in §05, §07, §08 and §10 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **eight open items** (II-18 – II-25) — four in §09, the rest in §05, §07, §08 and §10, and II-23 also touches §00, §02 and §11 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -67,6 +67,27 @@ sit badly against contribution 4 and against the whole of the pass's Strand B. *
 either way until someone has read it** — that read is **I-5**, and this prohibition stands until
 it closes.
 
+**A second prohibition, and it is likelier to bite than the first** (added 2026-08-01). **Kuang &
+Lin (2025)**, arXiv:2512.01123 **[P]**, is the *only* recent academic item on the wheel by name,
+so whoever writes §03 will find it and will want to use it — the section needs something to say
+about prior work on its own subject. It reports **15.3% annualised, Sharpe 1.08 against 0.62, a
+−8.2% maximum drawdown, and a 0% assignment rate** maintained "through strategic option rolling"
+over 18.75 years. **Do not cite any of those numbers as evidence.** A short-put programme that
+never takes assignment across 2008 and 2020 has not avoided the loss, it has rolled it forward; a
+−8.2% maximum drawdown on a short-put book spanning those years is not credible on its face; and
+the backtest is in-sample with respect to the dataset its LLM selects from. §03 may cite it **as
+existence** — that two arXiv papers name the wheel and neither builds a structural model, which is
+N1's evidence — and for nothing else. Svozil (2026), arXiv:2604.13334 **[P]**, is the other; it is
+qualitative, contributes no machinery, and is consistent with our regime caveat.
+
+**One unread download belongs to this item** (planned 2026-08-01).
+`literature/israelov-et-al-covering-the-world-global-covered-calls.pdf` is downloaded and **not
+read**. It is global evidence on covered calls, and its natural home is §03's subsection 2 — "what
+the record says" — which is otherwise entirely US index data (BXM, PUT/WPUT, CMBO). Read it before
+writing that subsection, **or** state there that the record cited is US-only and why. Either is
+acceptable; silently generalising from US indices to "what systematic option writing returns" is
+not.
+
 What remains is writing `sections/03-prior-work.md`, for which §6 of the draft proposes a
 six-subsection skeleton. Two things it must carry:
 
@@ -83,8 +104,9 @@ six-subsection skeleton. Two things it must carry:
   census that supplies the weighting function.
 - **Its subsection 4 is the citation half of II-18**, the index/single-name volatility-premium gap.
 
-The pass's remaining findings are being converted into items one at a time, so more may land here.
-**This item cannot close until §03 is written**, whatever else that conversion produces.
+The pass's findings finished converting on 2026-08-01, so nothing further is expected to land
+here from that document. **This item cannot close until §03 is written.** The citation-graph pass
+that would strengthen the novelty claim is **I-6** and deliberately does *not* block this item.
 
 **I-2. The abstract is written last.** `sections/01-abstract.md` is a stub by design; it cannot
 be honest until Parts III and IV fix what the article concludes.
@@ -185,11 +207,11 @@ neither adds model machinery beyond what `model.py` already has.
 
 **Four came from the pass's harvest**, converted 2026-08-01, and none of them moves a number
 anywhere: **II-22** replaces §08's hand-derived census integrals with the theorem they are
-instances of, and hands §10 a cleaner statement of its own capital criterion; **II-23** attributes
-the borrowed machinery in §07 and §10; **II-24** gives §08's census its second analogy; **II-25**
-puts a size behind §05's early-exercise caveat. All four depend on §03 (**I-1**) for the citations
-themselves — **§03 carries the pedigree, Part II carries the pointer**, and neither should be
-written twice.
+instances of, and hands §10 a cleaner statement of its own capital criterion; **II-23** cites six
+borrowed things where the reader meets them, and reaches outside Part II to do it (§00, §02, §11);
+**II-24** gives §08's census its second analogy; **II-25** puts a size behind §05's early-exercise
+caveat. All four depend on §03 (**I-1**) for the citations themselves — **§03 carries the
+pedigree, the section carries the pointer**, and neither should be written twice.
 
 **II-18. §09 quotes the *index* volatility risk premium at a single-name model.** (Divergence D1
 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); raised 2026-07-31.)
@@ -465,13 +487,22 @@ the few cells nearest x = 0. Nothing in `code/` does this — `depth_census()` a
 depth and weighted q on the cells and only the printed table is binned — but §08's table invites a
 reader to try it, and any check ever written against that table has to match bin width to h.
 
-**II-23. Part II's borrowed machinery is under-attributed in three places.** (Harvest H2, H3 and
-H9 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); converted
-2026-08-01.)
+**II-23. Six borrowed things, none of them cited where the reader meets it.** (Harvest H2, H3 and
+H9 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), converted
+2026-08-01; **extended the same day** with cross-check rows 2 and 13 and Israelov & Nielsen's
+Myth 8, which the harvest did not claim and no other item carries.)
 
-Three edits of a sentence each. No number moves, no formula changes, and none of it is new
-mathematics — that is the point of the item, since **N2 requires §03 to say the ingredients are
-standard** and Part II should not be quietly implying otherwise.
+Six edits of a sentence or a clause each. No number moves and no formula changes — that is the
+point of the item, since **N2 requires §03 to say the ingredients are standard** and the article
+should not be quietly implying otherwise.
+
+**The rule this item enforces: the citation lands in the prose, not only in §03.** §03 carries the
+pedigree — what each source is, what it says, where it enters — but a reader meeting
+[eq:siegmund](#eq:siegmund) in §07, or the mark loss in §09, has to be able to see *there* that
+the claim is someone else's and where to check it. A name in a list at the front of the article
+does not do that job. Every bullet below names the line it lands on.
+
+*The machinery — three constructions the article derives as if they were its own:*
 
 - **[eq:siegmund](#eq:siegmund) is Broadie–Glasserman–Kou.** §07 attributes the barrier shift to
   "a classical correction due to Siegmund" and §00's symbol table calls β "Siegmund's overshoot
@@ -497,6 +528,43 @@ standard** and Part II should not be quietly implying otherwise.
   anchor. An autocallable terminates at the first scheduled observation date on which the
   underlying is above a fixed level, which is a wheel lot exactly, and it is a product many
   readers will have heard of. Worth a pointer in the detour.
+
+*The results — three places where the article argues from first principles something that is
+already published, and would be stronger for saying so:*
+
+- **§09's "it is not a return" has a formal version.** §09 opens the Track A critique with "cash
+  accounting is internally consistent but it is not a return", and argues it unaided — which is
+  right for a general audience and should stay. **Goetzmann, Ingersoll, Spiegel & Welch (2007)**,
+  *RFS* 20(5):1503–1546 **[A]**, is the formal statement: Sharpe ratios can be *manufactured* by
+  option-writing overlays, and they characterise a manipulation-proof alternative. One clause
+  pointing at it tells a sceptical reader that §09's refusal to headline a cash yield is not our
+  private preference. **[A] — cite the existence of the result, quote no number from it.**
+- **§11's margin call has a published counterpart.** §11 derives it from the barrier — *the margin
+  call is the moment capacity falls to meet the book* — and **Santa-Clara & Saretto (2009) [A]**
+  report the same mechanism empirically: margin calls "limit the notional amount of short
+  positions and force investors out of trades precisely when they are losing money". The
+  cross-check marks this **CONFIRMED in kind, not in magnitude** — theirs is index puts on a
+  margin schedule, ours is a wheel on one name, and the two sets of numbers are not comparable.
+  **Cite the mechanism; never the magnitude.**
+- **Myth 8 is this article's own opening slogan, and §09 already refutes it.** §02 quotes
+  practitioners — *"assignment just means buying a good company at a discount"* — and answers that
+  the slogans "contain truth, but they are not a model", deferring the argument. §09's mark loss
+  *is* that argument: each arrival pays K for something worth S′, so the discount is a loss of
+  e^(x₀) − 1 booked the moment it happens ([eq:mark-loss](#eq:mark-loss), 0.1632/yr). Israelov &
+  Nielsen's **Myth 8 [F]** demolishes the same slogan directly, for covered calls and equivalently
+  for naked puts, and §04's Track A framing ("assignment is *inventory acquisition, not a loss*")
+  is the same claim stated as accounting. **Land it at [eq:mark-loss](#eq:mark-loss)**, where the
+  article has earned it, plus at most a clause at §02 noting the slogan has been formally answered
+  and pointing forward. **Do not turn §02 into an argument** — the deferral there is deliberate,
+  and the refutation belongs where the number is.
+
+**One read this item owes** (planned 2026-08-01).
+`literature/li-zhang-discretely-monitored-first-passage-barrier-options.pdf` is downloaded and
+**skimmed only**. It is the machinery behind the autocallable bullet, and a pointer to a
+literature is a claim about what that literature contains — skim level does not support one. Read
+it before writing that sentence. Everything else here is already at the level its bullet needs:
+BGK is **[F]**, Israelov & Nielsen is **[F]**, and the two **[A]** sources are cited for the
+existence of a result rather than for a figure, which is what **I-1**'s read-level rule permits.
 
 **One INF possibility, recorded and not converted.** The discretely-monitored-barrier literature
 has numerics built for our grid problem (quadrature reaching O(1/N⁴), Hilbert-transform methods

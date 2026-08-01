@@ -66,7 +66,7 @@ text, and the TODO item is where the decisions, the corrections and any later am
 | **D6** — Part III's diversification pricing problem | **TODO III-3**, with pointers in III-1 and III-2 | converted speculatively — it constrains sections not yet written |
 | **N1–N3** — the novelty claim | **TODO I-1** | all three narrowings folded into the rewritten item |
 | **H1** — Brumelle's H = λG | **TODO II-22** | the identity was checked numerically on conversion, see below |
-| **H2, H3, H9** — the missing attributions | **TODO II-23** | grouped: one sitting, one constraint (§03 carries the pedigree) |
+| **H2, H3, H9** — the missing attributions | **TODO II-23** | grouped, then extended the same day to six citations — see below |
 | **H4** — report a beta | **TODO II-20** (+ **II-21**) | converted with D4 on 2026-07-31; its prescription contains a trap |
 | **H5** — the three-way decomposition | *inside* **II-20** | flagged adjacent, adopted only if it earns its space; no item of its own |
 | **H6, H7** — Hill et al.; Broadie–Chernov–Johannes | folded into **IV-1**, with a line in **IV-2** | the section already owned the bullets these sharpen |
@@ -77,6 +77,22 @@ text, and the TODO item is where the decisions, the corrections and any later am
 Of §7's second-pass list, three items were converted with the harvest: **early exercise** became
 **TODO II-25**, the **citation-graph pass** became **TODO I-6**, and **tax** went to **IV-3**.
 The rest stay as written — they are waiting on Part III, on IV-5's re-cut, or on I-5.
+
+**Three things outside the findings were converted as well**, on 2026-08-01, because no item
+carried them and each is an *instruction* rather than a reference. Strand F's "do not cite as
+evidence" on **Kuang & Lin** went into **I-1** beside D5's prohibition, and is the likelier trap
+of the two: it is the only recent paper on the wheel by name, so §03's author will find it while
+looking for exactly this. Cross-check rows **2** (Goetzmann on Sharpe manipulation) and **13**
+(Santa-Clara & Saretto on margin calls), together with Strand B's **Myth 8** — the "buy a good
+company at a discount" slogan the article quotes in §02 and refutes in §09 without saying anyone
+else has — extended **II-23** from three attributions to six, under a rule that item now states
+explicitly: **the citation lands in the prose where the reader meets the claim**, not only in §03.
+
+**The two unread downloads have owners.** `covering-the-world` (**unread**) belongs to **I-1**,
+whose §03 subsection 2 is otherwise entirely US index data and would be generalising silently
+without it; `li-zhang` (**skimmed**) belongs to **II-23**, whose autocallable pointer is a claim
+about what that literature contains. Both are recorded as reads to be done before the *writing*,
+not before the item.
 
 **Four findings changed materially on conversion. The TODO items, not this document, carry the
 corrected version.**
@@ -209,6 +225,12 @@ canonical instruments are CBOE's strategy benchmark indices.
   to do anyway ("an option is a contractual obligation, not a plan"); **Myth 8** covered calls
   (equivalently naked puts) let you buy a stock at a discount — which they demolish explicitly,
   and which is the wheel's central slogan.
+
+  > **Three of the eight are converted; the rest are §03 material only.** Myth 2 → **II-20**,
+  > where down-beta comes out exactly 1.000 in our own model; Myth 4 → **II-19**, cadence-
+  > neutrality at fair prices; **Myth 8 → II-23**, landed at `eq:mark-loss`, which is where §09
+  > already refutes the slogan §02 quotes — without saying anyone else has. Myth 3 is cross-check
+  > row 2, and its *formal* half (Goetzmann on Sharpe manipulation) went to II-23 with it.
 
 - **Israelov & Nielsen (2015)**, *Covered Calls Uncovered*, FAJ 71(6) **[P]** — a three-way
   attribution: passive equity, short volatility, and an **equity reversal (dynamic timing)**
@@ -357,6 +379,12 @@ constructions the article currently derives from scratch.
 
 Two arXiv papers exist and neither is a structural model. Both are recorded here for completeness
 and for the novelty check.
+
+> **→ TODO I-1**, converted 2026-08-01. The "do not cite as evidence" instruction below is now a
+> **prohibition in I-1**, beside D5's, and is the likelier of the two to bite: this is the only
+> recent paper on the wheel *by name*, so whoever writes §03 will find it while looking for
+> exactly this. What I-1 permits is citing it **as existence** — two arXiv papers name the wheel,
+> neither builds a structural model, which is N1's evidence — and nothing else.
 
 - **Kuang & Lin (2025)**, *A Hybrid Architecture for Options Wheel Strategy Decisions:
   LLM-Generated Bayesian Networks for Transparent Trading*, arXiv:2512.01123 **[P]** — an LLM
@@ -862,7 +890,7 @@ Downloaded copies are in `literature/` (gitignored). Read levels as defined in �
 - Israelov, R. & Nielsen, L. N. (2015). Covered Calls Uncovered. *FAJ* 71(6). **[P]** — https://www.aqr.com/library/journal-articles/covered-calls-uncovered · `israelov-nielsen-2015-covered-calls-uncovered.pdf`
 - Hill, J., Balasubramanian, V., Gregory, K. & Tierens, I. (2006). Finding Alpha via Covered Index Writing. *FAJ* 62(5):29–46. **[P]** — https://papers.ssrn.com/sol3/papers.cfm?abstract_id=935138 · `hill-et-al-2006-finding-alpha-covered-index-writing.pdf`
 - Bondarenko, O. (2019). Historical Performance of Put-Writing Strategies. CBOE. **[F]** — https://cdn.cboe.com/resources/education/research_publications/PutWriteCBOE19_v14_by_Prof_Oleg_Bondarenko_as_of_June_14.pdf · `bondarenko-2019-put-writing-strategies.pdf`
-- Israelov, R. et al. Covering the World: Global Evidence on Covered Calls. AQR. **[downloaded, unread]** — `israelov-et-al-covering-the-world-global-covered-calls.pdf`
+- Israelov, R. et al. Covering the World: Global Evidence on Covered Calls. AQR. **[downloaded, unread]** — `israelov-et-al-covering-the-world-global-covered-calls.pdf` — *read owed by **I-1**, before §03's subsection 2, which is otherwise all US index data*
 - Israelov, R. & Tummala, H. (2017). Which Index Options Should You Sell? *J. Investment Strategies*. **[A]** — https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2990542
 - Merton, R., Scholes, M. & Gladstein, M. (1978). *J. Business* 51:183–242; (1982) *J. Business* 55:1–55. **[A — unverified, D5]**
 - Cboe S&P 500 Covered Combo Index (CMBO) methodology. **[A]** — https://cdn.cboe.com/api/global/us_indices/governance/CMBO_Methodology.pdf
@@ -888,7 +916,7 @@ Downloaded copies are in `literature/` (gitignored). Read levels as defined in �
 - Chang, J. & Peres, Y. (1997). *Ann. Probab.* 25(2):787–802. **[A]**
 - Janssen, A. & van Leeuwaarden, J. (2007). On Lerch's Transcendent and the Gaussian Random Walk. *Ann. Appl. Probab.* 17(2). **[P]** — `janssen-vanleeuwaarden-2007-lerch-gaussian-random-walk.pdf`
 - **Little, J. (2011). OR Forum — Little's Law as Viewed on Its 50th Anniversary. *Operations Research* 59(3):536–549. [P]** — `little-2011-littles-law-50th-anniversary.pdf` — *source for H1 and N3*; cites Brumelle (1971) and Heyman & Stidham (1980) for H = λG
-- Li & Zhang. Discretely Monitored First Passage Problems and Barrier Options. **[downloaded, skimmed]** — `li-zhang-discretely-monitored-first-passage-barrier-options.pdf`
+- Li & Zhang. Discretely Monitored First Passage Problems and Barrier Options. **[downloaded, skimmed]** — `li-zhang-discretely-monitored-first-passage-barrier-options.pdf` — *read owed by **II-23**, before §07's autocallable pointer is written*
 
 **Behavioural**
 - Odean, T. (1998). Are Investors Reluctant to Realize Their Losses? *JF* 53:1775–1798. **[A]**
