@@ -51,10 +51,10 @@ assets — John Little himself gives that example).
 
 ### Disposition — what this pass turned into
 
-Conversion into [`TODO.md`](../TODO.md) items began 2026-07-31 and is **in progress**, one
-finding at a time. This table is the map, and the inline markers below repeat it at each finding.
-**Nothing here edits the findings themselves**: a converted finding keeps its original text, and
-the TODO item is where the decisions, the corrections and any later amendments live.
+Conversion into [`TODO.md`](../TODO.md) items ran 2026-07-31 to 2026-08-01, one finding at a
+time, and is **complete**. This table is the map, and the inline markers below repeat it at each
+finding. **Nothing here edits the findings themselves**: a converted finding keeps its original
+text, and the TODO item is where the decisions, the corrections and any later amendments live.
 
 | finding | became | |
 |---|---|---|
@@ -65,9 +65,20 @@ the TODO item is where the decisions, the corrections and any later amendments l
 | **D5** — Merton–Scholes–Gladstein unverified | **TODO I-5**, prohibition in **I-1** | low priority: nothing cites them, so the read can also be closed by descoping |
 | **D6** — Part III's diversification pricing problem | **TODO III-3**, with pointers in III-1 and III-2 | converted speculatively — it constrains sections not yet written |
 | **N1–N3** — the novelty claim | **TODO I-1** | all three narrowings folded into the rewritten item |
-| **H1–H11** — the harvest | *none yet converted* | |
+| **H1** — Brumelle's H = λG | **TODO II-22** | the identity was checked numerically on conversion, see below |
+| **H2, H3, H9** — the missing attributions | **TODO II-23** | grouped: one sitting, one constraint (§03 carries the pedigree) |
+| **H4** — report a beta | **TODO II-20** (+ **II-21**) | converted with D4 on 2026-07-31; its prescription contains a trap |
+| **H5** — the three-way decomposition | *inside* **II-20** | flagged adjacent, adopted only if it earns its space; no item of its own |
+| **H6, H7** — Hill et al.; Broadie–Chernov–Johannes | folded into **IV-1**, with a line in **IV-2** | the section already owned the bullets these sharpen |
+| **H8** — the disposition effect | **TODO II-24** | §08 rather than §16; the pass left the choice open |
+| **H10** — Muravyev & Pearson on costs | folded into **IV-3** | with **tax**, which had no home anywhere |
+| **H11** — Goyal & Saretto | folded into **IV-2** | converted as a *distinction*, not as support — see the marker |
 
-**Three findings changed materially on conversion. The TODO items, not this document, carry the
+Of §7's second-pass list, three items were converted with the harvest: **early exercise** became
+**TODO II-25**, the **citation-graph pass** became **TODO I-6**, and **tax** went to **IV-3**.
+The rest stay as written — they are waiting on Part III, on IV-5's re-cut, or on I-5.
+
+**Four findings changed materially on conversion. The TODO items, not this document, carry the
 corrected version.**
 
 - **D2.** Most of the +10 points is a **clock mismatch**, not skew: `iv_panel.py` inverts with
@@ -88,6 +99,18 @@ corrected version.**
   the strike, while BXM's figures come from calendar-monthly returns misaligned with the roll.
   Followed literally, H4 would have produced "the wheel's up-beta is 0.83 against BXM's 0.63" as
   though it were like-for-like. II-21 exists to keep that comparison a detour.
+- **H1.** The H = λG mapping was checked numerically rather than asserted, and it is **exact** —
+  per-arrival against census, agreeing to 0.000% on all four weightings. Two things this section
+  did not know: **`model.py` already computes the H = λG side** (`occupation()` returns the
+  per-arrival sums and `economics()` multiplies by λ), so only the prose derives anything by hand;
+  and the theorem hands **§10** a better statement of the capital criterion than §08 gains from
+  it — θ > 1 is exactly "G is finite at f = e^x". II-22 is therefore a §08 *and* §10 item.
+- **Early exercise** (§7's list, now II-25). The pass flagged Bakshi & Kapadia's ~2 volatility
+  points as "not nothing" against a caveat that merely asserts the omission is conservative. On
+  conversion it turns out **not to bind, for a structural reason**: our calls are OTM on every
+  date one is written, since the strike is frozen at the lot's basis and a lot survives only while
+  x > 0, and 2 points is a *near-money* figure. The item carries the sizing of the one channel
+  that could bite.
 
 **One defect in this document, recorded rather than corrected.** Strand B cites
 Merton–Scholes–Gladstein as "[A — unverified, see **D7**]"; the divergence is numbered **D5**, as
@@ -610,16 +633,24 @@ Kou (1997) would be a stronger test. Recommend doing that before publication, no
 
 ## 5. Harvest — what to actually take
 
-> **None of H1–H11 is converted** as of 2026-07-31; the conversion pass took the divergences
-> first. Three are spoken for by items raised elsewhere: **H4** (report a beta) went into
-> **II-20** with D4 — *and its prescribed BXM comparison is the trap II-21 quarantines, so do not
-> follow H4's last paragraph as written*; **H5** (the three-way decomposition) is flagged as
-> adjacent in II-20 but not adopted; and **H10** (Muravyev & Pearson on transaction costs)
-> belongs to IV-3's descope list. The rest are unclaimed.
+> **H1–H11 were converted on 2026-08-01**, after the divergences. Four became items of their own
+> — **H1 → II-22**, **H2/H3/H9 → II-23**, **H8 → II-24** — and the rest were folded into items
+> that already owned the section they touch: **H6** and **H7** into **IV-1** (with a line of H7 in
+> **IV-2**), **H10** into **IV-3**, **H11** into **IV-2**. **H4** went into **II-20** with D4 the
+> day before — *and its prescribed BXM comparison is the trap II-21 quarantines, so do not follow
+> H4's last paragraph as written*; **H5** stays flagged as adjacent inside II-20 and was
+> deliberately not promoted. Each marker below says where its item is and what changed.
 
 Ordered by how much they change the article.
 
 **H1 — Replace §08's hand-derivation with Brumelle's H = λG.** *(highest value)*
+
+> **→ TODO II-22**, converted 2026-08-01. The identity was **checked numerically and holds
+> exactly** (0.000% across all four weightings), and two things this section did not know came out
+> of the check: `model.py` already computes the H = λG side, so only the prose derives anything by
+> hand; and **§10 gains more than §08 does** — the capital criterion θ > 1 *is* the statement that
+> G is finite at f = e^x. The item also carries a caution this section does not: H = λG is a
+> stationary identity while the article reports finite horizons.
 Our income and capital results are currently derived as integrals against the census, justified in
 prose. They are instances of a named theorem — the generalised Little's law, H = λG (Brumelle
 1971; Heyman & Stidham 1980; restated in Little 2011 §3.2.2) — which says that for **any**
@@ -631,6 +662,11 @@ theorem rather than a construction, it inherits Little's freedom from independen
 covers both results instead of two.
 
 **H2 — Cite Broadie–Glasserman–Kou for the call-grid tax, alongside Siegmund.**
+
+> **→ TODO II-23**, converted 2026-08-01, **grouped with H3 and H9** — three one-sentence
+> attributions that are one editing sitting and share one constraint: §03 carries the pedigree,
+> Part II carries the pointer. The item adds a target this section misses, §00's symbol table,
+> which also calls β "Siegmund's overshoot constant".
 `eq:siegmund` is currently attributed to Siegmund alone. The constant and its use are
 Broadie–Glasserman–Kou (1997) — a Mathematical Finance paper with an order of magnitude more
 citations in finance, and one whose framing ("shift the barrier by exp(±βσ√Δt)") is *closer to what
@@ -639,6 +675,9 @@ the correction is asymptotic in the monitoring frequency. Keep Siegmund (1979, 1
 origin and Chang & Peres (1997) as the pointer for anyone wanting the higher-order terms.
 
 **H3 — Name θ = 2ν/σ² as the Lundberg adjustment coefficient.**
+
+> **→ TODO II-23** with H2 and H9, converted 2026-08-01. The Dufresne/Yor caution below is carried
+> into the item verbatim in substance — cite as analogy or not at all, never as an identity.
 §10 introduces θ as "the tail exponent" and calls it "the single most informative number about a
 configuration of this strategy". It is the **Cramér–Lundberg adjustment coefficient** from ruin
 theory, the exponential rate of the all-time maximum of a Brownian motion with drift −ν, and the
@@ -667,6 +706,11 @@ literature locate themselves immediately, and it makes the "reversal exposure is
 point — which we get for free from GBM — legible as a *result* rather than an assumption.
 
 **H6 — Use Hill et al.'s four-way attribution as an external check on our ledger.**
+
+> **→ folded into TODO IV-1**, 2026-08-01, rather than made an item: §14 already owns the ledger's
+> verification and the bullet this sharpens. The framing carried across is that it validates the
+> ledger's *structure* where the Monte Carlo validates only its arithmetic. This section says §14;
+> IV-1 is that section.
 Fair call premium / volatility premium / exercise cost / trading cost. Their finding that the
 exercise cost is the largest single drag is precisely our call-away giveaway, and it is the term
 our first economic ledger omitted. A paragraph in §14 comparing our attribution's shape to theirs
@@ -674,6 +718,11 @@ is a cheap external validation of the ledger's *structure*, independent of the M
 only validates its arithmetic.
 
 **H7 — Take Broadie–Chernov–Johannes as the method for IV-1's "what a career cannot test".**
+
+> **→ folded into TODO IV-1**, with its second consequence in **IV-2**, 2026-08-01. Both halves
+> survive as written: the overlay-excess statistic is defended as the right *kind* of measurement,
+> and IV-2's interval is presented as a known property of option returns rather than as an apology
+> for fourteen months.
 They make the argument we need and make it better than we currently can: put returns are so noisy
 that even 18 years of monthly data cannot reject Black–Scholes for deep-OTM puts (p ≈ 8%), and
 **CAPM alphas and Sharpe ratios on option returns are noisier still than raw average returns** —
@@ -685,6 +734,11 @@ be presented as **the expected consequence of a known property of option returns
 apology for a short sample.
 
 **H8 — The disposition-effect framing for the census.**
+
+> **→ TODO II-24**, converted 2026-08-01. The §08-or-§16 choice this section leaves open is
+> **decided for §08**: §16's list is what the model leaves out, and this describes what the model
+> already produces. The item adds two limits — the analogy is structural and does not transfer
+> Odean's cost estimate, since that cost is largely tax and the article models none (IV-3).
 §08's hospital-beds analogy is good; Odean gives it a second, sharper one. The wheel is a
 contract that sells every winner and holds every loser — the disposition effect with the
 discretion removed. Odean's investors do it 1.5–2× more than chance and it costs them; the wheel
@@ -692,6 +746,10 @@ does it always. This is a one-paragraph detour in §08 or §16 and it is the mos
 statement of why standing inventory is dominated by deep lots.
 
 **H9 — Autocallables as the machinery pointer for §07.**
+
+> **→ TODO II-23** with H2 and H3, converted 2026-08-01. The INF possibility this section raises
+> is recorded in the item and **not** converted: an autocallable-quadrature check on
+> `occupation()` would be a third independent method family, and nothing needs it today.
 A wheel lot is an autocall: it terminates on the first scheduled observation date at which the
 underlying is above a fixed level. Saying so gives §07's first-passage detour a real-world anchor
 readers may know, and points anyone wanting sharper numerics at a literature (quadrature methods,
@@ -699,6 +757,9 @@ Hilbert transforms) built for exactly our grid problem. Possible use for INF wor
 numerical check on `occupation()` from a completely different method family.
 
 **H10 — Muravyev & Pearson for the transaction-cost descope.**
+
+> **→ folded into TODO IV-3**, 2026-08-01, together with **tax** from §7's second-pass list, which
+> had no home anywhere. §16 is the outlook, and IV-3 is the item that rewrites it.
 §16 lists transaction costs as deliberately out of scope. If it wants a defensible sentence about
 what including them would cost, the modern estimate is that effective spreads are **29.6%
 (algorithmic) to 58.4% (all traders) of the quoted half-spread** — conventional estimates roughly
@@ -706,6 +767,11 @@ double the truth. Hill et al.'s 3–6 bp/month at half a volatility point is the
 version.
 
 **H11 — Goyal & Saretto for IV-2's selection discussion.**
+
+> **→ folded into TODO IV-2**, 2026-08-01, and sharpened on the way. This section already notes
+> that it is an options signal rather than a stock-selection one; the item makes that the *whole*
+> reason to cite it, and adds the account's own confirmation — the published edge lives in the
+> overlay, which is the leg that earned −4.37%.
 IV-2 must say what modelling the selection result would commit us to. Goyal & Saretto (2009) is
 the published, pre-existing version of "the operator has an edge picking what to sell": sorting on
 implied-minus-historical volatility predicts option returns cross-sectionally, robustly. It is
@@ -753,25 +819,36 @@ should be two or three sentences with the citation carrying the weight.
 Deliberately not done here, either because Part III does not exist yet or because it needs a
 different kind of search.
 
+> **Conversion status, 2026-08-01.** Three of these became items — early exercise is **II-25**,
+> the citation-graph pass is **I-6**, tax is folded into **IV-3**. Part III's reading is recorded
+> inside **III-3**, deliberately as a precondition on §12/§13 rather than as a task of its own.
+> The remaining three already had homes: **I-5**, **II-18**/**IV-5**, and **IV-3**.
+
 - **Part III's literature is largely unread.** Driessen–Maenhout–Vilkov is the anchor and I have
   only its abstract. Also wanted: the correlation risk premium literature more broadly, the
   crisis-correlation literature, and whatever exists on diversification of short-option books.
-  This should be done *with* §12 and §13, not before.
+  This should be done *with* §12 and §13, not before. → **III-3**, which also records that its own
+  magnitudes come from II-18's sources and not from DMV, precisely because DMV is **[A]**.
 - **A citation-graph pass** outward from Whaley (2002), Israelov & Nielsen (2014) and
-  Broadie–Glasserman–Kou (1997), to firm up the novelty claim (N1 caveat).
-- **Merton–Scholes–Gladstein (1978, 1982)** in full text (D5).
+  Broadie–Glasserman–Kou (1997), to firm up the novelty claim (N1 caveat). → **I-6**, kept out of
+  I-1 so that §03 is not held behind a release gate.
+- **Merton–Scholes–Gladstein (1978, 1982)** in full text (D5). → **I-5**.
 - **A modern single-name IV − RV estimate** (D1) — either from the literature or from our own data
-  once D2's measurement is fixed.
+  once D2's measurement is fixed. → **II-18** takes the published route; **IV-5** decides what our
+  own data can support, and finds it is one nine-contract cell.
 - **Early exercise.** Bakshi & Kapadia note an American-exercise premium worth ~2 volatility points
   on short-dated near-money calls. Our model is European and `DONE.md` argues the omission is
   conservative. Two points is not nothing, and the argument deserves a citation rather than an
-  assertion.
+  assertion. → **II-25**, where the two points turns out **not to bind**: our calls are OTM by
+  construction on every date one is written, and near-money is where the American premium lives.
 - **The term structure of the volatility risk premium** (D3), if we decide the cadence question
-  is worth answering.
+  is worth answering. → **IV-3**, as the minimal extension that would let the model speak to
+  cadence; II-19 carries the slope the record implies.
 - **Tax.** Entirely unexamined here and materially adverse for a wheel run in a taxable account
   (short-term treatment of premium, wash sales on repeated assignment, and the qualified-covered-call
   rules that suspend holding periods). The article does not claim to cover it; §16 should probably
-  say so explicitly.
+  say so explicitly. → **IV-3**, with the observation that it is not currently even on §16's list
+  of deliberate omissions, which makes it look like an oversight.
 
 ---
 

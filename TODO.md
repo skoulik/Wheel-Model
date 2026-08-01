@@ -19,16 +19,16 @@ to a reader and should be added only when the text genuinely defers something.
 
 Thirteen of the seventeen planned section files exist, plus a generated reproduction appendix
 (`sections/99-reproduction.md`, produced by `python -m examples --appendix`, never edited by
-hand). Part I is written bar two stubs; **Part II is written, with four items outstanding**
-(II-18 through II-21 — two corrections and two additions, all raised by the literature pass of
-2026-07-31, which reopened Part II the day it closed); **Part III and Part IV are unwritten**,
-and between them they are still the bulk of what is left besides those stubs and the assembly
-work.
+hand). Part I is written bar two stubs; **Part II is written, with eight items outstanding**
+(II-18 through II-25 — all raised by the literature pass of 2026-07-31, which reopened Part II
+the day it closed, and none of which changes a formula or a verdict); **Part III and Part IV are
+unwritten**, and between them they are still the bulk of what is left besides those stubs and the
+assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **four open items** (II-18 – II-21), all in §09 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **eight open items** (II-18 – II-25) — four in §09, the rest in §05, §07, §08 and §10 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -144,16 +144,52 @@ answer to it.
 untrustworthy; another search returns more of the same evidence class we already rejected. Only
 the full text discharges it — or option 2 does.
 
+**I-6. A citation-graph pass on the novelty claim, before release.** (From §4's own caveat and
+the second-pass list of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md);
+converted 2026-08-01. **Deliberately not folded into I-1** — see below.)
+
+The novelty claim rests on **negative results from web search**, which is weak evidence, and the
+pass says so about itself. It searched for the wheel by name, for covered-call and put-write
+holding-time models, for queueing and inventory-theoretic treatments of option positions, for
+infinite-server applications in finance, and for averaging-down and accumulation models, across
+arXiv, SSRN and the major publishers. That is reasonable coverage of what is *findable* by
+keyword; it is not a systematic review, and keyword search is exactly the method that misses a
+paper which builds our object under someone else's vocabulary.
+
+**The stronger test is a citation-graph pass** — forward citations outward from the three
+anchors, Whaley (2002), Israelov & Nielsen (2014) and Broadie–Glasserman–Kou (1997), on the
+reasoning that a prior structural model of the wheel would almost certainly cite at least one of
+them and might well match none of our search terms.
+
+**Why it is separate from I-1.** I-1 closes when §03 is written, which is an assembly-time
+deadline; this is a **release** gate, and the pass recommends it "before publication, not before
+assembly". Folding it in would hold a section that is otherwise ready to close behind a search
+that can happen at any time before release. §03 can be written on the evidence in hand provided
+it is phrased as N2 requires — the ingredients are standard, the assembly is not — which is a
+claim a later pass can only strengthen.
+
+**If it finds something**, the repair is confined to §03's subsection 6. No result in the article
+depends on being first, and that is worth saying inside §03 rather than only here.
+
 ## Part II — One asset
 
-Part II closed on 2026-07-31 and was reopened the same day by the literature pass. **All four
-open items land in §09**, and IV-5 edits it a fifth time, so read them together before touching
-the section. None changes a formula or a verdict. Two are corrections to what the section already
-says — **II-18** the level of the volatility premium, **II-19** its missing tenor axis — and two
-are additions the section never attempted: **II-20** the first risk statistic anywhere in the
-article, and **II-21** the detour that keeps II-20 from being read as a comparison it is not.
-II-19 and II-20 add frozen cases; neither adds model machinery beyond what `model.py` already
-has.
+Part II closed on 2026-07-31 and was reopened the same day by the literature pass. Eight items
+are open, they divide cleanly in two, and **none of them changes a formula or a verdict**.
+
+**Four land in §09**, and IV-5 edits it a fifth time, so read them together before touching the
+section. Two are corrections to what the section already says — **II-18** the level of the
+volatility premium, **II-19** its missing tenor axis — and two are additions the section never
+attempted: **II-20** the first risk statistic anywhere in the article, and **II-21** the detour
+that keeps II-20 from being read as a comparison it is not. II-19 and II-20 add frozen cases;
+neither adds model machinery beyond what `model.py` already has.
+
+**Four came from the pass's harvest**, converted 2026-08-01, and none of them moves a number
+anywhere: **II-22** replaces §08's hand-derived census integrals with the theorem they are
+instances of, and hands §10 a cleaner statement of its own capital criterion; **II-23** attributes
+the borrowed machinery in §07 and §10; **II-24** gives §08's census its second analogy; **II-25**
+puts a size behind §05's early-exercise caveat. All four depend on §03 (**I-1**) for the citations
+themselves — **§03 carries the pedigree, Part II carries the pointer**, and neither should be
+written twice.
 
 **II-18. §09 quotes the *index* volatility risk premium at a single-name model.** (Divergence D1
 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); raised 2026-07-31.)
@@ -374,6 +410,171 @@ simulated account.
 footnote. **§09's headline risk numbers stay ours**, and no conclusion in the article may depend
 on this comparison landing any particular way.
 
+**II-22. §08 derives by hand a theorem that has a name, and §10 inherits a better statement of
+its own criterion.** (Harvest H1 of
+[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), its highest-value item;
+converted 2026-08-01, and the identity was checked numerically while converting.)
+
+The **generalised Little's law, H = λG** — Brumelle (1971) and Heyman & Stidham (1980), restated
+in Little's own 50th-anniversary paper (2011, §3.2.2) **[P]** — says that for **any** weighting
+f<sub>i</sub>(t) applied over each item's time in the system, the time-average H equals λ times
+the per-item total G. L = λW is the case f ≡ 1.
+
+**Every census integral in Part II is an instance of it**, and the article derives each in prose:
+
+| weighting f | gives | where |
+|---|---|---|
+| 1 | E[I] = 11.40 lots | [eq:little](#eq:little) |
+| e^x | cost-basis capital 18.23 | §09, "what is tied up" |
+| the call premium at depth x | call income 0.3706/yr | [eq:income](#eq:income) |
+| δ_net × market value | dividends 0.2422/yr | [eq:income](#eq:income) |
+
+**Checked 2026-08-01, and it is exact.** Computed both ways at Standard/P/30y — the per-arrival
+route (λ times the per-lot sum over its life) against the census route (E[I] times the
+depth-census average) — the two agree to **0.000% on all four** when the census is read on the
+walk's own cells. `model.py` already computes the H = λG side: `occupation()` returns exactly the
+per-arrival sums `E[J]`, `E[prem]`, `E[basis]`, and `economics()` multiplies them by λ. **Only the
+prose derives them by hand.** And `wheel_sim.py --scenario validate` already checks all four end
+to end against machinery that shares nothing with `model.py` (E[I] +5.8%, cost capital +11.7%,
+premiums +1.2%, dividends +5.5% at 200 paths).
+
+**What §10 gains, which is the better half of this item.** The capital criterion is currently
+derived as "the integral of e^x against the census converges". Under H = λG that is precisely the
+statement that **G is finite for f = e^x** — the per-lot integral of carrying value over the
+lot's life. The two boundaries then read as one sentence with two weightings: lots return iff W
+is finite, their capital returns iff G is finite at f = e^x. That is a real gain in exposition and
+it costs nothing.
+
+**Three cautions.**
+
+- **H = λG is a stationary identity and the article reports finite horizons.**
+  [eq:little-finite](#eq:little-finite) is a truncation of it, not the theorem, and so is every
+  horizon-indexed figure downstream. Whatever §08 says must keep that distinction as sharply as it
+  currently keeps [eq:little](#eq:little) apart from [eq:little-finite](#eq:little-finite).
+- **Do not claim novelty** — N3, and **I-1** carries the prohibition. Little's own worked example
+  of a non-trivial weight is "the dollar rate of return on the ith asset in a portfolio of
+  assets". §08 must not contradict what §03 is required to concede.
+- **One detour, not two.** The value here is that a single detour covers the income and the
+  capital results together, where the article currently justifies them separately. If it becomes
+  two detours it has not paid for itself and the hand-derivation was better.
+
+**Incidental, and not a defect in `code/`.** Re-integrating a *re-binned* census misprices the
+steep weightings badly: call income read off 0.01-wide bins from an h = 0.02 walk comes out **15%
+low**, while E[I] on the same bins is exact, because the call premium does nearly all its work in
+the few cells nearest x = 0. Nothing in `code/` does this — `depth_census()` accumulates mean
+depth and weighted q on the cells and only the printed table is binned — but §08's table invites a
+reader to try it, and any check ever written against that table has to match bin width to h.
+
+**II-23. Part II's borrowed machinery is under-attributed in three places.** (Harvest H2, H3 and
+H9 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); converted
+2026-08-01.)
+
+Three edits of a sentence each. No number moves, no formula changes, and none of it is new
+mathematics — that is the point of the item, since **N2 requires §03 to say the ingredients are
+standard** and Part II should not be quietly implying otherwise.
+
+- **[eq:siegmund](#eq:siegmund) is Broadie–Glasserman–Kou.** §07 attributes the barrier shift to
+  "a classical correction due to Siegmund" and §00's symbol table calls β "Siegmund's overshoot
+  constant". The constant *and its use* are **Broadie, Glasserman & Kou (1997)**, *Mathematical
+  Finance* 7(4):325–349 **[F]**: price a discretely monitored barrier option with the continuous
+  formula and the barrier shifted by exp(±β·σ·√Δt). That is our call grid with the strike as the
+  barrier, their framing is closer to what we do than Siegmund's sequential-analysis one, the
+  paper carries an order of magnitude more citations in finance — and it supplies an honest error
+  statement the section currently lacks: **the correction is asymptotic in the monitoring
+  frequency**. Keep Siegmund (1979, 1985) as the origin, add Chang & Peres (1997) as the pointer
+  for the higher-order terms.
+- **θ = 2ν/σ² is the Cramér–Lundberg adjustment coefficient.** §10 calls it "the tail exponent …
+  the single most informative number about a configuration of this strategy" and leaves it
+  unnamed. It is the exponential rate of the all-time maximum of a Brownian motion with drift −ν,
+  which is ruin theory's adjustment coefficient, and θ > 1 is a Cramér-type moment condition.
+  Naming it costs a sentence, hands an actuary the entire structure at a glance, and tells every
+  other reader that the second boundary is a known kind of object rather than a threshold we
+  invented. **Caution: do not assert an identity with Dufresne/Yor.** Their exponential functional
+  ∫e^(−2W)ds is the same *phenomenon* — an exponential functional finite exactly when a
+  drift-to-variance ratio clears a threshold — and is **not** our object, which is E[e^x] under an
+  occupation measure. Cite as "the same phenomenon appears as…", or not at all.
+- **A wheel lot is an autocall.** §07's first-passage detour is pure theory and has no real-world
+  anchor. An autocallable terminates at the first scheduled observation date on which the
+  underlying is above a fixed level, which is a wheel lot exactly, and it is a product many
+  readers will have heard of. Worth a pointer in the detour.
+
+**One INF possibility, recorded and not converted.** The discretely-monitored-barrier literature
+has numerics built for our grid problem (quadrature reaching O(1/N⁴), Hilbert-transform methods
+for the multi-asset case) from a method family that shares nothing with either `model.py` or
+`wheel_sim.py` — so it would be a third independent check on `occupation()`. That is a larger job
+than this item and nothing currently needs it.
+
+**II-24. §08's census has a second, sharper analogy the article is not using.** (Harvest H8 of
+[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); converted 2026-08-01, and
+the §08-versus-§16 question the pass left open is decided here.)
+
+§08 explains the census with **length bias** — the hospital-beds detour — which is right and
+stays. Odean (1998) **[A]** offers a second one that is about this strategy rather than about
+sampling: the **disposition effect**. In 10,000 discount-brokerage accounts investors are **1.5 to
+2 times more likely to sell winners than losers**, unexplained by rebalancing, transaction costs,
+taxes or subsequent performance, and strictly harmful in a taxable account; with Shefrin & Statman
+(1985) it is one of the most robust findings in behavioural finance.
+
+**The wheel performs the disposition effect by contract, with the discretion removed.** Every
+winner is sold at the frozen call strike; no loser is ever sold at all. Odean's investors do it
+1.5–2× more often than chance and it costs them; the wheel does it with probability one. That is
+the most intuitive statement available of why standing inventory is dominated by deep lots, and it
+costs one blockquote detour in the article's established style.
+
+**§08, not §16** (the pass offered either). §16's list is what the model leaves *out*; this
+describes what the model already produces, and it belongs beside the census it explains.
+
+**Two things keep it honest.** The disposition effect is a finding about *discretionary* selling
+and its measured harm is largely tax, which this article does not model at all (IV-3 now carries
+the tax descope) — the analogy is structural, not a transfer of Odean's cost estimate. And the
+detour must not be allowed to carry an argument: the result is already established by §08's length
+bias and [the holding-time section](#sec:holding)'s first passage, and the analogy only makes it
+memorable.
+
+**II-25. §05's exercise-style caveat asserts a conclusion that can be cited and sized.** (From the
+second-pass list of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md);
+converted 2026-08-01, with the threshold computed while converting.)
+
+§05's "caveat on exercise style" says early call exercise on dividend payers "shortens holding
+periods and therefore *helps* the strategy, so omitting it is conservative". That is an
+assertion, and `DONE.md`'s American-vs-European entry resolved the question on it. The pass
+supplies a figure the resolution did not have: **Bakshi & Kapadia (2003, JoD) [F]** measure the
+American-exercise premium at **about 2 volatility points** on short-dated near-money calls. At
+§09's ~45 bp of edge per volatility point that would be ~90 bp/yr if it bound — the size of the
+entire claimed edge — so it is worth knowing why it does not.
+
+**It does not bind, and the reason is structural rather than empirical.** Our calls are **out of
+the money on every date one is written**: the strike is frozen at the lot's basis and a lot
+survives only while x > 0, which is S < K_c. Bakshi & Kapadia's 2 points is a *near-money* figure,
+and near-money is exactly where the American premium concentrates. It is an upper bound on an
+object this strategy never sells.
+
+**The one channel that could bite, sized 2026-08-01.** A lot can rise above its strike
+*mid-period* — §07 reports a fifth of the live book's inventory-time was spent above its own call
+strikes — so a dividend-driven early exercise is available if an ex-dividend date falls inside the
+call period. It needs the call's remaining time value below the quarterly payout of δ/4 = 0.625%
+of the price. At σ = 20%, that requires the stock to be above the strike by:
+
+| days to expiry | 28 | 21 | 14 | 7 | 3 |
+|---|---|---|---|---|---|
+| stock above strike by | 6.8% | 4.9% | 3.1% | 1.3% | 0.3% |
+
+An ex-dividend date falls inside a given four-week call with probability ≈ 4/13. **The threshold
+is self-defeating in both directions.** Early in the period, where an exercise would actually
+shorten the wait, it demands 6.8% — more than a typical period's entire move of σ·√τ_c = 5.5%,
+starting from a lot that was *below* its strike at the last grid point. Late in the period the
+threshold collapses toward zero, but so does what is gained: exercise three days early instead of
+at expiry changes nothing, because the lot leaves either way. **And a lot that far above its
+strike was leaving at expiry in any case** — that is what q(x) says at negative depth. Early
+exercise accelerates exits that were already going to happen, which is the direction §05 claims;
+what is new is that the claim now has a size rather than a hand-wave.
+
+**What to do, and it is small.** Add the citation and the reason to §05's caveat, so that "is
+conservative" becomes "is conservative, and this is the size of what is omitted". Append a dated
+`**Amended:**` note to `DONE.md`'s American-vs-European entry recording that the literature pass
+reopened it and it closed the same way with a number behind it. **This does not reopen the
+descope** — nothing in the model changes, and the European treatment stands.
+
 ## Part III — Many assets
 
 Neither file exists. This is Stage 3 of the restructure and the largest single block of
@@ -468,6 +669,16 @@ available to anyone.
 - **Write the two sections as one argument**, or at minimum have §12 end where §13 begins.
   Contribution 7 already puts them in a single sentence; the sections should earn it.
 
+**Part III's literature is unread, and this item is the whole of what has been read.** (Second-
+pass list of the same document; folded in 2026-08-01.) The pass deliberately stopped here, on the
+ground that the reading should happen *with* §12 and §13 rather than before them — so before
+either drafts, read Driessen–Maenhout–Vilkov in full and read around it: the correlation risk
+premium literature more broadly, the crisis-correlation literature, and whatever exists on
+diversifying short-option books. **The read levels bind** (I-1): DMV is **[A]** — an abstract —
+which is why this item states its mechanism qualitatively and takes its *magnitudes* from II-18's
+Bakshi & Kapadia and Carr & Wu instead. Nothing here may be upgraded to a quoted DMV number until
+someone opens the paper, and §13 must not lean on it further than the item already does.
+
 ## Part IV — Reality
 
 Neither §14 nor §15 exists; the outlook is a stub. Everything below is measured — these are
@@ -529,6 +740,25 @@ live data, not only simulation.
   structurally untestable by any operator, and the 15-month window resolves 40 of 55 lots. State
   which predictions the data *can* discriminate and which it provably cannot.
 
+  **The method for this bullet is Broadie, Chernov & Johannes (2009) [P]** (harvest H7, folded in
+  2026-08-01), and it says the thing we need better than we can say it unaided: put returns are so
+  noisy that **18 years of monthly data cannot reject Black–Scholes even for deep-OTM puts**
+  (p ≈ 8%), and **CAPM alphas and Sharpe ratios on option returns are noisier still than raw
+  average returns** — so the natural-looking regression is the *worst* test available. Their
+  prescription is to test market-neutral or delta-hedged *component* portfolios rather than
+  strategy returns, which means our overlay-excess statistic (wheel minus same-names buy-and-hold)
+  is already the right *kind* of measurement and should be defended as such. IV-2 uses the same
+  citation for its intervals.
+- **An external check on the ledger's *structure*** (harvest H6, folded in 2026-08-01). Hill,
+  Balasubramanian, Gregory & Tierens (2006) **[P]** attribute a fixed-strike buy-write's return
+  four ways — fair call premium, volatility premium, exercise cost, trading cost — and conclude
+  that **"the cost of exercise ate away the largest proportion of the excess returns"**. That is
+  our call-away giveaway, which the first economic ledger omitted. A paragraph comparing the
+  *shape* of our attribution to theirs is a validation the Monte Carlo cannot supply:
+  `wheel_sim.py` checks that the ledger adds up, not that its terms are the right terms. They also
+  benchmark against a **delta-adjusted** index (long 1 − Δ, the remainder at LIBOR), which is
+  Track B's logic arrived at independently and is worth saying beside it.
+
 **IV-2. Write §15, the live account** (`{#sec:live}`, was #20). The ledger and its verdict.
 **Lead with the ledger gap, not the return.**
 
@@ -543,6 +773,12 @@ live data, not only simulation.
   resampling interval **−18.1% to +6.9% clustered by name** (quote the clustered one; −24.0% to
   +13.4% by lot is the looser alternative), P(excess < 0) = 69%, and the sample it rests on.
   `live_ledger.py --bootstrap` produces all of it.
+
+  **Present the width as a property of the object, not of the sample** (harvest H7, folded in
+  2026-08-01). A twenty-five-point interval over fourteen months reads as an apology for a short
+  record; Broadie–Chernov–Johannes make it the *expected* consequence of a known property of
+  option returns, which eighteen years does not fix. IV-1 carries the citation and the fuller
+  statement — use it here rather than restating it.
 - **The UNH lot is the worked example**, deliberately kept out of Part II so it lands here:
   assigned at 260, a four-week call written at the same 260 basis for $18.10, called away at 260
   with the stock at 393.85 — collected $1,810, surrendered $13,385. It is also, on its own, the
@@ -565,6 +801,16 @@ live data, not only simulation.
   selection as profitable is a claim of mean reversion and must be argued as one. 20 lots in one
   bull market cannot support it. If it is ever modelled, the minimal form is a state-dependent
   thinning of the arrival process.
+
+  **Goyal & Saretto (2009) [A] is the published version of this claim — and it is not the claim
+  the account is making** (harvest H11, folded in 2026-08-01). Sorting stocks on
+  implied-minus-historical volatility and trading straddles produces large, robust cross-sectional
+  returns. That is an **options** signal: it says the *contracts* on some names are mispriced.
+  Rules 4 and 6 (fallen angels, oversold) are **stock-selection** signals — a claim about the
+  shares — and the account's own ledger agrees, since the overlay earned −4.37% while the
+  selection earned +29.63%. Cite it to make that distinction sharp, which is the opposite of using
+  it as support; the honest reading is that the published edge lives in the leg this account did
+  *not* profit from.
 - **The cadence calibration** (was #7). τ_p = T is a good approximation because the dominant put
   is sold Monday at the open for Friday's close — live 5 of the week's 7 days, continuous in
   trading time. What the account does instead of selling every week is skip weeks: **18.1 puts
@@ -607,6 +853,25 @@ that would let the model speak to cadence at all. Cadence is currently the one d
 reports as nearly free — 13 bp across a 13× range — where the record says it is not, and the
 model's residual tilt even points the wrong way. II-19 carries the size of the slope the record
 implies. It is also the first thing a practitioner would ask for.
+
+**Two more, from [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), folded in
+2026-08-01.**
+
+- **Transaction costs get a number** (harvest H10). The list currently says commissions "eat a few
+  percent of the premium on weekly puts" — a live-account figure — and has nothing at all for the
+  spread, which is the larger cost. **Muravyev & Pearson (2020) [A]**: traders who time their
+  executions pay effective spreads of **29.6%** (algorithmic) to **58.4%** (all traders) of the
+  quoted half-spread, so conventional estimates roughly double the truth. Hill et al.'s **3–6
+  bp/month** at half an implied-volatility point of slippage is the covered-call-specific version.
+  Both are quotable in a sentence and turn a descope into a bounded one.
+- **Tax is missing from the list entirely**, which makes it read as an oversight rather than a
+  decision. It is unexamined everywhere in this project and it is materially adverse for a wheel
+  run in a taxable account: premium is short-term, repeated assignment on one name raises **wash
+  sales**, and the **qualified-covered-call** rules suspend the holding period on the underlying,
+  so writing the call can cost long-term treatment on the shares. §16 should say plainly that tax
+  is out of scope and roughly which way the omission cuts. It also connects to **II-24**: the
+  disposition effect's documented harm is largely a tax harm, and this article cannot price it —
+  which is exactly why II-24's analogy must stay structural.
 
 **IV-5. `iv_panel.py` measures implied against realised volatility on two different clocks, and
 the article quotes the difference.** (Divergence D2 of
