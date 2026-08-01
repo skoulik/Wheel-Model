@@ -19,8 +19,8 @@ to a reader and should be added only when the text genuinely defers something.
 
 Thirteen of the seventeen planned section files exist, plus a generated reproduction appendix
 (`sections/99-reproduction.md`, produced by `python -m examples --appendix`, never edited by
-hand). Part I is written bar two stubs; **Part II is written, with eight items outstanding**
-(II-18 through II-25 — all raised by the literature pass of 2026-07-31, which reopened Part II
+hand). Part I is written bar two stubs; **Part II is written, with nine items outstanding**
+(II-18 through II-26 — all raised by the literature pass of 2026-07-31, which reopened Part II
 the day it closed, and none of which changes a formula or a verdict); **Part III and Part IV are
 unwritten**, and between them they are still the bulk of what is left besides those stubs and the
 assembly work.
@@ -28,7 +28,7 @@ assembly work.
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **eight open items** (II-18 – II-25) — four in §09, the rest in §05, §07, §08 and §10, and II-23 also touches §00, §02 and §11 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **nine open items** (II-18 – II-26) — five in §09, the rest in §05, §07, §08 and §10, and II-23 also touches §00, §02 and §11 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -195,18 +195,20 @@ depends on being first, and that is worth saying inside §03 rather than only he
 
 ## Part II — One asset
 
-Part II closed on 2026-07-31 and was reopened the same day by the literature pass. Eight items
-are open, they divide cleanly in two, and **none of them changes a formula or a verdict**.
+Part II closed on 2026-07-31 and was reopened the same day by the literature pass. Nine items are
+open, they divide cleanly in two, and **none of them changes a formula or a verdict**.
 
-**Four land in §09**, and IV-5 edits it a fifth time, so read them together before touching the
+**Five land in §09**, and IV-5 edits it a sixth time, so read them together before touching the
 section. Two are corrections to what the section already says — **II-18** the level of the
-volatility premium, **II-19** its missing tenor axis — and two are additions the section never
+volatility premium, **II-19** its missing tenor axis — two are additions the section never
 attempted: **II-20** the first risk statistic anywhere in the article, and **II-21** the detour
-that keeps II-20 from being read as a comparison it is not. II-19 and II-20 add frozen cases;
-neither adds model machinery beyond what `model.py` already has.
+that keeps II-20 from being read as a comparison it is not — and **II-26** is the citations §09
+owes for results it argues out unaided. II-19 and II-20 add frozen cases; neither adds model
+machinery beyond what `model.py` already has.
 
-**Four came from the pass's harvest**, converted 2026-08-01, and none of them moves a number
-anywhere: **II-22** replaces §08's hand-derived census integrals with the theorem they are
+**Four came from the pass's harvest** (and **II-26** from its cross-check, in the sweep that
+closed the conversion), converted 2026-08-01, and none of them moves a number anywhere:
+**II-22** replaces §08's hand-derived census integrals with the theorem they are
 instances of, and hands §10 a cleaner statement of its own capital criterion; **II-23** cites six
 borrowed things where the reader meets them, and reaches outside Part II to do it (§00, §02, §11);
 **II-24** gives §08's census its second analogy; **II-25** puts a size behind §05's early-exercise
@@ -642,6 +644,60 @@ conservative" becomes "is conservative, and this is the size of what is omitted"
 `**Amended:**` note to `DONE.md`'s American-vs-European entry recording that the literature pass
 reopened it and it closed the same way with a number behind it. **This does not reopen the
 descope** — nothing in the model changes, and the European treatment stands.
+
+**II-26. §09 states the article's central result and cites nobody, while the literature reaches it
+independently.** (Cross-check rows 1, 3, 4 and 5 of
+[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); converted 2026-08-01, out
+of the sweep that closed the conversion.)
+
+**The gap is structural rather than incidental.** §07 carries three citations and §08 one;
+**§09 and §11 carry none at all**. The section holding the article's headline economic result —
+that at fair option prices the wheel is indistinguishable from owning the stock — reads as though
+nothing had ever been written on the subject. **II-23 is the case where §09 borrows; this is the
+opposite case and it is the stronger one.** Where the article argues its way to a conclusion the
+literature already holds, saying so costs a clause and turns a contrarian-sounding result into a
+consensus one.
+
+**Four, in descending order of value.**
+
+- **Contribution 4 is confirmed in almost the same words** (row 1). Israelov & Nielsen (2014)
+  **[F]**, stylised example — index at 100, one-month ATM call, IV 18% against realised 16%.
+  Priced at IV = realised: *"even though the annual collected option premium is 22.1% of net asset
+  value, there would be zero compensation for shorting volatility … no different from what would
+  have been earned by simply reducing the index position size by 51%."* That is §09's result,
+  reached from a decomposition — equity plus short volatility — that this article never uses,
+  which is exactly what makes it **evidence** rather than agreement. Land it where §09 concludes
+  the wheel is economically indistinguishable from owning the stock.
+- **The 45 bp slope agrees on the mechanism, not merely the sign** (row 3). Our own extra premium
+  per volatility point (0.0531 share prices) over capital (11.59) is **45.8 bp — a 100%
+  pass-through** — and their example shows the same at a different notional-to-capital ratio
+  ($0.23/month on $100 → 2.76%/yr). Two unrelated parameterisations agreeing that *all* of the
+  richness arrives is worth a sentence, because the reader's natural objection to "every point is
+  worth about 45 bp" is that surely something eats part of it. **Same source as the bullet above:
+  one citation, two uses.**
+- **The call-away giveaway is the dominant drag in published attributions too** (row 4). Hill et
+  al. (2006) **[P]**: *"the cost of exercise ate away the largest proportion of the excess
+  returns."* Ours is 0.3559/yr, the largest negative term in the ledger, and the first economic
+  ledger omitted it entirely — so this is external confirmation that the term nearly lost is the
+  one that matters most. A clause at [eq:giveaway](#eq:giveaway). **IV-1 owns the full four-way
+  comparison** (harvest H6); this is a pointer to it, not a second copy of it.
+- **Track B is standard practice, not a convenient choice** (row 5). §09 argues for market value
+  from first principles — capital committed is what selling would release — and is right, but it
+  reads as *our* argument for *our* preferred number. Hill et al. benchmark against a
+  **delta-adjusted** index (long 1 − Δ, the remainder at LIBOR) and Israelov & Nielsen insist
+  throughout on matched equity exposure. One clause noting that the exposure-matched ledger is
+  what this literature does answers the reader who suspects Track B was chosen because it
+  flatters. **Weakest of the four and the first to cut** if §09 gets crowded.
+
+**§11's zero is left alone.** Santa-Clara & Saretto (II-23) is the one citation that section is
+getting; the rest of it is derivation, and there is nothing published to corroborate a barrier
+formula.
+
+**Keep the density honest.** This is a general-audience article, and four citations in one section
+is about the most §09 can absorb without becoming a survey — hence the fourth marked cuttable and
+the third reduced to a clause. **§03 (I-1) carries all of these sources properly.** II-26 is the
+pointer, on the rule II-23 states: the reader should meet the claim and its attribution in the
+same place.
 
 ## Part III — Many assets
 

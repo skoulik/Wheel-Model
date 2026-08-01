@@ -78,6 +78,14 @@ Of §7's second-pass list, three items were converted with the harvest: **early 
 **TODO II-25**, the **citation-graph pass** became **TODO I-6**, and **tax** went to **IV-3**.
 The rest stay as written — they are waiting on Part III, on IV-5's re-cut, or on I-5.
 
+**The cross-check's confirmations became an item of their own.** Rows **1, 3, 4 and 5** — where
+independent work reaches *our* conclusion rather than lending us machinery — are **TODO II-26**,
+converted 2026-08-01. The trigger was a count: §09 and §11 carry **no citations at all**, so the
+section stating that at fair prices the wheel is indistinguishable from owning the stock reads as
+though the question were untouched, when Israelov & Nielsen reach the same place from a
+decomposition this article never uses. That is the strongest external support in this document and
+it was, until the sweep, the least likely to reach a reader.
+
 **Three things outside the findings were converted as well**, on 2026-08-01, because no item
 carried them and each is an *instruction* rather than a reference. Strand F's "do not cite as
 evidence" on **Kuang & Lin** went into **I-1** beside D5's prohibition, and is the likelier trap
@@ -411,6 +419,15 @@ and for the novelty check.
 Verdict key: **CONFIRMED** (independent work agrees), **CONFIRMS-US** (their result is evidence
 for something we derived, not vice versa), **EXTENDS** (we say something they do not),
 **DIVERGES** (flagged below), **UNTESTED** (nothing in the literature speaks to it).
+
+> **Rows 1, 3, 4 and 5 → TODO II-26**, converted 2026-08-01 in the sweep that closed this
+> conversion. The trigger was a count rather than a reading: **§09 and §11 carry no citations at
+> all**, against three in §07 and one in §08 — so the section holding the article's headline
+> result reads as though nothing had been written on the subject. Rows 2 and 13 went to **II-23**,
+> row 14 to **IV-1**, row 15 to **II-18**, rows 16–20 are the divergences. Rows 6–9 are the
+> machinery and are **II-22** and **II-23**; row 10 is **II-20** and **II-24**, the reversal
+> exposure and the disposition effect. Only rows 11 and 12 need no citation, being EXTENDS —
+> places where the article says something the literature does not.
 
 | # | our finding | literature | verdict |
 |---|---|---|---|
