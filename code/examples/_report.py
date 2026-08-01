@@ -1,19 +1,25 @@
 """Coverage and the reproduction appendix.  Stdlib only.
 
-Two things the policy needs to stay true rather than aspirational:
+Three things the policy needs to stay true rather than aspirational:
 
 *   `coverage()` reads every `{#eq:...}` anchor out of `sections/` and checks
     it against the formulas the example modules claim to back.  A formula
     with no script is a number a reader cannot check; a script backing no
     formula is either dead or an anchor someone forgot to add.
 
+*   `references()` does the same job for citations: every `#ref:` a section
+    cites must be an entry in the bibliography, and every entry must be an
+    anchor.  Same reasoning -- a hand-maintained cross-reference set drifts
+    within a month, and here the drift is silent, because a dead citation
+    link still renders as text.
+
 *   `appendix()` generates the reproduction table -- every figure the article
     quotes, the command that produces it, and the value asserted.  It is
     generated rather than written because a hand-maintained version of this
     table drifts within a month.
 
-Both are called from `verify_examples.py`; `python -m examples --coverage`
-and `--appendix` are the shortcuts.
+All three are called from `verify_examples.py`; `python -m examples
+--coverage`, `--references` and `--appendix` are the shortcuts.
 """
 
 import os
@@ -42,6 +48,20 @@ def _anchor_of(footnote_label):
 
 
 APPENDIX = "99-reproduction.md"     # generated; see appendix() below
+BIBLIOGRAPHY = "98-bibliography.md"  # the only file that may declare {#ref:}
+
+# A citation is a markdown link to a bibliography anchor; the numbers a reader
+# sees are assigned at assembly, so the source never carries one.
+_REF_ANCHOR = re.compile(r"\{#(ref:[a-z0-9-]+)\}")
+_REF_CITE = re.compile(r"\]\(#(ref:[a-z0-9-]+)\)")
+_ENTRY = re.compile(r"^- (.*)$", re.MULTILINE)
+_UNVERIFIED = "[cite unverified]"
+
+# Conventions get *quoted* in section 00, and a code span showing what a
+# citation looks like is not one: it survives assembly as verbatim text and
+# never becomes a \cite.  Counting it would inflate the citation census and,
+# worse, let an entry look cited when nothing cites it.
+_CODE = re.compile(r"`[^`]*`")
 
 
 def section_files():
@@ -53,6 +73,16 @@ def section_files():
     """
     return sorted(f for f in os.listdir(SECTIONS)
                   if f.endswith(".md") and f != APPENDIX)
+
+
+def prose_files():
+    """Sections that may *cite*, as opposed to define.
+
+    The bibliography is excluded for the same reason the appendix is excluded
+    above: its preamble shows what a citation looks like, and an example of
+    the form is not a use of it.
+    """
+    return [f for f in section_files() if f != BIBLIOGRAPHY]
 
 
 def declared_anchors():
@@ -128,6 +158,77 @@ def coverage(mods=None, require_citations=True):
 
     print(f"  {len(anchors)} formulas in {len(section_files())} sections; "
           f"{len(backed)} backed by {len(mods)} modules; {len(failures)} gap(s)")
+    return failures
+
+
+def _read(name, strip_code=False):
+    with open(os.path.join(SECTIONS, name), encoding="utf-8") as fh:
+        text = fh.read()
+    return _CODE.sub("", text) if strip_code else text
+
+
+def bibliography_entries():
+    """Every {#ref:...} the bibliography declares, anchor -> its entry line."""
+    if not os.path.exists(os.path.join(SECTIONS, BIBLIOGRAPHY)):
+        return {}, []
+    out, malformed = {}, []
+    for line in _ENTRY.findall(_read(BIBLIOGRAPHY)):
+        anchors = _REF_ANCHOR.findall(line)
+        if not anchors:
+            malformed.append(line)
+        for a in anchors:
+            out.setdefault(a, []).append(line)
+    return out, malformed
+
+
+def citations():
+    """Every reference the prose cites, anchor -> the sections citing it."""
+    out = {}
+    for name in prose_files():
+        for anchor in _REF_CITE.findall(_read(name, strip_code=True)):
+            out.setdefault(anchor, set()).add(name)
+    return out
+
+
+def references():
+    """Check the citation apparatus.  Returns a list of failure strings.
+
+    Uncited entries are reported but do not fail: the bibliography is seeded
+    with the whole reading list, and section 03 -- which will cite most of it
+    -- is not written yet.  That tolerance is what stops the article shipping
+    a padded bibliography by accident: the count is printed every run, so it
+    has to fall to zero visibly rather than be discovered at assembly.
+    """
+    entries, malformed = bibliography_entries()
+    cited = citations()
+
+    failures = []
+    for line in malformed:
+        failures.append(f"bibliography entry has no {{#ref:}} anchor: {line[:60]}...")
+    for anchor, lines in sorted(entries.items()):
+        if len(lines) > 1:
+            failures.append(f"{anchor} is declared by {len(lines)} bibliography entries")
+    for anchor, where in sorted(cited.items()):
+        if anchor not in entries:
+            failures.append(f"{anchor} is cited by {sorted(where)} but the bibliography has no entry")
+
+    # Anchors are name-based precisely so that no section hand-numbers a
+    # citation; a {#ref:} declared outside the bibliography is a second
+    # source of truth and would silently split the list at assembly.
+    for name in prose_files():
+        for anchor in _REF_ANCHOR.findall(_read(name, strip_code=True)):
+            failures.append(f"{anchor} is declared in {name}; only {BIBLIOGRAPHY} may declare one")
+
+    uncited = sorted(set(entries) - set(cited))
+    unverified = sorted(a for a, lines in entries.items() if _UNVERIFIED in lines[0])
+    print(f"  {len(entries)} entries, {len(cited)} cited from "
+          f"{len({s for w in cited.values() for s in w})} sections; "
+          f"{len(uncited)} uncited, {len(unverified)} unverified; {len(failures)} gap(s)")
+    if uncited:
+        print(f"    uncited: {', '.join(a[len('ref:'):] for a in uncited)}")
+    if unverified:
+        print(f"    bibliographic details unverified: "
+              f"{', '.join(a[len('ref:'):] for a in unverified)}")
     return failures
 
 

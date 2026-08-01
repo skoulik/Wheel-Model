@@ -24,13 +24,16 @@ def main():
     ap.add_argument("--run", action="store_true")
     ap.add_argument("--coverage", action="store_true",
                     help="every {#eq:} in sections/ has a script, and vice versa")
+    ap.add_argument("--references", action="store_true",
+                    help="every #ref: cited in sections/ is a bibliography entry")
     ap.add_argument("--appendix", action="store_true",
                     help="print the reproduction appendix as markdown")
     ap.add_argument("--only", default=None,
                     help="restrict to modules whose name contains this")
     ap.add_argument("--quiet", action="store_true", help="failures only")
     args = ap.parse_args()
-    if not (args.list or args.check or args.run or args.coverage or args.appendix):
+    if not (args.list or args.check or args.run or args.coverage
+            or args.references or args.appendix):
         args.check = True
 
     mods = H.discover()
@@ -62,6 +65,13 @@ def main():
     if args.coverage:
         from examples import _report
         gaps = _report.coverage(mods)
+        for g in gaps:
+            print(f"  {g}")
+        return 1 if gaps else 0
+
+    if args.references:
+        from examples import _report
+        gaps = _report.references()
         for g in gaps:
             print(f"  {g}")
         return 1 if gaps else 0

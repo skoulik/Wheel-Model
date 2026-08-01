@@ -4,7 +4,7 @@ Everything the wheel does downstream is set by two numbers decided at the moment
 
 ## Detour: Bernoulli trials
 
-> When something either happens or doesn't — a coin flip, a die roll checked for a six, a put option either assigning or not — probabilists call it a **Bernoulli trial**. Its only parameter is p, the probability the event happens. Strings of independent Bernoulli trials are the atoms from which the more elaborate distributions later in this article are built. Any introductory probability text covers them; Ross's *A First Course in Probability* is a standard choice.
+> When something either happens or doesn't — a coin flip, a die roll checked for a six, a put option either assigning or not — probabilists call it a **Bernoulli trial**. Its only parameter is p, the probability the event happens. Strings of independent Bernoulli trials are the atoms from which the more elaborate distributions later in this article are built. Any introductory probability text covers them; [Ross's *A First Course in Probability*](#ref:ross-first-course) is a standard choice.
 
 Selling a put is one Bernoulli trial per cadence period: with probability p\* it assigns and delivers a lot of stock into inventory, otherwise it expires and the operator keeps the premium and sells another.
 
@@ -14,7 +14,7 @@ Selling a put is one Bernoulli trial per cadence period: with probability p\* it
 
 ## Detour: the lognormal price model
 
-> The **Black–Scholes model** (1973) describes a stock price as drifting upward at some average rate while being knocked around by random shocks whose size is set by the volatility σ. Percentage changes are random, independent from period to period, and normally distributed — which makes the price itself *lognormally* distributed at any future date, and makes the **logarithm** of the price an ordinary random walk with drift. That last fact is the one this article leans on hardest. The model is a simplification — real markets have jumps, fat tails, and volatility that changes over time — but it is the shared language in which option prices are quoted, and its probabilities are accurate enough for the structural questions asked here. Hull's *Options, Futures, and Other Derivatives* is the standard reference.
+> The **Black–Scholes model** ([1973](#ref:black-scholes-1973)) describes a stock price as drifting upward at some average rate while being knocked around by random shocks whose size is set by the volatility σ. Percentage changes are random, independent from period to period, and normally distributed — which makes the price itself *lognormally* distributed at any future date, and makes the **logarithm** of the price an ordinary random walk with drift. That last fact is the one this article leans on hardest. The model is a simplification — real markets have jumps, fat tails, and volatility that changes over time — but it is the shared language in which option prices are quoted, and its probabilities are accurate enough for the structural questions asked here. [Hull's *Options, Futures, and Other Derivatives*](#ref:hull) is the standard reference.
 
 ## Which probabilities? One measure, two worlds
 
@@ -75,7 +75,7 @@ x₀  =  ln( K_c / S )  >  0    {#eq:x0-def}
 
 the log-distance from the price paid to the price the market is offering. Since the log price is normally distributed and assignment is precisely the event that it finished below ln k, the entry depth is a **truncated normal** — the tail of a bell curve, cut at zero and flipped around.[^eq-x0-def]
 
-> **Detour: truncated distributions and conditional expectation.** An ordinary expectation averages over all scenarios. A **conditional expectation** averages only over those in which some event occurred — "the average size of an insurance claim, *given* that a claim was filed". Computing one means cutting the distribution at the event's boundary and averaging what remains; the remaining piece is called a *truncated* distribution. For the normal distribution these truncated averages have closed forms built from the same N(·) used everywhere else. Any text deriving the Black–Scholes formula computes one along the way; Hull covers it.
+> **Detour: truncated distributions and conditional expectation.** An ordinary expectation averages over all scenarios. A **conditional expectation** averages only over those in which some event occurred — "the average size of an insurance claim, *given* that a claim was filed". Computing one means cutting the distribution at the event's boundary and averaging what remains; the remaining piece is called a *truncated* distribution. For the normal distribution these truncated averages have closed forms built from the same N(·) used everywhere else. Any text deriving the Black–Scholes formula computes one along the way; [Hull](#ref:hull) covers it.
 
 Writing z = ln(S_T/S) for the log return over the put's life — normal, with mean (m − σ²/2)·τ_p and standard deviation σ·√τ_p — the entry depth is x₀ = ln k − z conditioned on z < ln k, with density
 

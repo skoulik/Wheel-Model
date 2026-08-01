@@ -849,6 +849,11 @@ def main():
     print("--- Reproducibility coverage ---")
     FAILURES.extend(R.coverage(mods))
 
+    # The same policy for citations: every #ref: the prose cites is an entry
+    # in the bibliography, and no section declares one of its own.
+    print("--- Citation coverage ---")
+    FAILURES.extend(R.references())
+
     print()
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} check(s) FAILED: {FAILURES}")

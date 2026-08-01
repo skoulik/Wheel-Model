@@ -12,7 +12,7 @@ The end product will be a LaTeX article for a general, numerate audience.
 
 | Path | Contents |
 |---|---|
-| `sections/` | The article, one Markdown file per section, numbered in reading order. `00-notation.md` is the glossary and single source of truth for symbols. |
+| `sections/` | The article, one Markdown file per section, numbered in reading order. `00-notation.md` is the glossary and single source of truth for symbols; `98-bibliography.md` is the same for references. |
 | `code/` | Supplementary scripts. `verify_examples.py` recomputes every worked numerical example quoted in the text. |
 | `TODO.md` | Open modeling and writing issues, grouped by article part. |
 | `DONE.md` | Completed work, resolved questions, and what is deliberately out of scope. |

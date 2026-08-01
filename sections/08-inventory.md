@@ -6,7 +6,7 @@ Lots arrive at a known rate and stay for a known average time. How much stock do
 
 > Consider any system that things enter, spend time in, and leave: customers in a shop, patients in a hospital, jobs in a queue, stock lots in a wheel. **Little's law** says that the average number of items in the system equals the average arrival rate multiplied by the average time each item spends there. If forty customers an hour enter and each stays half an hour, there are twenty in the shop on average.
 >
-> What makes the law remarkable is what it does *not* require. Nothing about the arrival pattern, nothing about the order of service, nothing about whether items are independent, nothing about the shape of any distribution. Only that the system is in a steady state and that the averages exist. It is a conservation identity, not a model. Ross's *Introduction to Probability Models* proves it; Little's 1961 paper is the original.
+> What makes the law remarkable is what it does *not* require. Nothing about the arrival pattern, nothing about the order of service, nothing about whether items are independent, nothing about the shape of any distribution. Only that the system is in a steady state and that the averages exist. It is a conservation identity, not a model. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) proves it; [Little's 1961 paper](#ref:little-1961) is the original.
 
 ## Applying it
 

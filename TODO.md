@@ -12,15 +12,19 @@ recycled or closed up: the gaps — I-3, I-5, II-1 through II-17, IV-6, IV-7, IN
 items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
 numbered around them; they closed on 2026-07-28 and had been missing from it since.)
 
-Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section carries such a
-flag** (checked 2026-07-30), and that is the intended steady state: an in-text flag is a promise
-to a reader and should be added only when the text genuinely defers something.
+Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section body carries such a
+flag** (checked 2026-08-01), and that is the intended steady state: an in-text flag is a promise
+to a reader and should be added only when the text genuinely defers something. Three live in
+`sections/98-bibliography.md`, in the internal field after an entry's anchor, which is stripped at
+assembly and so never reaches a reader; they mark the two unread downloads and the one source
+that may be cited for its existence only.
 
 ## Where things stand
 
-Thirteen of the seventeen planned section files exist, plus a generated reproduction appendix
-(`sections/99-reproduction.md`, produced by `python -m examples --appendix`, never edited by
-hand). Part I is written bar two stubs; **Part II is written, with eleven items outstanding**
+Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
+(`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
+anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with eleven items outstanding**
 (II-18 through II-28 — nine from the literature pass of 2026-07-31, which reopened Part II the
 day it closed, and two more from the Merton–Scholes–Gladstein read of 2026-08-01 that closed I-5;
 none of them changes a formula or a verdict); **Part III and Part IV are unwritten**, and between
@@ -105,6 +109,16 @@ writing that subsection, **or** state there that the record cited is US-only and
 acceptable; silently generalising from US indices to "what systematic option writing returns" is
 not.
 
+**The reading list now has a live counterpart, and §03 writes into it rather than beside it**
+(added 2026-08-01). `sections/98-bibliography.md` holds all thirty-eight entries — the pass's
+thirty-two plus the six textbook and foundational sources the sections were already leaning on
+informally — each with a `{#ref:...}` anchor, its read level and its local filename. The draft's
+§8 is now the *historical* list and the bibliography is the live one; keep read levels current in
+the bibliography, not there. Prose cites by anchor and never by number (see §00's citation
+convention), and `python -m examples --references` prints how many entries are still uncited —
+**thirty-two of them, essentially all of §03's**. That count is the readiness measure for this
+item: an entry §03 never cites should be deleted from the bibliography rather than shipped.
+
 What remains is writing `sections/03-prior-work.md`, for which §6 of the draft proposes a
 six-subsection skeleton. Two things it must carry:
 
@@ -174,6 +188,29 @@ claim a later pass can only strengthen.
 
 **If it finds something**, the repair is confined to §03's subsection 6. No result in the article
 depends on being first, and that is worth saying inside §03 rather than only here.
+
+**I-7. Ten bibliography entries carry details nobody has checked against a copy.** (From building
+`sections/98-bibliography.md`, 2026-08-01.)
+
+Every entry the pass supplied came with its bibliographic details; the ones added to cover what
+the sections were already citing informally did not, and were reconstructed rather than read off
+a copy. Those ten are tagged **[cite unverified]** in the entry line, and
+`python -m examples --references` lists them every run: black-scholes-1973, chang-peres-1997,
+hull, israelov-covering-the-world, li-zhang, little-1961, merton-1973, ross-first-course,
+ross-probability-models, siegmund-1985.
+
+**This is a smaller worry than the read-level rule and a different one.** Nothing in the article
+quotes a figure from any of them — they are pointers for further reading, plus the two 1973
+pricing papers, which the article cites for the existence of a formula it derives itself. What is
+unverified is the *citation*: Hull's edition and year, the Ross titles' publishers, page ranges,
+and in four cases (chang-peres-1997, israelov-covering-the-world, li-zhang, and the Li–Zhang
+initials) a title or author list filled in from memory. A reader following a wrong page range
+loses nothing but time; a reader following a wrong *title* is being misled, so the four matter
+more than the six.
+
+**Deadline is assembly**, not §03: a bibliography goes out with the article, and this is the last
+thing that should be discovered in proof. Clearing an entry means deleting its `[cite unverified]`
+tag, which drops the count the checker prints.
 
 ## Part II — One asset
 

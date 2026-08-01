@@ -10,7 +10,7 @@ The 1/q rule assumes every period is the same coin. It is not. A lot that fails 
 
 So the question "how long does a lot stay?" is not a question about a coin at all. It is a question about a wandering path: **when does the depth walk of [eq:depth-walk](#eq:depth-walk) first reach zero?** That is one of the classical questions of probability.
 
-> **Detour: first-passage time.** Given a random walk, the **first-passage time** is the number of steps until it first reaches a specified level. It is a much subtler quantity than it looks. Even for a walk with a favourable drift, the first-passage time has a **heavy tail**: most paths arrive quickly, but a minority wander the wrong way and take enormously longer, and those rare paths dominate the average. The result is a distribution whose mean sits far above its median — the mean is not "the typical outcome" and using it as one is a standard way to be badly surprised. If the drift is unfavourable, the walk may never arrive at all, and the mean is infinite. Ross's *Introduction to Probability Models* treats first passage for random walks and Brownian motion.
+> **Detour: first-passage time.** Given a random walk, the **first-passage time** is the number of steps until it first reaches a specified level. It is a much subtler quantity than it looks. Even for a walk with a favourable drift, the first-passage time has a **heavy tail**: most paths arrive quickly, but a minority wander the wrong way and take enormously longer, and those rare paths dominate the average. The result is a distribution whose mean sits far above its median — the mean is not "the typical outcome" and using it as one is a standard way to be badly surprised. If the drift is unfavourable, the walk may never arrive at all, and the mean is infinite. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) treats first passage for random walks and Brownian motion.
 
 ## Exits happen on a grid, and the grid is expensive
 
@@ -20,7 +20,7 @@ The cost of this is not small, and it has a known size. For a walk sampled at di
 
 β · σ·√τ_c ,   β = −ζ(1/2)/√(2π) ≈ 0.5826    {#eq:siegmund}
 
-a classical correction due to Siegmund. At the running parameters this **call-grid tax** is 0.5826 × 0.20 × √(1/13) = **0.032** — which is **2.1 times the typical entry depth of 0.0155**.[^eq-siegmund]
+a classical correction due to [Siegmund](#ref:siegmund-1979). At the running parameters this **call-grid tax** is 0.5826 × 0.20 × √(1/13) = **0.032** — which is **2.1 times the typical entry depth of 0.0155**.[^eq-siegmund]
 
 Read that again, because it reorders the intuition completely. The hole a lot has to climb out of is not mainly the 1.6% it fell through at assignment. It is mostly the *sampling* — the requirement that the recovery be standing on the right day, once every four weeks. **The exit grid, not the entry overshoot, is what keeps lots in inventory.** An operator worried about being assigned too deep is worrying about the smaller half of the problem.
 
