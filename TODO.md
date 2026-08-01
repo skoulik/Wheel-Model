@@ -677,6 +677,17 @@ are drafted rather than be discovered afterwards.
   for the running example and run on a σ = 25% stock, an account retains **39.3% throughput**.
   Both halves belong in this subsection: the distribution around the mean, and the fragility of
   the mean. Anything quoting the elasticity must say which of 3.5 and 4.2 it means.
+
+  **Cadence is the third sizing dial, handed here by II-19** (measured 2026-07-31, recorded in
+  this item 2026-08-01 so the figures sit where the work is). Capital per name is **11.59** share
+  prices at weekly cadence against **3.28** at quarterly, at the same ~1.5% return on capital — so
+  a 100-share-price account carries **8.6 names doing 89.7 lots/yr, or 30.5 names doing 24.4
+  lots/yr**. **Cadence buys names by giving up throughput.** It is *not* a capital-efficiency gain:
+  capital per lot of throughput **rises 3.7×** as cadence slows, from 1.11 to 4.10. §09 states the
+  invariance and points here; this subsection owns what an operator does with it. **The sizing
+  argument may not assume the extra names reduce variance** — that is the distributional claim two
+  bullets up, which §12 has to *derive* before sizing is allowed to spend it. II-19 states the
+  same prohibition from §09's side, where the answer is simply not available.
 - **The live book's width** (was #24, figures restated 2026-07-27). The account sells puts
   across **95 names while holding inventory in 34**, so put margin is **$43.4k = 31% of Track B
   capital** against the single-name model's 1.6%. Premium is generated across a far wider book
@@ -921,6 +932,14 @@ that would let the model speak to cadence at all. Cadence is currently the one d
 reports as nearly free — 13 bp across a 13× range — where the record says it is not, and the
 model's residual tilt even points the wrong way. II-19 carries the size of the slope the record
 implies. It is also the first thing a practitioner would ask for.
+
+**One more of the same kind, from II-18** (which sends it here; recorded 2026-08-01 so the pointer
+resolves): a **beta-scaled σ_IV**. Bakshi & Kapadia find that idiosyncratic volatility is not
+priced at all, and that what premium single-name options do carry is the *market* volatility
+premium leaking through beta — which predicts the single-name spread should scale with the name's
+beta rather than being one flat scalar. That is a testable structure the model could carry, and it
+is the natural companion to the term structure above: one gives σ_IV a tenor axis, the other a
+cross-sectional one. Neither touches the spine.
 
 **Two more, from [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), folded in
 2026-08-01.**
