@@ -476,13 +476,13 @@ write-ups.
 **IV-1. Write §14, verification** (`{#sec:verification}`, was #21). The spine tested against
 live data, not only simulation.
 
-- **Entry law:** 71.5 assignments expected, 72 finished below the strike, 71 assigned, over 921
-  contracts — an aggregate error of 0.7%.
-- **Depth census:** mean depth 0.151 model against 0.146 live over 3,807 lot-days. The model
-  fits at the article's **μ = 7% far better than at the window's realised drift** (0.151 against
-  0.101) — that deserves its own paragraph, since it is a statement about which parameter the
+- **Entry law:** 69.9 assignments expected, 72 finished below the strike, 71 assigned, over 956
+  contracts — an aggregate error of −1.5%.
+- **Depth census:** mean depth 0.157 model against 0.148 live over 4,204 lot-days. The model
+  fits at the article's **μ = 7% far better than at the window's realised drift** (0.157 against
+  0.097) — that deserves its own paragraph, since it is a statement about which parameter the
   census is actually sensitive to.
-- **q(x):** 26.3% of calls expected exercised against 19.6% realised, monotone in depth.
+- **q(x):** 27.6% of calls expected exercised against 19.6% realised, monotone in depth.
 - **Survival:** the model exits lots faster than observed at every horizon, and the comparison
   is Kaplan–Meier, so **this is not censoring** (was #9). Show the compounding of the
   per-period gap.
@@ -501,7 +501,7 @@ live data, not only simulation.
   the collateral.
 - **Claim only the aggregates.** The restatement withdrew two bin-level results: T1's
   calibration curve is sensitive to whether entry is priced at the session open or close (top
-  bucket 27.4% predicted against 8.0% realised at the open, 25.9% against 24.3% at the close —
+  bucket 27.0% predicted against 8.1% realised at the open, 26.1% against 27.0% at the close —
   the operator sells into intraday weakness that partly reverts, so the truth is between), and
   q(x)'s two deepest bins now hold 70 and 20 contracts. No bucket-level claim should be
   reintroduced.
@@ -510,8 +510,8 @@ live data, not only simulation.
   written Monday at the open for Friday's close — five sessions — is priced with four days of
   diffusion. The units are wrong and the understatement is large: σ·√τ is short by a factor
   √((5/252)/(4/365)) = **1.35** at the median put. **And the wrong convention is the one that
-  fits.** At the window's drift, pricing each put on its own session count predicts **90.3**
-  assignments against the **71** that occurred; the calendar reading predicts **71.5**. So either
+  fits.** At the window's drift, pricing each put on its own session count predicts **88.7**
+  assignments against the **71** that occurred; the calendar reading predicts **69.9**. So either
   the operator's entries partly revert — which is T1's own bucket finding, the opening print
   overstating moneyness on puts written nearest the money — or session-annualised realised
   volatility overstates the volatility relevant to a five-session option, or both. Resolve it
@@ -526,35 +526,35 @@ live data, not only simulation.
 - **What a career-length record cannot test** — owed to §02 (I-4) and not yet written anywhere.
   The natural material is already in Part II: equilibrium is approached over ~90 years and the
   mean holding time is 2.1 years against an 8-week median, so the stationary results are
-  structurally untestable by any operator, and the 14-month window resolves 36 of 55 lots. State
+  structurally untestable by any operator, and the 15-month window resolves 40 of 55 lots. State
   which predictions the data *can* discriminate and which it provably cannot.
 
 **IV-2. Write §15, the live account** (`{#sec:live}`, was #20). The ledger and its verdict.
 **Lead with the ledger gap, not the return.**
 
-- **The ledger:** Track A on cost basis **+38.11%/yr** against Track B **+19.73%**; same-names
-  buy-and-hold +24.50%; option-overlay excess **−4.77%/yr**; selection **+25.39%/yr**,
+- **The ledger:** Track A on cost basis **+38.36%/yr** against Track B **+24.34%**; same-names
+  buy-and-hold +28.71%; option-overlay excess **−4.37%/yr**; selection **+29.63%/yr**,
   exposure-matched.
 - **This section owes the reader the intervals, and it is the only section that does.** Parts I
   and II assert three times — in `02-introduction`, `04-strategy` and `09-returns` — that the
   overlay "earned nothing distinguishable from zero", with no number anywhere behind it. That is
   deliberate, the statistics belong here, but it means §15 must actually deliver them or the
   claim is unsupported across the whole article. Required: the point estimate, the 90%
-  resampling interval **−19.8% to +7.6% clustered by name** (quote the clustered one; −25.8% to
-  +14.2% by lot is the looser alternative), P(excess < 0) = 69%, and the sample it rests on.
+  resampling interval **−18.1% to +6.9% clustered by name** (quote the clustered one; −24.0% to
+  +13.4% by lot is the looser alternative), P(excess < 0) = 69%, and the sample it rests on.
   `live_ledger.py --bootstrap` produces all of it.
 - **The UNH lot is the worked example**, deliberately kept out of Part II so it lands here:
   assigned at 260, a four-week call written at the same 260 basis for $18.10, called away at 260
   with the stock at 393.85 — collected $1,810, surrendered $13,385. It is also, on its own, the
-  difference between a negative and a positive overlay excess (−4.77% → +2.10%) **and** 50% of
+  difference between a negative and a positive overlay excess (−4.37% → +1.99%) **and** 39% of
   the selection gap. The same position carries both verdicts, and that is the point rather than
   a caveat: a lot that runs far enough to dominate selection is a lot whose call gave the run
   away. **Do not present it as an outlier to be set aside.** UNH, ELV and MSFT all show negative
   excess and positive selection together.
-- **The by-leg decomposition**, which is where the restatement bites: the **put leg keeps 20.7%
-  of premium, the call leg −32.9%**, frictions −$5,054. The old near-symmetry between the legs
+- **The by-leg decomposition**, which is where the restatement bites: the **put leg keeps 25.2%
+  of premium, the call leg −28.9%**, frictions −$7,107. The old near-symmetry between the legs
   was cheap calls on falling names; on the universe the strategy actually claims, the call leg
-  gives back a third of its own premium. Removing those names did not create the effect, it
+  gives back nearly a third of its own premium. Removing those names did not create the effect, it
   stopped hiding it.
 - **Selection, reported not modelled** (was #22 and #14). The pre-registered rule
   (`drafts/2026-07-27-selection-rule-preregistration.md`) is fitted: rules 4 and 6 (fallen
@@ -585,10 +585,10 @@ live data, not only simulation.
   realised volatility, and about six of those ten points is that mismatch. Do not write §15 from
   the old figure — re-run the panel once IV-5 lands and quote what it says then. The depth slope
   is unaffected (within-leg, within-name and within-tenor, so the clock cancels), but it rests on
-  **8 contracts in the deepest bucket** of a column that is not monotone; quote it with that
+  **9 contracts in the deepest bucket** of a column that is not monotone; quote it with that
   qualifier or not at all.
-- **The regime caveat, which bounds everything above:** the universe returned +8.96%/yr over the
-  window and the held names +34.36%/yr, and **a covered-call overlay must lag in a strong
+- **The regime caveat, which bounds everything above:** the universe returned +9.96%/yr over the
+  window and the held names +39.59%/yr, and **a covered-call overlay must lag in a strong
   up-market**. That is mechanical, not evidence. Neither the overlay nor the selection result is
   an unconditional estimate.
 - Reference III-1's book-width caveat rather than restating it: Track A yields are not

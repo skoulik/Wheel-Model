@@ -120,7 +120,7 @@ def test_entry_law(positions, px, universe, sigma_by_sym, drift,
 
     The same rows also answer a second question -- **the revealed strike dial**.
     The raw assignment rate is not comparable with the article's p\\*, for two
-    reasons that push the same way. The window drifted at +34% rather than the
+    reasons that push the same way. The window drifted at +40% rather than the
     article's +4.5%; and `tau` above is in *calendar* years while `sigma` is
     annualised over 252 sessions, so the dominant put -- written Monday at the
     open, expiring Friday at the close, five sessions -- is priced here as four
@@ -131,8 +131,8 @@ def test_entry_law(positions, px, universe, sigma_by_sym, drift,
 
     The calendar/session mismatch is left as it is rather than corrected, and
     that is a decision, not an oversight: pricing every put on its own session
-    count predicts 90.3 assignments against the 71 that occurred, where the
-    calendar reading predicts 71.5. The convention that is wrong on units fits
+    count predicts 88.7 assignments against the 71 that occurred, where the
+    calendar reading predicts 69.9. The convention that is wrong on units fits
     the data, and why is TODO IV-1's business -- see the note there before
     changing anything here. See also [the entry section](#sec:entry).
     """
