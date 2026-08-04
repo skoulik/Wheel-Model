@@ -191,22 +191,29 @@ claim a later pass can only strengthen.
 **If it finds something**, the repair is confined to §03's subsection 6. No result in the article
 depends on being first, and that is worth saying inside §03 rather than only here.
 
-**I-7. Bibliography entries carrying details nobody has checked against a copy — seven cleared,
-six open.** (From building `sections/98-bibliography.md`, 2026-08-01; recounted 2026-08-04, twice.)
+**I-7. Bibliography entries carrying details nobody has checked against a copy — eight cleared,
+five open.** (From building `sections/98-bibliography.md`, 2026-08-01; recounted 2026-08-04, three
+times.)
 
 Every entry the pass supplied came with its bibliographic details; the ones added to cover what
 the sections were already citing informally did not, and were reconstructed rather than read off
 a copy. Ten were tagged **[cite unverified]**, and `python -m examples --references` lists
 whatever carries the tag every run.
 
-**Seven are cleared**, by obtaining copies and reading the details off them: black-scholes-1973,
+**Eight are cleared**, by obtaining copies and reading the details off them: black-scholes-1973,
 hull (2021 → **2022**, and it is the Global Edition), little-1961, merton-1973, ross-first-course
-(**2018**, 10th ed.), ross-probability-models (**2010**, 10th ed.) and chang-peres-1997. The last
-was checked line by line on 2026-08-04 — authors, year, volume, issue and pages all correct, and
-**the title carried a serial comma the paper does not have** ("Gaussian Random Walks, and the
-Riemann"), now fixed.
+(**2018**, 10th ed.), ross-probability-models (**2010**, 10th ed.), chang-peres-1997 and
+chernoff-1965. The last two were both cleared on 2026-08-04 and **both had a wrong title and
+nothing else wrong** — which is the strongest evidence this item has produced for its own closing
+sentence. Chang & Peres carried a serial comma the paper does not have ("Gaussian Random Walks,
+and the Riemann"); authors, year, volume, issue and pages were all correct. Chernoff was carried as
+"Sequential **Test** for the Mean…", singular, against the printed "Sequential **Tests** for the
+Mean of a Normal Distribution IV (Discrete Case)"; journal and pages read off the scan agree, and
+volume and year are settled from inside the copy by his own reference [4] — part III of the same
+series, *Ann. Math. Statist.* **36** 28–54, 1965, the article immediately preceding this one in the
+same volume.
 
-**Six are open, and three of them are new to the list rather than left over from it.**
+**Five are open, and two of them are new to the list rather than left over from it.**
 
 - **israelov-covering-the-world** and **li-zhang** are downloaded but unread, and a title or
   author list is the guessed part in both. The reads are owed by **I-1** and **II-23**; clearing
@@ -218,9 +225,7 @@ Riemann"), now fixed.
   "Corrected diffusion approximations in certain random walk problems". Completed, with pages
   701–719, from Chang & Peres's reference list — and now *tagged*, because that is not a copy
   either.
-- **chernoff-1965** is new, added 2026-08-04 with II-23's pedigree correction, and is known only
-  through Chang & Peres's description of it.
-- **janssen-vanleeuwaarden-2007** is newest, tagged 2026-08-04 **by having been read in full**.
+- **janssen-vanleeuwaarden-2007** is the newest, tagged 2026-08-04 **by having been read in full**.
   The copy is the authors' own typescript — `paperGRWdiffstyleFinal.dvi`, dvips, March 2007 — with
   no journal header, no volume, no pages and no DOI, so "*Annals of Applied Probability* 17(2)"
   came from the pass and the page range was never there at all. Nothing else about the entry
@@ -229,11 +234,11 @@ Riemann"), now fixed.
   citation was never verified.** The two are independent checks and the F/P/A ladder does not
   imply the other one.
 
-The printed count therefore went 10 → 3 → 5 → 6, and every rise is this item working rather than
-regressing.
+The printed count therefore went 10 → 3 → 5 → 6 → 5. Every rise was this item working rather than
+regressing, and the one fall is the first entry it has *closed* since 2026-08-01.
 
-**A second reference list is not a second opinion.** Janssen & van Leeuwaarden's list was read the
-same day and it corroborates chernoff-1965 outright (journal, volume, pages) — but it
+**A second reference list is not a second opinion.** Janssen & van Leeuwaarden's list was read on
+2026-08-04 and it corroborated chernoff-1965 outright (journal, volume, pages) — but it
 **transposes the titles of siegmund-1979 and siegmund-1985**, giving the 1979 *Adv. Appl. Prob.*
 paper the book's title and the 1985 Springer book the paper's, while its own body text cites the
 two correctly. Both entries above are unchanged, because Chang & Peres and Janssen & van
@@ -242,19 +247,36 @@ clearing work: a reference list is a source with its own error rate, and two of 
 details while disagreeing on which title belongs to which work is exactly the failure a copy
 would settle in one look.
 
+**And the copy, obtained the same day, settled it in one look — the other way.** Both lists were
+right about chernoff-1965 on every field they carried, and the entry was wrong anyway, on the one
+field neither list had been asked about because it had been *paraphrased* rather than copied. So
+the two failure modes are independent: corroborating lists catch a field taken from the wrong
+place, and only a copy catches a field taken from the right place and mistyped. **Two lists
+agreeing is evidence about the fields they agree on and about nothing else.**
+
 **The lesson is that the tag list was not the risk surface.** The one entry actually misleading a
 reader carried no tag, because it came from the pass rather than from memory and so was never
 suspected. Before assembly every entry needs a copy or a named corroborating source, tagged or
 not.
 
-**This is still a smaller worry than the read-level rule and a different one.** Five of the six are
-pointers for further reading and the article quotes no figure from any of them. The one number
-that looked like an exception — β = 0.5826, attributed in §07 to siegmund-1979 — is now verified
-to seven digits from an **[F]** source, chang-peres-1997, and Broadie–Glasserman–Kou carries it
-too. A reader following a wrong page range loses nothing but time; a reader following a wrong
-*title* is being misled, which is why titles are the part to check first.
+**Titles are the part to check first, and three for three now says so.** Every entry whose details
+were put against a source on 2026-08-04 — chang-peres-1997 and chernoff-1965 against copies,
+siegmund-1979 against two reference lists — turned out wrong in its title and right in everything
+else. Three different corruptions of the same field: a truncation, a spurious comma, a singular
+for a plural. Numbers get copied because they look like data; titles get retyped because they look
+like prose.
 
-**janssen-vanleeuwaarden-2007 is the sixth and it is not in that class**, because II-29 may put
+**This is still a smaller worry than the read-level rule and a different one.** Four of the five
+are pointers for further reading and the article quotes no figure from any of them. The one number
+that looked like an exception — β = 0.5826, attributed in §07 to siegmund-1979 — now rests on
+**two [F] sources**: chang-peres-1997 prints it to seven digits, and chernoff-1965 supplies an
+independent representation, Corollary 1(b)'s Wiener–Hopf integral, which evaluates to the same
+−0.5825972. (The value *printed* beside that integral is −0.5824; the discrepancy is his
+arithmetic and II-23 carries it.) Broadie–Glasserman–Kou carries the constant too. A reader
+following a wrong page range loses nothing but time; a reader following a wrong *title* is being
+misled.
+
+**janssen-vanleeuwaarden-2007 is the fifth and it is not in that class**, because II-29 may put
 one of its figures in §07 — the 0.033838 zero-depth limit of [eq:trapped](#eq:trapped). The read
 level supports that (**[F]**, and the theorem was reproduced against its own Spitzer counterpart
 before it was quoted); the *citation* does not yet, and it is the only open entry where clearing
@@ -292,14 +314,15 @@ pedigree, the section carries the pointer**, and neither should be written twice
 
 **Three came from actually reading what the pass had only listed at [A]**, and they are the ones
 carrying measurements: **II-27** and **II-28** from Merton–Scholes–Gladstein (2026-08-01),
-**II-29** from Chang & Peres and then Janssen & van Leeuwaarden (both 2026-08-04). The first two
-land in §09 and §05 and move nothing.
+**II-29** from Chang & Peres, then Janssen & van Leeuwaarden, then Chernoff (all 2026-08-04). The
+first two land in §09 and §05 and move nothing.
 **II-29 lands in §07 and moves two figures** — the trapped fraction from 4.1% to 4.4%, the grid
 tax's multiple from 2.1× to 2.4× — because the constant β is a far-barrier limit and §07 applies
 it at 0.28 of one step. It also corrects the pedigree in II-23's first bullet, so **read the two
-together**. Both reads that have promoted a source off **[A]** so far found the record wrong in
-some way that mattered, and the one that promoted a **[P]** found the copy could not support its
-own citation — which is the argument for doing the ones still owed.
+together**. **Every read that has promoted a source off [A] so far has found the record wrong in
+some way that mattered** — three of three now, the newest being Chernoff's title — and the one
+that promoted a **[P]** found the copy could not support its own citation. That is the argument
+for doing the ones still owed.
 
 **II-18. §09 quotes the *index* volatility risk premium at a single-name model.** (Divergence D1
 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); raised 2026-07-31.)
@@ -618,10 +641,38 @@ does not do that job. Every bullet below names the line it lands on.
   identified ẑ with the limiting expected overshoot. Siegmund (1979) is the corrected diffusion
   approximation built on that, and Hardy (1905) did the analysis the expansion rests on. So:
   **Chernoff (1965) as the origin, Siegmund (1979) as the approximation, BGK (1997) as the use we
-  are making of it, Chang & Peres (1997) [F] for the expansion.** One number to be careful with —
-  Chernoff's paper prints the constant as **−0.5824**, which Chang & Peres correct to −0.5826, so
-  a reader who follows the citation to the origin will find a value that disagrees with §07's in
-  the fourth decimal. Say 0.5826 and cite Chang & Peres for it.
+  are making of it, Chang & Peres (1997) [F] for the expansion.**
+
+  **Checked against Chernoff's own copy the same day, and the pedigree survives verbatim** — his
+  (1.1) is the ẑ·√δ displacement, his Summary names Latta, and his §1 is explicit that the
+  observation times are t₀, t₀ + δ, t₀ + 2δ, …. **Two refinements, both worth carrying into the
+  prose.**
+
+  *The −0.5824 is an arithmetic slip, not a rival constant, and that changes what to tell a
+  reader.* Chernoff prints −.5824 twice — in the Summary and in Corollary 1(b) — but the object
+  printed is Latta's ζ(½)/√(2π), which is −0.5825972, and Corollary 1(b)'s own Wiener–Hopf integral
+  **−(1/2π)∫λ⁻² log[λ²/2(1−e^(−λ²/2))] dλ evaluates to −0.582597157939**, agreeing with the closed
+  form to 25 digits (checked while reading). So the origin paper and §07 hold the *same* constant
+  and differ only in a fourth-decimal evaluation. Still quote 0.5826 and still cite Chang & Peres
+  for the digits, but the footnote a careful reader deserves is "the value printed there is the
+  same number, rounded wrongly", not "the sources disagree".
+
+  *He did not know it was an overshoot, and that is the better story.* The constant reached him as
+  a **Spitzer–Wiener–Hopf integral** (his refs [6], [7] — Spitzer, *Duke Math. J.* 24:327–343 and
+  27:363–372), Latta recognised the integral as a zeta value, and Hogan identified it as a mean
+  overshoot **twenty-one years later**. So II-29's "what β *is*" sentence is not Chernoff's
+  reading of his own number: it was computed before anyone knew what it measured. One clause of
+  that in §07's detour is the kind of thing a general audience remembers, and it costs nothing.
+
+  **One caution the copy adds: his object is not a barrier.** Chernoff is displacing the
+  *Bayes-optimal stopping boundary* of a sequential test, not the knock-out level of a
+  discretely-monitored option — the √δ displacement is shared, the problem is not. §07 should say
+  the constant and the √δ shift *first appear* there, not that he solved our problem; BGK is still
+  the citation for the use we make of it. His Theorem 5.1 also carries a uniformity restriction —
+  the shift is asymptotic in δ and uniform only for t in an interval bounded away from 0 and ∞ —
+  which is a *different* limit from the one that actually bites us. **His framing has no
+  barrier-distance axis in it at all**, so it cannot see the b → ∞ problem II-29 raises, and
+  Chang & Peres remains the only source for the size of that error.
 
   **The error statement is II-29, not this bullet, and the axis guessed at here is the wrong
   one.** "Asymptotic in the monitoring frequency" is the one axis on which the article is safe:
@@ -677,11 +728,11 @@ already published, and would be stronger for saying so:*
 **skimmed only**. It is the machinery behind the autocallable bullet, and a pointer to a
 literature is a claim about what that literature contains — skim level does not support one. Read
 it before writing that sentence. Everything else here is already at the level its bullet needs:
-BGK is **[F]**, Israelov & Nielsen is **[F]**, Chang & Peres is **[F]** since 2026-08-04, and the
-three **[A]** sources are cited for the existence of a result rather than for a figure, which is
-what **I-1**'s read-level rule permits. That includes **chernoff-1965**, the third of them and the
-newest: it is cited for priority, the constant itself is quoted from Chang & Peres, and Chang &
-Peres quote Chernoff's own sentences — so a copy is desirable and is not owed.
+BGK is **[F]**, Israelov & Nielsen is **[F]**, and Chang & Peres and **chernoff-1965** are both
+**[F]** since 2026-08-04 — the latter was judged desirable and not owed, since it is cited for
+priority alone, and reading it anyway repaid the hour with a wrong title, a settled −0.5824 and
+the two refinements above. The remaining **two [A]** sources are cited for the existence of a
+result rather than for a figure, which is what **I-1**'s read-level rule permits.
 
 **One INF possibility, recorded and not converted.** The discretely-monitored-barrier literature
 has numerics built for our grid problem (quadrature reaching O(1/N⁴), Hilbert-transform methods
@@ -935,7 +986,10 @@ numbers are low because of it.** (From reading [Chang & Peres](#ref:chang-peres-
 2026-08-04 — II-23 had it listed as a pointer for higher-order terms, and it turned out to carry
 the meaning of the constant and the size of the error as well. **Extended the same day from
 [Janssen & van Leeuwaarden](#ref:janssen-vanleeuwaarden-2007)** — parts Seventh to Twelfth, which
-name eq:trapped's object, give one value of it in closed form, and add a third confirming route.
+name eq:trapped's object, give one value of it in closed form, and add a third confirming route —
+**and again from [Chernoff](#ref:chernoff-1965)**, parts Thirteenth to Fifteenth, which date the
+constant's meaning, confirm its digits by a fourth route and rule the origin paper out as a source
+of a sharper error bound.
 Everything below was measured while raising the item and **outside the model**: the trapped
 fraction by three independent routes that agree, the overshoot by a Monte Carlo whose implied
 E[W] reproduces §07's own 2.10. Nothing in `code/` computes any of it yet.)
@@ -1112,11 +1166,48 @@ so he had the zeta function in hand without saying so. One sentence of that turn
 number quoted on authority into
 a member of a family, and the Kingman half connects §07's grid tax to §08's queueing frame. Any of
 those citations arrives **[cite unverified]** — the details above are off their reference list, not
-off copies — and the general-audience pick is the polymer.
+off copies, the one exception being Chernoff, whose own copy was obtained the same day (see
+Thirteenth) — and the general-audience pick is the polymer.
 
 **No numerical hazard.** Their series converge for |θ| < 2√π = 3.545 and the article's θ is 0.035
 at the running example and 0.024 at σ = 40%; θ = |ν|·√τ_c/σ cannot approach the radius at any
 parameters a reader would try. Their §7 gives alternative representations if it ever did.
+
+### Extended 2026-08-04 by reading [Chernoff](#ref:chernoff-1965) in full
+
+The origin paper, read the same day off a JSTOR scan of pp. 55–68. **It moves no figure** — the
+attribution corrections it carries belong to II-23, which owns them — but it settles two things
+this item asserts and closes off a third line of enquiry before anyone spends an afternoon on it.
+
+**Thirteenth, β was an integral for twenty-one years before it was an overshoot, and the First
+point above is not Chernoff's reading of his own number.** He reached ẑ through Spitzer's solution
+of the Wiener–Hopf equation (his refs [6] and [7]: F. Spitzer, *The Wiener–Hopf equation whose
+kernel is a probability density*, *Duke Math. J.* **24**:327–343, 1957, and II, **27**:363–372,
+1960), Gordon Latta recognised the resulting integral as ζ(½)/√(2π), and Hogan identified it with
+the limiting expected overshoot only in **1986**. Nothing in the 1965 paper says the word. **This
+is a gain for §07's detour, not a caveat**: the general-audience sentence First proposes — *a
+barrier crossed between two expiries behaves as though it sat 0.58 steps deeper* — can be
+introduced as the meaning the number turned out to have, twenty-one years after it was first
+computed as a definite integral in a problem about sequential testing. That is a better opening
+than "the constant is the limiting expected overshoot", and it is the same length.
+
+**Fourteenth, a fourth route confirms the digits, and it is his own.** Corollary 1(b) prints ẑ as
+−(1/2π)∫λ⁻² log[λ²/2(1−e^(−λ²/2))] dλ. Evaluated while reading, that integral is
+**−0.582597157939**, matching −ζ(½)/√(2π) to 25 digits. So the four routes now on record — Latta's
+zeta closed form, Chernoff's Wiener–Hopf integral, Chang & Peres's ladder-height expansion, and
+Janssen & van Leeuwaarden's series — all land on the same 0.5825972, which is the strongest
+possible support for **Do not change `BETA`** below. The **−0.5824** printed twice in his paper is
+an arithmetic slip in evaluating his own formula, not a rival value; II-23 carries what to tell a
+reader about it.
+
+**Fifteenth, the origin cannot help with Second, and this closes that line off.** Chernoff's object
+is the **Bayes-optimal stopping boundary of a sequential test**, not a knock-out barrier, and his
+asymptotics run in δ: (1.1) is x̃_δ(t) = x̃(t) + ẑ√δ + o(√δ), with Theorem 5.1 making the o(1)
+uniform only for t in an interval bounded away from 0 and ∞. **There is no barrier-distance axis in
+the paper at all** — the boundary *is* where the process stops, so the small-b regime the article
+sits in does not arise for him and no error term of his can be re-read as bounding ours. Chang &
+Peres stays the sole source for the size of the b = 0.279 error, and nobody should go back to the
+origin looking for a sharper one.
 
 **Two places this correction does not reach**, measured and recorded so nobody re-derives them.
 
@@ -1146,7 +1237,10 @@ borrows from Chang & Peres above. The two letters collide and the article's mean
   or quote both. Attribution follows **II-23**'s corrected pedigree, with
   [Janssen & van Leeuwaarden](#ref:janssen-vanleeuwaarden-2007) beside Chang & Peres for the
   meaning: they are the ones who say in as many words that the constant is what a grid costs a
-  *maximum*, and their application list is the optional second sentence (Twelfth above).
+  *maximum*, and their application list is the optional second sentence (Twelfth above). **If the
+  detour wants one memorable sentence rather than two dutiful ones**, Thirteenth is the candidate —
+  the number was computed as a definite integral in 1965 and only understood as an overshoot in
+  1986 — and it can carry the meaning and the pedigree together.
 - **§07, [eq:holding-siegmund](#eq:holding-siegmund)**: replace the one-sided "9% below" with
   Wald's identity and the two-sided bracket.
 - **§07, [eq:trapped](#eq:trapped)**: requote from the walk — 4.4% and 0.46 — and keep the closed
