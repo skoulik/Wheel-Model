@@ -6,7 +6,9 @@ Lots arrive at a known rate and stay for a known average time. How much stock do
 
 > Consider any system that things enter, spend time in, and leave: customers in a shop, patients in a hospital, jobs in a queue, stock lots in a wheel. **Little's law** says that the average number of items in the system equals the average arrival rate multiplied by the average time each item spends there. If forty customers an hour enter and each stays half an hour, there are twenty in the shop on average.
 >
-> What makes the law remarkable is what it does *not* require. Nothing about the arrival pattern, nothing about the order of service, nothing about whether items are independent, nothing about the shape of any distribution. Only that the system is in a steady state and that the averages exist. It is a conservation identity, not a model. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) proves it; [Little's 1961 paper](#ref:little-1961) is the original.
+> What makes the law remarkable is what it does *not* require. Nothing about the arrival pattern, nothing about the order of service — [Little](#ref:little-1961) says of his own diagram that it is drawn for items leaving in the order they arrived, "but this is not required for the proofs" — nothing about whether items are independent, and nothing about the shape of any distribution. It is not even fussy about what counts as "the system": any boundary will do, so long as *number in the system*, *time spent in the system* and *arrival to the system* all mean the same thing by it. That last permission is what lets a warehouse of stock be treated as a queue at all. It is a conservation identity, not a model.
+>
+> One qualification, because the freedom just described is not quite the 1961 paper's. [Little's original](#ref:little-1961) assumes rather more than it needs — that the queue length, the waiting times and the arrivals are all strictly stationary — and he says so himself, calling it "probably not the weakest requirement possible". The assumption-free versions came later: a sample-path form that asks only that the averages exist, and [Little's own finite-window form](#ref:little-2011), which asks for nothing whatever and is the one this section actually leans on a few paragraphs below. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) proves the standard statement.
 
 ## Applying it
 
@@ -21,6 +23,8 @@ E[I]  =  λ · E[W]  =  10.4 × 2.10  =  **21.8 lots**    {#eq:little}
 Twenty-two lots. The strategy was described at the outset as one that sells puts and occasionally takes assignment; at equilibrium it is a strategy that owns twenty-two lots of stock and sells puts on the side. And it earned that inventory honestly: 10.4 assignments a year, each lingering two years, is twenty-two.[^eq-lambda]
 
 Note what Little's law let us skip. Nothing here needed the exits to be independent, or the arrival stream to be smooth, or the holding times to follow any particular distribution — all of which are false for a single stock, whose lots ride one price path and are called away in batches. The average is exact regardless. That robustness is why this identity, rather than any distributional argument, is the load-bearing step of the article.
+
+There is also a way to say the answer with no clock in it at all, and it may be the version worth keeping. Count time in *arrivals* rather than in years, and the law reads: **while you hold one lot, about twenty-two more are assigned.** Same number, nothing for the reader to multiply, and no rate to be quoted per year.
 
 ## The equilibrium the unconstrained operator will never see
 
@@ -37,6 +41,18 @@ which recovers [eq:little](#eq:little) as t grows, since the whole integral is E
     average over [0, H]               5.41     7.39    11.40        21.82
 
 The first row is what the operator is holding when the horizon arrives. The second is the average across the whole period, and it is the one the rest of Part II reports, because a return earned over a window has to be measured against the capital committed *throughout* that window rather than at its end. Every horizon-indexed figure from [the returns section](#sec:returns) onward is an average of the second kind, and the distinction is worth carrying: at thirty years the two differ by a third.
+
+That second row is not a truncated version of Little's law. It *is* Little's law, read over the window — and reading it that way turns the gap between 11.40 and 21.82 from an apology into a figure. Divide the window's average inventory by the arrival rate and what comes back is the time a lot spends inside the window:
+
+    horizon H                        5 y      10 y      30 y
+    average inventory over [0, H]   5.41      7.39     11.40
+    time a lot spends in-window     0.52 y    0.71 y    1.10 y
+
+**Over a thirty-year window a lot spends 1.10 years inside it, against a full life of 2.10.** The window sees about half of each lot, so it holds about half the equilibrium inventory. Nothing is being approximated: a lot assigned in year 28 is genuinely two years old at most by the time the window closes, and counting it as such is the arithmetic rather than a concession to it.
+
+That the law survives being read this way is [Little's own result](#ref:little-2011), proved for exactly this case — a window that starts empty and ends with the queue still occupied, which is a filling wheel to the letter — and it needs no stationarity at all, which the 1961 version did. It is not an exotic reading either: the same identity is standard in computer performance analysis, where it has been used to measure real systems for decades, and where defining a lot's residence as inventory divided by arrival rate is simply the convention when the system is not empty at the end.
+
+One thing it does not do, and the distinction matters for everything that follows. The window law licenses the *measurement* — it says the 11.40 is exactly right for a thirty-year window — and says nothing whatever about the relation between that and the 21.82. Connecting the two is a separate question about how fast the system fills, which is the next thing this section takes up.
 
 Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W]. An operator running this strategy for a full career holds about **seven tenths** of where it is heading, still rising, with no indication from the recent past that it is going to keep rising.
 
@@ -114,7 +130,11 @@ None of this is new, and the person who said so first was Little. His own illust
 
 Everything above concerns averages, which is all Little's law provides and all the economics needs. The *distribution* of I on a single stock is another matter: it is not the tidy bell-shaped thing a queueing course would suggest, because lots on one name share one price path — they deepen together and are called away in batches. The realized distribution is heavily skewed, with long empty stretches punctuated by deep pile-ups, and its variance runs several times its mean.
 
-The classical result — that an infinite-server queue settles into a **Poisson** distribution, whose variance equals its mean — needs arrivals and departures to be independent. That is false for one stock and true across many. So the distributional claims belong to [the portfolio section](#sec:portfolio), where they are earned, rather than here, where they would be assumed. [The verification section](#sec:verification) reports what the single-name distribution actually looks like.
+The classical result — that an infinite-server queue settles into a **Poisson** distribution, whose variance equals its mean — needs arrivals and departures to be independent. That is false for one stock and true across many.
+
+There is also a distributional version of Little's law itself, which would seem to be exactly the tool for the job, and it is worth naming the reason it is not. It requires items to leave **in the order they arrived**. The wheel does no such thing: lots leave in order of *depth*, so a lot assigned last week can be called away years before one assigned in a drawdown, which is the whole of [the holding-time section](#sec:holding). That is the precise reason only the mean carries over — and it is a sharper reason than the shared price path, though the shared path is why the law's other condition fails too.
+
+So the distributional claims belong to [the portfolio section](#sec:portfolio), where they are earned, rather than here, where they would be assumed. [The verification section](#sec:verification) reports what the single-name distribution actually looks like.
 
 [^eq-census]: Reproduced by `python code/examples/inventory_census.py` — [eq:census](#eq:census), and the other readings quoted here are `stationary`. Pass `--help` for the full parameter set.
 

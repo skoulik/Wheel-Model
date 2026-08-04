@@ -36,6 +36,7 @@ FIELDS = [
     ("EI_eq", "equilibrium E[I] = lambda*E[W] (lots)", ".2f"),
     ("at_h", "E[I(H)], holdings at H", ".2f"),
     ("horizons", "  average over [0, H]", ".2f"),
+    ("residence", "  W(H) = that over lambda: in-window residence (y)", ".2f"),
     ("hlabels", "  ", ">6s"),
     ("approach90", "years to reach 90% of equilibrium", ".0f"),
 ]
@@ -60,6 +61,16 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "at_h": [model.inventory_at(cfg, measure, near, h) for h in HORIZONS],
         "horizons": [model.economics(cfg, measure, near, horizon=h)["I"]
                      for h in HORIZONS],
+        # Little's law read over the window rather than over a lot's whole
+        # life: dividing the window's average inventory by the arrival rate
+        # returns the time a lot spends INSIDE the window, which is the
+        # quantity the window form of the law is about.  It is a ratio of two
+        # numbers already above, not a new solve -- and the point of printing
+        # it is that at 30 years it reads 1.10 against a full E[W] of 2.10, so
+        # the window sees about half of each lot and holds about half the
+        # equilibrium inventory.
+        "residence": [model.economics(cfg, measure, near, horizon=h)["I"]
+                      / eq["lambda"] for h in HORIZONS],
         "hlabels": [f"{h:.0f} y" for h in HORIZONS],
         "approach90": model.time_to_fraction(cfg, full, 0.9),
     }
@@ -72,6 +83,9 @@ CASES = [
         "EI_eq": (21.8, 0.1),           # eq:little: "10.4 × 2.10 = 21.8 lots"
         "at_h": ([7.95, 10.57, 15.42], 0.05),      # eq:little-finite, top row
         "horizons": ([5.41, 7.39, 11.40], 0.05),   # the [0,H] average row
+        # "over a thirty-year window a lot spends 1.10 years inside it,
+        # against a full life of 2.10" -- the window reading of the same law
+        "residence": ([0.52, 0.71, 1.10], 0.005),
         "approach90": (90.0, 3.0),      # "Reaching 90% of the equilibrium level takes 90 years"
     }, note="Standard regime"),
 ]

@@ -18,7 +18,7 @@ to a reader and should be added only when the text genuinely defers something. E
 `sections/98-bibliography.md` (recounted 2026-08-04, after II-29 closed), in the internal
 field after an entry's anchor, which is stripped at assembly and so never reaches a reader; they
 mark the two unread downloads, the one source that may be cited for its existence only, and the
-eight entries the reading of 2026-08-04 left owing something to I-7, II-22, II-23, II-30 or
+entries the reading of 2026-08-04 left owing something to I-7, II-23 or
 IV-9. The bibliography stands at **43 entries**, five of them added that day, and **seven of them
 are now cited** — §07's four arrived with II-29.
 
@@ -27,18 +27,18 @@ are now cited** — §07's four arrived with II-29.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with twelve items outstanding**
-(II-18 through II-28 and II-30 — nine from the literature pass of 2026-07-31, which reopened Part
-II the day it closed, two more from the Merton–Scholes–Gladstein read of 2026-08-01 that closed
-I-5, and one from the reads of 2026-08-04; **none of the twelve changes a formula or a verdict and
-only II-30 adds a number**, the one item that moved figures having closed on 2026-08-04);
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with eleven items outstanding**
+(II-18 through II-28 — nine from the literature pass of 2026-07-31, which reopened Part II the day
+it closed, and two from the Merton–Scholes–Gladstein read of 2026-08-01 that closed I-5; **not one
+of the eleven changes a formula, a verdict or a number**, the three items that did having all
+closed on 2026-08-04);
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **twelve open items** (II-18 – II-28, II-30) — six in §09, the rest in §05, §07, §08 and §10; II-23 also touches §00, §02 and §11. §07 and §00 were edited by II-29 on 2026-08-04 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **eleven open items** (II-18 – II-28) — six in §09, two in §05, one in §08; II-23's six remaining bullets reach §02, §07, §09, §10 and §11. §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -358,8 +358,8 @@ tag, which drops the count the checker prints.
 Part II closed on 2026-07-31, was reopened the same day by the literature pass, and has been
 reopened three times since by reading the sources that pass had only listed. **Twelve items are
 open**, they divide in three, and **none of them changes a formula, a verdict or a number** —
-II-30 is the only one that even adds one. The single item that moved printed figures, II-29,
-closed on 2026-08-04 and is in [`DONE.md`](DONE.md); §07 and §00 carry its edits.
+not one of them even adds a number. The three that did — II-22, II-29 and II-30 — all closed on
+2026-08-04 and are in [`DONE.md`](DONE.md); §00, §07, §08 and §10 carry their edits.
 
 **Six land in §09**, and IV-5 edits it a seventh time, so read them together before touching the
 section. Two are corrections to what the section already says — **II-18** the level of the
@@ -385,15 +385,17 @@ to the bibliography, and §03 will supply the pedigree when it exists. **§03 ca
 the section carries the pointer** still holds as a division of labour — it is not a running order,
 and none of these items is blocked.
 
-**Three came from actually reading what the pass had only listed at [A] or [P]**, and they are the
-ones carrying measurements: **II-27** and **II-28** from Merton–Scholes–Gladstein (2026-08-01),
-and **II-30** from Little's own two papers (2026-08-04). II-27 and II-28 land in §09 and §05 and
-move nothing. **II-30 lands in §08**, adds one figure the section never had, and corrects what the
-article says a source assumes rather than what it computes. The fourth was **II-29**, from Chang &
-Peres, Janssen & van Leeuwaarden and Chernoff, and it is the one that moved figures — §07's grid
-tax from 2.1× to 2.4× and its trapped fraction from 4.1% to 4.4%, both against the operator. It
-closed on 2026-08-04. **What is left of it here is II-23's first bullet**, the pedigree of the
-same equation, which changes no number and was deliberately kept separate.
+**Two came from actually reading what the pass had only listed at [A] or [P]**, and they are the
+ones carrying measurements: **II-27** and **II-28**, both from Merton–Scholes–Gladstein
+(2026-08-01), landing in §09 and §05 and moving nothing.
+
+**Two more came the same way and are already closed**, which is why the reads are worth doing.
+**II-29** — Chang & Peres, Janssen & van Leeuwaarden, Chernoff — moved §07's grid tax from 2.1× to
+2.4× and its trapped fraction from 4.1% to 4.4%, both against the operator. **II-30** — Little's
+own two papers — landed in §08, added the one figure the section never had (W(H) = 1.10 y) and
+corrected what the article said a source *assumes* rather than what it computes. Both closed on
+2026-08-04; see [`DONE.md`](DONE.md), along with II-23's first bullet, which carried the same
+equation's pedigree and was written directly after II-29.
 
 **Every read that has promoted a source off [A] or [P] so far has found the record wrong in some
 way that mattered** — four of four now — **but the fourth moved where the wrongness lives**. Chang
@@ -1004,135 +1006,6 @@ appropriate put-pricing model". **We are not exposed today** — `model.py:120`'
 direct European formula and does not go through `bs_call` — but parity is the natural shortcut
 for anyone extending the pricing, and §05's caveat is the place to spend a clause on it.
 
-**II-30. §08's detour describes a Little's law that is not the one it cites, and the finite-horizon
-row it calls an approximation is the theorem itself.** (From reading both
-[Little (1961)](#ref:little-1961) and [Little (2011)](#ref:little-2011) in full, 2026-08-04. The
-first was **[A]** — a scan with no text layer, read off page images — and the second **[P]**.
-Withdraws II-22's first caution — that item closed on 2026-08-04, see [`DONE.md`](DONE.md), and
-the caution went with it; adds one figure and moves none.)
-
-Three edits, all in §08, and they are one idea seen three times: **the law is stronger than the
-article thinks, in exactly the direction the article needs.**
-
-**1. The finite window is not a truncation. It is the theorem.** II-22's first caution had said
-"H = λG is a stationary identity and the article reports finite horizons —
-[eq:little-finite](#eq:little-finite) is a truncation of it, not the theorem". That is wrong, and
-the copy is emphatic about it. Little (2011) **§2 is new material written for the retrospective**,
-and its whole argument is that practice happens in finite windows: he proves **LL.1** (system empty
-at 0 and T) and **LL.2** (nonzero starting and ending queues, with λ = S(T)/T counting everything
-that was ever in the system), and states as his reason that "all observations of practice take
-place in a finite time interval" and that "the finite time interval guarantees that the
-relationship L = λW is numerically exact". §2.1.4 adds that LL.1 needs no stationarity: it "holds
-under nonstationary conditions", his own example being a supermarket whose arrival rate peaks
-after noon.
-
-**Which is our transient exactly, and this is the sharp end of the item.** A filling wheel starts
-empty and is still filling when the horizon arrives, so **LL.2** is the case that fits — the one
-that permits a non-empty ending queue. It is also the only one that *can* fit: 1961's Theorems 1
-and 2 require {n<sub>t</sub>} itself to be strictly stationary, and ours is not, by ninety years.
-So the article cites 1961 for [eq:little](#eq:little), where it holds, and then applies the law
-over a window that 1961's hypotheses do not reach — while calling the result an approximation of
-the thing that *is* covered. Both halves of that are backwards. **Checked on our own numbers, and
-it is exact to machine precision.** Reading W(H) as the mean residence *inside the window*,
-W(H) = (1/H)∫₀^H (H−s)·S(s) ds, against `economics(horizon=H)["I"]` computed the census way:
-
-    horizon H                          5 y     10 y     30 y
-    E[I] averaged over [0,H]          5.41    7.39    11.40      (§08's second row, unchanged)
-    W(H), in-window residence         0.520   0.711    1.096
-    lambda * W(H)                     5.41    7.39    11.40      (agrees to 1.3e-15)
-
-and it is exact for a structural reason, not a numerical accident: `_time_avg_weights` gives period
-j the weight τ_c·(H − (j+½)τ_c)/H, which *is* the expected in-window occupancy of that period for
-a lot arriving uniformly in the window. So **every** horizon-indexed figure in Part II — the
-inventory, the premiums, the basis — is already λ·G read over the window, for its own weighting.
-The extension of LL.1 from f ≡ 1 to general f is ours by the same two-line argument and is not in
-Little; say "the same reading" rather than citing him for it.
-
-**It has a name, an older lineage, and a warning attached** (added 2026-08-04 from
-[Whitt (1991)](#ref:whitt-1991) §5 **[F]**). The finite-window reading is the **operational
-analysis** version of Buzen and of Denning & Buzen, textbook material in computer performance
-analysis (Lazowska et al., ch. 3), and Whitt calls it "primarily a rediscovery of the fact that,
-for each sample path, ∫₀^t Q(s) ds = Σ<sub>k=1</sub>^{A(t)} W<sub>k</sub> whenever Q(t) = 0". So
-Little's LL.1/LL.2 are a restatement of something with its own literature, and **§08 should not
-present the window reading as exotic**. Two further gifts. When the system is *not* empty at the
-window's end — our case — Whitt records the standard convention as **defining W to be L/λ**, which
-is precisely the W(H) computed above, so the quantity is not ours and needs no apology. And the
-warning, which II-30 must carry into the section: the finite-time "measurement" version "leaves
-open the question of how the finite-time averages are related to the limits (e.g., prediction)".
-That is the exact seam this article walks — it reports 11.40 *and* 21.82 — so the window law
-licenses the measurement and says nothing about the extrapolation. The 90-year approach is still
-what connects them, and it is not a corollary of the identity.
-
-**What §08 gains is a sentence it currently cannot write.** The section's best line is that the
-operator-relevant number is 11.40 and not 21.82, and it explains the gap by the slowness of the
-tail. The window law explains it in one figure instead: **over a thirty-year window a lot spends
-1.10 years inside the window against a full life of 2.10** — the window sees about half of each
-lot, so it holds about half the equilibrium inventory. Same law, honestly applied, no
-approximation anywhere. **Trap when quoting the fraction**: 11.40 is a near-grid number and 2.10 is
-the extrapolated one, so the ratio reads 52% or 54% depending on which E[W] a reader divides by
-(near-grid E[W] = 2.046). Quote **W(H) = 1.10 y** — which follows from two figures §08 already
-prints — and say "about half", not a percentage.
-
-**2. The detour credits the 1961 paper with assumptions it does not make.** The detour says the law
-requires "nothing about the arrival pattern, nothing about the order of service, nothing about
-whether items are independent, nothing about the shape of any distribution. Only that the system is
-in a steady state and that the averages exist", and then names Little (1961) as the original.
-**Little (1961)'s Theorems 1 and 2 assume strict stationarity of all three processes** — the queue
-length, the waits and the interarrival times — **and metric transitivity of the arrival process**,
-an ergodicity condition that "the averages exist" does not cover. He flags the first himself: "a
-requirement is made for strict stationarity (although this is probably not the weakest requirement
-possible)". The assumption-free statement is the later **sample-path version** (Stidham 1974,
-restated at 2011 §3.1.1: if λ and W exist and are finite, L exists and equals λW) and LL.1/LL.2,
-which assume nothing whatever. Note also that the form the article uses is his **Theorem 2**, the
-one about expectations (W = TL, "the principal result for applications"); Theorem 1 is the
-sample-path statement that holds with probability one.
-
-**The repair is small and improves the detour.** Keep 1961 as the origin; hang the freedom on the
-finite-window theorems, which are in the same author's voice, published in the same journal, and
-assume less than anything else available. Two clauses are also now citable that the detour
-currently asserts: order of service, from 1961's own Fig. 1 caption — "the figure is drawn for the
-case of departure in order of arrival, but this is not required for the proofs" — and the
-flexibility of what counts as "the system", from p. 387, which requires only "consistency of
-meaning" across *number in the system*, *time spent in the system* and *arrival to the system*.
-That is the licence for treating a warehouse of stock as a queue, and it is worth one clause
-because a reader's first objection to §08 is that this is not a queue.
-
-**3. §08's closing hedge on the distribution can name the theorem it is declining.** The section
-says the distribution of I is not the "tidy bell-shaped thing a queueing course would suggest" and
-defers to §12. There is a **distributional Little's law** (2011 §3.3, due to Haji & Newell 1971):
-N has the same distribution as Λ(W) — but only under (a) **FIFO** departures, (b) stationary
-{W<sub>i</sub>}, and (c) each W<sub>i</sub> independent of the arrival process after item i
-arrived. Little calls the conditions "quite restrictive". **The wheel fails (a) outright**: lots
-leave in order of depth, not order of arrival, so a lot assigned last week can be called away
-years before one assigned in a drawdown. That is the precise reason only the mean carries, and it
-is a better sentence than the current appeal to a shared price path — which is the reason (c) also
-fails, and can stay beside it.
-
-**4. Optional, and the best pedagogy in the whole item: the ordinal version.** (Halfin & Whitt,
-via [Whitt (1991)](#ref:whitt-1991) §8(3), theorem 8.1.) Measure time in *arrival indices* instead
-of years, so that a customer's waiting time becomes the number of arrivals during its stay. The
-conclusion: **the long-run average number in the system at an arrival epoch equals the long-run
-average number of arrivals during one customer's sojourn**. In wheel terms, with no clock at all:
-*while you hold one lot, about twenty-two more are assigned* — which is E[I] = 21.8 restated
-without years, without λ, and without the reader having to multiply anything. It is the same
-number §08 already prints, and it may be the version a general audience actually keeps. Optional
-because §08's argument does not need it; if the section is already long, drop it rather than the
-window reading.
-
-**Where it goes, and it may want its own subsection.** The detour is a general-audience explainer
-and these are four different jobs: fixing what it claims a source assumes, adding the window
-reading, naming the distributional result, and optionally restating E[I] ordinally. **Prefer a
-short subsection after "Applying it"** — the window law belongs next to [eq:little-finite](#eq:little-finite) and the table it
-introduces, not inside a general-audience detour that is doing a different job — with edits 2 and 3
-staying as clauses where they already are. Sequenced **after II-22**, which owned the same
-section's census integrals; that item closed on 2026-08-04, so §08 already carries its H = λG
-detour and this one is written against the section as it now stands.
-
-**What this owes `code/`.** W(H) is a new quoted figure, so under INF-5 it needs a field and a
-frozen case: add `W(H) = I(H)/λ` to `code/examples/inventory_little.py` beside the two rows it
-already prints, and assert the three values above. Nothing in `model.py` changes — the quantity is
-a ratio of two things it already computes.
-
 ## Part III — Many assets
 
 Neither file exists. This is Stage 3 of the restructure and the largest single block of
@@ -1153,8 +1026,8 @@ are drafted rather than be discovered afterwards.
   one name — on one name the inventory is nothing like Poisson (Var/Mean ≈ 4.8, P(I = 0) ≈ 14%
   against Poisson's 0.9%). §12 is where that promise is redeemed.
 
-  **Do not redeem it with the distributional Little's law.** (Added 2026-08-04; II-30 has the
-  statement.) There *is* a distributional form — N distributed as Λ(W) — and it looks like exactly
+  **Do not redeem it with the distributional Little's law.** (Added 2026-08-04; the statement is
+  in [`DONE.md`](DONE.md) under II-30, and §08 now names the result and why it does not apply.) There *is* a distributional form — N distributed as Λ(W) — and it looks like exactly
   the tool for this bullet, which is why it is worth naming the reason it is not: it requires
   **FIFO departures**, and a wheel violates that on one name and on a book, since lots leave by
   depth and never by seniority. The Poisson result §12 owes comes from the infinite-server
@@ -1397,7 +1270,8 @@ live data, not only simulation.
   scores periods at tenors never traded; and pricing an entry at the day's close when the
   operator writes in the first hour builds a look-ahead into every measured entry depth.
 - **A fourth trap, and a free check, both from the finite-window law** (added 2026-08-04 from
-  [Little (2011)](#ref:little-2011) §2.2, via **II-30**).
+  [Little (2011)](#ref:little-2011) §2.2, via **II-30**, closed 2026-08-04 — §08 now carries the
+  window reading and `inventory_little.py` prints W(H)).
 
   *The trap: a window cannot see E[W], and comparing a live holding time to 2.10 years is a
   category error.* What a window of length H measures is the **in-window** residence — a lot
@@ -1734,7 +1608,7 @@ the trap must not be walked into silently.
 **What to do, and it is a paragraph in §14 plus a check.** State which estimator each live figure
 uses; do not compare a live L/λ against the model's E[W] without saying what the trapped fraction
 does to it; and keep the two uses of the identity apart, because they are different in kind. The
-**arithmetic** use is II-30's free consistency check on the ledger — exact, assumption-free, can
+**arithmetic** use is the free consistency check on the ledger that II-30 identified — exact, assumption-free, can
 only pass or reveal a bug. The **statistical** use is comparing a window's measured value to the
 model's, which needs the probability structure and has confidence intervals. IV-2 already owes
 intervals (Broadie–Chernov–Johannes); this is the same discipline reaching the quantity side.

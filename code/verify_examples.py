@@ -177,6 +177,29 @@ def main():
     quad += (2 * log(L) + 2 - log(2)) / L        # the analytic tail past L
     check("beta as Chernoff's Wiener-Hopf integral, not as a zeta value",
           quad / pi, BETA, 5e-5)
+    # Section 08 now says its [0,H] inventory row IS Little's law read over the
+    # window -- "nothing is being approximated" -- and that rests on a claim
+    # about what economics(horizon=H) computes: that _time_avg_weights gives
+    # period j the expected time a lot spends in the window, not an
+    # approximation to it.  The window residence has an independent definition,
+    #     W(H) = (1/H) * integral_0^H (H - s) * S(s) ds,
+    # S being the survival curve, which is the mean of min(W, H-U) for a lot
+    # arriving uniformly in the window.  Integrating that on a grid that knows
+    # nothing about call periods must reproduce E[I(over [0,H])]/lambda.
+    lam_p = e30["lambda"]
+    for H in (5.0, 10.0, 30.0):
+        surv, steps = occ_p["surv"], 400          # sub-intervals per call period
+        acc, ds = 0.0, STD.tau_c / steps
+        s_pos = ds / 2
+        while s_pos < H:
+            j = int(s_pos / STD.tau_c)
+            if j >= len(surv):
+                break
+            acc += (H - s_pos) * surv[j] * ds
+            s_pos += ds
+        check(f"in-window residence at {H:g}y: quadrature vs E[I]/lambda",
+              acc / H,
+              economics(STD, "P", occ_p, horizon=H)["I"] / lam_p, 2e-4)
     # A regression guard on a number no section prints, so it has no home in a
     # module: module cases assert what the article claims, and this is not a
     # claim the article makes.

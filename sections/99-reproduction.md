@@ -63,7 +63,7 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 |---|---|---|
 | `eq:census` | `python code/examples/inventory_census.py` | shares = 8.0% 5.0% 11.0% 7.0% 9.0% 13.0% 18.0% 28.0%, q_mid = 0.442 0.275 0.094 0.013 0.001 0.000 0.000 0.000, mean_x = 38.0%, mean_q = 0.0660, deep30 = 46.0% |
 |  | `python code/examples/inventory_census.py --stationary` | mean_x = 79.0%, mean_q = 0.0360, deep50 = 53.0% |
-| `eq:lambda`, `eq:little`, `eq:little-finite` | `python code/examples/inventory_little.py` | lam = 10.4, EW = 2.10, EI_eq = 21.80, at_h = 7.95 10.57 15.42, horizons = 5.41 7.39 11.40, approach90 = 90 |
+| `eq:lambda`, `eq:little`, `eq:little-finite` | `python code/examples/inventory_little.py` | lam = 10.4, EW = 2.10, EI_eq = 21.80, at_h = 7.95 10.57 15.42, horizons = 5.41 7.39 11.40, residence = 0.52 0.71 1.10, approach90 = 90 |
 
 ## 09-returns.md
 
