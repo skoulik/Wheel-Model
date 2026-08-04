@@ -20,9 +20,11 @@ The cost of this is not small, and it has a known size. For a walk sampled at di
 
 β · σ·√τ_c ,   β = −ζ(1/2)/√(2π) ≈ 0.5826    {#eq:siegmund}
 
-a classical correction due to [Siegmund](#ref:siegmund-1979). What β measures is an **expected overshoot**: how far past a level a walk typically stands at the first moment anyone looks, in units of one period's step. The grid does not merely delay a lot's exit, it records the exit late — a barrier crossed between two expiries behaves as though it had been sitting 0.58 steps deeper all along.
+a classical correction. What β measures is an **expected overshoot**: how far past a level a walk typically stands at the first moment anyone looks, in units of one period's step. The grid does not merely delay a lot's exit, it records the exit late — a barrier crossed between two expiries behaves as though it had been sitting 0.58 steps deeper all along.
 
-One caveat about that number, and it cuts against the operator rather than for them. 0.5826 is the overshoot for a barrier *infinitely far away*, and a fresh lot is not far from its barrier at all: it sits
+Nobody knew that when the number was first computed, which is the more interesting half of its history. It appears in [Chernoff (1965)](#ref:chernoff-1965), where the problem is not a barrier at all but when to stop a sequential experiment that can only be inspected at fixed times, and where it arrives as a definite integral — one that Gordon Latta recognised as −ζ(1/2)/√(2π). That it *measures an overshoot* was established twenty-one years later. [Siegmund](#ref:siegmund-1979) built on it the diffusion approximation this section uses below; [Chang & Peres](#ref:chang-peres-1997) supplied the expansion its digits and its limitations come from; and the use being made of it here — take a formula for a continuously watched barrier, shift the barrier, and price something that is only watched on a schedule — is [Broadie, Glasserman & Kou](#ref:broadie-glasserman-kou-1997)'s, whose discretely monitored knock-out option is a wheel lot with the call strike as the barrier. (A reader who opens Chernoff will find −0.5824 printed beside the integral. Evaluating the integral gives −0.5826, so that is a slip in his arithmetic and not a second constant.)
+
+One caveat about β, and it cuts against the operator rather than for them. 0.5826 is the overshoot for a barrier *infinitely far away*, and a fresh lot is not far from its barrier at all: it sits
 
 E[x₀] / (σ·√τ_c)  =  **0.28** of one period's step
 

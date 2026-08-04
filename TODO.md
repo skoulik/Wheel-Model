@@ -779,13 +779,14 @@ the few cells nearest x = 0. Nothing in `code/` does this — `depth_census()` a
 depth and weighted q on the cells and only the printed table is binned — but §08's table invites a
 reader to try it, and any check ever written against that table has to match bin width to h.
 
-**II-23. Seven borrowed things, none of them cited where the reader meets it.** (Harvest H2, H3
+**II-23. Six borrowed things, none of them cited where the reader meets it.** (Harvest H2, H3
 and H9 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), converted
 2026-08-01; **extended the same day** with cross-check rows 2 and 13 and Israelov & Nielsen's
 Myth 8, which the harvest did not claim and no other item carries; a seventh added 2026-08-04
-from Little's 1961 copy.)
+from Little's 1961 copy. **The first of the seven, eq:siegmund's pedigree, landed on 2026-08-04**
+with II-29 — see [`DONE.md`](DONE.md) — leaving six.)
 
-Seven edits of a sentence or a clause each. No number moves and no formula changes — that is the
+Six edits of a sentence or a clause each. No number moves and no formula changes — that is the
 point of the item, since **N2 requires §03 to say the ingredients are standard** and the article
 should not be quietly implying otherwise.
 
@@ -795,62 +796,23 @@ pedigree — what each source is, what it says, where it enters — but a reader
 the claim is someone else's and where to check it. A name in a list at the front of the article
 does not do that job. Every bullet below names the line it lands on.
 
-*The machinery — three constructions the article derives as if they were its own:*
+*The machinery — two constructions the article still derives as if they were its own (the third, eq:siegmund, is done):*
 
-- **[eq:siegmund](#eq:siegmund) is Broadie–Glasserman–Kou.** §07 attributes the barrier shift to
-  "a classical correction due to Siegmund" and §00's symbol table calls β "Siegmund's overshoot
-  constant". The constant *and its use* are **Broadie, Glasserman & Kou (1997)**, *Mathematical
-  Finance* 7(4):325–349 **[F]**: price a discretely monitored barrier option with the continuous
-  formula and the barrier shifted by exp(±β·σ·√Δt). That is our call grid with the strike as the
-  barrier, their framing is closer to what we do than Siegmund's sequential-analysis one, and the
-  paper carries an order of magnitude more citations in finance.
+- ~~**[eq:siegmund](#eq:siegmund) is Broadie–Glasserman–Kou.**~~ **Done 2026-08-04**, with II-29,
+  which owned the same equation's numbers. §07 now carries the whole pedigree — the constant and
+  the √δ shift first appear in [Chernoff (1965)](#ref:chernoff-1965) as a definite integral in a
+  sequential-testing problem, Latta identified it as −ζ(1/2)/√(2π), Hogan identified it as an
+  overshoot twenty-one years later, [Siegmund](#ref:siegmund-1979) built the diffusion
+  approximation on it, [Chang & Peres](#ref:chang-peres-1997) supplied the expansion, and
+  [Broadie, Glasserman & Kou](#ref:broadie-glasserman-kou-1997) is the use being made of it — plus
+  the note that Chernoff's printed −0.5824 is a slip rather than a rival constant. §00's symbol
+  table no longer calls β "Siegmund's". The caution the item raised is respected: §07 says the
+  constant *first appears* in Chernoff, not that he solved our problem, since his object is a
+  Bayes-optimal stopping boundary and not a knock-out barrier. **Three citations landed** and
+  `verify_examples.py` gained a fourth route to β, Chernoff's own Wiener–Hopf integral, which
+  reproduces the zeta value to ten digits and is the only check `BETA` has ever had. See
+  [`DONE.md`](DONE.md).
 
-  **The pedigree this bullet first gave is wrong, corrected 2026-08-04 by reading
-  [Chang & Peres](#ref:chang-peres-1997) in full.** Siegmund is not the origin. The constant and
-  the shift are **[Chernoff (1965)](#ref:chernoff-1965)**, who showed that the optimal boundary
-  for a diffusion observed only at 0, δ, 2δ, … stands ẑ·√δ away from the continuous one with
-  ẑ = −β; the closed form −ζ(½)/√(2π) was supplied to him by Gordon Latta, and Hogan (1986)
-  identified ẑ with the limiting expected overshoot. Siegmund (1979) is the corrected diffusion
-  approximation built on that, and Hardy (1905) did the analysis the expansion rests on. So:
-  **Chernoff (1965) as the origin, Siegmund (1979) as the approximation, BGK (1997) as the use we
-  are making of it, Chang & Peres (1997) [F] for the expansion.**
-
-  **Checked against Chernoff's own copy the same day, and the pedigree survives verbatim** — his
-  (1.1) is the ẑ·√δ displacement, his Summary names Latta, and his §1 is explicit that the
-  observation times are t₀, t₀ + δ, t₀ + 2δ, …. **Two refinements, both worth carrying into the
-  prose.**
-
-  *The −0.5824 is an arithmetic slip, not a rival constant, and that changes what to tell a
-  reader.* Chernoff prints −.5824 twice — in the Summary and in Corollary 1(b) — but the object
-  printed is Latta's ζ(½)/√(2π), which is −0.5825972, and Corollary 1(b)'s own Wiener–Hopf integral
-  **−(1/2π)∫λ⁻² log[λ²/2(1−e^(−λ²/2))] dλ evaluates to −0.582597157939**, agreeing with the closed
-  form to 25 digits (checked while reading). So the origin paper and §07 hold the *same* constant
-  and differ only in a fourth-decimal evaluation. Still quote 0.5826 and still cite Chang & Peres
-  for the digits, but the footnote a careful reader deserves is "the value printed there is the
-  same number, rounded wrongly", not "the sources disagree".
-
-  *He did not know it was an overshoot, and that is the better story.* The constant reached him as
-  a **Spitzer–Wiener–Hopf integral** (his refs [6], [7] — Spitzer, *Duke Math. J.* 24:327–343 and
-  27:363–372), Latta recognised the integral as a zeta value, and Hogan identified it as a mean
-  overshoot **twenty-one years later**. So II-29's "what β *is*" sentence is not Chernoff's
-  reading of his own number: it was computed before anyone knew what it measured. One clause of
-  that in §07's detour is the kind of thing a general audience remembers, and it costs nothing.
-
-  **One caution the copy adds: his object is not a barrier.** Chernoff is displacing the
-  *Bayes-optimal stopping boundary* of a sequential test, not the knock-out level of a
-  discretely-monitored option — the √δ displacement is shared, the problem is not. §07 should say
-  the constant and the √δ shift *first appear* there, not that he solved our problem; BGK is still
-  the citation for the use we make of it. His Theorem 5.1 also carries a uniformity restriction —
-  the shift is asymptotic in δ and uniform only for t in an interval bounded away from 0 and ∞ —
-  which is a *different* limit from the one that actually bites us. **His framing has no
-  barrier-distance axis in it at all**, so it cannot see the b → ∞ problem II-29 raises, and
-  Chang & Peres remains the only source for the size of that error.
-
-  **The error statement is II-29, not this bullet, and the axis guessed at here is the wrong
-  one.** "Asymptotic in the monitoring frequency" is the one axis on which the article is safe:
-  in the Gaussian case the expansion in drift-per-step *converges* out to |θ| < 2√π and we sit at
-  θ = 0.035. What is asymptotic is the *barrier distance*, where the article sits at 0.28 of one
-  period's step, and two of §07's numbers are low because of it.
 - **θ = 2ν/σ² is the Cramér–Lundberg adjustment coefficient.** §10 calls it "the tail exponent …
   the single most informative number about a configuration of this strategy" and leaves it
   unnamed. It is the exponential rate of the all-time maximum of a Brownian motion with drift −ν,

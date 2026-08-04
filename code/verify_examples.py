@@ -42,7 +42,7 @@ Stdlib only (Python 3.8+).
 """
 
 import argparse
-from math import exp, log, sqrt
+from math import exp, log, pi, sqrt
 
 import model
 from model import (BETA, Config, N, buy_hold_excess, criteria, depth_census,
@@ -156,6 +156,27 @@ def main():
         FAILURES.append("E[W] outside the far/near overshoot bracket")
     check("the grid charges more than beta says, by the barrier-distance gap",
           wald["overshoot"] / BETA, 1.144, 0.01)
+    # BETA is asserted nowhere else, and section 07 now tells a reader that the
+    # -0.5824 printed in the origin paper is a slip in its arithmetic rather
+    # than a rival constant.  Chernoff (1965) Corollary 1(b) gives the number as
+    # a Wiener-Hopf integral, even in lambda, which is a route to it independent
+    # of the zeta closed form:
+    #     -(1/2pi) int_{-inf}^{inf} lam^-2 log[ lam^2 / (2(1-e^(-lam^2/2))) ]
+    # The integrand tends to 1/4 at the origin (both parts vanish to second
+    # order) and beyond lam = 20 the exponential is dead, leaving a tail that
+    # integrates in closed form.
+    def _chernoff(lam):
+        if lam < 1e-4:
+            return 0.25 + lam * lam / 96
+        return log(lam * lam / (2 * (1 - exp(-lam * lam / 2)))) / (lam * lam)
+
+    L, n = 20.0, 2000
+    h_c = L / n
+    quad = sum((4 if i % 2 else 2) * _chernoff(i * h_c) for i in range(1, n))
+    quad = (quad + _chernoff(0.0) + _chernoff(L)) * h_c / 3
+    quad += (2 * log(L) + 2 - log(2)) / L        # the analytic tail past L
+    check("beta as Chernoff's Wiener-Hopf integral, not as a zeta value",
+          quad / pi, BETA, 5e-5)
     # A regression guard on a number no section prints, so it has no home in a
     # module: module cases assert what the article claims, and this is not a
     # claim the article makes.

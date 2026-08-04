@@ -13,6 +13,16 @@ Old TODO numbers survive as "(was #n)" tags — several drafts cite them — and
 
 ## Resolved
 
+- ✅ **eq:siegmund's pedigree, which was attributed to the wrong person** (TODO II-23, first bullet only — **the item itself stays open** with six bullets in §05, §08, §09, §11 and §02; 2026-08-04). Written immediately after II-29 and kept a separate commit, because that item moved three figures and this one moves none.
+
+  §07 said "a classical correction due to Siegmund" and §00's symbol table said "Siegmund's overshoot constant". Neither is right. The constant and the √δ shift first appear in [Chernoff (1965)](#ref:chernoff-1965), in a problem about when to stop a sequential experiment inspected only at fixed times; Gordon Latta identified the resulting integral as −ζ(1/2)/√(2π); **Hogan identified it as an expected overshoot twenty-one years later**; [Siegmund](#ref:siegmund-1979) built the diffusion approximation §07 uses on top of it; [Chang & Peres](#ref:chang-peres-1997) supplied the expansion its digits and its limits come from; and the use this article makes of it — shift a continuous-barrier formula to price something monitored on a schedule — is [Broadie, Glasserman & Kou](#ref:broadie-glasserman-kou-1997)'s, whose discretely monitored knock-out is a wheel lot with the call strike as the barrier.
+
+  **The twenty-one-year gap is what the paragraph is built around**, per the item's own suggestion that one memorable sentence beats two dutiful ones: the number was computed before anyone knew what it measured, which lets §07 introduce the *meaning* and the *pedigree* in the same breath. The item's caution is respected — §07 says the constant **first appears** in Chernoff, not that he solved our problem, since his object is a Bayes-optimal stopping boundary rather than a knock-out barrier.
+
+  **And the −0.5824 got settled in code rather than asserted.** Chernoff prints −0.5824 twice, against the true −0.5825972, and §07 now tells a reader that this is a slip in his arithmetic and not a second constant. That claim is checked: his own Corollary 1(b) gives the constant as a Wiener–Hopf integral, and evaluating it (Simpson to λ = 20 with the tail in closed form, the integrand tending to 1/4 at the origin) reproduces the zeta value **to ten digits in about a millisecond**. It is a fourth independent route to β — beside the zeta closed form, Chang & Peres's expansion and the walk — and, incidentally, **the only check `BETA` has ever had**.
+
+  **Three citations landed**, so the apparatus moved from 7 entries cited to 10 and from 5 sections to 6; uncited 36 → 33.
+
 - ✅ **β is a far-barrier constant, the article applied it at 0.28 of a step, and §07's three affected figures are requoted** (TODO II-29; 2026-08-04). Raised by reading Chang & Peres, Janssen & van Leeuwaarden and Chernoff in full; closed by putting the corrections into [the holding-time section](#sec:holding) and, first, into `code/`, which could not compute any of them. **Three figures moved and none of them changes a verdict** — every one moves *against* the operator, so §07's conclusions are reinforced and the numbers it had been printing were the flattering ones.
 
   | §07 said | now says | route |
