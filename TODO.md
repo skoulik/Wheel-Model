@@ -149,8 +149,10 @@ six-subsection skeleton. Two things it must carry:
   await someone's imagination" (§4.3.2).
 
   **So §03 writes this as leverage, not as a concession.** The prohibition stands and is
-  unchanged: no novelty may be claimed for the identity, and §08 must not imply otherwise (II-22's
-  second caution). But the tone that follows from these two quotes is not defensive. The article
+  unchanged: no novelty may be claimed for the identity, and §08 must not imply otherwise. **§08
+  already complies as of 2026-08-04** — its H = λG detour closes by conceding that Little's own
+  illustration of a weighting is a portfolio of assets, and that what the article supplies is the
+  holding time and the census to put into it. §03 must not contradict its own Part II. But the tone that follows from these two quotes is not defensive. The article
   is carrying out an application the field's own authority proposed and left open, on machinery
   fifty years of queueing theory has already stress-tested — which is *why* the results can be
   trusted without a new limit theorem behind them, and is a better sentence than any claim of
@@ -368,14 +370,20 @@ owes for results it argues out unaided, and **II-27** the two published preceden
 slope. II-19 and II-20 add frozen cases; neither adds model machinery beyond what `model.py`
 already has.
 
-**Four came from the pass's harvest** (and **II-26** from its cross-check, in the sweep that
+**Three came from the pass's harvest** (and **II-26** from its cross-check, in the sweep that
 closed the conversion), converted 2026-08-01, and none of them moves a number anywhere:
-**II-22** replaces §08's hand-derived census integrals with the theorem they are
-instances of, and hands §10 a cleaner statement of its own capital criterion; **II-23** cites seven
-borrowed things where the reader meets them, and reaches outside Part II to do it (§00, §02, §11);
-**II-24** gives §08's census its second analogy; **II-25** puts a size behind §05's early-exercise
-caveat. All four depend on §03 (**I-1**) for the citations themselves — **§03 carries the
-pedigree, the section carries the pointer**, and neither should be written twice.
+**II-23** cites six borrowed things where the reader meets them, and reaches outside Part II to do
+it (§00, §02, §11); **II-24** gives §08's census its second analogy; **II-25** puts a size behind
+§05's early-exercise caveat. The fourth was **II-22**, which replaced §08's hand-derived census
+integrals with the theorem they are instances of and handed §10 the biconditional form of its own
+capital criterion; it closed on 2026-08-04.
+
+**They were recorded as depending on §03 (I-1) for the citations themselves, and that dependency
+is weaker than it looks** (found 2026-08-04, writing II-29 and II-22). §07 and §08 have now landed
+five citations with §03 unwritten, and they read correctly: the reader meets a name and follows it
+to the bibliography, and §03 will supply the pedigree when it exists. **§03 carries the pedigree,
+the section carries the pointer** still holds as a division of labour — it is not a running order,
+and none of these items is blocked.
 
 **Three came from actually reading what the pass had only listed at [A] or [P]**, and they are the
 ones carrying measurements: **II-27** and **II-28** from Merton–Scholes–Gladstein (2026-08-01),
@@ -623,161 +631,6 @@ simulated account.
 **Keep it a detour.** A blockquote detour in §09 in the article's established style, or a
 footnote. **§09's headline risk numbers stay ours**, and no conclusion in the article may depend
 on this comparison landing any particular way.
-
-**II-22. §08 derives by hand a theorem that has a name, and §10 inherits a better statement of
-its own criterion.** (Harvest H1 of
-[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), its highest-value item;
-converted 2026-08-01, and the identity was checked numerically while converting.)
-
-The **generalised Little's law, H = λG** — Brumelle (1971) and Heyman & Stidham (1980), restated
-in Little's own 50th-anniversary paper ([2011](#ref:little-2011), §3.2.2) **[F] since 2026-08-04**
-— says that for **any** weighting f<sub>i</sub>(t) applied over each item's time in the system, the
-time-average H equals λ times the per-item total G. L = λW is the case f ≡ 1.
-
-**The statement in full, off the copy** (2011 §3.2.1), because the hypotheses are the half of it
-this item cares about. For each item i take f<sub>i</sub>(t) with ∫|f<sub>i</sub>| dt < ∞ and
-f<sub>i</sub> = 0 outside [t<sub>i</sub>, t<sub>i</sub> + l<sub>i</sub>] for some finite
-l<sub>i</sub> > 0 — usually l<sub>i</sub> = W<sub>i</sub>, the item's own time in the system.
-Set G<sub>i</sub> = ∫f<sub>i</sub>, H(t) = Σ<sub>i</sub> f<sub>i</sub>(t), and let G and H be the
-long-run averages of the G<sub>i</sub> and of H(t). **Then: if λ and G exist and are finite, and
-the technical condition l<sub>i</sub>/t<sub>i</sub> → 0 holds, H exists and H = λG.** Two things
-follow for us and both are gains, not obstacles — see the §10 paragraph below for the first, and
-§08 does not need the second, because [eq:little-finite](#eq:little-finite) turns out not to be a
-limit statement at all (**II-30**).
-
-**Whose theorem, exactly.** Little credits it to **Brumelle, S. (1971). On the relation between
-customer and time averages in queues. *J. Appl. Probab.* 8:508–520** and **Heyman, D. P. &
-Stidham, S. Jr. (1980). The relation between customer and time averages in queues. *Oper. Res.*
-28(4):983–994** — details from his reference list and **not from copies**, so an entry built from
-them ships tagged under I-7 until someone opens the papers. Neither is in
-`sections/98-bibliography.md` yet, and neither should be until §08 cites it.
-
-**The lump-cost extension is not an aside, it is which citation our income needs — and the copy is
-now read.** A weighting that is a *rate* over the lot's life — the basis e^x, the dividend on
-market value — is Brumelle's f<sub>i</sub>(t) directly. The call premium and the call-away
-giveaway are not: they are point flows at period ends, and `model.py` already treats the giveaway
-that way (`economics()` gives `exitcost` its own weights, "a point flow at the end of period j, not
-an occupancy"). A sum of point masses is not a function with ∫|f| dt < ∞, so the theorem as Little
-states it does not literally cover them. **[Glynn & Whitt (1989)](#ref:glynn-whitt-1989-extensions) [F]** is
-the reference that does, read 2026-08-04, and it is a better fit than the second-hand description
-suggested:
-
-- **§1.4 is our case, named.** "Lump Costs Plus Cost Rate" — a cost rate over the customer's stay
-  *plus* a lump incurred at an instant — and the authors state that this example "is not covered by
-  any of the previous versions of H = λG because F<sub>k</sub>(t) … is not absolutely continuous
-  with respect to the Lebesgue measure". That is our premium and our giveaway beside our basis and
-  dividends, in one weighting.
-- **§1.5 is the sharper fit still**, and it is the one to cite if only one is: a general cumulative
-  cost process C<sub>k</sub>(t) accrued while customer k is in the system, with their Example 1 —
-  shoppers whose purchases accumulate as they shop — noting that the exit time and the accumulated
-  cost "might be highly dependent". Ours are *maximally* dependent: the same depth path decides
-  both what a lot earns and when it leaves. The theorem does not care, and that is worth one clause
-  in §08, because a reader's instinct is that such dependence must break something.
-- **One condition covers all four weightings.** §4.3: for both nonintegral formulations, conditions
-  (17) and (18) hold as soon as **W<sub>n</sub>/T<sub>n</sub> → 0**. That is the same
-  residence-does-not-grow condition as Little's l<sub>i</sub>/t<sub>i</sub> → 0 above. So the honest
-  summary for the detour is one sentence: *rates and lumps alike are covered, under the single
-  condition that holding times do not grow with the book's age* — which is E[W] < ∞ in practice,
-  and is §10's first boundary again.
-- **Do not overstate the gap, because they do not.** Their Remark 1 says the lump form can be
-  transformed into the integral form by a change of variables, so this "should not be
-  overemphasize[d]" — what is gained is that the analysis is not "significantly complicate[d]".
-  Cite Glynn & Whitt for the weighting we actually use; do not build a paragraph out of the fact
-  that Brumelle's statement is narrower.
-
-**And §4.2 hands §10 something the narrower statement cannot.** In the plain H = λG of Heyman &
-Stidham, G < ∞ is a hypothesis. Glynn & Whitt drop it — "in contrast to Theorem 1 of Heyman and
-Stidham, we do not require that G < ∞ or ∫₀^∞ f<sub>k</sub>(t) dt < ∞" (checked against the page
-image, not the OCR). So the divergent regime is inside their theorem rather than outside it: with
-W finite and G infinite at f = e^x, their Theorem 4a(i) gives H = ∞ as a *conclusion*. §10's
-capital boundary is then a result of the same theorem that produces the income, not a place where
-the theorem stops. Verify the exact route through Theorem 4 when §10 is actually written — the
-statement above is read off the hypotheses, not reproduced.
-
-**Cite [Whitt (1991)](#ref:whitt-1991) theorem 6.3, not the original.** (Added 2026-08-04 on
-reading the review **[F]**.) Whitt restates the Glynn–Whitt extension in the elementary framework
-of his §2, and the result is the version §08 should carry, because a general-audience detour can
-state it in two lines. Let A<sub>k</sub> and D<sub>k</sub> be the kth item's arrival and departure,
-and let F<sub>k</sub>(t) be **any** nondecreasing cumulative cost for item k. Suppose
-
-- **(6.1)** k⁻¹A<sub>k</sub> → λ⁻¹ *and* k⁻¹D<sub>k</sub> → λ⁻¹ — arrivals and departures share
-  one limiting rate; and
-- **(6.8)** F<sub>k</sub>(t) = 0 before A<sub>k</sub> and F<sub>k</sub>(t) = F<sub>k</sub>(D<sub>k</sub>)
-  after D<sub>k</sub> — cost accrues only while the item is in the system.
-
-**Then G<sub>k</sub> → G if and only if H<sub>t</sub> → H, and H = λG.**
-
-Three reasons that is the better citation. It is an **iff**, which the caution above hedged
-against and no longer needs to: under (6.1) and (6.8) the per-lot total converges exactly when the
-time-average does, so §10's "capital returns iff G is finite at f = e^x" is the theorem's own
-biconditional rather than our inference from its hypotheses. Its (6.1) is **§08's own
-self-recycling sentence** — 10.4 lots in, 10.4 out — so the article has already told the reader
-the condition before it needs it, and the *transient* is exactly the regime where the two rates
-have not yet met. And "any nondecreasing cumulative cost" covers rates, lumps and mixtures in one
-clause, with no measure-theoretic aside about absolute continuity.
-
-**One caution from the review's remark 6.2.** Decomposing G into its rate part and its lump part,
-"it is possible for H<sub>t</sub> → H without having the two components converge". Ours both
-converge, but a detour that presents the decomposition as if convergence were componentwise would
-be asserting more than the theorem gives. Whitt's **theorem 6.4** (Y = λX, "a sample path version
-of the renewal reward theorem") is the companion worth knowing about: t⁻¹Y(t) → Y iff
-k⁻¹Y(A<sub>k</sub>) → X, and then Y = λX.
-
-**Every census integral in Part II is an instance of it**, and the article derives each in prose:
-
-| weighting f | gives | where |
-|---|---|---|
-| 1 | E[I] = 11.40 lots | [eq:little](#eq:little) |
-| e^x | cost-basis capital 18.23 | §09, "what is tied up" |
-| the call premium at depth x | call income 0.3706/yr | [eq:income](#eq:income) |
-| δ_net × market value | dividends 0.2422/yr | [eq:income](#eq:income) |
-
-**Checked 2026-08-01, and it is exact.** Computed both ways at Standard/P/30y — the per-arrival
-route (λ times the per-lot sum over its life) against the census route (E[I] times the
-depth-census average) — the two agree to **0.000% on all four** when the census is read on the
-walk's own cells. `model.py` already computes the H = λG side: `occupation()` returns exactly the
-per-arrival sums `E[J]`, `E[prem]`, `E[basis]`, and `economics()` multiplies them by λ. **Only the
-prose derives them by hand.** And `wheel_sim.py --scenario validate` already checks all four end
-to end against machinery that shares nothing with `model.py` (E[I] +5.8%, cost capital +11.7%,
-premiums +1.2%, dividends +5.5% at 200 paths).
-
-**What §10 gains, which is the better half of this item.** The capital criterion is currently
-derived as "the integral of e^x against the census converges". Under H = λG that is precisely the
-statement that **G is finite for f = e^x** — the per-lot integral of carrying value over the
-lot's life. The two boundaries then read as one sentence with two weightings: lots return iff W
-is finite, their capital returns iff G is finite at f = e^x. That is a real gain in exposition and
-it costs nothing.
-
-**And the copy makes that gain sharper than the item first claimed** (2026-08-04). Those are not
-two conditions the article imposes on the theorem from outside; they are **the theorem's own
-hypotheses**, read back. H = λG asks for λ and G finite, plus l<sub>i</sub>/t<sub>i</sub> → 0 —
-residence times that do not grow with the index, which is what E[W] < ∞ delivers. So §10's two
-boundaries are the two ways the identity's preconditions can fail: below μ − δ = σ²/2 the
-holding times themselves diverge and the count law goes with them; between σ²/2 and σ² the count
-law survives and G at f = e^x is what diverges. **The stability section is the failure analysis of
-the inventory section's theorem**, which is a cleaner joint than "two integrals, two convergence
-conditions". ~~Do not overstate it into an iff~~ — **that hedge is withdrawn**: Whitt's theorem
-6.3, below, *is* an iff under conditions §08 has already stated, so the equivalence can be written
-plainly.
-
-**Two cautions.** (There were three. The first is withdrawn — see II-30.)
-
-- **Do not claim novelty** — N3, and **I-1** carries the prohibition. Little's own worked example
-  of a non-trivial weight is "the dollar rate of return on the ith asset in a portfolio of
-  assets", and the 2011 copy is more explicit still: he names H, G, L and W together for a
-  portfolio of assets and leaves the application open. §08 must not contradict what §03 is
-  required to concede — but I-1 now also says how to write it, which is as leverage rather than as
-  an apology, so this caution costs the section no confidence.
-- **One detour, not two.** The value here is that a single detour covers the income and the
-  capital results together, where the article currently justifies them separately. If it becomes
-  two detours it has not paid for itself and the hand-derivation was better.
-
-**Incidental, and not a defect in `code/`.** Re-integrating a *re-binned* census misprices the
-steep weightings badly: call income read off 0.01-wide bins from an h = 0.02 walk comes out **15%
-low**, while E[I] on the same bins is exact, because the call premium does nearly all its work in
-the few cells nearest x = 0. Nothing in `code/` does this — `depth_census()` accumulates mean
-depth and weighted q on the cells and only the printed table is binned — but §08's table invites a
-reader to try it, and any check ever written against that table has to match bin width to h.
 
 **II-23. Six borrowed things, none of them cited where the reader meets it.** (Harvest H2, H3
 and H9 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), converted
@@ -1155,12 +1008,13 @@ for anyone extending the pricing, and §05's caveat is the place to spend a clau
 row it calls an approximation is the theorem itself.** (From reading both
 [Little (1961)](#ref:little-1961) and [Little (2011)](#ref:little-2011) in full, 2026-08-04. The
 first was **[A]** — a scan with no text layer, read off page images — and the second **[P]**.
-Withdraws II-22's first caution; adds one figure and moves none.)
+Withdraws II-22's first caution — that item closed on 2026-08-04, see [`DONE.md`](DONE.md), and
+the caution went with it; adds one figure and moves none.)
 
 Three edits, all in §08, and they are one idea seen three times: **the law is stronger than the
 article thinks, in exactly the direction the article needs.**
 
-**1. The finite window is not a truncation. It is the theorem.** II-22's first caution said
+**1. The finite window is not a truncation. It is the theorem.** II-22's first caution had said
 "H = λG is a stationary identity and the article reports finite horizons —
 [eq:little-finite](#eq:little-finite) is a truncation of it, not the theorem". That is wrong, and
 the copy is emphatic about it. Little (2011) **§2 is new material written for the retrospective**,
@@ -1270,8 +1124,9 @@ and these are four different jobs: fixing what it claims a source assumes, addin
 reading, naming the distributional result, and optionally restating E[I] ordinally. **Prefer a
 short subsection after "Applying it"** — the window law belongs next to [eq:little-finite](#eq:little-finite) and the table it
 introduces, not inside a general-audience detour that is doing a different job — with edits 2 and 3
-staying as clauses where they already are. Sequence **after II-22**, which owns the same section's
-census integrals and now points here for the finite-horizon half.
+staying as clauses where they already are. Sequenced **after II-22**, which owned the same
+section's census integrals; that item closed on 2026-08-04, so §08 already carries its H = λG
+detour and this one is written against the section as it now stands.
 
 **What this owes `code/`.** W(H) is a new quoted figure, so under INF-5 it needs a field and a
 frozen case: add `W(H) = I(H)/λ` to `code/examples/inventory_little.py` beside the two rows it

@@ -32,6 +32,13 @@ The same condition appears from the other end. The depth census of [eq:census](#
 
 and capital integrates e^x against that census. The integral converges only if θ > 1 — which is [eq:capital-criterion](#eq:capital-criterion) again. The tail exponent is the single most informative number about a configuration of this strategy: it says how fast the deep strata thin out, and whether the money in them is bounded.
 
+Seen through [the inventory section](#sec:inventory)'s generalised law, the two boundaries stop being two unrelated convergence questions and become one. H = λG needs a finite arrival rate and a finite per-lot total G, and [Whitt's](#ref:whitt-1991) statement of it is an equivalence, so each boundary is one of those requirements failing:
+
+- **lots return if and only if W is finite** — the weighting f = 1, which is the count;
+- **their capital returns if and only if G is finite at f = e^x** — the same law, weighted by what a lot actually ties up.
+
+Below the first boundary the holding times themselves diverge and the count goes with them. Between the two, the count law survives intact and it is the *weighted* total that runs away. So this section is not a separate stability theory bolted onto the inventory section; it is the failure analysis of the identity that section is built on, and the strategy has exactly as many boundaries as that identity has hypotheses.
+
 In volatility terms the capital boundary sits at **σ < 21.2%** — against 30% for the lot count. The two are far apart, and the running example lives between them in an uncomfortable way:
 
 | | condition | boundary in σ | boundary in δ | Standard regime |

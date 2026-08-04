@@ -94,6 +94,22 @@ One warning before the economics. The census above counts *lots*, and every lot 
 
 That difference is not a detail. It is why [the returns section](#sec:returns) has to be careful about which capital it means, and why [the stability section](#sec:stability) needs a separate boundary for the capital from the one for the lot count.
 
+It is also not a departure from Little's law. Weighting the inventory by something other than one lot per lot is covered by the same identity, in a form that has been available since the 1970s:
+
+> **Detour: the same law, carrying a weight.** Little's law *counts* what is in the system. Its generalisation, written **H = λG**, *prices* it. Attach to each item any quantity it accumulates while it is in the system — the capital a lot ties up, the premium its call brings in, the dividends it pays — and let G be the total one item accumulates over its whole stay. Then the long-run rate at which the whole system accrues that quantity is **H = λ·G**: the same arrival rate, the same per-item total, whatever the weighting. Taking the weight to be 1 gives back L = λW, and the inventory count is the special case rather than the general rule. The form used here is [Whitt's](#ref:whitt-1991) theorem 6.3, which asks only two things: that arrivals and departures share one long-run rate — which is the self-recycling property above, 10.4 lots in and 10.4 out — and that an item accrues nothing before it arrives or after it leaves. Under those two, the per-item total settles down *exactly when* the system-wide rate does. The result is due to Brumelle and to Heyman and Stidham; Whitt's version is the one to reach for because it covers quantities that arrive in lumps as well as quantities that accrue steadily, and the wheel has both.
+
+The article leans on that four times, and only the first is Little's law as it is usually quoted:
+
+    weighting                          gives                          quoted in
+    1                                  E[I] = 21.8 lots               this section
+    e^x                                the capital tied up            the returns section
+    the call premium at depth x        call income                    the returns section
+    the dividend on market value       dividend income                the returns section
+
+Every one is an integral of some function against the depth census, and every one is the same theorem with a different weight — which is why the census, once built, does not have to be rebuilt for each question. Two things are worth noticing about the conditions. The premium and the surrendered upside are not steady accruals at all: they land in a lump at a call expiry. That is precisely the case Whitt's version covers and the older statement does not. And nothing anywhere requires a lot's earnings and its exit time to be independent — which is fortunate, because here they are as dependent as two quantities can be, the same price path deciding both what a lot earns and when it leaves.
+
+None of this is new, and the person who said so first was Little. His own illustration of a weighting other than one-per-item is the dollar return on the *i*th asset in a portfolio of assets: the application is his, and what this article supplies is the specific holding time and the specific census to put into it.
+
 ## A note on the shape of the distribution
 
 Everything above concerns averages, which is all Little's law provides and all the economics needs. The *distribution* of I on a single stock is another matter: it is not the tidy bell-shaped thing a queueing course would suggest, because lots on one name share one price path — they deepen together and are called away in batches. The realized distribution is heavily skewed, with long empty stretches punctuated by deep pile-ups, and its variance runs several times its mean.
