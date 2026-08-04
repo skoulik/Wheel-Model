@@ -14,11 +14,12 @@ numbered around them; they closed on 2026-07-28 and had been missing from it sin
 
 Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section body carries such a
 flag** (checked 2026-08-01), and that is the intended steady state: an in-text flag is a promise
-to a reader and should be added only when the text genuinely defers something. Nine live in
-`sections/98-bibliography.md` (recounted 2026-08-04, after the Little read), in the internal field
-after an entry's anchor, which is stripped at assembly and so never reaches a reader; they mark
-the two unread downloads, the one source that may be cited for its existence only, and the six
-entries the reading of 2026-08-04 left owing something to I-7, II-22, II-23, II-29 or II-30.
+to a reader and should be added only when the text genuinely defers something. Ten live in
+`sections/98-bibliography.md` (recounted 2026-08-04, after the Little and Glynn–Whitt reads), in
+the internal field after an entry's anchor, which is stripped at assembly and so never reaches a
+reader; they mark the two unread downloads, the one source that may be cited for its existence
+only, and the seven entries the reading of 2026-08-04 left owing something to I-7, II-22, II-23,
+II-29 or II-30.
 
 ## Where things stand
 
@@ -255,6 +256,24 @@ same volume.
 
 The printed count therefore went 10 → 3 → 5 → 6 → 5. Every rise was this item working rather than
 regressing, and the one fall is the first entry it has *closed* since 2026-08-01.
+
+**One entry was born clear**, and it is the standard the other five are being held to:
+`glynn-whitt-1989` was added on 2026-08-04 *after* its copy had been obtained and read, with every
+field taken off the JSTOR cover page and the article header. It is the first entry in the
+bibliography that never needed the tag, and the first added in that order. The 40th entry costs
+this item nothing, which is the argument for obtaining a copy before writing an entry rather than
+after.
+
+**A fourth reference list, and it is wrong about the one paper we now hold.** (2026-08-04, from
+[Glynn & Whitt (1989)](#ref:glynn-whitt-1989), read in full the same day.) Their list gives
+Little's paper as "A Proof **of** the **Queueing** Formula: L = λW" — two departures from the copy
+in front of us, which prints "A PROOF FOR THE QUEUING FORMULA". Everything else in their list that
+we can check is right, including Brumelle and Heyman & Stidham, whose details agree with Little's
+own list field for field. So the running tally over four sampled reference lists — Chang & Peres,
+Janssen & van Leeuwaarden, Little (2011), Glynn & Whitt — is that **volumes, issues and page
+ranges have never yet been wrong and titles keep being wrong**, and this instance is the cleanest
+of the four because we hold the disputed paper and can simply look. Little's own list, by
+contrast, was right about Glynn & Whitt on every field: title, journal, volume, issue and pages.
 
 **The converse of the Janssen instance arrived the same day, and the count did not move for it.**
 Both Little papers were read in full on 2026-08-04. `little-1961` was already among the eight
@@ -614,22 +633,51 @@ limit statement at all (**II-30**).
 **Whose theorem, exactly.** Little credits it to **Brumelle, S. (1971). On the relation between
 customer and time averages in queues. *J. Appl. Probab.* 8:508–520** and **Heyman, D. P. &
 Stidham, S. Jr. (1980). The relation between customer and time averages in queues. *Oper. Res.*
-28(4):983–994**, and notes it was extended to **lump** costs by **Glynn, P. W. & Whitt, W. (1989).
-Extensions of the queueing relations L = λW and H = λG. *Oper. Res.* 37(4):634–644**. Those
-details are from his reference list and **not from copies** — I-7's standing rule — so an entry
-built from them ships tagged unless someone opens the papers first. Nothing is added to
-`sections/98-bibliography.md` until §08 actually cites them: an uncited entry is one the
-bibliography's own policy says to delete.
+28(4):983–994** — details from his reference list and **not from copies**, so an entry built from
+them ships tagged under I-7 until someone opens the papers. Neither is in
+`sections/98-bibliography.md` yet, and neither should be until §08 cites it.
 
-**The lump-cost extension is not an aside, it is which citation our income needs.** A weighting
-that is a *rate* over the lot's life — the basis e^x, the dividend on market value — is Brumelle's
-f<sub>i</sub>(t) directly. The call premium and the call-away giveaway are not: they are point
-flows at period ends, and `model.py` already treats the giveaway that way (`economics()` gives
-`exitcost` its own weights, "a point flow at the end of period j, not an occupancy"). A sum of
-point masses is not a function with ∫|f| dt < ∞, so the theorem as Little states it does not
-literally cover them and Glynn & Whitt is the reference that does. **Whoever writes the detour
-must not describe the premium as a rate against the census** to make it fit the tidier theorem —
-the article's own code is more careful than that sentence would be.
+**The lump-cost extension is not an aside, it is which citation our income needs — and the copy is
+now read.** A weighting that is a *rate* over the lot's life — the basis e^x, the dividend on
+market value — is Brumelle's f<sub>i</sub>(t) directly. The call premium and the call-away
+giveaway are not: they are point flows at period ends, and `model.py` already treats the giveaway
+that way (`economics()` gives `exitcost` its own weights, "a point flow at the end of period j, not
+an occupancy"). A sum of point masses is not a function with ∫|f| dt < ∞, so the theorem as Little
+states it does not literally cover them. **[Glynn & Whitt (1989)](#ref:glynn-whitt-1989) [F]** is
+the reference that does, read 2026-08-04, and it is a better fit than the second-hand description
+suggested:
+
+- **§1.4 is our case, named.** "Lump Costs Plus Cost Rate" — a cost rate over the customer's stay
+  *plus* a lump incurred at an instant — and the authors state that this example "is not covered by
+  any of the previous versions of H = λG because F<sub>k</sub>(t) … is not absolutely continuous
+  with respect to the Lebesgue measure". That is our premium and our giveaway beside our basis and
+  dividends, in one weighting.
+- **§1.5 is the sharper fit still**, and it is the one to cite if only one is: a general cumulative
+  cost process C<sub>k</sub>(t) accrued while customer k is in the system, with their Example 1 —
+  shoppers whose purchases accumulate as they shop — noting that the exit time and the accumulated
+  cost "might be highly dependent". Ours are *maximally* dependent: the same depth path decides
+  both what a lot earns and when it leaves. The theorem does not care, and that is worth one clause
+  in §08, because a reader's instinct is that such dependence must break something.
+- **One condition covers all four weightings.** §4.3: for both nonintegral formulations, conditions
+  (17) and (18) hold as soon as **W<sub>n</sub>/T<sub>n</sub> → 0**. That is the same
+  residence-does-not-grow condition as Little's l<sub>i</sub>/t<sub>i</sub> → 0 above. So the honest
+  summary for the detour is one sentence: *rates and lumps alike are covered, under the single
+  condition that holding times do not grow with the book's age* — which is E[W] < ∞ in practice,
+  and is §10's first boundary again.
+- **Do not overstate the gap, because they do not.** Their Remark 1 says the lump form can be
+  transformed into the integral form by a change of variables, so this "should not be
+  overemphasize[d]" — what is gained is that the analysis is not "significantly complicate[d]".
+  Cite Glynn & Whitt for the weighting we actually use; do not build a paragraph out of the fact
+  that Brumelle's statement is narrower.
+
+**And §4.2 hands §10 something the narrower statement cannot.** In the plain H = λG of Heyman &
+Stidham, G < ∞ is a hypothesis. Glynn & Whitt drop it — "in contrast to Theorem 1 of Heyman and
+Stidham, we do not require that G < ∞ or ∫₀^∞ f<sub>k</sub>(t) dt < ∞" (checked against the page
+image, not the OCR). So the divergent regime is inside their theorem rather than outside it: with
+W finite and G infinite at f = e^x, their Theorem 4a(i) gives H = ∞ as a *conclusion*. §10's
+capital boundary is then a result of the same theorem that produces the income, not a place where
+the theorem stops. Verify the exact route through Theorem 4 when §10 is actually written — the
+statement above is read off the hypotheses, not reproduced.
 
 **Every census integral in Part II is an instance of it**, and the article derives each in prose:
 
@@ -790,6 +838,24 @@ does not do that job. Every bullet below names the line it lands on.
   [eq:lambda-eff](#eq:lambda-eff) actually rests on and which §11 measures itself (the thinning
   table, under 1% on everything count-like). Do not let the citation appear to underwrite the
   approximation — the measurement is the better evidence and it is already there.
+
+  **The direction §11 runs the law is the one that is not automatic, and someone proved what it
+  costs.** (Added 2026-08-04 from [Glynn & Whitt (1989)](#ref:glynn-whitt-1989) **[F]** §4.1.)
+  Every standard statement of Little's law runs λ and W to L; §11 runs the other way, and Glynn &
+  Whitt open by saying that reverse implication is their own contribution — "all previous versions
+  show that the existence of limits for λ and W imply the existence of a limit for L. We show how
+  to go the other way". Their **Theorem 5** is the price: from the time averages alone you get an
+  *inequality*, lim sup of the customer-average wait ≤ λ⁻¹L, and equality needs one of two extra
+  conditions — that the system **empties infinitely often**, or that W<sub>n</sub>/n → 0. Their
+  Remark 6 exhibits a case where the inequality is strict, 2 > 1, so this is not a technicality.
+
+  **What §11 should take from it is one clause, not a derivation.** The wheel does empty
+  infinitely often — that is [the inventory section](#sec:inventory)'s own arrivals-equal-departures
+  picture, and on one name P(I = 0) ≈ 14% — so the inversion is legitimate, and it is legitimate
+  for a *stated reason* rather than by symmetry of an equals sign. Sequence with the bullet above:
+  Little supplies the bookkeeping for refused arrivals, Glynn & Whitt supplies the licence to read
+  the identity backwards, and §11's thinning table remains the evidence for the modelling
+  assumption neither of them addresses.
 
 *The results — three places where the article argues from first principles something that is
 already published, and would be stronger for saying so:*
@@ -1502,6 +1568,17 @@ are drafted rather than be discovered afterwards.
   depth and never by seniority. The Poisson result §12 owes comes from the infinite-server
   structure with independent arrival streams, which is a different argument with different
   hypotheses, and the derivation has to be that one.
+
+  **Two leads worth following before that derivation is written, both from Glynn & Whitt's
+  reference list** (2026-08-04, and details from a reference list are I-7's standing caveat).
+  **Brumelle, S. L. (1972). A Generalization of L = λW to Moments of Queue Length and Waiting
+  Times. *Opns. Res.* 20:1127–1136** is, by its title, the *second-moment* extension — the object
+  this bullet needs, since what §12 must produce is a variance and not a mean. Nobody has opened
+  it. And Glynn & Whitt's own §5 is a **central limit theorem for H = λG** (their Theorem 7, with
+  the limit "usually multivariate Brownian motion"), which is worth knowing exists but is **not**
+  this bullet's tool: it describes the fluctuation of the long-run *averages* around their limits,
+  not the marginal distribution of I at a point in time. Confusing the two would produce a
+  confident wrong answer, which is why both are recorded here rather than in the derivation.
 - **Position sizing** (was #6). The model sells exactly one put per period regardless of
   capital. A practitioner-facing subsection on sizing against total capital belongs here, and
   the warning it must carry is that capital demand is bursty and heavy-tailed, so **sizing
