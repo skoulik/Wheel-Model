@@ -107,6 +107,17 @@ def need_stationary(cfg, measure="P", **kw):
     return Need("stationary", cfg, measure, tuple(sorted(kw.items())))
 
 
+def need_trapped_walk(cfg, measure="P", **kw):
+    """The unshifted killed walk behind the exact trapped fraction.
+
+    Costs a couple of seconds where nu <= 0 -- two grids, and each runs until
+    the trapped mass has drifted out through x_max -- and nothing at all where
+    nu > 0, which is every case the article runs bar one.  Declared like any
+    other solve so it lands in the same parallel batch.
+    """
+    return Need("trapped", cfg, measure, tuple(sorted(kw.items())))
+
+
 def need_census(cfg, measure="P", *, edges, horizon=None, **kw):
     """A depth census.  `edges` must be a tuple -- it goes into a cache key."""
     kw = dict(kw, edges=tuple(edges), horizon=horizon)
@@ -120,6 +131,8 @@ def _solve_one(need):
         return model.occupation(need.cfg, need.measure, **kw)
     if need.kind == "stationary":
         return model.stationary(need.cfg, need.measure, **kw)
+    if need.kind == "trapped":
+        return model.trapped_fraction_walk(need.cfg, need.measure, **kw)
     if need.kind == "census":
         edges = list(kw.pop("edges"))
         return model.depth_census(need.cfg, need.measure, edges, **kw)

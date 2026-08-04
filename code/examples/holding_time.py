@@ -36,6 +36,14 @@ FIELDS = [
     ("tax", "call-grid tax, beta*sigma*sqrt(tau_c)", ".4f"),
     ("x0", "typical entry depth E[x0]", ".4f"),
     ("ratio", "  the tax as a multiple of it", ".2f"),
+    # BETA is the overshoot a barrier infinitely far away would charge; the
+    # article's barrier is 0.28 of a step off, and Wald's identity says what it
+    # is really paying.  Both are printed because the section quotes both.
+    ("b", "barrier distance E[x0]/(sigma*sqrt(tau_c)), in steps", ".3f"),
+    ("overshoot", "the overshoot actually charged, in steps", ".3f"),
+    ("tax_charged", "  the tax that makes", ".4f"),
+    ("ratio_charged", "  and its multiple over E[x0]", ".2f"),
+    ("entry_share", "  entry's share of the hole a lot must climb", ".1%"),
     ("q_x0", "exit probability of a fresh lot", ".3f"),
     ("naive", "  the naive 1/q answer, in periods", ".2f"),
     ("columns", "survival curve, at the columns below", ".2f"),
@@ -44,6 +52,8 @@ FIELDS = [
     ("median_wk", "  the same, in weeks", ".0f"),
     ("EW", "E[W], the mean holding time (years)", ".2f"),
     ("EW_siegmund", "  the Siegmund closed form", ".2f"),
+    ("EW_far", "  Wald at the far-barrier constant beta + theta/4", ".2f"),
+    ("EW_near", "  Wald at the mean ladder height, the b -> 0 end", ".2f"),
     ("prem", "call premiums collected per lot over its life", ".4f"),
     ("exitcost", "upside surrendered per lot at call-away", ".4f"),
 ]
@@ -71,10 +81,18 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
     surv = near["surv"]
     median = model.median_periods(near)
     tax = model.grid_tax(cfg, measure)
+    # Off the extrapolated walk, not the near grid: the identity is only as
+    # exact as the E[W] put into it, and the near grid reads 2.05 against 2.10.
+    wald = model.overshoot_wald(cfg, measure, full)
     return {
         "tax": tax,
         "x0": econ["E[x0]"],
         "ratio": tax / econ["E[x0]"],
+        "b": wald["b"],
+        "overshoot": wald["overshoot"],
+        "tax_charged": wald["tax"],
+        "ratio_charged": wald["ratio"],
+        "entry_share": wald["entry_share"],
         "q_x0": near["q(x0)"],
         "naive": 1 / near["q(x0)"],
         "columns": [surv[round(y / cfg.tau_c)] for y in COLUMNS
@@ -85,6 +103,8 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "median_wk": None if median is None else median * cfg.tau_c * 52,
         "EW": econ["E[T]"],
         "EW_siegmund": econ["E[T]_siegmund"],
+        "EW_far": wald["E[T]_far"],
+        "EW_near": wald["E[T]_near"],
         # Per-lot lifetime sums over the same killed walk: premium taken in and
         # upside handed back.  Quoted in section 09, but they come off this walk.
         "prem": near["E[prem]"],
@@ -95,14 +115,23 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
 CASES = [
     Case("", {
         "tax": (0.0323, 0.0005),        # section 07: "0.5826 x 0.20 x sqrt(1/13)"
-        "ratio": (2.09, 0.05),          # "2.1 times the typical entry depth"
+        "ratio": (2.09, 0.05),          # what beta alone would say
         "x0": (0.0155, 0.0005),
+        "b": (0.279, 0.002),            # "0.28 of one period's step"
+        "overshoot": (0.667, 0.005),    # "the grid charges 0.667"
+        "tax_charged": (0.0370, 0.0005),
+        "ratio_charged": (2.39, 0.03),  # "2.4 times the typical entry depth"
+        "entry_share": (0.295, 0.01),   # "29% entry, 71% grid"
         "q_x0": (0.405, 0.005),         # "a 40% chance of leaving on its first call"
         "naive": (2.47, 0.02),          # "about 2.5 periods, call it ten weeks"
         "columns": ([0.60, 0.46, 0.38, 0.27, 0.18, 0.12, 0.07, 0.04, 0.02], 0.005),
         "median": (2, 0),               # "a median of eight weeks"
         "EW": (2.10, 0.02),             # eq:holding
         "EW_siegmund": (1.9, 0.05),     # eq:holding-siegmund, "9% below"
+        # The bracket: both ends are published constants and the exact 2.10
+        # sits between them, which is what section 07 quotes instead of "9%".
+        "EW_far": (1.93, 0.02),
+        "EW_near": (2.22, 0.02),
         "prem": (0.0372, 0.001),        # section 09: "a lot collects 3.72% ... in call premiums"
         "exitcost": (0.0358, 0.001),    # section 09: "and surrenders 3.58% in upside at call-away"
     }, note="Standard regime"),

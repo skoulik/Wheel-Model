@@ -14,29 +14,31 @@ numbered around them; they closed on 2026-07-28 and had been missing from it sin
 
 Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section body carries such a
 flag** (checked 2026-08-01), and that is the intended steady state: an in-text flag is a promise
-to a reader and should be added only when the text genuinely defers something. Thirteen live in
-`sections/98-bibliography.md` (recounted 2026-08-04, after the queueing reads), in the internal
+to a reader and should be added only when the text genuinely defers something. Eleven live in
+`sections/98-bibliography.md` (recounted 2026-08-04, after II-29 closed), in the internal
 field after an entry's anchor, which is stripped at assembly and so never reaches a reader; they
 mark the two unread downloads, the one source that may be cited for its existence only, and the
-ten entries the reading of 2026-08-04 left owing something to I-7, II-22, II-23, II-29, II-30 or
-IV-9. The bibliography stands at **43 entries**, five of them added that day.
+eight entries the reading of 2026-08-04 left owing something to I-7, II-22, II-23, II-30 or
+IV-9. The bibliography stands at **43 entries**, five of them added that day, and **seven of them
+are now cited** — §07's four arrived with II-29.
 
 ## Where things stand
 
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with thirteen items outstanding**
-(II-18 through II-30 — nine from the literature pass of 2026-07-31, which reopened Part II the
-day it closed, two more from the Merton–Scholes–Gladstein read of 2026-08-01 that closed I-5, and
-two from the reads of 2026-08-04, Chang–Peres and Little; none of them changes a formula or a
-verdict, only II-29 moves a number and only II-30 adds one); **Part III and Part IV are unwritten**, and between
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with twelve items outstanding**
+(II-18 through II-28 and II-30 — nine from the literature pass of 2026-07-31, which reopened Part
+II the day it closed, two more from the Merton–Scholes–Gladstein read of 2026-08-01 that closed
+I-5, and one from the reads of 2026-08-04; **none of the twelve changes a formula or a verdict and
+only II-30 adds a number**, the one item that moved figures having closed on 2026-08-04);
+**Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **thirteen open items** (II-18 – II-30) — six in §09, the rest in §05, §07, §08 and §10; II-23 also touches §00, §02 and §11, and II-29 §00 and `code/` |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **twelve open items** (II-18 – II-28, II-30) — six in §09, the rest in §05, §07, §08 and §10; II-23 also touches §00, §02 and §11. §07 and §00 were edited by II-29 on 2026-08-04 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -233,7 +235,7 @@ volume and year are settled from inside the copy by his own reference [4] — pa
 series, *Ann. Math. Statist.* **36** 28–54, 1965, the article immediately preceding this one in the
 same volume.
 
-**Five are open, and two of them are new to the list rather than left over from it.**
+**Four are open**, one of them new to the list rather than left over from it. (There were five; janssen-vanleeuwaarden-2007 closed with II-29 on 2026-08-04 — see below.)
 
 - **israelov-covering-the-world** and **li-zhang** are downloaded but unread, and a title or
   author list is the guessed part in both. The reads are owed by **I-1** and **II-23**; clearing
@@ -245,19 +247,22 @@ same volume.
   "Corrected diffusion approximations in certain random walk problems". Completed, with pages
   701–719, from Chang & Peres's reference list — and now *tagged*, because that is not a copy
   either.
-- **janssen-vanleeuwaarden-2007** is the newest, tagged 2026-08-04 **by having been read in full**.
-  The copy is the authors' own typescript — `paperGRWdiffstyleFinal.dvi`, dvips, March 2007 — with
-  no journal header, no volume, no pages and no DOI, so "*Annals of Applied Probability* 17(2)"
-  came from the pass and the page range was never there at all. Nothing else about the entry
-  moved; the read raised it to **[F]**. **This is the item's sharpest instance yet: reading a
-  source cover to cover does not verify its citation, and can be the thing that reveals the
-  citation was never verified.** The two are independent checks and the F/P/A ladder does not
-  imply the other one.
+**janssen-vanleeuwaarden-2007 was the fifth, and it was tagged and cleared within one day** — a
+whole life cycle of this item, worth keeping as its worked example. It was tagged 2026-08-04 **by
+having been read in full**: the copy is the authors' own typescript (`paperGRWdiffstyleFinal.dvi`,
+dvips, March 2007) with no journal header, no volume, no pages and no DOI, so "*Annals of Applied
+Probability* 17(2)" came from the pass and the page range was never there at all. **That is the
+item's sharpest instance: reading a source cover to cover does not verify its citation, and can be
+the thing that reveals the citation was never verified.** It was then cleared the same day, when
+II-29 put one of its figures in §07 — and cleared by **the publisher**, since a second typescript
+(January 2006) turned out to carry no journal header either. **So neither reading nor re-reading
+could have closed it**, which is the strongest statement of the two-independent-checks point this
+item has produced. Full details in [`DONE.md`](DONE.md).
 
-The printed count therefore went 10 → 3 → 5 → 6 → 5. Every rise was this item working rather than
-regressing, and the one fall is the first entry it has *closed* since 2026-08-01.
+The printed count therefore went 10 → 3 → 5 → 6 → 5 → **4**. Every rise was this item working
+rather than regressing, and both falls are entries it has *closed*.
 
-**One entry was born clear**, and it is the standard the other five are being held to:
+**One entry was born clear**, and it is the standard the other four are being held to:
 `glynn-whitt-1989` was added on 2026-08-04 *after* its copy had been obtained and read, with every
 field taken off the JSTOR cover page and the article header. It is the first entry in the
 bibliography that never needed the tag, and the first added in that order. The 40th entry costs
@@ -319,15 +324,16 @@ reader carried no tag, because it came from the pass rather than from memory and
 suspected. Before assembly every entry needs a copy or a named corroborating source, tagged or
 not.
 
-**Titles are the part to check first, and three for three now says so.** Every entry whose details
+**Titles are the part to check first, and four for four now says so.** Every entry whose details
 were put against a source on 2026-08-04 — chang-peres-1997 and chernoff-1965 against copies,
-siegmund-1979 against two reference lists — turned out wrong in its title and right in everything
-else. Three different corruptions of the same field: a truncation, a spurious comma, a singular
-for a plural. Numbers get copied because they look like data; titles get retyped because they look
-like prose.
+siegmund-1979 against two reference lists, janssen-vanleeuwaarden-2007 against the publisher —
+turned out wrong in its title and right in everything else. Four different corruptions of the same
+field: a truncation, a spurious comma, a singular for a plural, and a title-casing of a journal
+that prints sentence case. Numbers get copied because they look like data; titles get retyped
+because they look like prose.
 
-**This is still a smaller worry than the read-level rule and a different one.** Four of the five
-are pointers for further reading and the article quotes no figure from any of them. The one number
+**This is still a smaller worry than the read-level rule and a different one.** All four that
+remain open are pointers for further reading and the article quotes no figure from any of them. The one number
 that looked like an exception — β = 0.5826, attributed in §07 to siegmund-1979 — now rests on
 **two [F] sources**: chang-peres-1997 prints it to seven digits, and chernoff-1965 supplies an
 independent representation, Corollary 1(b)'s Wiener–Hopf integral, which evaluates to the same
@@ -336,12 +342,10 @@ arithmetic and II-23 carries it.) Broadie–Glasserman–Kou carries the constan
 following a wrong page range loses nothing but time; a reader following a wrong *title* is being
 misled.
 
-**janssen-vanleeuwaarden-2007 is the fifth and it is not in that class**, because II-29 may put
-one of its figures in §07 — the 0.033838 zero-depth limit of [eq:trapped](#eq:trapped). The read
-level supports that (**[F]**, and the theorem was reproduced against its own Spitzer counterpart
-before it was quoted); the *citation* does not yet, and it is the only open entry where clearing
-the tag is on the critical path of a section edit rather than of assembly. Do it when II-29 is
-written, not after.
+**And the one entry that *was* on a section's critical path is closed.** §07 now quotes
+janssen-vanleeuwaarden-2007's 0.033838 zero-depth limit of [eq:trapped](#eq:trapped), and its tag
+was cleared as II-29 was written rather than after — as this item asked, and it is the fourth
+entry in the tally above.
 
 **Deadline is assembly**, not §03: a bibliography goes out with the article, and this is the last
 thing that should be discovered in proof. Clearing an entry means deleting its `[cite unverified]`
@@ -350,9 +354,10 @@ tag, which drops the count the checker prints.
 ## Part II — One asset
 
 Part II closed on 2026-07-31, was reopened the same day by the literature pass, and has been
-reopened three times since by reading the sources that pass had only listed. **Thirteen items are
-open**, they divide in three, and **none of them changes a formula or a verdict** — II-29 is the
-only one that moves a number at all, and II-30 the only one that adds one.
+reopened three times since by reading the sources that pass had only listed. **Twelve items are
+open**, they divide in three, and **none of them changes a formula, a verdict or a number** —
+II-30 is the only one that even adds one. The single item that moved printed figures, II-29,
+closed on 2026-08-04 and is in [`DONE.md`](DONE.md); §07 and §00 carry its edits.
 
 **Six land in §09**, and IV-5 edits it a seventh time, so read them together before touching the
 section. Two are corrections to what the section already says — **II-18** the level of the
@@ -372,15 +377,15 @@ borrowed things where the reader meets them, and reaches outside Part II to do i
 caveat. All four depend on §03 (**I-1**) for the citations themselves — **§03 carries the
 pedigree, the section carries the pointer**, and neither should be written twice.
 
-**Four came from actually reading what the pass had only listed at [A] or [P]**, and they are the
+**Three came from actually reading what the pass had only listed at [A] or [P]**, and they are the
 ones carrying measurements: **II-27** and **II-28** from Merton–Scholes–Gladstein (2026-08-01),
-**II-29** from Chang & Peres, then Janssen & van Leeuwaarden, then Chernoff, and **II-30** from
-Little's own two papers (all 2026-08-04). II-27 and II-28 land in §09 and §05 and move nothing.
-**II-29 lands in §07 and moves two figures** — the trapped fraction from 4.1% to 4.4%, the grid
-tax's multiple from 2.1× to 2.4× — because the constant β is a far-barrier limit and §07 applies
-it at 0.28 of one step. It also corrects the pedigree in II-23's first bullet, so **read the two
-together**. **II-30 lands in §08**, adds one figure the section never had, and corrects what the
-article says a source assumes rather than what it computes.
+and **II-30** from Little's own two papers (2026-08-04). II-27 and II-28 land in §09 and §05 and
+move nothing. **II-30 lands in §08**, adds one figure the section never had, and corrects what the
+article says a source assumes rather than what it computes. The fourth was **II-29**, from Chang &
+Peres, Janssen & van Leeuwaarden and Chernoff, and it is the one that moved figures — §07's grid
+tax from 2.1× to 2.4× and its trapped fraction from 4.1% to 4.4%, both against the operator. It
+closed on 2026-08-04. **What is left of it here is II-23's first bullet**, the pedigree of the
+same equation, which changes no number and was deliberately kept separate.
 
 **Every read that has promoted a source off [A] or [P] so far has found the record wrong in some
 way that mattered** — four of four now — **but the fourth moved where the wrongness lives**. Chang
@@ -1183,303 +1188,6 @@ parity model systematically understates American put values, worst in high-rate 
 appropriate put-pricing model". **We are not exposed today** — `model.py:120`'s `bs_put` is a
 direct European formula and does not go through `bs_call` — but parity is the natural shortcut
 for anyone extending the pricing, and §05's caveat is the place to spend a clause on it.
-
-**II-29. β is a far-barrier constant, the article applies it at 0.28 of one step, and two of §07's
-numbers are low because of it.** (From reading [Chang & Peres](#ref:chang-peres-1997) in full,
-2026-08-04 — II-23 had it listed as a pointer for higher-order terms, and it turned out to carry
-the meaning of the constant and the size of the error as well. **Extended the same day from
-[Janssen & van Leeuwaarden](#ref:janssen-vanleeuwaarden-2007)** — parts Seventh to Twelfth, which
-name eq:trapped's object, give one value of it in closed form, and add a third confirming route —
-**and again from [Chernoff](#ref:chernoff-1965)**, parts Thirteenth to Fifteenth, which date the
-constant's meaning, confirm its digits by a fourth route and rule the origin paper out as a source
-of a sharper error bound.
-Everything below was measured while raising the item and **outside the model**: the trapped
-fraction by three independent routes that agree, the overshoot by a Monte Carlo whose implied
-E[W] reproduces §07's own 2.10. Nothing in `code/` computes any of it yet.)
-
-**First, what β *is*, which the article never says.** §00's symbol table calls β "Siegmund's
-overshoot constant" and §07 calls [eq:siegmund](#eq:siegmund) "a classical correction"; neither
-says overshoot *of what*, so the reader is asked to accept 0.5826 on authority. It is the
-**limiting expected overshoot** of a Gaussian random walk — E₀R_∞ = E₀(S_τ²)/(2·E₀S_τ), the mean
-amount by which the walk stands *past* a level when first observed beyond it, in units of one
-period's step σ·√τ_c. That is the right general-audience account of the call-grid tax and it is
-one sentence: the grid does not merely delay a lot's exit, it *records the exit late*, and a
-barrier crossed between two expiries behaves as though it sat 0.58 steps deeper. The paper's
-companion constant is the other end of the same story — **E₀S_τ = 1/√2 = 0.7071**, the mean first
-ladder height, which is the overshoot of a barrier the walk starts on.
-
-**Second, the limit is in the wrong place for us.** β is the b → ∞ value, and the barrier
-distance the article actually applies it at is
-
-    b  =  E[x₀] / (σ·√τ_c)  =  0.5582/√n  =  **0.279 step sds** at n = 4
-
-— **independent of σ**, because E[x₀] and the step both scale with it. In the Conservative regime
-it is 0.237, which is *further* inside the small-b region rather than further out. Chang & Peres's
-Corollary 3.1 states its error as O(e^(−rb)) *as b → ∞*, so the article stands where that term is
-largest, and **b ∝ 1/√n means it gets worse as calls outrun puts** — the same lever that creates
-the tax in the first place.
-
-**Third, the good news: the drift axis is free**, which is where II-23 guessed the error was. In
-the Gaussian case the expansion in drift-per-step is a *convergent* series for |θ| < 2√π = 3.545
-(Theorem 1.1), where θ = (ν/σ)·√τ_c = **0.0347** at the running parameters. Its first drift
-coefficient is ρ′(0) = ¼, so the drift correction to the shift is exactly **ν·τ_c/4 — a quarter of
-one call period's drift**, worth +0.00048 on a tax of 0.0323 (+1.5%), and the next term
-(ρ″(0) = ζ(3/2)/(2(2π)^(3/2)) = 0.08293) is four orders of magnitude smaller. Cadence is not the
-problem; barrier distance is.
-
-**Fourth, [eq:holding-siegmund](#eq:holding-siegmund) is not an approximation at all — it is an
-identity with the wrong constant in it.** Wald's identity gives
-
-    E[W]  =  ( E[x₀] + E[overshoot] ) / ν      exactly,
-
-so §07's "lands 9% below the exact 2.10" is *entirely* the constant and nothing else. The measured
-mean exit overshoot is **0.669 ± 0.001 step sds** against β's 0.583, and Chang & Peres bracket it
-from both ends:
-
-| overshoot constant | value at the running example | E[W] it gives |
-|---|---|---|
-| ρ(θ) = β + θ/4 + …, the b → ∞ end | 0.5913 | 1.93 y |
-| **measured, at b = 0.279** | **0.669** | **2.10 y** |
-| E_θS_τ = (1/√2)·e^(βθ), the b → 0 end | 0.7215 | 2.22 y |
-
-The exact 2.104 sits inside a bracket whose two ends are both published constants — and the
-measured mean overshoot falls off with barrier distance exactly as the theory says, from the one
-limit to the other:
-
-| b (step sds) | 0 | 0.279 | 0.5 | 1 | 2 | 4 | 8 |
-|---|---|---|---|---|---|---|---|
-| mean overshoot | 0.723 | 0.660 | 0.627 | 0.596 | 0.592 | 0.592 | 0.591 |
-
-Both ends land on their closed forms to within the noise, and the whole correction is spent by one
-full step. The 0.660 at fixed b = 0.279 and the 0.669 averaged over the entry law do not conflict:
-the overshoot is convex in b, so spreading x₀ over the entry law raises the average above its
-value at the mean.
-
-**§07 can therefore say why its closed form runs light, in which direction, and between what two
-numbers the truth must lie** — which is strictly better than the bare "9%" it reports now, and
-costs a sentence and a bracket.
-
-**Fifth, and this one moves a printed figure: [eq:trapped](#eq:trapped) is 7.8% low.** §07 quotes
-"**4.1%** of every assignment permanently trapped" and a stratum growing at "λ × 4.1% ≈ **0.43**
-lots a year" at σ = 40%. eq:trapped is Corollary 3.1 truncated at its first term, evaluated at the
-same b = 0.279, and the exact discrete-walk answer is:
-
-| σ = 40%, ν = −3.5% | trapped fraction | λ·P, lots/yr |
-|---|---|---|
-| eq:trapped as printed | 0.0409 | 0.426 |
-| exact, via the paper's Wald identity (22) | **0.04436 ± 0.00002** | **0.461** |
-| exact, brute-force walk with an analytic tail credit at 100 steps | 0.04451 ± 0.00032 | 0.463 |
-
-So **4.1% should be about 4.4%, and 0.43 about 0.46.** The two routes have almost nothing in
-common — the first never runs a walk to absorption at all — and they agree to within the second
-one's noise. Note the direction is *against* the operator, so §07's conclusion is reinforced and
-its number is the flattering one.
-
-**This is the one place in Part II where an approximation is quoted as a result.**
-eq:holding-siegmund is the other β formula and §07 presents it as an approximation with its error
-attached; `grid_tax()` is a definition the article names. That is exactly the difference. `trapped_fraction()` is a
-closed form all the way down, and `verify_examples.py:214` checks it against *numerical
-integration of the same closed form*, which tests the truncated-normal expectation and cannot see
-the approximation being made. It was booked as a cross-check between two independent routes; it is
-not one. (`DONE.md`'s INF-5 entry carries a dated `**Amended:**` note to that effect as of
-2026-08-04.)
-
-**Sixth, §07's headline multiple undersells its own argument.** "2.1 times the typical entry
-depth" is the ratio of β·σ·√τ_c to E[x₀], and it is arithmetically right for the tax *as defined*
-— but what the grid actually charges is 0.669·σ·√τ_c = 0.0371, so the honest multiple is **2.40×**,
-and the Wald decomposition splits the hole a lot must climb **29% entry, 71% grid**. The
-qualitative claim — "the exit grid, not the entry overshoot, is what keeps lots in inventory" — is
-*strengthened*, and the √n scaling argument beside it is untouched, since both quantities still
-scale with σ·√τ_c.
-
-### Extended 2026-08-04 by reading [Janssen & van Leeuwaarden](#ref:janssen-vanleeuwaarden-2007) in full
-
-The pass had this listed as a pointer for "moments of the all-time maximum". It is the other half
-of the same item: **the quantity [eq:trapped](#eq:trapped) computes is that maximum's
-distribution**, and the paper supplies one exact value of it in closed form. Everything below was
-again measured outside the model, and their Theorems 1–3 were each reproduced against their own
-elementary Spitzer counterparts to ten digits before anything was quoted from them.
-
-**Seventh, the trapped fraction has a name and it is theirs.** Measure a lot's *recovery* from its
-entry depth in units of one period's step: S_j = (x₀ − x_j)/(σ·√τ_c). That is exactly their
-Gaussian random walk, whose drift per step is θ = ν·√τ_c/σ — negative in the unstable regime,
-which is their −β with β = |θ| — and a lot escapes iff S ever reaches b = x₀/(σ·√τ_c). So
-
-    trapped  =  P( M < b ),   M = the all-time maximum of the Gaussian random walk
-
-with no approximation anywhere in the statement. §07's grid tax is the *mean* of that same
-maximum and eq:trapped is its *lower tail*, which is why one constant governs both. Below, θ at
-σ = 40% means |θ| = 0.024268.
-
-**Eighth, and this is the find: the b → 0 end of eq:trapped is exact and published.** Their
-Theorem 1 gives P(M = 0) = √2·θ·exp{ (θ/√(2π))·Σ ζ(½−r)(−θ²/2)^r / (r!(2r+1)) } — the fraction
-trapped when the strike is set so far out that assignment lands at no depth at all. At σ = 40%
-(θ = 0.024268) it is **0.033838**, against eq:trapped's zero-depth limit of
-1 − exp(−2β·θ) = **0.027880**. The closed form is **17.6% low there**, and the shortfall factor is
-
-    (2β·θ) / (√2·θ)  =  √2·β  =  **0.8239**,   with no parameters left in it
-
-so the relative error is a universal constant at that end. **It is worst exactly where an operator
-would go to escape the problem** — further out of the money — and §07 should not be read as
-promising otherwise.
-
-**Ninth, this pins the diagnosis down at both ends: the formula's shape is right and only its
-constant is wrong.** Substituting the two published overshoot constants into eq:trapped, against
-the exact 0.0444 at the entry law:
-
-| overshoot constant used in the shift | trapped, at the entry law | at x₀ → 0 |
-|---|---|---|
-| β = 0.5826, **as printed** | 0.0409 | 0.02788 |
-| measured 0.660 at b = 0.279 (above) | 0.0445 | — |
-| ladder height 1/√2 = 0.7071 | 0.0467 | **0.03374** |
-| E_θS_τ = 0.7215, the b → 0 end | 0.0473 | — |
-| **exact** | **0.0444** | **0.033838** |
-
-At x₀ → 0 the ladder-height constant makes the closed form right to **0.3%**, the residual being
-the O(θ²) term their series carries — a formula that is wrong by 17.6% with one constant and by
-0.3% with another is not the wrong formula. The same two ends that bracket E[W] above bracket the
-trapped fraction, so **§07 can give eq:trapped the identical treatment**, which is worth more than
-requoting a number.
-
-**Tenth, a third route agrees.** A plain walk simulation over the entry law — 600k paths, no
-analytic tail credit, truncated where Lundberg's inequality bounds the neglected mass at 4e−9 —
-gives **0.04460 ± 0.00027**, against the Wald identity's 0.04436 ± 0.00002 and the brute force's
-0.04451. Three routes sharing almost nothing now put the printed 4.1% at 4.4%.
-
-**Eleventh, what β *does*, in one line, from their Theorem 2.** E M = 1/(2θ) + ζ(½)/√(2π) + θ/4 +
-O(θ²): the grid-sampled all-time maximum keeps the continuous exponential's rate 2ν/σ² and, to
-this order, its standard deviation, and loses **exactly the call-grid tax from its mean**. At the
-running example, in depth units, mean 0.76816 against the continuous 0.8000 — a deficit of
-0.031844 against β·σ·√τ_c − ν·τ_c/4 = 0.031836 predicted — while the standard deviation is
-0.799524, short by 0.000476 ≈ ν·τ_c/4. **The mean moves by 0.58 of a step and the spread by 0.009
-of one.** That is the sharpest available statement of what sampling costs, and §07 may use it as
-one — but **not as a result about our lots**: their M runs forever and a lot's walk is killed at
-zero, so the two coincide only in the trapped case above.
-
-**Twelfth, the constant has a family and a queueing pedigree.** Their §1 lists where
-−ζ(½)/√(2π) turns up: sequential testing ([Chernoff](#ref:chernoff-1965)), corrected diffusion
-approximations ([Siegmund](#ref:siegmund-1979)), the discretization error in *simulating* Brownian
-motion (Asmussen, Glynn & Pitman 1995, *Ann. Appl. Probab.* 5:875–896; Calvin 1995, *JMAA*
-191:608–617), option pricing ([Broadie, Glasserman & Kou](#ref:broadie-glasserman-kou-1997)), and
-the thermodynamics of a polymer chain (Comtet & Majumdar 2005, *J. Stat. Mech.* P06013) — because
-"these applications have in common that a Brownian motion is observed only at equidistant sampling
-points". Separately, 1/(2θ) is **Kingman's** upper bound on E M, tight in heavy traffic, and the
-c ≈ 0.58 gap he reported in 1965 *is* this constant — he wrote it as a series he did not evaluate,
-so he had the zeta function in hand without saying so. One sentence of that turns 0.5826 from a
-number quoted on authority into
-a member of a family, and the Kingman half connects §07's grid tax to §08's queueing frame. Any of
-those citations arrives **[cite unverified]** — the details above are off their reference list, not
-off copies, the one exception being Chernoff, whose own copy was obtained the same day (see
-Thirteenth) — and the general-audience pick is the polymer.
-
-**No numerical hazard.** Their series converge for |θ| < 2√π = 3.545 and the article's θ is 0.035
-at the running example and 0.024 at σ = 40%; θ = |ν|·√τ_c/σ cannot approach the radius at any
-parameters a reader would try. Their §7 gives alternative representations if it ever did.
-
-### Extended 2026-08-04 by reading [Chernoff](#ref:chernoff-1965) in full
-
-The origin paper, read the same day off a JSTOR scan of pp. 55–68. **It moves no figure** — the
-attribution corrections it carries belong to II-23, which owns them — but it settles two things
-this item asserts and closes off a third line of enquiry before anyone spends an afternoon on it.
-
-**Thirteenth, β was an integral for twenty-one years before it was an overshoot, and the First
-point above is not Chernoff's reading of his own number.** He reached ẑ through Spitzer's solution
-of the Wiener–Hopf equation (his refs [6] and [7]: F. Spitzer, *The Wiener–Hopf equation whose
-kernel is a probability density*, *Duke Math. J.* **24**:327–343, 1957, and II, **27**:363–372,
-1960), Gordon Latta recognised the resulting integral as ζ(½)/√(2π), and Hogan identified it with
-the limiting expected overshoot only in **1986**. Nothing in the 1965 paper says the word. **This
-is a gain for §07's detour, not a caveat**: the general-audience sentence First proposes — *a
-barrier crossed between two expiries behaves as though it sat 0.58 steps deeper* — can be
-introduced as the meaning the number turned out to have, twenty-one years after it was first
-computed as a definite integral in a problem about sequential testing. That is a better opening
-than "the constant is the limiting expected overshoot", and it is the same length.
-
-**Fourteenth, a fourth route confirms the digits, and it is his own.** Corollary 1(b) prints ẑ as
-−(1/2π)∫λ⁻² log[λ²/2(1−e^(−λ²/2))] dλ. Evaluated while reading, that integral is
-**−0.582597157939**, matching −ζ(½)/√(2π) to 25 digits. So the four routes now on record — Latta's
-zeta closed form, Chernoff's Wiener–Hopf integral, Chang & Peres's ladder-height expansion, and
-Janssen & van Leeuwaarden's series — all land on the same 0.5825972, which is the strongest
-possible support for **Do not change `BETA`** below. The **−0.5824** printed twice in his paper is
-an arithmetic slip in evaluating his own formula, not a rival value; II-23 carries what to tell a
-reader about it.
-
-**Fifteenth, the origin cannot help with Second, and this closes that line off.** Chernoff's object
-is the **Bayes-optimal stopping boundary of a sequential test**, not a knock-out barrier, and his
-asymptotics run in δ: (1.1) is x̃_δ(t) = x̃(t) + ẑ√δ + o(√δ), with Theorem 5.1 making the o(1)
-uniform only for t in an interval bounded away from 0 and ∞. **There is no barrier-distance axis in
-the paper at all** — the boundary *is* where the process stops, so the small-b regime the article
-sits in does not arise for him and no error term of his can be re-read as bounding ours. Chang &
-Peres stays the sole source for the size of the b = 0.279 error, and nobody should go back to the
-origin looking for a sharper one.
-
-**Two places this correction does not reach**, measured and recorded so nobody re-derives them.
-
-*(In both, θ is §00's census exponent 2ν/σ² = 1.25, not the drift-per-step θ = 0.0347 this item
-borrows from Chang & Peres above. The two letters collide and the article's meaning wins.)*
-
-- **§10's [eq:theta](#eq:theta) is exact on the grid**, not corrected. Solve the Lundberg equation
-  for a Gaussian step: E[e^(γ·Δ)] = 1 with Δ ~ N(−ν·τ_c, σ²·τ_c) is γ·τ_c·(−ν + γ·σ²/2) = 0, and
-  τ_c cancels identically, so γ = 2ν/σ² on *any* call grid and the capital boundary is
-  cadence-free. §10 already reaches that from [eq:basis-multiplier](#eq:basis-multiplier); this is
-  the census side of the same fact, and it is the answer to the question a reader will have on
-  arriving from §07 — *did the grid move the boundaries too?*
-- **§11's [eq:survive](#eq:survive) needs no shift.** Its barrier is continuously monitored, in
-  the formula and in `wheel_sim`, which crosses with a Brownian bridge. Were a discretely
-  monitored version ever wanted — a broker checking at the close — the shift is
-  β·σ·√(1/252) = 0.0073 in log price, multiplying P(sold out, ever) by e^(−1.25 × 0.0073) = 0.991,
-  so §11's 1.01% would read 1.00%. The contrast is the point: the same correction is 2.1× the
-  entry depth on a four-week call grid and a rounding error on a daily one, because it scales with
-  the square root of the monitoring interval.
-
-**What to do.**
-
-- **§00's symbol table**: β gains its meaning (limiting expected overshoot) and its far-barrier
-  caveat, in the same line.
-- **§07, [eq:siegmund](#eq:siegmund)**: say what the overshoot is, that 0.5826 is the far-barrier
-  limit, and that at the article's own barrier distance the grid charges 0.669 — then quote 2.40×
-  or quote both. Attribution follows **II-23**'s corrected pedigree, with
-  [Janssen & van Leeuwaarden](#ref:janssen-vanleeuwaarden-2007) beside Chang & Peres for the
-  meaning: they are the ones who say in as many words that the constant is what a grid costs a
-  *maximum*, and their application list is the optional second sentence (Twelfth above). **If the
-  detour wants one memorable sentence rather than two dutiful ones**, Thirteenth is the candidate —
-  the number was computed as a definite integral in 1965 and only understood as an overshoot in
-  1986 — and it can carry the meaning and the pedigree together.
-- **§07, [eq:holding-siegmund](#eq:holding-siegmund)**: replace the one-sided "9% below" with
-  Wald's identity and the two-sided bracket.
-- **§07, [eq:trapped](#eq:trapped)**: requote from the walk — 4.4% and 0.46 — and keep the closed
-  form as the reasoning aid it is, with its bias named. **Give it the same bracket treatment as
-  eq:holding-siegmund** (Ninth above): the two ends are the same two published constants, so the
-  two β formulas in the section end up presented alike instead of one being corrected and the
-  other requoted. If one extra sentence can be afforded, the zero-depth limit is the one to spend
-  it on — the closed form is 17.6% low there, worst where the strikes are furthest out.
-  **Precondition: `code/` has to be able to compute it.** The cheap route is Chang & Peres's
-  identity (22): trapped = 1 − E[exp(−θ·(x₀ + R))] with R the overshoot law of the walk, which
-  needs a few periods per path rather than the 12,700 the brute force ran. Whatever route is
-  chosen, it needs a frozen case, and `holding_trapped.py`'s `--sigma 0.40` expectations
-  (0.041, 0.43) move with it. **Use Janssen & van Leeuwaarden's Theorem 1 as the second frozen
-  case**: at x₀ → 0 it gives 0.033838 in closed form with no walk to run and no Monte Carlo error
-  to argue about, it is the one point where the exact answer is *published* rather than measured,
-  and any route that reproduces the entry-law figure while missing that endpoint has the shape
-  wrong rather than the constant.
-- **Do not change `BETA`.** 0.5826 is correct to four decimals for what it is
-  (−ζ(½)/√(2π) = 0.5825972); the defect is the *application*, not the constant, and `grid_tax()`
-  is a definition the article names. If a corrected shift is wanted in code it belongs beside
-  `grid_tax()` under its own name, not inside it.
-
-**One gain outside Part II, recorded and not converted.** `model.py:565`'s converger uses
-"Siegmund's E[T] ≈ (E[x₀] + βσ√τ_c)/ν" as an independent read on cells it cannot converge, noting
-that converged cells sit **5–12% above it** and truncated ones below. That band is now explained
-and, better, *bounded*: the excess is (E[overshoot] − β)·σ·√τ_c/ν, and the overshoot is largest at
-b = 0 — the ladder height's CV² is 0.65, below 1, so its mean residual life falls with distance,
-which is what the table above shows — so the ceiling is
-(E_θS_τ − ρ(θ))·σ·√τ_c / (E[x₀] + ρ(θ)·σ·√τ_c) ≈ **15%** at the running example, against a measured
-10%. A one-sided heuristic becomes a two-sided test, which is worth an INF item if anyone extends
-the sweep. (The monotonicity is an argument and a measurement here, not a theorem quoted from the
-paper.)
-
-**Sequence with II-23**, which owns the attribution of the same equation and now carries the
-corrected pedigree. **II-23 changes no number and this one changes two**, so if they are written
-together, keep that distinction visible in the commit rather than merging them.
 
 **II-30. §08's detour describes a Little's law that is not the one it cites, and the finite-horizon
 row it calls an approximation is the theorem itself.** (From reading both

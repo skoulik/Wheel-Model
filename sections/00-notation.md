@@ -55,7 +55,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 | J | Number of call periods a lot lives through before being called away |
 | W | Holding time of a lot, W = J·τ_c |
 | S_j | Survival sequence, S_j = P(J > j) ([eq:survival](#eq:survival)) |
-| β | Siegmund's overshoot constant, β = −ζ(1/2)/√(2π) ≈ 0.5826, the size of the call-grid tax ([eq:siegmund](#eq:siegmund)) |
+| β | Siegmund's overshoot constant, β = −ζ(1/2)/√(2π) ≈ 0.5826, the size of the call-grid tax ([eq:siegmund](#eq:siegmund)). It is the *limiting expected overshoot* — how far past a level a sampled walk stands when first observed beyond it — for a barrier infinitely far away; this article's barrier sits 0.28 of a step off, where the true overshoot is 0.667. See [the holding-time section](#sec:holding) |
 | θ | Tail exponent of the standing inventory's depth distribution, θ = 2ν/σ² ([eq:theta](#eq:theta)); it is also the exponent governing a levered account's survival, see [eq:survive](#eq:survive) |
 | λ | Arrival rate of new lots per year, λ = p\*/T ([eq:lambda](#eq:lambda)) |
 | I, I(t) | Number of inventory lots held — a random variable; I(t) when the time path matters |

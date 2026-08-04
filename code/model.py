@@ -89,7 +89,14 @@ def pmap(fn, jobs, workers=None):
 N = NormalDist().cdf
 Ninv = NormalDist().inv_cdf
 
-BETA = 0.5826  # -zeta(1/2)/sqrt(2*pi), Siegmund's overshoot constant
+BETA = 0.5826  # -zeta(1/2)/sqrt(2*pi), the limiting expected overshoot
+
+# zeta(1/2 - r) for r = 0, 1, 2: the coefficients of Janssen & van
+# Leeuwaarden's series (see trapped_zero_depth).  Successive terms carry
+# (-theta^2/2)^r and theta < 0.04 at anything the article runs, so r = 1 is
+# already worth 4e-5 of the leading term and r = 2 worth 1e-9.  BETA is
+# -ZETA_HALF[0]/sqrt(2*pi) to the four decimals it is quoted at.
+ZETA_HALF = (-1.4603545088095868, -0.20788622497735458, -0.025485201889833)
 
 
 def phi(z):
@@ -297,6 +304,61 @@ def grid_tax(C, measure):
     """
     _, s = C.world(measure)
     return BETA * s * sqrt(C.tau_c)
+
+
+def barrier_distance(C, measure):
+    """E[x0] / (sigma*sqrt(tau_c)): how far a fresh lot sits from its exit,
+    measured in the only unit the walk has -- one call period's step.
+
+    This is the b that BETA's own asymptotics run in, and the article sits at
+    0.28 of a step.  Note what it does not contain: E[x0] and the step both
+    scale with sigma, so b is independent of volatility, and b = 0.5582/sqrt(n)
+    falls as calls outrun puts.  The one lever that makes the grid tax matter
+    is the same lever that makes BETA's far-barrier limit less appropriate.
+    """
+    _, s = C.world(measure)
+    _, _, mean_x0, _ = entry_law(C, measure)
+    return mean_x0 / (s * sqrt(C.tau_c))
+
+
+def overshoot_wald(C, measure, occ):
+    """What the call grid actually charges, from Wald's identity.
+
+    A lot exits at the first grid point with x <= 0, so
+
+        E[W] = ( E[x0] + E[overshoot] ) / nu
+
+    holds exactly, the overshoot being how far past zero the depth stands when
+    the walk is finally looked at.  eq:holding-siegmund substitutes BETA for
+    that overshoot.  BETA is its b -> infinity limit, and the article applies
+    it at b = 0.28 (barrier_distance), where the true overshoot is larger --
+    so running the identity backwards off an exact E[W] recovers the overshoot
+    the model is really paying, with nothing simulated and no constant assumed.
+
+    Returns that overshoot in units of one period's step, the tax in depth
+    units, its multiple over the entry depth (section 07's headline ratio) and
+    the entry's share of the hole a lot must climb.  `far` and `near` are the
+    two published constants that bracket it, with the E[W] each implies:
+    rho(theta) = BETA + theta/4 is the far-barrier expansion, and the mean
+    first ladder height E_theta S_tau = e^(BETA*theta)/sqrt(2) is the overshoot
+    of a barrier the walk starts *on* -- b = 0 rather than b = infinity.  Both
+    are Chang & Peres; the article's b sits between them and so does its E[W].
+    """
+    _, s = C.world(measure)
+    _, _, mean_x0, _ = entry_law(C, measure)
+    nu, sc = occ["nu"], s * sqrt(C.tau_c)
+    theta = nu * sqrt(C.tau_c) / s              # drift per step, in step units
+    EW = occ["E[J]"] * C.tau_c
+    shot = (nu * EW - mean_x0) / sc if nu > 0 else float("nan")
+    far, near = BETA + theta / 4, exp(BETA * theta) / sqrt(2)
+    return {
+        "overshoot": shot, "tax": shot * sc, "b": mean_x0 / sc, "theta": theta,
+        "ratio": shot * sc / mean_x0,
+        "entry_share": mean_x0 / (mean_x0 + shot * sc),
+        "far": far, "near": near,
+        "E[T]_far": (mean_x0 + far * sc) / nu if nu > 0 else float("inf"),
+        "E[T]_near": (mean_x0 + near * sc) / nu if nu > 0 else float("inf"),
+    }
 
 
 def median_periods(occ):
@@ -949,18 +1011,28 @@ def depth_census(C, measure, edges, horizon=None, h=0.02, x_max=8.0,
     return [b / total for b in bins], mean_x / total, mean_q / total
 
 
-def trapped_fraction(C, measure):
+def trapped_fraction(C, measure, zero_depth=False):
     """P(J = infinity): the share of lots that never come back, when nu <= 0.
 
     Continuous escape probability with Siegmund's boundary shift, averaged
     over the entry law in closed form:
         1 - E[exp(-theta*(x0 + beta*sigma*sqrt(tau_c)))],  theta = 2|nu|/sigma^2.
+
+    This is eq:trapped as the article displays it, and it is an approximation
+    twice over -- BETA is a far-barrier constant used at b = 0.28 of a step,
+    and e^(-theta*E[R]) is not E[e^(-theta*R)].  Both err the same way, so it
+    reads low: 7.8% at the entry law, 17.6% with `zero_depth`, where the entry
+    depth goes and the grid tax is all that is left of the exponent.  See
+    trapped_fraction_walk() for the figure the article quotes and
+    trapped_zero_depth() for the published value of the second.
     """
     m, s = C.world(measure)
     nu = m - s**2 / 2
     if nu > 0:
         return 0.0
     theta = 2 * abs(nu) / s**2
+    if zero_depth:
+        return 1 - exp(-theta * BETA * s * sqrt(C.tau_c))
     k = strike(C, measure)
     mean_z = (m - s**2 / 2) * C.tau_p
     sd_z = s * sqrt(C.tau_p)
@@ -970,6 +1042,126 @@ def trapped_fraction(C, measure):
     e_x0 = (k ** -theta) * exp(theta * mean_z + theta**2 * sd_z**2 / 2) \
         * N(alpha - theta * sd_z) / N(alpha)
     return 1 - exp(-theta * BETA * sc) * e_x0
+
+
+def trapped_zero_depth(C, measure):
+    """P(M = 0): the trapped fraction in the limit of zero entry depth.
+
+    Janssen & van Leeuwaarden (2007) theorem 1, in closed form:
+
+        P(M = 0) = sqrt(2)*theta * exp{ (theta/sqrt(2*pi)) *
+                     sum_r zeta(1/2 - r) (-theta^2/2)^r / (r! (2r+1)) }
+
+    where M is the all-time maximum of the Gaussian random walk with drift
+    -theta per step.  Write a lot's *recovery* from its entry depth in units of
+    one period's step and that walk is exactly what it follows, with
+    theta = |nu|*sqrt(tau_c)/sigma; a lot escapes if and only if the recovery
+    ever reaches b = x0/(sigma*sqrt(tau_c)).  So trapped = P(M < b), and this
+    is its b -> 0 end -- the strike set so far out that assignment lands at no
+    depth at all.
+
+    It is the one point where the exact answer is published rather than
+    measured, which is why it is the second frozen case: a route that
+    reproduces the entry-law figure but misses this endpoint has the shape
+    wrong rather than the constant.  eq:trapped is 17.6% low here, and the
+    shortfall factor sqrt(2)*BETA has no parameters left in it -- the closed
+    form is worst exactly where an operator would go to escape the problem.
+
+    Zero when nu > 0, matching trapped_fraction: nothing is trapped when lots
+    return.  The formula is continuous into that: theta -> 0 sends it to 0 too,
+    which is right, since a driftless walk reaches every level eventually.
+    """
+    m, s = C.world(measure)
+    nu = m - s**2 / 2
+    if nu > 0:
+        return 0.0
+    theta = abs(nu) * sqrt(C.tau_c) / s
+    ser, power, fact = 0.0, 1.0, 1.0
+    for r, z in enumerate(ZETA_HALF):
+        if r:
+            power *= -theta**2 / 2
+            fact *= r
+        ser += z * power / (fact * (2 * r + 1))
+    return sqrt(2) * theta * exp(theta / sqrt(2 * pi) * ser)
+
+
+def _trapped_run(C, measure, h, x_max, tol, j_max, zero_depth):
+    """One grid's reading of the trapped fraction, as a bracket.
+
+    Run the killed walk with no barrier shift anywhere.  Lots that never come
+    back drift deeper forever, so they leave through x_max rather than through
+    the exit -- which makes the mass DepthWalk drops the very quantity wanted,
+    not an error term.  Mass still live at depth x is trapped with probability
+    at least 1 - e^(-gamma*x), the continuously-monitored escape probability,
+    which overstates escape because a grid misses crossings; and at most 1.
+    That is the bracket, and it closes long before the mass does.
+    """
+    m, s = C.world(measure)
+    nu = m - s**2 / 2
+    gamma = 2 * abs(nu) / s**2
+    walk = DepthWalk(nu, s, C.tau_c, h=h, x_max=x_max)
+    if zero_depth:
+        u = [0.0] * walk.n
+        u[0] = 1.0                      # a point mass in the lowest cell, x = h/2
+        if _np is not None:
+            u = _np.array(u)
+    else:
+        _, _, _, dens = entry_law(C, measure)
+        u = walk.entry_vector(dens)
+    esc = [exp(-gamma * x) for x in walk.xs]
+    if _np is not None:
+        esc = _np.array(esc)
+    above = gap = 0.0
+    for j in range(j_max):
+        above += walk.escaped(u)
+        u = walk.step(u)
+        gap = float(u @ esc) if _np is not None else \
+            sum(ui * ei for ui, ei in zip(u, esc))
+        if gap < tol:
+            break
+    live = float(u.sum()) if _np is not None else sum(u)
+    return above + live - gap, above + live, j + 1
+
+
+def trapped_fraction_walk(C, measure, h=0.02, x_max=20.0, tol=1e-6,
+                          j_max=200000, zero_depth=False):
+    """P(J = infinity) read off the walk itself, with no barrier shift.
+
+    trapped_fraction() is eq:trapped: the continuous escape probability with
+    Siegmund's shift standing in for the overshoot, averaged over the entry
+    law.  Both of those steps are approximations at the barrier distance the
+    article works at -- BETA is a b -> infinity constant applied at b = 0.28,
+    and e^(-gamma*E[R]) is not E[e^(-gamma*R)] -- and together they run 7.8%
+    low.  This runs the walk instead and is the figure section 07 quotes.
+
+    x_max = 20 is not a convergence knob but an accuracy one: mass leaving
+    through it is credited as trapped, and its true escape probability is
+    e^(-gamma*x_max) = 1.6e-4 at the section's case, so the credit costs 7e-6
+    of a 0.044 answer.  Halving it to 10 would cost 5e-4 and is not enough.
+
+    Richardson-extrapolated in h for the same reason stationary() is: the
+    absorbing boundary sits on cell centres, so a lot is held marginally too
+    long and the bias is O(h^2) and positive -- 0.0453 / 0.0446 / 0.0444 at
+    h = 0.04 / 0.02 / 0.01, a clean factor of four per halving.  With
+    `zero_depth` the entry point is itself the lowest cell, at h/2 rather than
+    at 0, so the error is O(h) and the extrapolation is linear; that case is a
+    check against trapped_zero_depth()'s published closed form rather than a
+    figure, and it is the slower way to a number already known exactly.
+    """
+    m, s = C.world(measure)
+    if m - s**2 / 2 > 0:
+        return {"trapped": 0.0, "bracket": 0.0, "steps": 0, "h": h,
+                "method": "nu > 0: lots return, nothing is trapped"}
+    lo_c, hi_c, n_c = _trapped_run(C, measure, h, x_max, tol, j_max, zero_depth)
+    lo_f, hi_f, n_f = _trapped_run(C, measure, h / 2, x_max, tol, j_max,
+                                   zero_depth)
+    val = 2 * lo_f - lo_c if zero_depth else (4 * lo_f - lo_c) / 3
+    return {
+        "trapped": val, "bracket": max(hi_c - lo_c, hi_f - lo_f),
+        "steps": max(n_c, n_f), "h": h,
+        "method": f"{'linear' if zero_depth else 'richardson'}"
+                  f"({h:g}, {h / 2:g})",
+    }
 
 
 def _time_to_survival_sum(surv, tau_c, need):

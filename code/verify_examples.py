@@ -50,10 +50,10 @@ from model import (BETA, Config, N, buy_hold_excess, criteria, depth_census,
                    first_passage_prob, leverage, levered_excess,
                    liquidation_barrier, liquidation_prob, max_leverage,
                    max_debit_growth, max_sustainable_draw,
-                   occupation, pmap, saturation, stationary,
+                   occupation, overshoot_wald, pmap, saturation, stationary,
                    stationary_converged, sticky_dividend_yield, strike,
                    survival_utilization, time_to_fraction, time_to_inventory,
-                   trapped_fraction)
+                   trapped_fraction, trapped_fraction_walk, trapped_zero_depth)
 
 FAILURES = []
 
@@ -106,6 +106,14 @@ def main():
     crit_p, crit_q = criteria(STD, "P"), criteria(STD, "Q")
     nu_p = crit_p["nu"]
     e30 = economics(STD, "P", occ_p, horizon=30.0)
+    # The extrapolated pair, hoisted for the same reason as the rest of this
+    # block.  Capacity needs it because the transient inverse runs centuries
+    # into the tail, where a single grid's O(h^2) bias has accumulated; section
+    # 07's Wald bracket needs it because the identity is only as exact as the
+    # E[W] put into it, and the near grid reads 2.05 against 2.10.  Solved here
+    # rather than under --full, and --full reuses it.
+    (far_p, f, t90), (far_q, g, _) = pmap(
+        _stationary_job, [(STD, "P"), (STD, "Q")])
 
     # ------------------------------------------------------------------
     # Sections 05 to 08 are now checked by `code/examples/`, a module per
@@ -132,6 +140,22 @@ def main():
     # `examples/holding_trapped.py`, which reaches the same conclusion by a
     # closed form -- two independent routes to one answer.
     check("every lot eventually exits when nu > 0", occ_p["P[exit]"], 1.0, 0.002)
+    # Section 07 replaced a one-sided "9% below" with a bracket, and the claim
+    # that makes it worth printing is that BOTH ends are published constants and
+    # the exact answer lies between them.  A module case can pin the three
+    # numbers; only this can assert the ordering that is the point of them.
+    wald = overshoot_wald(STD, "P", far_p)
+    EW = far_p["E[J]"] * STD.tau_c
+    check("Wald's identity recovers E[W] from the overshoot it implies",
+          (economics(STD, "P", far_p)["E[x0]"] + wald["tax"]) / far_p["nu"],
+          EW, 1e-12)
+    if wald["E[T]_far"] < EW < wald["E[T]_near"]:
+        print("PASS  E[W] sits inside the two published overshoot constants "
+              f"({wald['E[T]_far']:.2f} < {EW:.2f} < {wald['E[T]_near']:.2f})")
+    else:
+        FAILURES.append("E[W] outside the far/near overshoot bracket")
+    check("the grid charges more than beta says, by the barrier-distance gap",
+          wald["overshoot"] / BETA, 1.144, 0.01)
     # A regression guard on a number no section prints, so it has no home in a
     # module: module cases assert what the article claims, and this is not a
     # claim the article makes.
@@ -201,18 +225,51 @@ def main():
     else:
         FAILURES.append("measure disagreement on capital stability")
     hi_vol = Config(sigma=0.40)
-    # Independent cross-check of that closed form: integrate the escape
-    # probability against the entry density directly.
-    _, _, _, dens = entry_law(hi_vol, "P")
+    # The trapped fraction, three ways.  This block replaced a check that
+    # integrated eq:trapped's own integrand against the entry density and
+    # called the agreement a cross-check: it tested the truncated-normal
+    # expectation and could not see the approximation being made, which is
+    # the one thing here that is wrong (TODO II-29).
+    #
+    # First, the closed form against the walk it is an approximation of.  The
+    # gap is not noise and is not allowed to drift: BETA is a b -> infinity
+    # constant applied at b = 0.28 of a step, and it reads low by 8%.
+    walk = trapped_fraction_walk(hi_vol, "P")
+    cf = trapped_fraction(hi_vol, "P")
+    check("trapped fraction: the walk itself (section 07 quotes this)",
+          walk["trapped"], 0.04436, 5e-5)
+    check("  ...and eq:trapped's closed form runs this far below it",
+          1 - cf / walk["trapped"], 0.078, 0.004)
+    check("  the walk's own [lower, upper] bracket has closed",
+          walk["bracket"], 0.0, 2e-6)
+    # Second, the zero-depth end, where the answer is published rather than
+    # measured -- and two independent series land on it.  Janssen & van
+    # Leeuwaarden's theorem 1 is a zeta expansion; Spitzer's identity is a
+    # sum over P(S_n > 0) that knows nothing about zeta functions.  Agreement
+    # to ten digits is a check on the coefficients ZETA_HALF as much as on the
+    # theorem, since a mistyped constant would show up here and nowhere else.
     m_h, s_h = hi_vol.world("P")
-    th = 2 * abs(m_h - s_h**2 / 2) / s_h**2
-    sc_h = s_h * sqrt(hi_vol.tau_c)
-    step = 0.0005
-    num = sum(dens((i + .5) * step) * step * exp(-th * ((i + .5) * step + BETA * sc_h))
-              for i in range(20000))
-    den = sum(dens((i + .5) * step) * step for i in range(20000))
-    check("trapped fraction: closed form vs numerical integration",
-          trapped_fraction(hi_vol, "P"), 1 - num / den, 1e-4)
+    theta = abs(m_h - s_h**2 / 2) * sqrt(hi_vol.tau_c) / s_h
+    spitzer, n = 0.0, 1
+    while True:                       # P(M = 0) = exp(-sum_n P(S_n > 0)/n)
+        term = N(-theta * sqrt(n)) / n
+        spitzer += term
+        if term < 1e-14 and n > 100:
+            break
+        n += 1
+    check("P(M = 0): Janssen & van Leeuwaarden's series vs Spitzer's",
+          trapped_zero_depth(hi_vol, "P"), exp(-spitzer), 1e-9)
+    check("  ...and eq:trapped runs 17.6% low there, its worst case",
+          1 - trapped_fraction(hi_vol, "P", zero_depth=True)
+          / trapped_zero_depth(hi_vol, "P"), 0.176, 0.002)
+    # Third, the walk against that published endpoint: same machinery as the
+    # figure above, run at a point where the exact answer is known, which is
+    # what makes it evidence for the figure rather than for itself.  Coarser
+    # grids and a linear extrapolation, since the entry point is the lowest
+    # cell and so moves with h -- hence the looser tolerance.
+    check("  the walk reproduces that endpoint from a standing start",
+          trapped_fraction_walk(hi_vol, "P", h=0.04, zero_depth=True)["trapped"],
+          trapped_zero_depth(hi_vol, "P"), 0.005)
 
     # ------------------------------------------------------------------
     # The convolution has two implementations, and only one of them is the
@@ -263,9 +320,9 @@ def main():
           liquidation_prob(STD, "P", horizon=30.0), 0.0, 0.0)
     # The barrier recovers the broker's own ceiling rather than assuming it:
     # at L = 1/gamma_s the position violates the requirement on day one.
-    for g in (0.50, 0.25, 0.15):
-        check(f"f* = 1 at the broker's ceiling L = 1/{g:g}",
-              liquidation_barrier(1.0 / g, g), 1.0, 1e-12)
+    for gs in (0.50, 0.25, 0.15):
+        check(f"f* = 1 at the broker's ceiling L = 1/{gs:g}",
+              liquidation_barrier(1.0 / gs, gs), 1.0, 1e-12)
     check("f* = 0 for an unlevered book", liquidation_barrier(1.0, 0.25), 0.0, 0.0)
 
     # L_max over the gamma_s grid, on the unbounded horizon.  The hand figures
@@ -277,16 +334,16 @@ def main():
             (0.25, 1.0192, 1.1349), (0.15, 1.0218, 1.1557)]
     print(f"      {'gamma_s':>8} {'ceiling':>8} {'L(eps=1%)':>10}"
           f" {'L(eps=10%)':>11} {'% of ceiling':>13}")
-    for g, l1, l10 in LMAX:
-        Cg = Config(p_star=0.20, gamma_s=g)
+    for gs, l1, l10 in LMAX:
+        Cg = Config(p_star=0.20, gamma_s=gs)
         got1, got10 = max_leverage(Cg, "P", 0.01), max_leverage(Cg, "P", 0.10)
-        print(f"      {g:>8.2f} {1 / g:>8.2f} {got1:>10.4f} {got10:>11.4f}"
-              f" {got10 * g:>12.1%}")
-        check(f"L_max at gamma_s = {g:.2f}, eps = 1%", got1, l1, 0.0005)
-        check(f"L_max at gamma_s = {g:.2f}, eps = 10%", got10, l10, 0.0005)
+        print(f"      {gs:>8.2f} {1 / gs:>8.2f} {got1:>10.4f} {got10:>11.4f}"
+              f" {got10 * gs:>12.1%}")
+        check(f"L_max at gamma_s = {gs:.2f}, eps = 1%", got1, l1, 0.0005)
+        check(f"L_max at gamma_s = {gs:.2f}, eps = 10%", got10, l10, 0.0005)
         for eps, L in ((0.01, got1), (0.10, got10)):
             if L > 1.0:                     # gamma_s = 1 has nothing to invert
-                check(f"round trip at gamma_s = {g:.2f}: P at L_max = eps",
+                check(f"round trip at gamma_s = {gs:.2f}: P at L_max = eps",
                       liquidation_prob(Cg, "P", L), eps, 1e-12)
 
     # What that leverage actually costs, and over what horizon.  The barrier
@@ -380,13 +437,6 @@ def main():
           f"{liquidation_prob(G,'P',L10,g=0.01):.4f} at g = -1%, 0, +1%)")
 
     # ------------------------------------------------------------------
-    # Capacity needs the stationary survival curve -- the transient inverse
-    # runs centuries into the tail, where a single grid's O(h^2) bias has
-    # accumulated -- so the extrapolated pair is solved here rather than under
-    # --full, and --full reuses it.
-    (far_p, f, t90), (far_q, g, _) = pmap(
-        _stationary_job, [(STD, "P"), (STD, "Q")])
-
     print("--- Structural: capacity, saturation and the sustainable draw ---")
     G25 = Config(p_star=0.20, gamma_s=0.25)
     I_inf, lam = f["I"], f["lambda"]

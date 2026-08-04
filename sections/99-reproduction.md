@@ -52,10 +52,10 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 
 | formula | command | the article's figures |
 |---|---|---|
-| `eq:siegmund`, `eq:survival`, `eq:holding`, `eq:holding-siegmund` | `python code/examples/holding_time.py` | tax = 0.0323, ratio = 2.09, x0 = 0.0155, q_x0 = 0.405, naive = 2.47, columns = 0.60 0.46 0.38 0.27 0.18 0.12 0.07 0.04 0.02, median = 2, EW = 2.10, EW_siegmund = 1.90, prem = 0.0372, exitcost = 0.0358 |
+| `eq:siegmund`, `eq:survival`, `eq:holding`, `eq:holding-siegmund` | `python code/examples/holding_time.py` | tax = 0.0323, ratio = 2.09, x0 = 0.0155, b = 0.279, overshoot = 0.667, tax_charged = 0.0370, ratio_charged = 2.39, entry_share = 29.5%, q_x0 = 0.405, naive = 2.47, columns = 0.60 0.46 0.38 0.27 0.18 0.12 0.07 0.04 0.02, median = 2, EW = 2.10, EW_siegmund = 1.90, EW_far = 1.93, EW_near = 2.22, prem = 0.0372, exitcost = 0.0358 |
 |  | `python code/examples/holding_time.py --measure Q` | EW = 9.00 |
-| `eq:trapped` | `python code/examples/holding_trapped.py` | count_ok = yes, trapped = 0.0000, growth = 0.000 |
-|  | `python code/examples/holding_trapped.py --sigma 0.40` | nu = -0.0350, count_ok = no, trapped = 0.0410, lam = 10.40, growth = 0.430 |
+| `eq:trapped` | `python code/examples/holding_trapped.py` | count_ok = yes, trapped = 0.0000, trapped_cf = 0.0000, growth = 0.000, zero = 0.0000 |
+|  | `python code/examples/holding_trapped.py --sigma 0.40` | nu = -0.0350, count_ok = no, trapped = 0.0444, trapped_cf = 0.0409, shortfall = 7.8%, lam = 10.40, growth = 0.461, zero = 0.0338, zero_cf = 0.0279, zero_shortfall = 17.6% |
 
 ## 08-inventory.md
 
