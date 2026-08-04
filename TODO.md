@@ -14,12 +14,12 @@ numbered around them; they closed on 2026-07-28 and had been missing from it sin
 
 Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section body carries such a
 flag** (checked 2026-08-01), and that is the intended steady state: an in-text flag is a promise
-to a reader and should be added only when the text genuinely defers something. Ten live in
-`sections/98-bibliography.md` (recounted 2026-08-04, after the Little and Glynn–Whitt reads), in
-the internal field after an entry's anchor, which is stripped at assembly and so never reaches a
-reader; they mark the two unread downloads, the one source that may be cited for its existence
-only, and the seven entries the reading of 2026-08-04 left owing something to I-7, II-22, II-23,
-II-29 or II-30.
+to a reader and should be added only when the text genuinely defers something. Thirteen live in
+`sections/98-bibliography.md` (recounted 2026-08-04, after the queueing reads), in the internal
+field after an entry's anchor, which is stripped at assembly and so never reaches a reader; they
+mark the two unread downloads, the one source that may be cited for its existence only, and the
+ten entries the reading of 2026-08-04 left owing something to I-7, II-22, II-23, II-29, II-30 or
+IV-9. The bibliography stands at **43 entries**, five of them added that day.
 
 ## Where things stand
 
@@ -265,15 +265,25 @@ this item nothing, which is the argument for obtaining a copy before writing an 
 after.
 
 **A fourth reference list, and it is wrong about the one paper we now hold.** (2026-08-04, from
-[Glynn & Whitt (1989)](#ref:glynn-whitt-1989), read in full the same day.) Their list gives
+[Glynn & Whitt (1989)](#ref:glynn-whitt-1989-extensions), read in full the same day.) Their list gives
 Little's paper as "A Proof **of** the **Queueing** Formula: L = λW" — two departures from the copy
 in front of us, which prints "A PROOF FOR THE QUEUING FORMULA". Everything else in their list that
 we can check is right, including Brumelle and Heyman & Stidham, whose details agree with Little's
-own list field for field. So the running tally over four sampled reference lists — Chang & Peres,
-Janssen & van Leeuwaarden, Little (2011), Glynn & Whitt — is that **volumes, issues and page
-ranges have never yet been wrong and titles keep being wrong**, and this instance is the cleanest
-of the four because we hold the disputed paper and can simply look. Little's own list, by
-contrast, was right about Glynn & Whitt on every field: title, journal, volume, issue and pages.
+own list field for field. This instance is the cleanest of the four sampled lists, because we hold
+the disputed paper and can simply look. Little's own list, by contrast, was right about Glynn &
+Whitt on every field: title, journal, volume, issue and pages.
+
+**Correction, the same day: "volumes have never been wrong" lasted about an hour.** This item
+carried, until the Whitt and Glynn–Whitt copies arrived, the generalisation that across the
+sampled lists *titles* keep being wrong while volumes, issues and page ranges never had been.
+**Glynn & Whitt's list breaks it**, and in the least forgivable place: their citation of *their own
+earlier paper* gives "Queueing Syst. Theory Appl. **1**, 191-215", where the copy's page header
+reads **Queueing Systems 2 (1986) 191–215**. Pages right, volume wrong, in a self-citation. So the
+tally is now five lists, with **titles wrong in three and a volume wrong in one**, and the
+generalisation that survives is only the weak one this item started with: *a reference list is a
+source with its own error rate, and no field is exempt*. Authors are not more reliable about their
+own work — [Little's](#ref:little-1961) own 2011 list is so far the only one with nothing wrong in
+it, and that is a sample of one.
 
 **The converse of the Janssen instance arrived the same day, and the count did not move for it.**
 Both Little papers were read in full on 2026-08-04. `little-1961` was already among the eight
@@ -643,7 +653,7 @@ market value — is Brumelle's f<sub>i</sub>(t) directly. The call premium and t
 giveaway are not: they are point flows at period ends, and `model.py` already treats the giveaway
 that way (`economics()` gives `exitcost` its own weights, "a point flow at the end of period j, not
 an occupancy"). A sum of point masses is not a function with ∫|f| dt < ∞, so the theorem as Little
-states it does not literally cover them. **[Glynn & Whitt (1989)](#ref:glynn-whitt-1989) [F]** is
+states it does not literally cover them. **[Glynn & Whitt (1989)](#ref:glynn-whitt-1989-extensions) [F]** is
 the reference that does, read 2026-08-04, and it is a better fit than the second-hand description
 suggested:
 
@@ -679,6 +689,35 @@ capital boundary is then a result of the same theorem that produces the income, 
 the theorem stops. Verify the exact route through Theorem 4 when §10 is actually written — the
 statement above is read off the hypotheses, not reproduced.
 
+**Cite [Whitt (1991)](#ref:whitt-1991) theorem 6.3, not the original.** (Added 2026-08-04 on
+reading the review **[F]**.) Whitt restates the Glynn–Whitt extension in the elementary framework
+of his §2, and the result is the version §08 should carry, because a general-audience detour can
+state it in two lines. Let A<sub>k</sub> and D<sub>k</sub> be the kth item's arrival and departure,
+and let F<sub>k</sub>(t) be **any** nondecreasing cumulative cost for item k. Suppose
+
+- **(6.1)** k⁻¹A<sub>k</sub> → λ⁻¹ *and* k⁻¹D<sub>k</sub> → λ⁻¹ — arrivals and departures share
+  one limiting rate; and
+- **(6.8)** F<sub>k</sub>(t) = 0 before A<sub>k</sub> and F<sub>k</sub>(t) = F<sub>k</sub>(D<sub>k</sub>)
+  after D<sub>k</sub> — cost accrues only while the item is in the system.
+
+**Then G<sub>k</sub> → G if and only if H<sub>t</sub> → H, and H = λG.**
+
+Three reasons that is the better citation. It is an **iff**, which the caution above hedged
+against and no longer needs to: under (6.1) and (6.8) the per-lot total converges exactly when the
+time-average does, so §10's "capital returns iff G is finite at f = e^x" is the theorem's own
+biconditional rather than our inference from its hypotheses. Its (6.1) is **§08's own
+self-recycling sentence** — 10.4 lots in, 10.4 out — so the article has already told the reader
+the condition before it needs it, and the *transient* is exactly the regime where the two rates
+have not yet met. And "any nondecreasing cumulative cost" covers rates, lumps and mixtures in one
+clause, with no measure-theoretic aside about absolute continuity.
+
+**One caution from the review's remark 6.2.** Decomposing G into its rate part and its lump part,
+"it is possible for H<sub>t</sub> → H without having the two components converge". Ours both
+converge, but a detour that presents the decomposition as if convergence were componentwise would
+be asserting more than the theorem gives. Whitt's **theorem 6.4** (Y = λX, "a sample path version
+of the renewal reward theorem") is the companion worth knowing about: t⁻¹Y(t) → Y iff
+k⁻¹Y(A<sub>k</sub>) → X, and then Y = λX.
+
 **Every census integral in Part II is an instance of it**, and the article derives each in prose:
 
 | weighting f | gives | where |
@@ -712,8 +751,9 @@ boundaries are the two ways the identity's preconditions can fail: below μ − 
 holding times themselves diverge and the count law goes with them; between σ²/2 and σ² the count
 law survives and G at f = e^x is what diverges. **The stability section is the failure analysis of
 the inventory section's theorem**, which is a cleaner joint than "two integrals, two convergence
-conditions". Do not overstate it into an iff — the technical condition is a sample-path statement
-and finite mean is what makes it hold in the ordinary case, not a proven equivalence.
+conditions". ~~Do not overstate it into an iff~~ — **that hedge is withdrawn**: Whitt's theorem
+6.3, below, *is* an iff under conditions §08 has already stated, so the equivalence can be written
+plainly.
 
 **Two cautions.** (There were three. The first is withdrawn — see II-30.)
 
@@ -840,7 +880,7 @@ does not do that job. Every bullet below names the line it lands on.
   approximation — the measurement is the better evidence and it is already there.
 
   **The direction §11 runs the law is the one that is not automatic, and someone proved what it
-  costs.** (Added 2026-08-04 from [Glynn & Whitt (1989)](#ref:glynn-whitt-1989) **[F]** §4.1.)
+  costs.** (Added 2026-08-04 from [Glynn & Whitt (1989)](#ref:glynn-whitt-1989-extensions) **[F]** §4.1.)
   Every standard statement of Little's law runs λ and W to L; §11 runs the other way, and Glynn &
   Whitt open by saying that reverse implication is their own contribution — "all previous versions
   show that the existence of limits for λ and W imply the existence of a limit for L. We show how
@@ -1484,6 +1524,21 @@ inventory, the premiums, the basis — is already λ·G read over the window, fo
 The extension of LL.1 from f ≡ 1 to general f is ours by the same two-line argument and is not in
 Little; say "the same reading" rather than citing him for it.
 
+**It has a name, an older lineage, and a warning attached** (added 2026-08-04 from
+[Whitt (1991)](#ref:whitt-1991) §5 **[F]**). The finite-window reading is the **operational
+analysis** version of Buzen and of Denning & Buzen, textbook material in computer performance
+analysis (Lazowska et al., ch. 3), and Whitt calls it "primarily a rediscovery of the fact that,
+for each sample path, ∫₀^t Q(s) ds = Σ<sub>k=1</sub>^{A(t)} W<sub>k</sub> whenever Q(t) = 0". So
+Little's LL.1/LL.2 are a restatement of something with its own literature, and **§08 should not
+present the window reading as exotic**. Two further gifts. When the system is *not* empty at the
+window's end — our case — Whitt records the standard convention as **defining W to be L/λ**, which
+is precisely the W(H) computed above, so the quantity is not ours and needs no apology. And the
+warning, which II-30 must carry into the section: the finite-time "measurement" version "leaves
+open the question of how the finite-time averages are related to the limits (e.g., prediction)".
+That is the exact seam this article walks — it reports 11.40 *and* 21.82 — so the window law
+licenses the measurement and says nothing about the extrapolation. The 90-year approach is still
+what connects them, and it is not a corollary of the identity.
+
 **What §08 gains is a sentence it currently cannot write.** The section's best line is that the
 operator-relevant number is 11.40 and not 21.82, and it explains the gap by the slowness of the
 tail. The window law explains it in one figure instead: **over a thirty-year window a lot spends
@@ -1529,9 +1584,21 @@ years before one assigned in a drawdown. That is the precise reason only the mea
 is a better sentence than the current appeal to a shared price path — which is the reason (c) also
 fails, and can stay beside it.
 
+**4. Optional, and the best pedagogy in the whole item: the ordinal version.** (Halfin & Whitt,
+via [Whitt (1991)](#ref:whitt-1991) §8(3), theorem 8.1.) Measure time in *arrival indices* instead
+of years, so that a customer's waiting time becomes the number of arrivals during its stay. The
+conclusion: **the long-run average number in the system at an arrival epoch equals the long-run
+average number of arrivals during one customer's sojourn**. In wheel terms, with no clock at all:
+*while you hold one lot, about twenty-two more are assigned* — which is E[I] = 21.8 restated
+without years, without λ, and without the reader having to multiply anything. It is the same
+number §08 already prints, and it may be the version a general audience actually keeps. Optional
+because §08's argument does not need it; if the section is already long, drop it rather than the
+window reading.
+
 **Where it goes, and it may want its own subsection.** The detour is a general-audience explainer
-and these are three different jobs: fixing what it claims a source assumes, adding the window
-reading, and naming the distributional result. **Prefer a short subsection after "Applying it"** — the window law belongs next to [eq:little-finite](#eq:little-finite) and the table it
+and these are four different jobs: fixing what it claims a source assumes, adding the window
+reading, naming the distributional result, and optionally restating E[I] ordinally. **Prefer a
+short subsection after "Applying it"** — the window law belongs next to [eq:little-finite](#eq:little-finite) and the table it
 introduces, not inside a general-audience detour that is doing a different job — with edits 2 and 3
 staying as clauses where they already are. Sequence **after II-22**, which owns the same section's
 census integrals and now points here for the finite-horizon half.
@@ -1569,16 +1636,28 @@ are drafted rather than be discovered afterwards.
   structure with independent arrival streams, which is a different argument with different
   hypotheses, and the derivation has to be that one.
 
-  **Two leads worth following before that derivation is written, both from Glynn & Whitt's
-  reference list** (2026-08-04, and details from a reference list are I-7's standing caveat).
+  **Two leads, and the review settles both without the paywalled original** (2026-08-04).
   **Brumelle, S. L. (1972). A Generalization of L = λW to Moments of Queue Length and Waiting
-  Times. *Opns. Res.* 20:1127–1136** is, by its title, the *second-moment* extension — the object
-  this bullet needs, since what §12 must produce is a variance and not a mean. Nobody has opened
-  it. And Glynn & Whitt's own §5 is a **central limit theorem for H = λG** (their Theorem 7, with
-  the limit "usually multivariate Brownian motion"), which is worth knowing exists but is **not**
-  this bullet's tool: it describes the fluctuation of the long-run *averages* around their limits,
-  not the marginal distribution of I at a point in time. Confusing the two would produce a
-  confident wrong answer, which is why both are recorded here rather than in the derivation.
+  Times. *Opns. Res.* 20:1127–1136** is, by its title, the second-moment extension — the object
+  this bullet needs, since §12 must produce a variance and not a mean. It is paywalled and nobody
+  has opened it, and **it does not need opening**: [Whitt (1991)](#ref:whitt-1991) §6(4) **[F]**
+  describes it as relating "the higher moments of the time-stationary number in queue **in a
+  G/G/s model** to the higher moments of the customer-stationary waiting time". That description
+  is enough to close the lead rather than pursue it — the moment relation is a *model-specific*
+  application, not an assumption-free identity like H = λG, and the wheel is not G/G/s. Cite
+  Whitt for the existence of the result if §12 wants to note that moments have been done; do not
+  reach for it as machinery. The same paragraph gives Brumelle's better-known product, the
+  workload formula EV = λ[E(SW) + E(S²)/2].
+
+  And **Glynn & Whitt's §5 CLT** is worth knowing exists but is **not** this bullet's tool either:
+  it describes the fluctuation of long-run *averages* around their limits, not the marginal
+  distribution of I at a point in time. Confusing the two would produce a confident wrong answer.
+  Whitt §8(4) also pins down the distributional version precisely — Q′(0) =<sup>d</sup> Π(λW₀) for
+  a rate-one Poisson process Π independent of W₀ — and says it "seems most useful when the arrival
+  process is a Poisson process", with FCFS required for the underlying equivalence. So the
+  distributional law delivers a *mixed* Poisson under conditions the wheel fails, while the
+  infinite-server argument delivers a plain Poisson under conditions it can meet. Two different
+  results; §12 needs the second.
 - **Position sizing** (was #6). The model sells exactly one put per period regardless of
   capital. A practitioner-facing subsection on sizing against total capital belongs here, and
   the warning it must carry is that capital demand is bursty and heavy-tailed, so **sizing
@@ -1739,7 +1818,8 @@ benefit is first claimed.
 ## Part IV — Reality
 
 Neither §14 nor §15 exists; the outlook is a stub. Everything below is measured — these are
-write-ups.
+write-ups, with one exception: **IV-9 is a constraint on how §14 measures**, added 2026-08-04, and
+it should be read before either section is drafted rather than after.
 
 **IV-1. Write §14, verification** (`{#sec:verification}`, was #21). The spine tested against
 live data, not only simulation.
@@ -2082,6 +2162,64 @@ per half-year from zero with the residual accounted for, tells the reader both t
 the standard one and that a small non-zero residual is the expected outcome rather than a
 failure. **Do not present the two as numerically comparable**: different construction, capital
 base and measure. It is the shape of the check that transfers, not the size.
+
+**IV-9. Which quantity §14 should measure, and the one the live book cannot measure at all.**
+(From [Whitt (1991)](#ref:whitt-1991) §7 and §8(1) **[F]**, with
+[Glynn & Whitt (1986)](#ref:glynn-whitt-1986) **[A]** and
+[(1989, indirect)](#ref:glynn-whitt-1989-indirect) **[P]** behind it; 2026-08-04. Constrains IV-1
+and IV-2 rather than adding a section.)
+
+Little's law is assumption-free as an identity, and this item is about the fact that *estimating*
+its terms from a finite record is not. Whitt puts it in one sentence: "the probability structure
+underlying L = λW becomes crucial when we want to compare finite averages to their limits". §14
+does exactly that comparison, on 55 lots.
+
+**1. The indirect estimator is the better one, and we are in the case where it wins.** With λ
+known, estimating L indirectly as λ·Ŵ is *more asymptotically efficient* than estimating L
+directly from the inventory path — "provided that the interarrival and waiting times are
+negatively correlated", which Whitt notes is the typical situation and is emphatically ours:
+assignments cluster in drawdowns (III-2's common-shock arrivals), and lots assigned in a drawdown
+are the deep, slow ones. So shorter gaps between arrivals go with longer holding times, which is
+the sign the result wants. Glynn & Whitt go further — a linear control estimator, λŴ +
+â(λ̂⁻¹ − λ⁻¹), is better still — and note that L = λW "does not change the asymptotic efficiency
+when the arrival rate λ needs to be estimated as well".
+
+**2. The estimator counts departures, not arrivals, and the reason is our censoring.** Whitt is
+explicit that one works with the completed lots, D(t), and not with A(t), "because the time spent
+in the system by customers still present at time t is typically not known". That is the live
+book's 55-lots-40-resolved problem stated as an estimation convention. IV-1 already handles it
+with Kaplan–Meier, which is the stronger treatment; the point here is that the naive alternative
+has a name and a known bias direction, and §14 should say which it used.
+
+**3. And the one that actually bites: the wheel is a partially observable system in Whitt's
+sense.** §8(1) describes the case where L is cheap to observe and W is expensive — "in many
+manufacturing settings it is much easier to count the work in process than it is to measure
+production intervals … thus we may want to apply L = λW to estimate W using L, **even though the
+statistical precision would be better using W**". That is the live account exactly: inventory
+comes off the positions file continuously (4,204 lot-days), holding times need lots to have
+finished. **But the difficulty he then raises is one this article has already quantified.** The
+observed WIP includes items that will never become good product, so "what we want to observe … is
+only the WIP that will eventually be good, but this eventually good WIP is not directly
+observable". Our analogue is [eq:trapped](#eq:trapped): a fraction of lots never return at all.
+So **L/λ is not an estimate of the mean holding time of lots that get called away** — it is
+contaminated by exactly the population §10 says never leaves, and it is contaminated upward.
+Nozari & Whitt is the reference for the repair; nobody has read it and §14 may not need it, but
+the trap must not be walked into silently.
+
+**What to do, and it is a paragraph in §14 plus a check.** State which estimator each live figure
+uses; do not compare a live L/λ against the model's E[W] without saying what the trapped fraction
+does to it; and keep the two uses of the identity apart, because they are different in kind. The
+**arithmetic** use is II-30's free consistency check on the ledger — exact, assumption-free, can
+only pass or reveal a bug. The **statistical** use is comparing a window's measured value to the
+model's, which needs the probability structure and has confidence intervals. IV-2 already owes
+intervals (Broadie–Chernov–Johannes); this is the same discipline reaching the quantity side.
+
+**One thing worth knowing and not worth using.** [Glynn & Whitt (1986)](#ref:glynn-whitt-1986)
+prove the CLTs are locked together the way the means are: the customer-average wait obeys a
+central limit theorem **iff** the time-average queue length does, jointly, with simply related
+limits. It is a satisfying fact and it is not a tool for us — our single-name book violates the
+stationarity these CLTs assume, which is III-1's whole problem, and the honest route to intervals
+on live figures stays the empirical one.
 
 **IV-4. Live data keeps arriving — standing.** Statements land roughly monthly and will keep
 landing until the article is frozen for release. **Every tranche is ingested when it arrives and
