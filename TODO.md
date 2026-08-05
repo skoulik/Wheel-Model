@@ -8,8 +8,8 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, I-5, II-1 through II-17, IV-5, IV-6, IV-7, INF-1 — mean
-those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
+recycled or closed up: the gaps — I-3, I-5, II-1 through II-18, II-22, IV-5, IV-6, IV-7, INF-1 —
+mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
 numbered around them; they closed on 2026-07-28 and had been missing from it since. IV-5 closed
 2026-08-05.)
 
@@ -28,18 +28,18 @@ and 7 [P] after the two promotions of 2026-08-05, and **twelve are cited** from 
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with ten items outstanding**
-(II-18 through II-28 less the closed II-22 — eight from the literature pass of 2026-07-31, which
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with nine items outstanding**
+(II-19 through II-28 less the closed II-22 — seven from the literature pass of 2026-07-31, which
 reopened Part II the day it closed, and two from the Merton–Scholes–Gladstein read of 2026-08-01
-that closed I-5; **not one of the ten changes a formula, a verdict or a number**, the three items
-that did having all closed on 2026-08-04);
+that closed I-5; **not one of the nine changes a formula, a verdict or a number**, the four items
+that did having closed on 2026-08-04 and 2026-08-05);
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **eleven open items** (II-18 – II-28) — six in §09, two in §05, one in §08; II-23's six remaining bullets reach §02, §07, §09, §10 and §11. §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **nine open items** (II-19 – II-28, less II-22) — five in §09, two in §05, one in §08; II-23's six remaining bullets reach §02, §07, §09, §10 and §11. §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30; §09 on 2026-08-05 by IV-5 and II-18 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -50,10 +50,11 @@ disk: "write §11, the portfolio section" was an instruction to overwrite a fini
 *file* renames are still deferred to when Part III drafts — `15-outlook.md` becomes
 `16-outlook.md` then — and nothing breaks in the meantime because anchors are name-based.
 
-Six section files link to anchors in the missing files: `sec:verification` from 00, 07, 08 and 09;
-`sec:live` from 00, 04 and 05; `sec:portfolio` from 08. Those cross-references are broken until
-Parts III and IV land, and that is the assembly-time deadline. `sec:correlation` is so far
-referenced from nowhere.
+Six section files link to anchors in the missing files (recounted 2026-08-05, after II-18 added
+two): `sec:verification` from 00, 07, 08 and 09; `sec:live` from 00, 04, 05 and 09;
+`sec:portfolio` from 00, 08 and 09. Those cross-references are broken until Parts III and IV land,
+and that is the assembly-time deadline. `sec:correlation` is referenced only from §00's own anchor
+registry, so it is still promised by nothing but the list.
 
 The two missing Part IV sections are **writing tasks, not modelling ones**: everything they report
 is already measured, in `drafts/2026-07-27-discrepancy-catalogue.md` and the five scripts behind
@@ -161,6 +162,16 @@ six-subsection skeleton. Two things it must carry:
   (a depth process and a first passage) and the specific weighting (the census). **Both quotes are
   short enough to use verbatim** and they are the cleanest way to make the point.
 - **Its subsection 4 is the citation half of II-18**, the index/single-name volatility-premium gap.
+  **II-18 closed on 2026-08-05 and §09 now carries that gap in prose**, with two citations of its
+  own — [Bakshi & Kapadia](#ref:bakshi-kapadia-2003-jod) for the 3.3-against-1.5 measurement and
+  [Carr & Wu](#ref:carr-wu-2009) for the mechanism, both **[F]**. So this subsection is no longer
+  establishing the fact; it is supplying the pedigree behind a claim the reader has already met,
+  which is the division of labour II-23 states. **Do not re-argue it and do not restate the
+  numbers.** What §03 owes here is the shape of the literature — that the familiar 2-to-4-point
+  figure is an index measurement, that the single-name work is thinner and later, and that
+  [Driessen, Maenhout & Vilkov](#ref:driessen-maenhout-vilkov-2009) named the correlation mechanism
+  §09 describes without naming. That last is **[A]**, so §03 may cite it for the result's existence
+  and must quote no number from it.
 
 The pass's findings finished converting on 2026-08-01, so nothing further is expected to land
 here from that document. **This item cannot close until §03 is written.** The citation-graph pass
@@ -374,15 +385,20 @@ open**, they divide in three, and **none of them changes a formula, a verdict or
 not one of them even adds a number. The three that did — II-22, II-29 and II-30 — all closed on
 2026-08-04 and are in [`DONE.md`](DONE.md); §00, §07, §08 and §10 carry their edits.
 
-**Six land in §09**, so read them together before touching the section. (IV-5 edited it a
-seventh time and closed on 2026-08-05; §09:162 is its sentence and is now measured rather than
-asserted.) Two are corrections to what the section already says — **II-18** the level of the
-volatility premium, **II-19** its missing tenor axis — two are additions the section never
+**Five land in §09**, so read them together before touching the section. (IV-5 and II-18 both
+edited it on 2026-08-05 and closed; §09 now carries the single-name premium and its own two
+citations, and its skew sentence is measured rather than asserted.) One is a correction to what
+the section already says — **II-19**, its missing tenor axis — two are additions the section never
 attempted: **II-20** the first risk statistic anywhere in the article, and **II-21** the detour
 that keeps II-20 from being read as a comparison it is not — **II-26** is the citations §09
 owes for results it argues out unaided, and **II-27** the two published precedents for its 45 bp
 slope. II-19 and II-20 add frozen cases; neither adds model machinery beyond what `model.py`
 already has.
+
+**Read §09 before writing any of them.** It moved twice on 2026-08-05 and the subsection II-26 and
+II-27 both target — "So where could an edge come from?" — is now four paragraphs rather than one,
+carries two citations, and states the size of the prize as *about a point* rather than two to four.
+II-26's density budget was written against the old, shorter subsection.
 
 **Three came from the pass's harvest** (and **II-26** from its cross-check, in the sweep that
 closed the conversion), converted 2026-08-01, and none of them moves a number anywhere:
@@ -431,165 +447,6 @@ summarised in a TODO item is an unchecked claim with a plan attached**, and it i
 than a bad bibliography entry: a wrong page range wastes a reader's time, and this would have put a
 wrong verdict into the article under a correct-looking citation. The read-level rule caught it
 exactly as designed, one item before it reached prose.
-
-**II-18. §09 quotes the *index* volatility risk premium at a single-name model.** (Divergence D1
-of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); raised 2026-07-31.)
-
-[The returns section](#sec:returns) says implied volatility exceeds subsequently realised
-volatility "by **2–4 points on liquid equities**" (§09:137), and then "against a documented
-premium of 2–4 points, the whole of it is edge" (§09:148). **2–4 points is the index figure** —
-SPX 3.3 points, VIX minus realised 4.2. The single-name literature, which is the one a
-single-name model is entitled to, says materially less:
-
-**Both [A] sources on this list were read in full on 2026-08-05, and one of them does not say what
-this item recorded.** The reads are written up in [`DONE.md`](DONE.md); the bullets below are
-restated from the copies. **The headline survives untouched** — it rests entirely on Bakshi &
-Kapadia's *Journal of Derivatives* paper, which was already **[F]** and whose every figure checked
-out — but the supporting claim that single-name premiums are statistically absent does not, and
-§09 must not be written from it.
-
-- **[Bakshi & Kapadia (2003, *J. Derivatives*)](#ref:bakshi-kapadia-2003-jod) [F]** — 25 large US
-  caps, Berkeley Options Database, 1991–1995, near-money calls at 14–30 days. Implied exceeds
-  realised by **1.5 points** across all options, **1.07** once the ~25% of contracts with a
-  dividend before expiry are dropped, against **3.3 for SPX on the same measure**. Delta-hedged
-  gains lose **0.03%** of the underlying for single names against **0.07%** for the index.
-  **Every one of those four figures was verified against the copy on 2026-08-05** and the
-  attribution is right: they are the JoD paper's, not the RFS paper's.
-
-  **Three more from the same copy, none of them previously recorded, and they sharpen the item in
-  both directions.** For **23 of the 25 firms** implied still exceeds realised, so the single-name
-  premium is *pervasive* even where it is small — this is not a story about a few names carrying
-  everything. Only **14 of 25** have negative average delta-hedged gains, 7 significantly so at
-  99% and 4 significantly *positive*, which is the honest measure of how noisy the single-name
-  case is. And the cleanest statement of the size gap is theirs: the market volatility risk
-  premium is worth **8.65% of an at-the-money call's price** on their AIG example against **16%**
-  on SPX.
-- **[Carr & Wu (2009)](#ref:carr-wu-2009) [F] — read 2026-08-05, and this bullet was wrong.** It
-  had said "variance risk premia are insignificant for 32 of 35 individual stocks". **That count
-  matches neither measure the paper reports.** On the dollar measure RP = RV − SW, only **7 of 35**
-  are significantly negative at 95% — so 28, not 32, are insignificant. But the authors prefer the
-  **log** measure, because the dollar one "shows large kurtosis and sometimes large skewness" while
-  the log premiums' standard deviations are "much more uniform" across names — and on it **23 of
-  35 individual stocks are significantly negative**. A majority, not a handful.
-
-  **So this source does not support "single-name premiums are indistinguishable from zero", and it
-  never did.** What it actually supplies is better for the item: the **cross-sectional law**. Its
-  eq. (13) regresses the mean log premium on each name's market-variance beta across all 40 stocks
-  and indexes and gets **−0.3283·β^V with R² = 18.4%, slope t = −2.96 — and an intercept of 0.0061
-  with t = 0.09**. An insignificant intercept is the sharpest available statement that **a stock
-  with no market-variance beta earns no variance risk premium**, which is exactly Bakshi &
-  Kapadia's conclusion reached by a completely unrelated method. Two independent routes to the same
-  structure is the strongest evidence this item has, and it replaces a miscopied count.
-
-  Sample caveat worth carrying: 1996–Feb 2003, and the 35 names are tech-heavy dot-com-era
-  large caps (MSFT, INTC, CSCO, YHOO, AMZN, JNPR, CIEN, BRCD). Not the wheel's universe.
-- **[Bakshi & Kapadia (2003, *RFS*)](#ref:bakshi-kapadia-2003-rfs) [F] — read 2026-08-05, and it is
-  not a single-name source at all.** It is the **index** companion: "using a sample of S&P 500
-  index options", 1988–1995, and its own final section names individual equity options as the
-  natural extension — which *is* the JoD paper. Nothing single-name may be cited to it. It is
-  quotable for the index side: ATM index calls lose about **0.10%** of the index level per
-  delta-hedged contract and **−12.18%** of the option's value over the eight years, 68% of ATM
-  observations are losses, and the premium as a fraction of the call runs **−3.6% at 8% volatility
-  to −19.6% at 16%**.
-- **[Driessen, Maenhout & Vilkov (2009)](#ref:driessen-maenhout-vilkov-2009)** — the mechanism: the
-  index premium is substantially a **correlation** risk premium, which by construction has no
-  single-name counterpart. **[A]**, and it stays [A]: cite the mechanism, quote no number. Carr &
-  Wu now carries the same mechanism at [F] via its systematic variance factor, so §09 does not need
-  DMV to make the point.
-- **Idiosyncratic volatility is not priced at all, and this is now measured twice.** Bakshi &
-  Kapadia's Exhibit 4 regresses each firm's delta-hedged gains on *market* volatility and on the
-  **firm's own total** volatility together: market **−0.0233, p = 0.03** (z = −2.15), own
-  volatility **−0.0042, p = 0.39** (z = −0.86), and the firm's own volatility stays insignificant
-  even when market volatility is dropped. Carr & Wu's zero intercept above is the second
-  measurement. What little premium single-name options carry is the *market* volatility premium
-  leaking through beta.
-- **Merton–Scholes–Gladstein (1978), Appendix C [F]** — the earliest measurement of this gap that
-  exists, and it is ~zero. 694 six-month single-name contracts, April 1973 – November 1975.
-  Pooled, market premiums do run richer than Black–Scholes at trailing realised variance: ATM
-  **11.7% of spot against 11.2%** (138 observations), OTM **7.5% against 7.1%** (96). But
-  weighting each of the 14 dates equally the gap disappears — ATM **11.7% against 11.6%**,
-  average difference **−0.1%**, which they call insignificant; OTM difference **0.0%**. Added
-  2026-08-01 with the MSG read. **Caveat-grade and it cannot carry a number**: fourteen dates
-  over 2.5 years, on *calls*, in the first years of the listed market. It earns a clause because
-  it is the only pre-1990 single-name evidence anyone has and it points the same way as the rest
-  of this list.
-
-**What it costs.** At §09's own ~45 bp of edge per volatility point, 2–4 points reads as
-**90–180 bp/yr** over buy-and-hold. The single-name range supports **48–68 bp**. The qualitative
-verdict is untouched — break-even is still zero, every point is still worth about 45 bp, the edge
-is still the whole of the volatility risk premium and nothing else. What moves is **the size of
-the prize**, by a factor of two to three, and that is the number a reader deciding whether to run
-this will take away.
-
-**The "and something indistinguishable from zero on a variance basis" clause is struck**
-(2026-08-05, on reading Carr & Wu). It rested on the miscopied 32-of-35 and is not what the paper
-says. **The single-name premium is smaller than the index one and it is real**: pervasive across
-23 of 25 names in one study, significantly negative for 23 of 35 in the other on the measure its
-authors prefer. §09 must not be written as though the single-name premium were absent — that would
-replace one wrong number with a wrong verdict, which is worse. **The honest statement is a real
-premium of about a point, worth about 45 bp, against an index figure two to three times larger
-that the reader has probably met instead.**
-
-**The item is a gain, not only a correction, and should be written as one.** σ_IV = σ is
-currently presented (§00, §05) as an assumption made to strip the machinery bare. The single-name
-literature turns it into an assumption whose **error is known, bounded and small** — which is a
-stronger statement than the article makes for it anywhere. §09 should say so.
-
-**But say it as "conservative by about a point", not as "correct"** (revised 2026-08-05 after the
-Carr & Wu read). The original wording of this paragraph — σ_IV = σ is *the correct default for a
-single-name model* — followed from the struck claim that single-name premiums are absent. They are
-not: they are real and worth roughly a point, so σ_IV = σ **understates** the strategy's edge by
-about 45–68 bp/yr, in the direction that costs the article nothing and protects every headline
-result. That is the defensible claim and it is nearly as good a sentence.
-
-**Three edits to §09.**
-
-- **§09:137** — replace the flat 2–4 with the index/single-name split, and make the gap itself the
-  point: why every study a reader has heard of quotes 2–4, and why none of it is theirs.
-- **§09:148** — restate "against a documented premium of 2–4 points, the whole of it is edge" at
-  the single-name figure. The σ_IV sweep is already frozen at 0.5, 1.0 and 2.0 points of richness
-  in `examples/returns_benchmark.py`, which brackets the single-name range; **add one case at
-  `--iv-spread 0.015`** so the top of that range is quoted from a check rather than interpolated.
-- **§09:152** — "several points clear of the 2–4 the literature reports" measures the live
-  account's put leg against a baseline that is now wrong. **Strip the baseline, and do not print
-  the multiple.** Say the account's puts were dear by somewhat more than the single-name
-  literature would predict and leave the size to [the live section](#sec:live).
-
-  **This sentence is now false on its own terms as well, and IV-5 is what made it so** (2026-08-05).
-  It is the one piece of stale live text in the article: the corrected panel puts the put leg at
-  **+4.5 points** over subsequently realised volatility, which is not "several points clear" of
-  2–4 but the top of that range. IV-5 deliberately did not touch it — the repair needs II-18's
-  index/single-name split, which is this item — so **it is the first thing to fix when this item
-  is written**, and it should not wait for the rest of §09's edits.
-
-  **And the "skew rather than premium" question the bullet was deferring is answered.** IV-5's
-  cross-tab measures both legs against distance from the money and finds near-money contracts
-  quoted within a fraction of a point of realised volatility on *both* legs, with the spread
-  widening outward — so the account's put-leg richness is a **skew** measurement, taken 5–10%
-  out of the money, against a literature baseline measured near the money. Those are not the same
-  object and this bullet's replacement sentence must not compare them as though they were.
-
-**No formula, code or frozen case changes** beyond that one new sweep case. Nothing recomputes.
-
-**Deliberately not touched** (decided with Sergei, 2026-07-31 — do not re-litigate):
-[the introduction](#sec:introduction)'s contribution 4 and [the entry section](#sec:entry)'s
-forward reference both carry the claim without digits — "the entire edge of the strategy is the
-volatility risk premium", "implied volatility is *systematically higher*" — and both survive at
-one point. §05 explicitly forwards the quantitative statement to §09, so §09 carries the whole of
-it and is the only place the numbers need to be right.
-
-**Related, and not this item.** The citations belong in §03 (**I-1**, whose subsection 4 is this
-item's other half). And the structure Bakshi & Kapadia imply, a single-name premium scaling with
-beta rather than a flat scalar, is outlook material (**IV-3**), not a change to the spine.
-
-**IV-5 landed first and did half the groundwork** (2026-08-05). It was the re-cut of `iv_panel.py`
-this item was waiting on, and it edited §09 three lines away. Two things it hands over. The live
-put leg is **+4.5 points**, not the ~+10 that made the comparison look tenfold — so against the
-1.07–1.5 the single-name literature reports, the account is dear by about threefold rather than
-by an order of magnitude. And the comparison is **not like-for-like even after the fix**: ours is
-measured 5–10% out of the money where the skew lives, theirs near the money, and IV-5's cross-tab
-shows near-money contracts on both legs sitting within a fraction of a point of realised
-volatility. Whoever writes this item states that rather than printing a multiple.
 
 **II-19. §09's single σ_IV has no tenor axis, and the model's cadence-neutrality is not honest
 without one.** (Divergence D3 of
@@ -1058,9 +915,17 @@ the answer lands further from 45 than this sketch: an independent estimate of th
 and a material disagreement would itself be a finding.
 
 **Where it lands.** §09, beside the volatility-premium slope, as the answer to the reader's
-natural objection that surely something eats part of each point. **Sequence with II-26 and
-II-18** — all three edit the same subsection, II-18 moves the size of the prize, and II-26 is
-choosing which citations survive; see its density note for what this displaces.
+natural objection that surely something eats part of each point. **Sequence with II-26** — both
+edit the same subsection and II-26 is choosing which citations survive; see its density note for
+what this displaces.
+
+**II-18 closed first, on 2026-08-05, and it changes the arithmetic this item converts into.** The
+size of the prize is now stated at the *single-name* premium of about a point, worth 50–70 bp, not
+at the index's two to four. So MSG's slope should be converted and compared against §09's ~45 bp
+per point — the slope is what transfers, and it is unaffected — but any sentence setting their
+result beside "what the strategy earns" must use the new figure. The subsection also already
+carries two citations after II-18, which tightens II-26's density budget and therefore this item's
+competition with it.
 
 **II-28. The put leg's early exercise, where MSG 1982 supplies a number and a warning — and one
 headline result that must not be imported.** (From the same read; **the put-side twin of II-25**,
@@ -1273,7 +1138,16 @@ the book should simply write index options instead, alongside DMV's frictions po
 
 **Index-like risk, single-name pay.** That is one sentence and it is both halves of Part III.
 §12's benefit and §13's vulnerability are not two subjects; they are one quantity with opposite
-signs, and it is the same quantity II-18 is correcting §09 for.
+signs, and it is the same quantity II-18 corrected §09 for.
+
+**§09 already says half of it, so Part III inherits a set-up rather than a blank page** (2026-08-05,
+when II-18 closed). Its new premium subsection explains that an index option bundles in "the one
+thing a single name cannot sell: the risk that everything falls together", and forwards explicitly
+to [the portfolio section](#sec:portfolio) — *a book of single names is paid the single-name premium
+and still carries the market's risk when correlations rise*. That forward reference is a promise
+§12 and §13 now have to keep, and it fixes the framing: the reader meets the mechanism in Part II
+as a fact about **pricing** and should meet it again in Part III as a fact about **risk**. Do not
+re-derive it; extend it.
 
 **One counterweight the section must carry, or the argument misleads.** DMV also find the
 correlation premium **cannot be harvested once realistic frictions are imposed**. So the

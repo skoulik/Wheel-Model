@@ -105,6 +105,13 @@ CASES = [
         "wheel": (0.0205, 0.0005),          # "21.0%  +2.05%"
         "difference": (0.0046, 0.0005),     # "+0.46%"
     }, note="sigma_IV = 21.0%"),
+    # 1.5 points is the top of the single-name range section 09 now quotes
+    # (Bakshi & Kapadia: 1.07 dropping dividend payers, 1.5 across all
+    # options), so the range is bracketed by checks rather than interpolated.
+    Case("--iv-spread 0.015", {
+        "wheel": (0.0229, 0.0005),          # the table: "21.5%  +2.29%"
+        "difference": (0.0069, 0.0005),     # "vs buy-and-hold  +0.69%"
+    }, note="sigma_IV = 21.5%, the top of the single-name range"),
     Case("--iv-spread 0.020", {
         "wheel": (0.0252, 0.0005),          # "22.0%  +2.52%"
         "difference": (0.0092, 0.0005),     # "+0.92%"
