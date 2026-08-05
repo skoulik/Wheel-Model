@@ -86,6 +86,10 @@ lots. A put whose assignment would breach that is not sold. And now Little's law
 
 λ_eff  =  I_max / E[W]    {#eq:lambda-eff}
 
+Two things about that inversion are borrowed rather than invented, and saying so costs a clause each. Redefining the arrival rate to count only the puts actually sold is not an improvisation on a law built for something else: [Little](#ref:little-1961)'s own paper takes up the case where "arrivals come with rate λ but not all arrivals join the system", states that the law then does not hold as written, and gives two repairs — count only the arrivals that join, or keep the refused ones and give them zero waiting time. The first of those is [eq:lambda-eff](#eq:lambda-eff). And running the law *backwards* — from an inventory to an arrival rate, rather than the usual direction — is the step that is not automatic. [Glynn and Whitt](#ref:glynn-whitt-1989-extensions) proved what it costs: from the time averages alone one gets an inequality rather than an equation, and equality needs an extra condition, the simplest being that the system empties infinitely often. A wheel does — on one name the book is empty about 14% of the time — so the inversion is legitimate here for a stated reason rather than by the symmetry of an equals sign.
+
+Neither of those underwrites the modelling assumption the equation actually rests on, which is that mean holding time survives the blocking unchanged. That is measured further down and is worth more than a citation would be.
+
 That inversion is the most useful thing in this section, and it is worth stating without the algebra around it. **The binding resource is capital, and the thing that consumes capital is holding time.** An account cannot sell more puts than its capital will let it hold assignments for, and how long it holds them is [the holding-time section](#sec:holding)'s 2.10 years. That figure has until now been the article's most *surprising* number; here it becomes its most load-bearing one. Halve the holding time and the same account runs twice the strategy.
 
 Income follows, since every flow scales with the arrival rate:
@@ -261,6 +265,8 @@ Capacity in *lots* is equity over the requirement per lot. With the account hold
 I_max  =  I / γ_s  +  C / ( γ_s · S )    {#eq:capacity-lots}
 
 and the price-dependence runs entirely through the second term. **A net creditor's capacity in lots rises as the price falls**: the same cash buys more of a cheaper stock, and it buys it faster than the held lots lose value. **A net debtor's capacity falls**, and it falls to meet the book — I_max = I exactly when equity reaches γ_s·I·S, which is the maintenance requirement. That is the margin call, seen from the other side: *the margin call is the moment capacity falls to meet the book.*
+
+That mechanism is not peculiar to this strategy, and it has been observed in the wild on a much larger sample. [Santa-Clara and Saretto](#ref:santa-clara-saretto-2009), studying option-writing programmes against real broker margin schedules, find that margin requirements "limit the notional amount of short positions and force investors out of trades precisely when they are losing money" — the same forced exit at the worst moment, arrived at from account data rather than from a barrier. Their setting is index puts and this one is a wheel on a single name, so none of their magnitudes transfer; what transfers is that the mechanism is real and is the binding one in practice.
 
 The prudent account is a net creditor for most of its life, realized leverage of 0.745 being what that looks like. So for the accounts this section recommends, a falling market makes blocking *less* likely, not more.
 

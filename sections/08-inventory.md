@@ -102,6 +102,10 @@ The mechanism is not exotic. It is **length bias**, and it appears wherever a po
 
 Fast lots leave quickly and barely register in the census. Slow lots register for exactly as long as they are slow. So the warehouse fills, unavoidably, with the lots that are least able to leave and least able to earn — and by [the depth section](#sec:depth)'s tables, those two properties are the same property.
 
+There is a second way to see the same thing, and for a reader who knows any behavioural finance it may be the more memorable one:
+
+> **Detour: the disposition effect, performed by contract.** One of the most robust findings about how people actually trade is that they sell their winners and keep their losers — [Shefrin and Statman](#ref:shefrin-statman-1985) named it the **disposition effect**, and [Odean](#ref:odean-1998) confirmed it across thousands of ordinary brokerage accounts, where it is not explained away by rebalancing, transaction costs, taxes or by the sold winners doing worse afterwards. It is generally presented as a mistake, and in a taxable account it is a measurable one. Now notice what the strategy in this article does. Every lot that rises to its strike is sold, automatically. No lot below its strike is ever sold at all. **The wheel is the disposition effect written into a contract, with the discretion removed and the frequency raised to certainty** — and the standing inventory described above is exactly what that produces over time. The analogy is structural and should not be pushed further than that: what makes the disposition effect costly for Odean's investors is largely tax, which this article does not model at all.
+
 Over the full stationary limit the picture is starker still: mean depth 79%, inventory-weighted q of 0.036, and 53% of held time spent more than half a log-unit under water. That is the state the system is heading toward across its 90-year approach.
 
 ## Counting lots is not counting money

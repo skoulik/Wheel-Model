@@ -8,8 +8,8 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, I-5, II-1 through II-22, II-25 through II-28, IV-5, IV-6,
-IV-7, INF-1, INF-6 — mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
+recycled or closed up: the gaps — I-3, I-5, **all of Part II**, IV-5, IV-6, IV-7, INF-1, INF-6 —
+mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
 numbered around them; they closed on 2026-07-28 and had been missing from it since. IV-5 closed
 2026-08-05.)
 
@@ -19,8 +19,8 @@ to a reader and should be added only when the text genuinely defers something. *
 `sections/98-bibliography.md` (recounted 2026-08-05, after the II-18 reads), in the internal
 field after an entry's anchor, which is stripped at assembly and so never reaches a reader; they
 mark the two unread downloads, the one source that may be cited for its existence only, and the
-entries the readings of 2026-08-04 and 2026-08-05 left owing something to I-7, II-23, III-3, IV-3
-or IV-9. The bibliography stands at **43 entries**, **18 of them [F]** against 18 [A]
+entries the readings of 2026-08-04 and 2026-08-05 left owing something to I-7, III-3, IV-3 or
+IV-9. The bibliography stands at **43 entries**, **18 of them [F]** against 18 [A]
 and 7 [P] after the two promotions of 2026-08-05, and **twelve are cited** from seven sections.
 
 ## Where things stand
@@ -28,17 +28,16 @@ and 7 [P] after the two promotions of 2026-08-05, and **twelve are cited** from 
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with two items outstanding**
-(II-23 and II-24, both from the literature pass of 2026-07-31, which reopened Part II the day it
-closed; **neither changes a formula, a verdict or a number**, the eleven items that did having
-closed on 2026-08-04 and 2026-08-05);
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed** —
+all thirty of its items are in `DONE.md`, the last thirteen having landed on 2026-08-04 and
+2026-08-05;
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **two open items** (II-23, II-24) — one in §08, and II-23's six bullets reach §02, §07, §09, §10 and §11. **§05 and §09 are closed.** §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30; §09 **seven times** on 2026-08-05 and §05 once |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written and closed** — no open items. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -254,9 +253,18 @@ same volume.
 
 **Four are open**, one of them new to the list rather than left over from it. (There were five; janssen-vanleeuwaarden-2007 closed with II-29 on 2026-08-04 — see below.)
 
-- **israelov-covering-the-world** and **li-zhang** are downloaded but unread, and a title or
-  author list is the guessed part in both. The reads are owed by **I-1** and **II-23**; clearing
-  the citation falls out of doing them.
+- **israelov-covering-the-world** is downloaded but unread, and the title or author list is the
+  guessed part. The read is owed by **I-1**; clearing the citation falls out of doing it.
+- **li-linetsky** (the anchor was `li-zhang`) was read for II-23 on 2026-08-05 and **the tag
+  stays**, which is the point of it. The read fixed a *guessed author* — the second author is
+  **Linetsky**, not Zhang, so the anchor had been naming someone not on the paper — and put the
+  title and affiliations on a copy. It could not fix the venue, because there is none: no journal
+  header, no DOI, no arXiv id, in the text or in the PDF metadata. **The one field the copy
+  yielded was a date**, off its own metadata — a MiKTeX typescript last written 2014-06-18, with
+  references reaching 2014 — so the entry now says "2014 typescript" rather than guessing a year.
+  This is the second instance of the Janssen pattern (a full read that cannot clear a citation),
+  and the first where the *anchor itself* was wrong, which is worse than a wrong field: an anchor
+  is what prose cites by.
 - **siegmund-1985** has no copy. Chang & Peres's reference list corroborates title, publisher and
   city — better than memory, not a copy; the edition and printing are unchecked.
 - **siegmund-1979** was **never tagged, and was wrong in exactly the way this item says matters
@@ -382,227 +390,21 @@ tag, which drops the count the checker prints.
 
 ## Part II — One asset
 
-Part II closed on 2026-07-31, was reopened the same day by the literature pass, and reopened
-repeatedly through 2026-08-04 and 2026-08-05 as the sources that pass had only listed were actually
-read. **Two items are open**, both of them citation-landing work, and **neither changes a formula,
-a verdict or a number.** Everything that did change one has closed: II-22, II-29 and II-30 on
-2026-08-04 (§00, §07, §08, §10), and IV-5, II-18, II-19, II-20, II-21, II-26 and II-27 on
-2026-08-05 (§05, §09).
+**Closed.** Part II closed on 2026-07-31, was reopened the same day by the literature pass, and was
+reopened repeatedly through 2026-08-04 and 2026-08-05 as the sources that pass had only listed were
+actually read. It is now closed again with every item written up in [`DONE.md`](DONE.md), and this
+time the reopening mechanism is spent: **there are no unread sources left that Part II depends on.**
 
-**§09 is closed**, and it was the section this whole reopening was about. Seven items landed there
-on 2026-08-05 — IV-5, II-18, II-26, II-27, II-19, II-20 and II-21, all in [`DONE.md`](DONE.md) —
-taking it from **no citations to eight**, adding the article's only risk statistic, and moving the
-size of the prize from the index's two to four points to a single-name **about a point**. What is
-left in Part II touches §08 and reaches outward, and neither item changes a number.
-
-**Two came from the pass's harvest**, converted 2026-08-01, and neither moves a number anywhere:
-**II-23** cites six borrowed things where the reader meets them, and reaches outside Part II to do
-it (§00, §02, §11); **II-24** gives §08's census its second analogy. Three others of that vintage
-have closed — **II-22** on 2026-08-04, which replaced §08's hand-derived census integrals with the
-theorem they are instances of and handed §10 the biconditional form of its own capital criterion,
-and **II-26** and **II-25** on 2026-08-05, the citations §09 owed for results it argued out
-unaided and the size behind §05's early-exercise caveat.
-
-**They were recorded as depending on §03 (I-1) for the citations themselves, and that dependency
-is weaker than it looks** (found 2026-08-04, writing II-29 and II-22). §07 and §08 have now landed
-five citations with §03 unwritten, and they read correctly: the reader meets a name and follows it
-to the bibliography, and §03 will supply the pedigree when it exists. **§03 carries the pedigree,
-the section carries the pointer** still holds as a division of labour — it is not a running order,
-and none of these items is blocked.
-
-**Two came from actually reading what the pass had only listed at [A] or [P]**, they were the ones
-that carried measurements, and **both are now closed**: **II-27** and **II-28**, from
-Merton–Scholes–Gladstein (2026-08-01), landing in §09 and §05 on 2026-08-05. II-27's conversion put
-their slope at ~50 bp per volatility point against §09's 45; II-28 gave §05 the reason the European
-treatment is *right* rather than merely small-error — assignment in the wheel is an entry and not
-an exit, so MSG's stop-loss is absent by construction.
-
-**Two more came the same way and are already closed**, which is why the reads are worth doing.
-**II-29** — Chang & Peres, Janssen & van Leeuwaarden, Chernoff — moved §07's grid tax from 2.1× to
-2.4× and its trapped fraction from 4.1% to 4.4%, both against the operator. **II-30** — Little's
-own two papers — landed in §08, added the one figure the section never had (W(H) = 1.10 y) and
-corrected what the article said a source *assumes* rather than what it computes. Both closed on
-2026-08-04; see [`DONE.md`](DONE.md), along with II-23's first bullet, which carried the same
-equation's pedigree and was written directly after II-29.
-
-**Every read that has promoted a source off [A] or [P] so far has found the record wrong in some
-way that mattered** — six of six now — **but the fourth moved where the wrongness lives, and the
-sixth moved it again**. Chang & Peres, Chernoff and Janssen & van Leeuwaarden each turned up a
-defective bibliography entry; Little's two entries were clean, and what the read caught instead was
-§08's prose crediting the 1961 paper with a freedom from assumptions that paper does not have. The
-record being checked is the article as much as the bibliography, and only one of the two has a
-checker. That is the argument for doing the ones still owed.
-
-**The two reads of 2026-08-05 found a third kind, and it is the worst kind** (Carr & Wu and Bakshi
-& Kapadia's *RFS* paper, both for II-18; see [`DONE.md`](DONE.md)). Both entries were clean and
-neither section's prose was at fault, because neither source is cited from a section yet. What was
-wrong was **TODO itself**: II-18 attributed to Carr & Wu a count of 32-of-35 that matches neither
-measure the paper reports, and in the direction that would have had §09 assert single-name
-volatility premiums are statistically absent when the paper's preferred measure finds 23 of 35
-significantly negative. It also listed the *RFS* paper among single-name evidence when it is an
-S&P 500 index study whose own closing section names single names as future work. **An unread source
-summarised in a TODO item is an unchecked claim with a plan attached**, and it is more dangerous
-than a bad bibliography entry: a wrong page range wastes a reader's time, and this would have put a
-wrong verdict into the article under a correct-looking citation. The read-level rule caught it
-exactly as designed, one item before it reached prose.
-
-**II-23. Six borrowed things, none of them cited where the reader meets it.** (Harvest H2, H3
-and H9 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), converted
-2026-08-01; **extended the same day** with cross-check rows 2 and 13 and Israelov & Nielsen's
-Myth 8, which the harvest did not claim and no other item carries; a seventh added 2026-08-04
-from Little's 1961 copy. **The first of the seven, eq:siegmund's pedigree, landed on 2026-08-04**
-with II-29 — see [`DONE.md`](DONE.md) — leaving six.)
-
-Six edits of a sentence or a clause each. No number moves and no formula changes — that is the
-point of the item, since **N2 requires §03 to say the ingredients are standard** and the article
-should not be quietly implying otherwise.
-
-**The rule this item enforces: the citation lands in the prose, not only in §03.** §03 carries the
-pedigree — what each source is, what it says, where it enters — but a reader meeting
-[eq:siegmund](#eq:siegmund) in §07, or the mark loss in §09, has to be able to see *there* that
-the claim is someone else's and where to check it. A name in a list at the front of the article
-does not do that job. Every bullet below names the line it lands on.
-
-*The machinery — two constructions the article still derives as if they were its own (the third, eq:siegmund, is done):*
-
-- ~~**[eq:siegmund](#eq:siegmund) is Broadie–Glasserman–Kou.**~~ **Done 2026-08-04**, with II-29,
-  which owned the same equation's numbers. §07 now carries the whole pedigree — the constant and
-  the √δ shift first appear in [Chernoff (1965)](#ref:chernoff-1965) as a definite integral in a
-  sequential-testing problem, Latta identified it as −ζ(1/2)/√(2π), Hogan identified it as an
-  overshoot twenty-one years later, [Siegmund](#ref:siegmund-1979) built the diffusion
-  approximation on it, [Chang & Peres](#ref:chang-peres-1997) supplied the expansion, and
-  [Broadie, Glasserman & Kou](#ref:broadie-glasserman-kou-1997) is the use being made of it — plus
-  the note that Chernoff's printed −0.5824 is a slip rather than a rival constant. §00's symbol
-  table no longer calls β "Siegmund's". The caution the item raised is respected: §07 says the
-  constant *first appears* in Chernoff, not that he solved our problem, since his object is a
-  Bayes-optimal stopping boundary and not a knock-out barrier. **Three citations landed** and
-  `verify_examples.py` gained a fourth route to β, Chernoff's own Wiener–Hopf integral, which
-  reproduces the zeta value to ten digits and is the only check `BETA` has ever had. See
-  [`DONE.md`](DONE.md).
-
-- **θ = 2ν/σ² is the Cramér–Lundberg adjustment coefficient.** §10 calls it "the tail exponent …
-  the single most informative number about a configuration of this strategy" and leaves it
-  unnamed. It is the exponential rate of the all-time maximum of a Brownian motion with drift −ν,
-  which is ruin theory's adjustment coefficient, and θ > 1 is a Cramér-type moment condition.
-  Naming it costs a sentence, hands an actuary the entire structure at a glance, and tells every
-  other reader that the second boundary is a known kind of object rather than a threshold we
-  invented. **Caution: do not assert an identity with Dufresne/Yor.** Their exponential functional
-  ∫e^(−2W)ds is the same *phenomenon* — an exponential functional finite exactly when a
-  drift-to-variance ratio clears a threshold — and is **not** our object, which is E[e^x] under an
-  occupation measure. Cite as "the same phenomenon appears as…", or not at all.
-- **A wheel lot is an autocall.** §07's first-passage detour is pure theory and has no real-world
-  anchor. An autocallable terminates at the first scheduled observation date on which the
-  underlying is above a fixed level, which is a wheel lot exactly, and it is a product many
-  readers will have heard of. Worth a pointer in the detour.
-- **[eq:lambda-eff](#eq:lambda-eff) is Little's own handling of blocked arrivals, and §11 presents
-  it as our inversion.** (Added 2026-08-04 from [Little (1961)](#ref:little-1961) **[F]**, p. 387.)
-  §11 says Little's law "runs the other way" when capacity binds, which reads as an improvisation
-  on a law that was not built for it. It was: the origin paper's Discussion takes up exactly the
-  case where "arrivals come with rate λ but not all arrivals join the system", says flatly that
-  L = λW then "does not hold", and gives the two repairs — redefine λ "to include only those
-  arrivals that join the system", or give the refused ones a zero waiting time and keep them in W.
-  **§11 does the first**, and a clause saying so converts the section's most useful idea from a
-  liberty into a citation. The same page also leaves "what constitutes the 'system'" deliberately
-  flexible, requiring only "consistency of meaning" across *number in the system*, *time spent in
-  the system* and *arrival to the system* — which is the licence for calling a warehouse of stock
-  a queue, and belongs beside §08's detour rather than here.
-
-  **Cite the definition and nothing further.** Little's remark makes λ_eff the right *bookkeeping*;
-  it says nothing about whether E[W] survives the blocking unchanged, which is the assumption
-  [eq:lambda-eff](#eq:lambda-eff) actually rests on and which §11 measures itself (the thinning
-  table, under 1% on everything count-like). Do not let the citation appear to underwrite the
-  approximation — the measurement is the better evidence and it is already there.
-
-  **The direction §11 runs the law is the one that is not automatic, and someone proved what it
-  costs.** (Added 2026-08-04 from [Glynn & Whitt (1989)](#ref:glynn-whitt-1989-extensions) **[F]** §4.1.)
-  Every standard statement of Little's law runs λ and W to L; §11 runs the other way, and Glynn &
-  Whitt open by saying that reverse implication is their own contribution — "all previous versions
-  show that the existence of limits for λ and W imply the existence of a limit for L. We show how
-  to go the other way". Their **Theorem 5** is the price: from the time averages alone you get an
-  *inequality*, lim sup of the customer-average wait ≤ λ⁻¹L, and equality needs one of two extra
-  conditions — that the system **empties infinitely often**, or that W<sub>n</sub>/n → 0. Their
-  Remark 6 exhibits a case where the inequality is strict, 2 > 1, so this is not a technicality.
-
-  **What §11 should take from it is one clause, not a derivation.** The wheel does empty
-  infinitely often — that is [the inventory section](#sec:inventory)'s own arrivals-equal-departures
-  picture, and on one name P(I = 0) ≈ 14% — so the inversion is legitimate, and it is legitimate
-  for a *stated reason* rather than by symmetry of an equals sign. Sequence with the bullet above:
-  Little supplies the bookkeeping for refused arrivals, Glynn & Whitt supplies the licence to read
-  the identity backwards, and §11's thinning table remains the evidence for the modelling
-  assumption neither of them addresses.
-
-*The results — three places where the article argues from first principles something that is
-already published, and would be stronger for saying so:*
-
-- **§09's "it is not a return" has a formal version.** §09 opens the Track A critique with "cash
-  accounting is internally consistent but it is not a return", and argues it unaided — which is
-  right for a general audience and should stay. **Goetzmann, Ingersoll, Spiegel & Welch (2007)**,
-  *RFS* 20(5):1503–1546 **[A]**, is the formal statement: Sharpe ratios can be *manufactured* by
-  option-writing overlays, and they characterise a manipulation-proof alternative. One clause
-  pointing at it tells a sceptical reader that §09's refusal to headline a cash yield is not our
-  private preference. **[A] — cite the existence of the result, quote no number from it.**
-- **§11's margin call has a published counterpart.** §11 derives it from the barrier — *the margin
-  call is the moment capacity falls to meet the book* — and **Santa-Clara & Saretto (2009) [A]**
-  report the same mechanism empirically: margin calls "limit the notional amount of short
-  positions and force investors out of trades precisely when they are losing money". The
-  cross-check marks this **CONFIRMED in kind, not in magnitude** — theirs is index puts on a
-  margin schedule, ours is a wheel on one name, and the two sets of numbers are not comparable.
-  **Cite the mechanism; never the magnitude.**
-- **Myth 8 is this article's own opening slogan, and §09 already refutes it.** §02 quotes
-  practitioners — *"assignment just means buying a good company at a discount"* — and answers that
-  the slogans "contain truth, but they are not a model", deferring the argument. §09's mark loss
-  *is* that argument: each arrival pays K for something worth S′, so the discount is a loss of
-  e^(x₀) − 1 booked the moment it happens ([eq:mark-loss](#eq:mark-loss), 0.1632/yr). Israelov &
-  Nielsen's **Myth 8 [F]** demolishes the same slogan directly, for covered calls and equivalently
-  for naked puts, and §04's Track A framing ("assignment is *inventory acquisition, not a loss*")
-  is the same claim stated as accounting. **Land it at [eq:mark-loss](#eq:mark-loss)**, where the
-  article has earned it, plus at most a clause at §02 noting the slogan has been formally answered
-  and pointing forward. **Do not turn §02 into an argument** — the deferral there is deliberate,
-  and the refutation belongs where the number is.
-
-**One read this item owes** (planned 2026-08-01).
-`literature/li-zhang-discretely-monitored-first-passage-barrier-options.pdf` is downloaded and
-**skimmed only**. It is the machinery behind the autocallable bullet, and a pointer to a
-literature is a claim about what that literature contains — skim level does not support one. Read
-it before writing that sentence. Everything else here is already at the level its bullet needs:
-BGK is **[F]**, Israelov & Nielsen is **[F]**, and Chang & Peres and **chernoff-1965** are both
-**[F]** since 2026-08-04 — the latter was judged desirable and not owed, since it is cited for
-priority alone, and reading it anyway repaid the hour with a wrong title, a settled −0.5824 and
-the two refinements above. The remaining **two [A]** sources are cited for the existence of a
-result rather than for a figure, which is what **I-1**'s read-level rule permits.
-
-**One INF possibility, recorded and not converted.** The discretely-monitored-barrier literature
-has numerics built for our grid problem (quadrature reaching O(1/N⁴), Hilbert-transform methods
-for the multi-asset case) from a method family that shares nothing with either `model.py` or
-`wheel_sim.py` — so it would be a third independent check on `occupation()`. That is a larger job
-than this item and nothing currently needs it.
-
-**II-24. §08's census has a second, sharper analogy the article is not using.** (Harvest H8 of
-[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); converted 2026-08-01, and
-the §08-versus-§16 question the pass left open is decided here.)
-
-§08 explains the census with **length bias** — the hospital-beds detour — which is right and
-stays. Odean (1998) **[A]** offers a second one that is about this strategy rather than about
-sampling: the **disposition effect**. In 10,000 discount-brokerage accounts investors are **1.5 to
-2 times more likely to sell winners than losers**, unexplained by rebalancing, transaction costs,
-taxes or subsequent performance, and strictly harmful in a taxable account; with Shefrin & Statman
-(1985) it is one of the most robust findings in behavioural finance.
-
-**The wheel performs the disposition effect by contract, with the discretion removed.** Every
-winner is sold at the frozen call strike; no loser is ever sold at all. Odean's investors do it
-1.5–2× more often than chance and it costs them; the wheel does it with probability one. That is
-the most intuitive statement available of why standing inventory is dominated by deep lots, and it
-costs one blockquote detour in the article's established style.
-
-**§08, not §16** (the pass offered either). §16's list is what the model leaves *out*; this
-describes what the model already produces, and it belongs beside the census it explains.
-
-**Two things keep it honest.** The disposition effect is a finding about *discretionary* selling
-and its measured harm is largely tax, which this article does not model at all (IV-3 now carries
-the tax descope) — the analogy is structural, not a transfer of Odean's cost estimate. And the
-detour must not be allowed to carry an argument: the result is already established by §08's length
-bias and [the holding-time section](#sec:holding)'s first passage, and the analogy only makes it
-memorable.
+What the reopening was worth, since the file should record it once rather than leave it in thirty
+entries. Four of its items rested on figures computed outside the model and recorded in this file;
+**three of those four were wrong** — II-18's count of Carr & Wu, II-25's early-exercise threshold,
+and the estimator behind II-20's betas, which turned out right only once its definition was
+identified. Two sources listed at [A] said something other than what was recorded, one of them
+close to the opposite. **The one item whose numbers were checked and confirmed unchanged was
+II-19's**, and it was checked because the other three were not. The rule that caught all of it is
+the read-level rule, and the pattern worth carrying into Parts III and IV is simpler than the rule:
+*a number that has never been recomputed since it was first written down is not evidence, whoever
+wrote it.*
 
 ## Part III — Many assets
 

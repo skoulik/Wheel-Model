@@ -32,6 +32,8 @@ The same condition appears from the other end. The depth census of [eq:census](#
 
 and capital integrates e^x against that census. The integral converges only if θ > 1 — which is [eq:capital-criterion](#eq:capital-criterion) again. The tail exponent is the single most informative number about a configuration of this strategy: it says how fast the deep strata thin out, and whether the money in them is bounded.
 
+It also has a name outside this article, and the name is worth knowing because it means the second boundary is a familiar kind of object rather than something invented here. θ = 2ν/σ² is the rate at which a drifting random walk's all-time worst level decays — in insurance mathematics, the **adjustment coefficient** of Cramér and Lundberg, the number that governs whether an insurer's reserves ever run out. An actuary reading θ > 1 sees the whole structure at a glance: a condition on how heavily the tail is discounted, of exactly the form their own ruin problem turns on. The strategy's capital boundary and an insurer's solvency boundary are the same mathematics wearing different clothes, which is less of a coincidence than it looks — both are asking whether rare, deep excursions are rare enough to pay for.
+
 Seen through [the inventory section](#sec:inventory)'s generalised law, the two boundaries stop being two unrelated convergence questions and become one. H = λG needs a finite arrival rate and a finite per-lot total G, and [Whitt's](#ref:whitt-1991) statement of it is an equivalence, so each boundary is one of those requirements failing:
 
 - **lots return if and only if W is finite** — the weighting f = 1, which is the count;

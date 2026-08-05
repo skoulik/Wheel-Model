@@ -36,11 +36,15 @@ E[Capital]  =  γ_p·k  +  E[I]    {#eq:capital}
 
 Cash accounting is internally consistent but it is not a return, because two real economic events pass through it without leaving a trace.
 
+That objection has a formal counterpart, and it is sharper than a matter of taste. [Goetzmann and colleagues](#ref:goetzmann-et-al-2007) show that the standard summary statistics of investment performance can be *manufactured* by exactly this kind of option-writing overlay — that a strategy can be built to score well on them without earning anything — and characterize the measures that cannot be gamed this way. So a cash yield reported for a strategy whose whole shape is short options is not merely an incomplete number; it is the number most vulnerable to being engineered. This section's refusal to headline one is not a private preference.
+
 **The mark loss at acquisition.** A lot is bought at the strike while the market offers less. That difference is a loss the moment it happens. Track A calls it "acquisition at the operator's chosen basis" and books nothing. Each arrival pays K for something worth S′, so per unit of the price it was paid against the loss is e^(x₀) − 1, and at λ arrivals a year
 
 L_acq  =  λ · ( E[ e^(x₀) ] − 1 )  =  **0.1632** per year    {#eq:mark-loss}
 
 the expectation being taken over the entry law of [eq:x0-law](#eq:x0-law).[^eq-mark-loss]
+
+**This is the answer to the slogan [the introduction](#sec:introduction) declined to argue with.** *Assignment just means buying a good company at a discount* — and the number above is what the discount actually costs, booked at the moment it is taken rather than deferred into a cost basis nobody marks. A sixth of a share price a year, on this book, is not a rounding on the way to owning something cheaply; it is comparable to the entire put premium the strategy collects. [Israelov and Nielsen](#ref:israelov-nielsen-2014) dispatch the same slogan directly and reach the same place: the discount is real, and it is exactly paid for. The strike was chosen; the price was not.
 
 **The upside surrendered at call-away.** When a lot is called away, the shares are delivered at the strike while the market is *above* the strike — that is precisely why the call was exercised. The operator hands over something worth more than what they receive. Track A sees an exit at the same price as the entry and books nothing. A lot leaving at depth x ≤ 0 delivers a share worth 1 for a strike of e^x, so it gives up 1 − e^x, and summing over every period in which a lot might leave,
 
