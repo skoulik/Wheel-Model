@@ -8,8 +8,8 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, I-5, II-1 through II-19, II-22, II-25 through II-28, IV-5,
-IV-6, IV-7, INF-1, INF-6 — mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
+recycled or closed up: the gaps — I-3, I-5, II-1 through II-22, II-25 through II-28, IV-5, IV-6,
+IV-7, INF-1, INF-6 — mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
 numbered around them; they closed on 2026-07-28 and had been missing from it since. IV-5 closed
 2026-08-05.)
 
@@ -28,17 +28,17 @@ and 7 [P] after the two promotions of 2026-08-05, and **twelve are cited** from 
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with four items outstanding**
-(II-20, II-21, II-23 and II-24, all four from the literature pass of 2026-07-31, which reopened
-Part II the day it closed; **not one of the four changes a formula, a verdict or a number**, the
-nine items that did having closed on 2026-08-04 and 2026-08-05);
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with two items outstanding**
+(II-23 and II-24, both from the literature pass of 2026-07-31, which reopened Part II the day it
+closed; **neither changes a formula, a verdict or a number**, the eleven items that did having
+closed on 2026-08-04 and 2026-08-05);
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **four open items** (II-20, II-21, II-23, II-24) — two in §09, one in §08; II-23's six remaining bullets reach §02, §07, §09, §10 and §11. **§05 is closed.** §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30; §09 five times on 2026-08-05 and §05 once |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **two open items** (II-23, II-24) — one in §08, and II-23's six bullets reach §02, §07, §09, §10 and §11. **§05 and §09 are closed.** §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30; §09 **seven times** on 2026-08-05 and §05 once |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -382,25 +382,18 @@ tag, which drops the count the checker prints.
 
 ## Part II — One asset
 
-Part II closed on 2026-07-31, was reopened the same day by the literature pass, and has been
-reopened three times since by reading the sources that pass had only listed. **Ten items are
-open**, they divide in three, and **none of them changes a formula, a verdict or a number** —
-not one of them even adds a number. The three that did — II-22, II-29 and II-30 — all closed on
-2026-08-04 and are in [`DONE.md`](DONE.md); §00, §07, §08 and §10 carry their edits.
+Part II closed on 2026-07-31, was reopened the same day by the literature pass, and reopened
+repeatedly through 2026-08-04 and 2026-08-05 as the sources that pass had only listed were actually
+read. **Two items are open**, both of them citation-landing work, and **neither changes a formula,
+a verdict or a number.** Everything that did change one has closed: II-22, II-29 and II-30 on
+2026-08-04 (§00, §07, §08, §10), and IV-5, II-18, II-19, II-20, II-21, II-26 and II-27 on
+2026-08-05 (§05, §09).
 
-**Two land in §09**, and both are additions the section never attempted rather than corrections to
-what it says: **II-20** the first risk statistic anywhere in the article, and **II-21** the detour
-that keeps II-20 from being read as a comparison it is not. Both add frozen cases; neither adds
-model machinery beyond what `model.py` already has.
-
-**§09 was rewritten on 2026-08-05 and both survivors must be read against what it now says**, not
-against what it said when they were raised. Five items landed there that day — IV-5, II-18, II-26,
-II-27 and II-19, all in [`DONE.md`](DONE.md). The section went from **no citations to seven**, its
-premium discussion from one paragraph to seven plus a new subsection, and the size of the prize
-from the index's two to four points to a single-name **about a point**. **II-20 and II-21 are
-untouched by any of it**, being about risk rather than return, and they are the only two §09 items
-that never depended on the literature pass's summaries — which, on the evidence of II-18, is the
-property worth noting about them.
+**§09 is closed**, and it was the section this whole reopening was about. Seven items landed there
+on 2026-08-05 — IV-5, II-18, II-26, II-27, II-19, II-20 and II-21, all in [`DONE.md`](DONE.md) —
+taking it from **no citations to eight**, adding the article's only risk statistic, and moving the
+size of the prize from the index's two to four points to a single-name **about a point**. What is
+left in Part II touches §08 and reaches outward, and neither item changes a number.
 
 **Two came from the pass's harvest**, converted 2026-08-01, and neither moves a number anywhere:
 **II-23** cites six borrowed things where the reader meets them, and reaches outside Part II to do
@@ -452,90 +445,6 @@ summarised in a TODO item is an unchecked claim with a plan attached**, and it i
 than a bad bibliography entry: a wrong page range wastes a reader's time, and this would have put a
 wrong verdict into the article under a correct-looking citation. The read-level rule caught it
 exactly as designed, one item before it reached prose.
-
-**II-20. The article reports no risk statistic anywhere, and the two it is missing cost a line
-each.** (Divergence D4 of
-[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), with harvest H4;
-converted 2026-07-31, and the betas below were computed while converting it.)
-
-**The gap.** Israelov & Nielsen (2015) attribute **~25% of a covered call's risk** to a dynamic
-*equity reversal* exposure — the position lengthens as the underlying falls — carrying Sharpe
-≈ 0.10, essentially uncompensated. Under GBM that exposure *cannot* be compensated, so the model
-is right to assign it no return. But the article never **reports** it, because it quotes
-expectations and capital and no risk statistic anywhere. A reader arriving from the covered-call
-literature will ask what the wheel's beta is and whether it is asymmetric the way BXM's is, and
-the machinery to answer already exists.
-
-**Computed 2026-07-31** — terminal payoff over one call period against the depth census,
-inventory only, P-measure, 30y census. Indicative, done outside the model:
-
-| configuration | up-beta | down-beta | gap |
-|---|---|---|---|
-| Standard p\* = 20%, n = 4 | 0.828 | **1.000** | 0.172 |
-| Conservative p\* = 10%, n = 4 | 0.823 | **1.000** | 0.177 |
-| n = 1, calls on the put clock | 0.927 | **1.000** | 0.073 |
-| n = 13, quarterly calls | 0.683 | **1.000** | 0.317 |
-| σ = 30% | 0.870 | **1.000** | 0.130 |
-
-**Two results, neither of them anywhere in the article.**
-
-- **Down-beta is exactly 1.000 in every configuration.** Below its strike a lot is pure stock, so
-  the wheel absorbs the whole decline. That is Israelov & Nielsen's **Myth 2** — covered calls
-  provide downside protection — disproved inside our own model, and Myth 2 is the wheel's own
-  marketing. **With the put leg included it exceeds 1**: the operator holds the shares *and* is
-  short a put that is losing. Say it that way; the wheel is more than fully exposed on the
-  downside, and that is the sentence a reader will remember.
-- **The asymmetry is governed by n** — 0.073 / 0.172 / 0.317 at n = 1, 4, 13 — and barely by p\*
-  (0.828 against 0.823). That is [the holding-time section](#sec:holding)'s √n grid tax showing up
-  in *risk* rather than in holding time: one lever, a second consequence, and the article
-  currently draws only the first. Higher volatility *reduces* the asymmetry (0.870 up at σ = 30%)
-  because lots run deeper and their calls sit further out of the money.
-
-**What the subsection must carry.**
-
-- **Include the put leg.** Everything above is inventory only, and the put is exactly what carries
-  down-beta past 1.
-- **Keep the delta-against-price framing beside the betas**, not instead of them: book delta rises
-  toward 1 per lot as the price falls and toward 0 as it rises, which is analytic from `bs_call`
-  and exhibits the reversal directly rather than as a regression coefficient. **Cross-reference
-  Israelov & Nielsen's "equity reversal exposure" explicitly and consider adopting their term** —
-  the article has no name for this at all, and theirs is the one a reader will recognise (agreed
-  with Sergei, 2026-07-31).
-- **Do not claim comparability with BXM's 0.63 / 0.78.** Ours is a different estimator, and
-  **II-21** is where that comparison is made and where it stays a detour.
-- Harvest **H5** — mapping our premium / mark-loss / giveaway / dividends onto their passive
-  equity + short volatility + equity reversal — is adjacent, unconverted, and would sit naturally
-  in the same subsection if it earns its space.
-
-**No new machinery**: the census and `bs_call` are both in `model.py`. It needs an example module
-and frozen cases under INF-5's policy.
-
-**II-21. Replicate BXM's beta estimator against ours — a detour, deliberately not load-bearing.**
-(Scoped with Sergei, 2026-07-31, out of II-20.)
-
-**Why it exists.** Validating II-20's estimator on a degenerate census — a book permanently at the
-money, which is a plain ATM covered call — returns **up-beta 0.000, down-beta 1.000** against
-BXM's published **0.63 / 0.78**. That is not an error. A terminal-payoff regression on a truly
-at-the-money call *must* return exactly 0 and 1, because the payoff is kinked precisely at the
-strike. The published figures come from **calendar-monthly** returns misaligned with the
-third-Friday roll, with strikes set at the first listing above spot; the misalignment smears the
-kink and pulls the two numbers toward each other.
-
-**The trap it closes.** H4 prescribes "regress the ledger's period returns on the underlying's,
-split by sign" and compare with BXM. Followed literally, that yields a number which *looks*
-comparable to 0.63 / 0.78 and is not: "the wheel's up-beta is 0.83 against BXM's 0.63" would read
-as a like-for-like risk comparison and would be wrong.
-
-**What to do.** On `wheel_sim.py` paths — this needs paths, because the analytic core cannot see
-calendar misalignment — compute the split beta BXM's way: calendar-monthly returns, strike at the
-first listing above spot, roll on expiry. Then put the two estimators side by side on the same
-book. Two questions worth answering: how much of the gap is *misalignment* against how much is
-the *strike offset*, and whether the two estimators agree once both are run on the same
-simulated account.
-
-**Keep it a detour.** A blockquote detour in §09 in the article's established style, or a
-footnote. **§09's headline risk numbers stay ours**, and no conclusion in the article may depend
-on this comparison landing any particular way.
 
 **II-23. Six borrowed things, none of them cited where the reader meets it.** (Harvest H2, H3
 and H9 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), converted
@@ -1261,8 +1170,12 @@ semiannual 3.87%, sd 13.09%; 136-stock beta 1.17, alpha 3.68%; DJ beta 1.00, alp
 name the bias, in the direction that hurts them, before reporting a single strategy result.** §15
 makes a claim of the same kind about one account with no control universe at all, and the honest
 form of it is theirs: name the bias, size it where possible, and lead with the comparison that
-does not depend on it. **Sequence with II-20 and II-21**, which want a beta reported and have no
-precedent to point at for how one should be presented.
+does not depend on it. **II-20 and II-21 closed on 2026-08-05 and §09 now reports betas**, so this
+item no longer sequences behind them — it inherits them. Two consequences. §09's risk subsection is
+the model-side comparand §15's own beta should be set against, and §09 has already established the
+house discipline for presenting one: state the estimator, and refuse the comparison with a
+published figure computed another way. §15 should refuse it the same way rather than re-deriving
+the reason.
 
 **And a pointer into IV-1.** MSG 1982 §III simulates the put/call **conversion** — long stock,
 long put, short call at one strike and expiry, riskless under parity — against rolling commercial

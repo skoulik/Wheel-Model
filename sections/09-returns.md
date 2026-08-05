@@ -107,6 +107,34 @@ Nor is this only what the present model finds. [Israelov and Nielsen](#ref:israe
 
 What the machinery *does* determine is everything other than the mean: how much capital is required to run the strategy, how long it stays committed, how large the inventory grows, and under what conditions the whole thing stops resolving. Those are not small questions — they decide whether the strategy is operable — but they are questions about capital and risk, not about return.
 
+## Identical in return. Not identical in risk.
+
+Equal expected returns invite the obvious follow-up: equal *how*? Two strategies can earn the same average and feel nothing alike, and this is a case where they do not.
+
+> **Beta, up and down.** A position's beta is how much of the market's move it takes: beta 1 means a 10% fall in the stock costs 10%, beta 0.5 means it costs 5%. A single number assumes the position responds the same way in both directions, which is exactly what an option position does not do. Splitting it — measuring the response to rising prices and to falling prices separately — is standard practice for option strategies, and for this one the two numbers are very far apart.
+
+Measured over one call period against the depth census, the shares the operator holds have an **up-beta of 0.83 and a down-beta of exactly 1.00**.[^returns-beta]
+
+That second number is not a rounding. It is exact, in every configuration, for a reason visible in one line: a lot still in inventory is a lot below its call strike, and below its strike a covered call is *pure stock*. The call expires worthless, the share falls the whole way, and nothing about having sold the call changes it. **Covered calls do not provide downside protection.** The premium is a cushion, but it is one period's premium against the entire decline, and the model prices the cushion at exactly what it is worth and no more. This is the most widely repeated claim made for the strategy, and the article's own machinery contradicts it without needing any data.
+
+**And inventory is not the whole book.** The operator is also short a live put, which loses when the stock falls — so the total position is more than fully exposed on the downside. Shocking the whole book and marking it gives, per unit of capital committed:
+
+    price shock        −20%    −10%      0     +10%    +20%
+    book exposure      1.07    1.07    0.93    0.75    0.61
+
+**The wheel is more exposed to a fall than the stock is, and less exposed to a rise.** Almost exactly one full share of that downside excess is the short put; the rest is inventory whose calls have gone so far out of the money that they no longer offset anything.
+
+The middle of that row is the more interesting part, because it is not a static number — it is the position *changing character as prices move*. As the stock falls, every frozen call slides further out of the money and each lot reverts toward being plain stock; as it rises, the calls come alive and the exposure drains away. The strategy therefore buys exposure into declines and sheds it into rallies, automatically and without anyone deciding to. [Israelov and Nielsen](#ref:israelov-nielsen-2015) name this **equity reversal** and attribute about a quarter of a covered call's total risk to it, at a Sharpe ratio near 0.10 — which is to say it is a real risk that is paid almost nothing. The model agrees for a reason it can state exactly: under the price process assumed here such an exposure *cannot* be compensated, so the machinery assigns it no return at all. It is risk taken for free.
+
+Which lever controls it? Not the strike dial: at the Conservative setting the up-beta moves from 0.830 to 0.826, which is nothing. It is **n**, the number of put periods a call is written across:
+
+    calls written every…      1 put period   4 periods   13 periods
+    up-beta                       0.93          0.83         0.68
+
+That is [the holding-time section](#sec:holding)'s call-grid tax arriving a second time. There, freezing a strike for four weeks while puts are written weekly cost holding time; here the same freeze costs *upside*, and for the same reason — the longer a strike stays fixed, the further the stock can run away from it before anyone resets. One lever, two consequences, and the article has been drawing only the first. Higher volatility, counter-intuitively, *reduces* the asymmetry: at σ = 30% the up-beta rises to 0.87, because lots run deeper and their calls sit further out of the money.
+
+> **A caution about comparing this with published numbers.** The Cboe buy-write index reports up and down betas of roughly 0.63 and 0.78, and the temptation is to read 0.83 against 0.63 as a like-for-like comparison. It is not, and it is worth seeing quite how far apart the two measurements are. Run the estimator used here on that index's own construction — a plain at-the-money covered call, rewritten every month — and the up-beta comes back at **0.00**, not 0.63. That is not a failure of either: a payoff kinked exactly at the strike gives away the whole of every rise, and no slope can describe it. Two features of the published series pull it away from zero. Its returns are measured on calendar months while its options expire mid-month, so each measured period straddles two different strikes and averages across the kink — that alone lifts the up-beta to about **0.16**. And its strike is the first listed *above* spot rather than exactly at it, leaving a sliver of upside unsold, which takes it to about **0.29**. Both together still fall well short of 0.63, so most of the published number is something neither mechanism accounts for: a real index's returns are not a textbook price process, and a beta estimated on one is not the same object. **The figures above describe this book on this estimator. No comparison with a published beta is being made, and none should be.**[^bxm-beta]
+
 ## The leverage that survives does not pay for itself
 
 Everything so far is an unlevered account, earning [eq:excess](#eq:excess)'s +1.60% on capital the operator owns outright. Borrowing changes the arithmetic in exactly one place. Equity earns the strategy's excess on every share it carries and pays the financing spread on the part that was borrowed — the risk-free leg of the carry is already what "excess" is measured against — so for a book of leverage L financed at r_b:
@@ -267,5 +295,9 @@ That leaves the real result, which is the invariance. The choice of strike moves
 [^eq-levered-excess]: Reproduced by `python code/examples/returns_leverage.py --gamma-s 0.25` — [eq:levered-excess](#eq:levered-excess), and the other readings quoted here are `gamma-s 0.25 --fin-spread 0.015`; `gamma-s 0.25 --fin-spread 0.03`. Pass `--help` for the full parameter set.
 
 [^eq-mark-loss]: Reproduced by `python code/examples/returns_ledger.py` — [eq:mark-loss](#eq:mark-loss), [eq:giveaway](#eq:giveaway), [eq:econ-pnl](#eq:econ-pnl), [eq:excess](#eq:excess), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
+
+[^bxm-beta]: The three figures in this detour are measured by `python code/bxm_beta.py`, which replicates the index's construction and varies one convention at a time; the readings quoted are the aligned at-the-money case, the same on a calendar clock, and that with a strike 2% above spot. They are pinned in `code/verify_examples.py` under section 09.
+
+[^returns-beta]: Reproduced by `python code/examples/returns_beta.py` — the split betas, the shocked book exposures and the n sweep, whose other readings quoted here are `p-star 0.10`; `n 1`; `n 13`; `sigma 0.30`. Pass `--help` for the full parameter set. The betas are least-squares slopes fitted separately to rising and falling periods, inventory only, census-weighted; the shocked exposures are the whole book including the live short put, divided by the capital of [eq:capital](#eq:capital).
 
 [^msg-slope]: The conversion is checked in `code/verify_examples.py` under section 09. Inverting their reported at-the-money six-month call price of 10% of spot gives an implied volatility of 33.6%, from which one volatility point is worth about 3.2% of the premium; their reported slopes of 100 and 80 basis points of semiannual return per 10% of premium then annualize to 55 and 52 basis points per point. The short rate is the one input not read off the papers, and the answer is insensitive to it across the whole plausible 1963–77 range; 6% is the internally consistent reading, being where their observed put/call price ratio reproduces put-call parity.

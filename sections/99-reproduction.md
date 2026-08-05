@@ -75,6 +75,11 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 
 | formula | command | the article's figures |
 |---|---|---|
+|  | `python code/examples/returns_beta.py` | beta_up = 0.830, beta_dn = 1.000, delta_dn20 = 1.069, delta_flat = 0.934, delta_up20 = 0.609, put_dn20 = 1.000, put_up20 = 0.000 |
+|  | `python code/examples/returns_beta.py --p-star 0.10` | beta_up = 0.826, beta_dn = 1.000 |
+|  | `python code/examples/returns_beta.py --n 1` | beta_up = 0.929, beta_gap = 0.071 |
+|  | `python code/examples/returns_beta.py --n 13` | beta_up = 0.684, beta_gap = 0.316 |
+|  | `python code/examples/returns_beta.py --sigma 0.30` | beta_up = 0.870, beta_gap = 0.130 |
 | `eq:capital` | `python code/examples/returns_capital.py` | inv = 11.40, mv_capital = 11.59, capital = 18.23, gap = 6.60 |
 |  | `python code/examples/returns_capital.py --p-star 0.10` | inv = 5.50, mv_capital = 5.70, capital = 8.90 |
 |  | `python code/examples/returns_capital.py --tau-p 0.0384615385` | inv = 8.02, mv_capital = 8.21 |

@@ -85,6 +85,21 @@ def prose_files():
     return [f for f in section_files() if f != BIBLIOGRAPHY]
 
 
+def section_heads():
+    """Every `{#sec:...}` the article declares, mapped to the file declaring it.
+
+    The counterpart of `declared_anchors` for whole sections, so a module that
+    backs prose rather than a displayed formula can still say where it lives.
+    """
+    pat = re.compile(r"^#\s+.*\{#(sec:[A-Za-z0-9:_-]+)\}", re.M)
+    out = {}
+    for name in section_files():
+        with open(os.path.join(SECTIONS, name), encoding="utf-8") as fh:
+            for anchor in pat.findall(fh.read()):
+                out.setdefault(anchor, name)
+    return out
+
+
 def declared_anchors():
     """Every {#eq:...} the article defines, mapped to the file defining it."""
     out = {}
@@ -248,9 +263,15 @@ def appendix(mods=None):
     """The reproduction appendix, as markdown."""
     mods = H.discover() if mods is None else mods
     anchors = declared_anchors()
+    # A module's home is the file defining the first formula it backs.  Modules
+    # that back no *displayed* formula -- a section's prose figures, like the
+    # risk statistics of section 09 -- have no anchor to look up, so they fall
+    # back to the section they declare serving.
+    heads = section_heads()
     by_section = {}
     for m in mods:
-        where = anchors.get(m.EQ[0], "?") if m.EQ else "?"
+        where = (anchors.get(m.EQ[0], "?") if m.EQ
+                 else heads.get(getattr(m, "SECTION", None), "?"))
         by_section.setdefault(where, []).append(m)
 
     out = ["# Reproducing every figure in this article", "",

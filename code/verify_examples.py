@@ -398,6 +398,33 @@ def main():
           trapped_zero_depth(hi_vol, "P"), 0.005)
 
     # ------------------------------------------------------------------
+    # Section 09's detour declines to compare its betas with BXM's published
+    # pair, and quotes three numbers to say how far apart the estimators are.
+    # `bxm_beta.py` measures them by replicating BXM's own construction; this
+    # pins what the prose quotes.  400 paths reproduces the script's 4000 to
+    # three decimals, so the cheap run is the one wired in here.
+    print("--- Section 09: our split beta against BXM's estimator ---")
+    import bxm_beta
+    kw = dict(C=STD, paths=400)
+    up_aligned, _ = bxm_beta.measure(0.0, False, **kw)
+    up_cal, dn_cal = bxm_beta.measure(0.0, True, **kw)
+    up_both, _ = bxm_beta.measure(0.02, True, **kw)
+    # Analytic, not simulated: an at-the-money call gives away the whole of
+    # every rise, so the up-side payoff is flat and no slope exists.  If this
+    # ever drifts off zero the replication has stopped being at the money.
+    check("aligned at-the-money buy-write has an up-beta of exactly zero",
+          up_aligned, 0.0, 0.004)
+    check("...measuring off the roll instead lifts it", up_cal, 0.165, 0.010)
+    check("...and a strike above spot takes it further", up_both, 0.289, 0.012)
+    # The point of the detour: both mechanisms together still fall well short.
+    check("...both together still fall short of BXM's published 0.63",
+          up_both < 0.45, True, 0)
+    # Section 09's own inventory down-beta is exactly 1; a buy-write's is 1.02
+    # because its return is on cost (share less premium), not on the share.
+    check("a buy-write's down-beta exceeds 1 by its own premium",
+          dn_cal < 1.0, True, 0)
+
+    # ------------------------------------------------------------------
     # The example harness turns a command line into a Config, and it must not
     # pin a field that __post_init__ derives.  `cadence` is declared None and
     # resolved to tau_p; taking the parser's default off a CONSTRUCTED Config

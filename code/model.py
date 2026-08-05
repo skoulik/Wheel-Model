@@ -973,14 +973,13 @@ def levered_excess(excess, L, spread):
     return excess * L - spread * max(0.0, L - 1.0)
 
 
-def depth_census(C, measure, edges, horizon=None, h=0.02, x_max=8.0,
-                 j_max=8000, eps=1e-9):
-    """How standing inventory is distributed over depth ([eq:census]).
+def census_weights(C, measure, horizon=None, h=0.02, x_max=8.0,
+                   j_max=8000, eps=1e-9):
+    """(depths, held-time weights) of standing inventory -- the raw census.
 
-    Returns (share of held time per bin, mean depth, inventory-weighted exit
-    probability).  With `horizon` set, the census is the one an operator
-    starting from an empty book sees averaged over [0, horizon]; without it,
-    the stationary census.
+    `depth_census` bins this; the risk statistics below integrate against it
+    directly, because a beta and a book delta are averages over depth rather
+    than histograms of it.  Weights are unnormalised held time.
     """
     m, s = C.world(measure)
     _, _, _, dens = entry_law(C, measure)
@@ -999,16 +998,121 @@ def depth_census(C, measure, edges, horizon=None, h=0.02, x_max=8.0,
         if sum(u) < eps and j >= 40:
             break
         u = walk.step(u)
+    return walk.xs, U
 
+
+def depth_census(C, measure, edges, horizon=None, h=0.02, x_max=8.0,
+                 j_max=8000, eps=1e-9):
+    """How standing inventory is distributed over depth ([eq:census]).
+
+    Returns (share of held time per bin, mean depth, inventory-weighted exit
+    probability).  With `horizon` set, the census is the one an operator
+    starting from an empty book sees averaged over [0, horizon]; without it,
+    the stationary census.
+    """
+    xs, U = census_weights(C, measure, horizon, h, x_max, j_max, eps)
     total = sum(U)
     bins = [0.0] * (len(edges) - 1)
     mean_x = mean_q = 0.0
-    for x, ui in zip(walk.xs, U):
+    for x, ui in zip(xs, U):
         b = min(len(bins) - 1, max(0, sum(1 for e in edges[1:] if x >= e)))
         bins[b] += ui
         mean_x += ui * x
         mean_q += ui * q_exit(C, measure, x)
     return [b / total for b in bins], mean_x / total, mean_q / total
+
+
+def split_beta(C, measure, horizon=None, nz=2001, zmax=8.0, **census_kw):
+    """(up-beta, down-beta) of standing inventory against the underlying.
+
+    The one risk statistic the article reports, and it answers the question a
+    reader arriving from the covered-call literature asks first.  Over one call
+    period a lot at depth x holds a share and owes a call struck at e^x times
+    today's price, so per unit of the lot's own market value
+
+        underlying simple return   u = e^R - 1
+        the lot's payoff change    p = min(e^R, e^x) - 1
+
+    with R the period's log return.  Each side is an ordinary least-squares
+    slope of p on u over that side's returns, census-weighted over depth --
+    a regression WITH an intercept, which is what the covered-call literature
+    reports and what makes `bxm_style_beta` comparable to it.  Taking the ratio
+    of conditional means instead (an up/down *capture* ratio) reads about seven
+    points higher on the up side and is a different statistic.
+
+    **Down-beta is exactly 1.** Below its strike a lot is pure stock: p = u for
+    every u < 0, so both the slope and the intercept are exact, at 1 and 0, in
+    every configuration and under either estimator.  That is the covered-call
+    "downside protection" claim refuted inside the model -- the premium is the
+    only cushion, and it is one period's premium against the whole decline.
+    Inventory is not the whole book, though: see `book_delta`, where the short
+    put carries the total past 1.
+    """
+    m, s = C.world(measure)
+    mu_r, sd_r = (m - s**2 / 2) * C.tau_c, s * sqrt(C.tau_c)
+    xs, wts = census_weights(C, measure, horizon, **census_kw)
+    total = sum(wts)
+    dz = 2 * zmax / nz
+    zs = [-zmax + (i + 0.5) * dz for i in range(nz)]
+    pdf = [phi(z) * dz for z in zs]
+    # Per side: weight, and the four sums an OLS slope needs.
+    acc = {side: [0.0] * 5 for side in ("up", "dn")}
+    for x, wx in zip(xs, wts):
+        if wx <= 0.0:
+            continue
+        wx /= total
+        ex = exp(x)
+        for z, pz in zip(zs, pdf):
+            er = exp(mu_r + sd_r * z)
+            u = er - 1.0
+            if u == 0.0:
+                continue
+            p = min(er, ex) - 1.0
+            a = acc["up" if u > 0 else "dn"]
+            w = wx * pz
+            a[0] += w
+            a[1] += w * p
+            a[2] += w * u
+            a[3] += w * p * u
+            a[4] += w * u * u
+    out = []
+    for side in ("up", "dn"):
+        w, sp, su, spu, suu = acc[side]
+        mp, mu_ = sp / w, su / w
+        out.append((spu / w - mp * mu_) / (suu / w - mu_ * mu_))
+    return out[0], out[1]
+
+
+def book_delta(C, measure, shock, horizon=None, **census_kw):
+    """(inventory delta, short-put delta) of the standing book after a shock.
+
+    The betas above are inventory-only and terminal; this is the whole book,
+    marked, and it is where the reversal is visible directly rather than as a
+    regression coefficient.  Strikes are frozen at the pre-shock price, so a
+    fall pushes every call further out of the money and each lot's delta back
+    toward a full share, while a rise does the opposite.  Deltas are in share
+    units: divide by `economics()['mv_capital']` for a figure per unit of
+    capital.
+
+    The short put is the leg that matters on the downside.  Its delta runs to
+    +1 as it goes into the money -- the operator holds the shares *and* owes on
+    a put that is losing -- which is what takes the book past fully exposed.
+    """
+    m, s = C.world(measure)
+    xs, wts = census_weights(C, measure, horizon, **census_kw)
+    total = sum(wts)
+    spot = 1.0 + shock
+    inv = 0.0
+    for x, wx in zip(xs, wts):
+        if wx <= 0.0:
+            continue
+        d1 = ((log(spot) - x + (C.r - C.delta + C.sigma_iv**2 / 2) * C.tau_c)
+              / (C.sigma_iv * sqrt(C.tau_c)))
+        inv += (wx / total) * (1.0 - N(d1))
+    k = strike(C, measure)
+    d1p = ((log(spot / k) + (C.r - C.delta + C.sigma_iv**2 / 2) * C.tau_p)
+           / (C.sigma_iv * sqrt(C.tau_p)))
+    return inv, N(-d1p)
 
 
 def trapped_fraction(C, measure, zero_depth=False):
