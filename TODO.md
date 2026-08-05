@@ -637,15 +637,46 @@ available to anyone.
 - **Write the two sections as one argument**, or at minimum have §12 end where §13 begins.
   Contribution 7 already puts them in a single sentence; the sections should earn it.
 
-**Part III's literature is unread, and this item is the whole of what has been read.** (Second-
-pass list of the same document; folded in 2026-08-01.) The pass deliberately stopped here, on the
-ground that the reading should happen *with* §12 and §13 rather than before them — so before
-either drafts, read Driessen–Maenhout–Vilkov in full and read around it: the correlation risk
-premium literature more broadly, the crisis-correlation literature, and whatever exists on
-diversifying short-option books. **The read levels bind** (I-1): DMV is **[A]** — an abstract —
-which is why this item states its mechanism qualitatively and takes its *magnitudes* from II-18's
-Bakshi & Kapadia and Carr & Wu instead. Nothing here may be upgraded to a quoted DMV number until
-someone opens the paper, and §13 must not lean on it further than the item already does.
+**DMV is read, and the prohibition this item carried is lifted** (2026-08-05, **[P]** — the
+introduction, the trading-frictions section and the conclusion; the estimation is skimmed). This
+item previously said its mechanism could only be stated qualitatively because DMV was an abstract,
+and took its magnitudes from Bakshi & Kapadia and Carr & Wu instead. **§13 may now quote it**, and
+three things are worth taking.
+
+**The mechanism in their words**, which is better than any paraphrase: priced correlation risk is
+"the missing link between unpriced individual variance risk and priced market variance risk", and
+index options are expensive, unlike individual options, "because they allow investors to hedge
+against positive market-wide correlation shocks and the ensuing loss in diversification benefits".
+That *is* §13's subject, stated by the people who established it.
+
+**The counterweight is quantified**, and it is stronger than the item's summary. Bid-ask spreads
+roughly halve the correlation trade's excess return, 10.4% to 5.3% a month; its Sharpe falls from
+0.73 to about the equity index's 0.41; the CAPM alpha stops being significant (t = 0.77). The
+damage exceeds that on index-only strategies **because single-name spreads are wider** — the same
+fact [Carr & Wu](#ref:carr-wu-2009) report and IV-3 now carries for transaction costs. Margin
+requirements then make the trade infeasible for precisely the risk-tolerant investors who would
+gain most. So "the compensation was never actually available" is not a hedge in this item's
+argument; it is their finding, with numbers.
+
+**And one thing the item did not know, which reframes Part III's whole position.** DMV cite
+[Gârleanu, Pedersen & Poteshman](#ref:garleanu-pedersen-poteshman-2009) for the fact that option
+end-users are **net long index options and net short individual options**. The operator this
+article models is therefore on the crowded side of the single-name trade and the *opposite* side of
+the index trade — which is a sharper way of saying "index-like risk, single-name pay" than the
+price comparison alone, and it belongs in §12 or §13 wherever the reader is told why the two
+premiums differ.
+
+**One caution for the other direction.** DMV find **no significant negative variance risk premium
+in individual options**. That is a different measure from the implied-minus-realised gap §09 quotes
+from Bakshi & Kapadia, so it is not a contradiction — but it sits against Carr & Wu's log-measure
+finding over the same window, and **the single-name premium is genuinely contested in a way §09
+does not say.** §13 must not resolve that quietly in either direction; if Part III needs to lean on
+it, say that the literature disagrees and which measure each side used.
+
+**What is still unread is the rest of Part III's literature**: the correlation risk premium beyond
+DMV, the crisis-correlation literature, and whatever exists on diversifying short-option books. The
+pass deliberately stopped there, on the ground that the reading should happen *with* §12 and §13
+rather than before them.
 
 **III-4. A portfolio of nonlinear positions is not the nonlinear position on the portfolio, and
 contribution 7's wording invites the confusion.** (From the Merton–Scholes–Gladstein read of
