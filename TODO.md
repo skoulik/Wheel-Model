@@ -8,8 +8,8 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, I-5, II-1 through II-18, II-22, IV-5, IV-6, IV-7, INF-1 —
-mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
+recycled or closed up: the gaps — I-3, I-5, II-1 through II-18, II-22, II-26, II-27, IV-5, IV-6,
+IV-7, INF-1 — mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
 numbered around them; they closed on 2026-07-28 and had been missing from it since. IV-5 closed
 2026-08-05.)
 
@@ -28,18 +28,18 @@ and 7 [P] after the two promotions of 2026-08-05, and **twelve are cited** from 
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with nine items outstanding**
-(II-19 through II-28 less the closed II-22 — seven from the literature pass of 2026-07-31, which
-reopened Part II the day it closed, and two from the Merton–Scholes–Gladstein read of 2026-08-01
-that closed I-5; **not one of the nine changes a formula, a verdict or a number**, the four items
-that did having closed on 2026-08-04 and 2026-08-05);
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with seven items outstanding**
+(II-19 through II-28 less the closed II-22, II-26 and II-27 — six from the literature pass of
+2026-07-31, which reopened Part II the day it closed, and one from the Merton–Scholes–Gladstein
+read of 2026-08-01 that closed I-5; **not one of the seven changes a formula, a verdict or a
+number**, the six items that did having closed on 2026-08-04 and 2026-08-05);
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **nine open items** (II-19 – II-28, less II-22) — five in §09, two in §05, one in §08; II-23's six remaining bullets reach §02, §07, §09, §10 and §11. §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30; §09 on 2026-08-05 by IV-5 and II-18 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **seven open items** (II-19 – II-28, less II-22, II-26, II-27) — three in §09, two in §05, one in §08; II-23's six remaining bullets reach §02, §07, §09, §10 and §11. §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30; §09 four times on 2026-08-05, by IV-5, II-18, II-26 and II-27 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -93,7 +93,11 @@ of the return on riskless fixed-income securities") is the clearest general-audi
 of why a volatility risk premium should exist at all, and it is by Merton and Scholes. And 1982
 **restates the 1978 call results over the full 14 years** unchanged — Table 5's covered-call
 columns against 1978's Table 7 — so the 1978 conclusion is not an artefact of its window. The
-premium-sensitivity half of both papers is **II-27** and belongs in §09, not here.
+premium-sensitivity half of both papers was **II-27**, which closed on 2026-08-05 and put it in
+§09 — both papers are now cited there for the slope, converted to volatility points. **So §03
+inherits them already cited**, and its job is the pedigree: what the two simulations were, why
+they are the earliest of their kind, and the insurance framing above. Do not restate §09's
+conversion or its ~50 bp.
 
 **A second prohibition, and it is likelier to bite than the first** (added 2026-08-01). **Kuang &
 Lin (2025)**, arXiv:2512.01123 **[P]**, is the *only* recent academic item on the wheel by name,
@@ -385,28 +389,29 @@ open**, they divide in three, and **none of them changes a formula, a verdict or
 not one of them even adds a number. The three that did — II-22, II-29 and II-30 — all closed on
 2026-08-04 and are in [`DONE.md`](DONE.md); §00, §07, §08 and §10 carry their edits.
 
-**Five land in §09**, so read them together before touching the section. (IV-5 and II-18 both
-edited it on 2026-08-05 and closed; §09 now carries the single-name premium and its own two
-citations, and its skew sentence is measured rather than asserted.) One is a correction to what
-the section already says — **II-19**, its missing tenor axis — two are additions the section never
-attempted: **II-20** the first risk statistic anywhere in the article, and **II-21** the detour
-that keeps II-20 from being read as a comparison it is not — **II-26** is the citations §09
-owes for results it argues out unaided, and **II-27** the two published precedents for its 45 bp
-slope. II-19 and II-20 add frozen cases; neither adds model machinery beyond what `model.py`
-already has.
+**Three land in §09**, so read them together before touching the section. One is a correction to
+what the section already says — **II-19**, its missing tenor axis — and two are additions the
+section never attempted: **II-20** the first risk statistic anywhere in the article, and **II-21**
+the detour that keeps II-20 from being read as a comparison it is not. Both add frozen cases;
+neither adds model machinery beyond what `model.py` already has.
 
-**Read §09 before writing any of them.** It moved twice on 2026-08-05 and the subsection II-26 and
-II-27 both target — "So where could an edge come from?" — is now four paragraphs rather than one,
-carries two citations, and states the size of the prize as *about a point* rather than two to four.
-II-26's density budget was written against the old, shorter subsection.
+**§09 was rewritten on 2026-08-05 and the three survivors must be read against what it now says**,
+not against what it said when they were raised. Four items landed there that day — IV-5, II-18,
+II-26 and II-27, all in [`DONE.md`](DONE.md). The section went from **no citations to six**, its
+premium subsection from one paragraph to seven, and the size of the prize from the index's two to
+four points to a single-name **about a point**. Consequences for what is left: **II-19**'s cadence
+sweep sits beside a subsection that now states a *level* as well as a slope, and its term-structure
+axis is the third the section names rather than the third it lacks; **II-20** and **II-21** are
+untouched by any of it, being about risk rather than return, and are the only two §09 items that
+never depended on the literature pass's summaries.
 
-**Three came from the pass's harvest** (and **II-26** from its cross-check, in the sweep that
-closed the conversion), converted 2026-08-01, and none of them moves a number anywhere:
-**II-23** cites six borrowed things where the reader meets them, and reaches outside Part II to do
-it (§00, §02, §11); **II-24** gives §08's census its second analogy; **II-25** puts a size behind
-§05's early-exercise caveat. The fourth was **II-22**, which replaced §08's hand-derived census
-integrals with the theorem they are instances of and handed §10 the biconditional form of its own
-capital criterion; it closed on 2026-08-04.
+**Three came from the pass's harvest**, converted 2026-08-01, and none of them moves a number
+anywhere: **II-23** cites six borrowed things where the reader meets them, and reaches outside
+Part II to do it (§00, §02, §11); **II-24** gives §08's census its second analogy; **II-25** puts a
+size behind §05's early-exercise caveat. Two others of that vintage have closed — **II-22** on
+2026-08-04, which replaced §08's hand-derived census integrals with the theorem they are instances
+of and handed §10 the biconditional form of its own capital criterion, and **II-26** on 2026-08-05,
+the citations §09 owed for results it argued out unaided.
 
 **They were recorded as depending on §03 (I-1) for the citations themselves, and that dependency
 is weaker than it looks** (found 2026-08-04, writing II-29 and II-22). §07 and §08 have now landed
@@ -416,8 +421,9 @@ the section carries the pointer** still holds as a division of labour — it is 
 and none of these items is blocked.
 
 **Two came from actually reading what the pass had only listed at [A] or [P]**, and they are the
-ones carrying measurements: **II-27** and **II-28**, both from Merton–Scholes–Gladstein
-(2026-08-01), landing in §09 and §05 and moving nothing.
+ones that carried measurements: **II-27** and **II-28**, both from Merton–Scholes–Gladstein
+(2026-08-01). II-27 closed on 2026-08-05 — its conversion put their slope at ~50 bp per volatility
+point against §09's 45 — leaving **II-28**, which lands in §05 and moves nothing.
 
 **Two more came the same way and are already closed**, which is why the reads are worth doing.
 **II-29** — Chang & Peres, Janssen & van Leeuwaarden, Chernoff — moved §07's grid tax from 2.1× to
@@ -814,118 +820,6 @@ conservative" becomes "is conservative, and this is the size of what is omitted"
 `**Amended:**` note to `DONE.md`'s American-vs-European entry recording that the literature pass
 reopened it and it closed the same way with a number behind it. **This does not reopen the
 descope** — nothing in the model changes, and the European treatment stands.
-
-**II-26. §09 states the article's central result and cites nobody, while the literature reaches it
-independently.** (Cross-check rows 1, 3, 4 and 5 of
-[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); converted 2026-08-01, out
-of the sweep that closed the conversion.)
-
-**The gap is structural rather than incidental.** §07 carries three citations and §08 one;
-**§09 and §11 carry none at all**. The section holding the article's headline economic result —
-that at fair option prices the wheel is indistinguishable from owning the stock — reads as though
-nothing had ever been written on the subject. **II-23 is the case where §09 borrows; this is the
-opposite case and it is the stronger one.** Where the article argues its way to a conclusion the
-literature already holds, saying so costs a clause and turns a contrarian-sounding result into a
-consensus one.
-
-**Four, in descending order of value.**
-
-- **Contribution 4 is confirmed in almost the same words** (row 1). Israelov & Nielsen (2014)
-  **[F]**, stylised example — index at 100, one-month ATM call, IV 18% against realised 16%.
-  Priced at IV = realised: *"even though the annual collected option premium is 22.1% of net asset
-  value, there would be zero compensation for shorting volatility … no different from what would
-  have been earned by simply reducing the index position size by 51%."* That is §09's result,
-  reached from a decomposition — equity plus short volatility — that this article never uses,
-  which is exactly what makes it **evidence** rather than agreement. Land it where §09 concludes
-  the wheel is economically indistinguishable from owning the stock.
-- **The 45 bp slope agrees on the mechanism, not merely the sign** (row 3). Our own extra premium
-  per volatility point (0.0531 share prices) over capital (11.59) is **45.8 bp — a 100%
-  pass-through** — and their example shows the same at a different notional-to-capital ratio
-  ($0.23/month on $100 → 2.76%/yr). Two unrelated parameterisations agreeing that *all* of the
-  richness arrives is worth a sentence, because the reader's natural objection to "every point is
-  worth about 45 bp" is that surely something eats part of it. **Same source as the bullet above:
-  one citation, two uses.**
-- **The call-away giveaway is the dominant drag in published attributions too** (row 4). Hill et
-  al. (2006) **[P]**: *"the cost of exercise ate away the largest proportion of the excess
-  returns."* Ours is 0.3559/yr, the largest negative term in the ledger, and the first economic
-  ledger omitted it entirely — so this is external confirmation that the term nearly lost is the
-  one that matters most. A clause at [eq:giveaway](#eq:giveaway). **IV-1 owns the full four-way
-  comparison** (harvest H6); this is a pointer to it, not a second copy of it.
-- **Track B is standard practice, not a convenient choice** (row 5). §09 argues for market value
-  from first principles — capital committed is what selling would release — and is right, but it
-  reads as *our* argument for *our* preferred number. Hill et al. benchmark against a
-  **delta-adjusted** index (long 1 − Δ, the remainder at LIBOR) and Israelov & Nielsen insist
-  throughout on matched equity exposure. One clause noting that the exposure-matched ledger is
-  what this literature does answers the reader who suspects Track B was chosen because it
-  flatters. **Weakest of the four and the first to cut** if §09 gets crowded.
-
-**§11's zero is left alone.** Santa-Clara & Saretto (II-23) is the one citation that section is
-getting; the rest of it is derivation, and there is nothing published to corroborate a barrier
-formula.
-
-**Keep the density honest.** This is a general-audience article, and four citations in one section
-is about the most §09 can absorb without becoming a survey — hence the fourth marked cuttable and
-the third reduced to a clause. **§03 (I-1) carries all of these sources properly.** II-26 is the
-pointer, on the rule II-23 states: the reader should meet the claim and its attribution in the
-same place.
-
-**II-27 competes for the same space and outranks bullets 3 and 4** (noted 2026-08-01). It brings
-§09 a measured *slope* rather than a matching conclusion, which is a closer fit to the claim the
-section is defending. If the two items are written together and §09 cannot hold both, cut Track B
-(row 5) first and Hill et al. (row 4) second; bullets 1 and 2 are one citation and stay.
-
-**II-27. §09's 45 bp slope has two independent precedents, and converting them to volatility
-points is the work.** (From the Merton–Scholes–Gladstein read of 2026-08-01, which closed I-5.
-The conversion below was done while raising the item and is **indicative, not a result**.)
-
-[The returns section](#sec:returns) says every point of volatility richness is worth about **45
-basis points** of excess return a year, and that break-even sits at **zero** points. That is the
-article's central quantitative claim about where the edge comes from, and §09 supports it with
-nothing outside our own sweep. **Both MSG papers ran the same experiment**: price the options at
-model value, then re-run the entire simulation with the premium scaled from 70% to 130% of it.
-
-| % of model premium | 70 | 80 | 90 | **100** | 110 | 120 | 130 |
-|---|---|---|---|---|---|---|---|
-| 1978, ATM covered calls, 136-stock (Table 8) | 0.8 | 1.8 | 2.7 | **3.7** | 4.7 | 5.7 | 6.8 |
-| — its standard deviation | 6.8 | 6.8 | 7.0 | **7.1** | 7.2 | 7.3 | 7.5 |
-| 1982, ATM uncovered puts, 136-stock (Table 7) | 1.7 | 2.5 | 3.3 | **4.1** | 4.9 | 5.7 | 6.5 |
-| — its standard deviation | 5.2 | 5.3 | 5.4 | **5.6** | 5.7 | 5.9 | 6.1 |
-
-Semiannual percentages. Their own summaries: a 10% rise in premium is worth "roughly an
-additional 100 basis points" of semiannual average return on the 1978 calls and **80 bp** on the
-1982 puts (70 bp for the DJ universe in both), while the standard deviation is "virtually
-unaffected". **Return moves and risk does not** — precisely the shape of §09's claim, found
-twice, on both legs, on real price paths, by authors with no stake in our conclusion.
-
-**Why this is an item and not a citation.** Their axis is *percent of model premium*, ours is
-*volatility points*, and the bridge has to be built. Indicatively, on the 1982 puts: their ATM
-six-month put premium runs about **8.5%** of spot (1978 fn. 11 puts the ATM six-month *call* at
-10% of stock price for the 136-stock sample in H1 1973; 1982 p. 8 gives an average put/call price
-ratio of **84.9%** at E/S = 1.0); net investment is 100·E − P, about 91.5% of spot; and
-Black–Scholes vega at T = 0.5 makes one volatility point worth roughly **3.2%** of that premium
-at σ = 30%. Ten percent of premium is then ≈ 3.1 points, and 80 bp per half-year becomes
-**≈ 50 bp per point per year, against our 45**.
-
-**Treat that as a sketch.** σ = 30% is assumed rather than read — they report premium *levels* in
-figures and never tabulate the variance rates behind them — the capital bases differ (they post
-100·E in commercial paper per put; we carry inventory at market plus collateral), and the 1978
-call leg needs its own conversion. Doing it properly *is* the item, and it is worth doing even if
-the answer lands further from 45 than this sketch: an independent estimate of the same slope off
-1963–77 data is a stronger thing to set beside §09's finite difference than any of II-26's four,
-and a material disagreement would itself be a finding.
-
-**Where it lands.** §09, beside the volatility-premium slope, as the answer to the reader's
-natural objection that surely something eats part of each point. **Sequence with II-26** — both
-edit the same subsection and II-26 is choosing which citations survive; see its density note for
-what this displaces.
-
-**II-18 closed first, on 2026-08-05, and it changes the arithmetic this item converts into.** The
-size of the prize is now stated at the *single-name* premium of about a point, worth 50–70 bp, not
-at the index's two to four. So MSG's slope should be converted and compared against §09's ~45 bp
-per point — the slope is what transfers, and it is unaffected — but any sentence setting their
-result beside "what the strategy earns" must use the new figure. The subsection also already
-carries two citations after II-18, which tightens II-26's density budget and therefore this item's
-competition with it.
 
 **II-28. The put leg's early exercise, where MSG 1982 supplies a number and a warning — and one
 headline result that must not be imported.** (From the same read; **the put-side twin of II-25**,
@@ -1522,9 +1416,14 @@ study are rather sensitive to the assumed premiums". **Fourteen years, 136 stock
 observations, and the authors decline to read the levels.** Our record is shorter, narrower and
 overlapping. That is not an argument for reporting nothing; it is the citation that lets §14 say
 what the record cannot settle without sounding like an excuse, and it turns a promise §02 has
-been carrying unbacked into a sourced one. The arithmetic of *our* version is II-27's: if a point
-of volatility is worth 45 bp, then telling a two-point edge from a zero-point one asks a track
-record to resolve 90 bp/yr.
+been carrying unbacked into a sourced one. The arithmetic of *our* version is sharper than it was
+when this item was raised, and in the direction that helps it. II-18 put the single-name premium at
+**about a point**, so the question a track record has to settle is not "two points against zero"
+but roughly **50 bp/yr against zero** — half the resolution, on the same noisy quantity. And the
+sensitivity MSG are warning about is now *measured* on our side too: II-27's conversion puts their
+slope at ~50 bp per volatility point against our 45, so a modest error in the assumed premium moves
+the reported level by more than the whole edge being claimed. **That is the sentence §14 wants**,
+and it is theirs and ours saying the same thing.
 
 **Second, the presentation discipline for a selection-driven result.** IV-2's verdict is that the
 account's advantage came entirely from the excluded lever while the option machinery earned

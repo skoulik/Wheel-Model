@@ -46,7 +46,7 @@ the expectation being taken over the entry law of [eq:x0-law](#eq:x0-law).[^eq-m
 
 L_call  =  λ · Σ_j  E[ ( 1 − e^(x_j) ) · 1{ x_j ≤ 0 } ]  =  **0.3559** per year    {#eq:giveaway}
 
-where the indicator picks out only the periods the lot actually exits in. That is more than twice the put premiums.
+where the indicator picks out only the periods the lot actually exits in. That is more than twice the put premiums, and it will turn out to be the largest negative term in the whole ledger. That ranking is not peculiar to this model: [Hill and colleagues](#ref:hill-et-al-2006), decomposing the returns of a fixed-strike covered-call programme into its component parts, likewise found that *"the cost of exercise ate away the largest proportion of the excess returns."*
 
 Against those, one real gain is also invisible to Track A: the **appreciation of shares held**, which is simply the inventory drifting at the price's own rate, E[I]·m — for 11.40 lots at m = 4.5%, **0.5128** a year.
 
@@ -103,6 +103,8 @@ This is not a disappointing result; it is a clarifying one, and it is what a no-
 
 The per-lot accounts make the same point in miniature: over its lifetime a lot collects **3.72%** of a share price in call premiums and surrenders **3.58%** in upside at call-away. The covered-call leg, the part that feels most like free income, is very nearly a wash.
 
+Nor is this only what the present model finds. [Israelov and Nielsen](#ref:israelov-nielsen-2014) arrive at the same conclusion from a decomposition this article never uses — splitting a covered call into an ordinary equity position plus a short-volatility position — and state it almost in these words. In their worked example, priced so that implied volatility matches the volatility that follows, *"even though the annual collected option premium is 22.1% of net asset value, there would be zero compensation for shorting volatility,"* leaving a programme *"no different from what would have been earned by simply reducing the index position size by 51%."* Different instrument, different accounting, different decade; same answer. A result reached twice by unrelated arguments is more likely a property of the strategy than an artifact of how it was modeled.
+
 What the machinery *does* determine is everything other than the mean: how much capital is required to run the strategy, how long it stays committed, how large the inventory grows, and under what conditions the whole thing stops resolving. Those are not small questions — they decide whether the strategy is operable — but they are questions about capital and risk, not about return.
 
 ## The leverage that survives does not pay for itself
@@ -155,6 +157,10 @@ The model can price exactly how much of it is needed. Holding everything else fi
 **The break-even is zero.** At fair prices the wheel matches the stock, and every volatility point of overpricing is worth about 45 basis points of excess return on top. There is no hurdle to clear first: against the single-name premium of roughly a point that the literature actually supports, **the whole of it is edge — some 50 to 70 basis points a year**, the two middle rows of the table. That is a cleaner statement than it looks, and it is the no-arbitrage argument showing up as arithmetic — a fairly priced loop earns exactly what the asset earns, so whatever the strategy makes above that has to come from the options being sold dear.
 
 The same table is also the clearest way to see what the familiar number would have bought. At the two to four points the index studies report, the wheel would clear 90 to 180 basis points over simply holding the stock. Nothing in the model differs between those two readings — only the input does, and reaching for the number everyone quotes would overstate the prize by a factor of three.
+
+The natural objection to *every point is worth about 45 basis points* is that surely something eats part of it on the way through — that a machine with this many moving parts must skim off some of any extra richness before it reaches the owner. It does not, and the claim does not rest on this model alone. Israelov and Nielsen's example, built at a quite different ratio of option notional to capital, likewise has the whole of the richness arriving rather than a fraction of it. And the experiment has been run on real prices: [Merton, Scholes and Gladstein](#ref:merton-scholes-gladstein-1978) simulated fourteen years of covered call writing across a hundred and thirty-six stocks, then re-ran the entire simulation with the premium received scaled from 70% to 130% of model value, and [repeated the exercise on puts four years later](#ref:merton-scholes-gladstein-1982). Their dial is percent-of-premium where this one is volatility points, but at the premium levels they report the two convert cleanly — ten percent of an at-the-money six-month premium is about three volatility points — and their measured slopes then come to roughly **50 basis points per volatility point per year on each leg**, against the 45 here. Two legs, a different era, real price paths, and authors with no stake in this conclusion.[^msg-slope]
+
+They also report the other half of the claim, which is easy to overlook: across that whole 70%-to-130% range the standard deviation of the outcome is *"virtually unaffected"*. Richer options move the return and leave the risk where it was. That is what makes a volatility premium worth having rather than merely worth measuring, and it is the same statement this section's table makes one column at a time.
 
 ## The premium is real. It also does not arrive.
 
@@ -241,3 +247,5 @@ That leaves the real result, which is the invariance. The choice of strike moves
 [^eq-levered-excess]: Reproduced by `python code/examples/returns_leverage.py --gamma-s 0.25` — [eq:levered-excess](#eq:levered-excess), and the other readings quoted here are `gamma-s 0.25 --fin-spread 0.015`; `gamma-s 0.25 --fin-spread 0.03`. Pass `--help` for the full parameter set.
 
 [^eq-mark-loss]: Reproduced by `python code/examples/returns_ledger.py` — [eq:mark-loss](#eq:mark-loss), [eq:giveaway](#eq:giveaway), [eq:econ-pnl](#eq:econ-pnl), [eq:excess](#eq:excess), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
+
+[^msg-slope]: The conversion is checked in `code/verify_examples.py` under section 09. Inverting their reported at-the-money six-month call price of 10% of spot gives an implied volatility of 33.6%, from which one volatility point is worth about 3.2% of the premium; their reported slopes of 100 and 80 basis points of semiannual return per 10% of premium then annualize to 55 and 52 basis points per point. The short rate is the one input not read off the papers, and the answer is insensitive to it across the whole plausible 1963–77 range; 6% is the internally consistent reading, being where their observed put/call price ratio reproduces put-call parity.

@@ -54,6 +54,7 @@ from model import (BETA, Config, N, buy_hold_excess, criteria, depth_census,
                    stationary_converged, sticky_dividend_yield, strike,
                    survival_utilization, time_to_fraction, time_to_inventory,
                    trapped_fraction, trapped_fraction_walk, trapped_zero_depth)
+from model import bs_call, phi
 
 FAILURES = []
 
@@ -227,6 +228,56 @@ def main():
                                 / e30["I"] - 1)
     check("unfunded return from per-lot dividend anchoring (rejected)",
           naive / e30["mv_capital"], 0.0122, 0.0003)
+    # Section 09 sets its own 45bp-per-volatility-point slope beside
+    # Merton-Scholes-Gladstein's, and theirs has to be converted first: their
+    # axis is *percent of model premium*, ours is volatility points.  The
+    # bridge is vega -- one point of quoted volatility adds vega*0.01 to the
+    # premium, so 10% of premium is 0.10*P/(vega*0.01) points.
+    #
+    # Every input is off the papers.  1978 fn. 11: the at-the-money six-month
+    # CALL runs ~10% of stock price on the 136-stock sample.  1982 p. 8: the
+    # average put/call price ratio is 84.9% at E/S = 1.  1978 fn. 14: the
+    # semiannual dividend yield is 1.5%.  Their measured slopes are +100bp of
+    # semiannual return per 10% of premium on the 1978 calls (Table 8) and
+    # +80bp on the 1982 puts (Table 7).
+    #
+    # The one input NOT off the papers is the short rate, so the check runs
+    # the whole plausible 1963-77 range and asserts the answer is insensitive
+    # to it.  r = 6% is the internally consistent reading -- it is where their
+    # observed put/call ratio reproduces put-call parity -- and it implies a
+    # volatility of 33.6%, which the item had guessed at 30%.
+    print("--- Section 09: converting MSG's premium axis to volatility points ---")
+    T_msg, DIV = 0.5, 0.03
+    call_px, put_px = 0.10, 0.10 * 0.849
+
+    def _msg_sigma(r):
+        lo, hi = 0.01, 3.0
+        for _ in range(200):
+            mid = (lo + hi) / 2
+            lo, hi = ((mid, hi) if bs_call(1.0, 1.0, T_msg, mid, r, DIV)
+                      < call_px else (lo, mid))
+        return (lo + hi) / 2
+
+    def _msg_vega(sigma, r):
+        d1 = ((r - DIV + sigma**2 / 2) * T_msg) / (sigma * sqrt(T_msg))
+        return exp(-DIV * T_msg) * phi(d1) * sqrt(T_msg)
+
+    for r, sig_lo, sig_hi in ((0.05, 0.34, 0.35), (0.06, 0.33, 0.34),
+                              (0.08, 0.31, 0.33)):
+        s = _msg_sigma(r)
+        check(f"MSG's 10%-of-spot ATM call implies sigma at r = {r:.0%}",
+              s, (sig_lo + sig_hi) / 2, (sig_hi - sig_lo) / 2)
+        v = _msg_vega(s, r)
+        # Their slope, annualised by doubling the semiannual figure, per point.
+        check(f"...1982 put slope, bp per vol point per year at r = {r:.0%}",
+              2 * 0.0080 / (0.10 * put_px / (v * 0.01)), 0.0052, 0.0004)
+        check(f"...1978 call slope, same units at r = {r:.0%}",
+              2 * 0.0100 / (0.10 * call_px / (v * 0.01)), 0.0055, 0.0004)
+    # Their observed put/call ratio reproduces parity at r = 6%, which is what
+    # licenses quoting that column rather than assuming a rate.
+    check("MSG's observed put price against put-call parity at r = 6%",
+          call_px - exp(-DIV * T_msg) + exp(-0.06 * T_msg), put_px, 0.001)
+
     # Section 09's leverage result rests on two identities in L, and
     # `examples/returns_leverage.py` can only pin the article's own points on
     # them.  Both are checked here across the whole axis instead.
