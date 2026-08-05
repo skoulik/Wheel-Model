@@ -47,8 +47,16 @@ with the 4pm mark: a look-ahead the trade never had. See `Series.open()`.
 Dividends are *not* removed from either series: depth is a price ratio and the
 model carries dividends explicitly through delta, so a price series is what is
 wanted, not a total-return one.
+
+**The session calendar.** The series also knows which days were sessions,
+which is the only place in this project that does. Anything measuring a tenor
+against a volatility has to count on that calendar rather than on the wall
+clock -- see `Series.sessions_between()` for why, and `iv_panel.session_tenor`
+for the consumer. The article's own formulas are unaffected: its tau_p = 1/52
+is 4.85 sessions, so its week is already a trading week.
 """
 
+import bisect
 import glob
 import json
 import os
@@ -190,6 +198,42 @@ class Series:
             if c is not None:
                 return c
         return None
+
+    def session_on_or_before(self, day, limit=7):
+        """The last session date at or before `day`, or None.
+
+        The *date* behind `open_on_or_before`'s price. A caller that needs
+        both the spot an entry faced and the tenor from that entry to its
+        expiry must measure the two from the same session: the trade day is
+        inferred (see `analyze_statement`), and a day counted one out shifts
+        the spot and the tenor independently. Returns the same session
+        `open_on_or_before` prices against, including its close fallback,
+        because both search the days that carry a row.
+        """
+        for back in range(limit + 1):
+            d = day - timedelta(days=back)
+            if d in self._close:
+                return d
+        return None
+
+    def sessions_between(self, start, end):
+        """Number of trading sessions in [start, end], both inclusive.
+
+        **The clock every tenor in this project should be counted on.**
+        Realised volatility here is annualised over 252 sessions
+        (`iv_panel.forward_vol`), and Black-Scholes takes sigma and tau on one
+        clock or it returns nonsense. A put written at Monday's open for
+        Friday's close spans five sessions -- 5/252 of a year -- against four
+        calendar days, 4/365. Reading the second while annualising the first
+        understates sigma*sqrt(tau) by a factor of 1.35, and inverting a
+        premium under it hands back that much too much volatility.
+
+        The error vanishes at long tenors, where the two conventions differ
+        only by the holiday count, and is worst exactly at the weekly tenor
+        the live account trades. See `iv_panel.session_tenor`.
+        """
+        return (bisect.bisect_right(self.days, end)
+                - bisect.bisect_left(self.days, start))
 
     def adj_on_or_before(self, day, limit=7):
         """Last split-adjusted close at or before `day`."""

@@ -8,9 +8,10 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, I-5, II-1 through II-17, IV-6, IV-7, INF-1 — mean those
-items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
-numbered around them; they closed on 2026-07-28 and had been missing from it since.)
+recycled or closed up: the gaps — I-3, I-5, II-1 through II-17, IV-5, IV-6, IV-7, INF-1 — mean
+those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
+numbered around them; they closed on 2026-07-28 and had been missing from it since. IV-5 closed
+2026-08-05.)
 
 Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section body carries such a
 flag** (checked 2026-08-01), and that is the intended steady state: an in-text flag is a promise
@@ -27,11 +28,11 @@ are now cited** — §07's four arrived with II-29.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with eleven items outstanding**
-(II-18 through II-28 — nine from the literature pass of 2026-07-31, which reopened Part II the day
-it closed, and two from the Merton–Scholes–Gladstein read of 2026-08-01 that closed I-5; **not one
-of the eleven changes a formula, a verdict or a number**, the three items that did having all
-closed on 2026-08-04);
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with ten items outstanding**
+(II-18 through II-28 less the closed II-22 — eight from the literature pass of 2026-07-31, which
+reopened Part II the day it closed, and two from the Merton–Scholes–Gladstein read of 2026-08-01
+that closed I-5; **not one of the ten changes a formula, a verdict or a number**, the three items
+that did having all closed on 2026-08-04);
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
@@ -356,13 +357,14 @@ tag, which drops the count the checker prints.
 ## Part II — One asset
 
 Part II closed on 2026-07-31, was reopened the same day by the literature pass, and has been
-reopened three times since by reading the sources that pass had only listed. **Twelve items are
+reopened three times since by reading the sources that pass had only listed. **Ten items are
 open**, they divide in three, and **none of them changes a formula, a verdict or a number** —
 not one of them even adds a number. The three that did — II-22, II-29 and II-30 — all closed on
 2026-08-04 and are in [`DONE.md`](DONE.md); §00, §07, §08 and §10 carry their edits.
 
-**Six land in §09**, and IV-5 edits it a seventh time, so read them together before touching the
-section. Two are corrections to what the section already says — **II-18** the level of the
+**Six land in §09**, so read them together before touching the section. (IV-5 edited it a
+seventh time and closed on 2026-08-05; §09:162 is its sentence and is now measured rather than
+asserted.) Two are corrections to what the section already says — **II-18** the level of the
 volatility premium, **II-19** its missing tenor axis — two are additions the section never
 attempted: **II-20** the first risk statistic anywhere in the article, and **II-21** the detour
 that keeps II-20 from being read as a comparison it is not — **II-26** is the citations §09
@@ -459,9 +461,21 @@ one — which is a stronger statement than the article makes for it anywhere. §
 - **§09:152** — "several points clear of the 2–4 the literature reports" measures the live
   account's put leg against a baseline that is now wrong. **Strip the baseline, and do not print
   the multiple.** Say the account's puts were dear by somewhat more than the single-name
-  literature would predict and leave the size to [the live section](#sec:live): how much of that
-  gap is skew rather than premium is a measurement question (D2 of the pass, not yet converted),
-  and §09 must not brag about the live account's spread ahead of it.
+  literature would predict and leave the size to [the live section](#sec:live).
+
+  **This sentence is now false on its own terms as well, and IV-5 is what made it so** (2026-08-05).
+  It is the one piece of stale live text in the article: the corrected panel puts the put leg at
+  **+4.5 points** over subsequently realised volatility, which is not "several points clear" of
+  2–4 but the top of that range. IV-5 deliberately did not touch it — the repair needs II-18's
+  index/single-name split, which is this item — so **it is the first thing to fix when this item
+  is written**, and it should not wait for the rest of §09's edits.
+
+  **And the "skew rather than premium" question the bullet was deferring is answered.** IV-5's
+  cross-tab measures both legs against distance from the money and finds near-money contracts
+  quoted within a fraction of a point of realised volatility on *both* legs, with the spread
+  widening outward — so the account's put-leg richness is a **skew** measurement, taken 5–10%
+  out of the money, against a literature baseline measured near the money. Those are not the same
+  object and this bullet's replacement sentence must not compare them as though they were.
 
 **No formula, code or frozen case changes** beyond that one new sweep case. Nothing recomputes.
 
@@ -473,11 +487,17 @@ one point. §05 explicitly forwards the quantitative statement to §09, so §09 
 it and is the only place the numbers need to be right.
 
 **Related, and not this item.** The citations belong in §03 (**I-1**, whose subsection 4 is this
-item's other half). The live account's own spread wants an ATM-matched, tenor-matched re-cut of
-`iv_panel.py` before §15 quotes either figure — D2 of the pass, now **IV-5**, which also edits
-§09 three lines away from this item and should be sequenced with it. And the structure Bakshi &
-Kapadia imply, a single-name premium scaling with beta rather than a flat scalar, is outlook
-material (**IV-3**), not a change to the spine.
+item's other half). And the structure Bakshi & Kapadia imply, a single-name premium scaling with
+beta rather than a flat scalar, is outlook material (**IV-3**), not a change to the spine.
+
+**IV-5 landed first and did half the groundwork** (2026-08-05). It was the re-cut of `iv_panel.py`
+this item was waiting on, and it edited §09 three lines away. Two things it hands over. The live
+put leg is **+4.5 points**, not the ~+10 that made the comparison look tenfold — so against the
+1.07–1.5 the single-name literature reports, the account is dear by about threefold rather than
+by an order of magnitude. And the comparison is **not like-for-like even after the fix**: ours is
+measured 5–10% out of the money where the skew lives, theirs near the money, and IV-5's cross-tab
+shows near-money contracts on both legs sitting within a fraction of a point of realised
+volatility. Whoever writes this item states that rather than printing a multiple.
 
 **II-19. §09's single σ_IV has no tenor axis, and the model's cadence-neutrality is not honest
 without one.** (Divergence D3 of
@@ -524,8 +544,12 @@ depth**, and closes on premium volume. **It does not name tenor** — and the ar
 example straddles that axis, writing weekly puts against four-week calls. If the term structure
 is real, the flat σ_IV **flatters the put leg** relative to the call leg by something like three
 points, a first-order bias in the leg the strategy leans on. IV-5's corrected panel points the
-same way: puts ≤1wk at 30.8% against calls ~monthly at 33.6% on a session clock — weekly below
-monthly, as contango predicts, though confounded by moneyness.
+same way, and **the figures below are now measured rather than indicative** (2026-08-05, on the
+session clock): puts ≤1wk at **29.0%** against calls ~monthly at **33.4%** — weekly 4.4 points
+below monthly, a wider gap than the 30.8/33.6 this item was written against, and in the direction
+contango predicts. Still confounded by moneyness, and now visibly so: IV-5's cross-tab shows
+distance from the money is the dominant axis on both legs, so the tenor effect has to be read
+within a moneyness band or not at all.
 
 **Two edits to §09.**
 
@@ -1219,6 +1243,9 @@ Neither §14 nor §15 exists; the outlook is a stub. Everything below is measure
 write-ups, with one exception: **IV-9 is a constraint on how §14 measures**, added 2026-08-04, and
 it should be read before either section is drafted rather than after.
 
+**The one thing blocking §15 has cleared**: IV-5 closed on 2026-08-05, so IV-2's withdrawn
+implied-volatility level is restored and nothing else here is waiting on a measurement.
+
 **IV-1. Write §14, verification** (`{#sec:verification}`, was #21). The spine tested against
 live data, not only simulation.
 
@@ -1265,6 +1292,18 @@ live data, not only simulation.
   a cancellation rather than on each side being right. Nothing was changed in the code; the
   decision and its evidence are in `model_vs_live.py`'s T1 docstring. Note the article itself is
   unaffected: its τ_p = 1/52 is 4.85 sessions, so its own week is already a trading week.
+
+  **The machinery to fix it now exists, and the convention is settled** (IV-5, 2026-08-05). The
+  same bug was live in `iv_panel.py` and was repaired there: `prices.Series.sessions_between()`
+  and `session_on_or_before()` count the real calendar off the price series, and
+  `iv_panel.session_tenor()` is the consumer to copy. **Take the convention rather than re-deciding
+  it** — the count is inclusive of the trade's own session, which `iv_panel.report_clock` shows is
+  the nearest of the candidate conventions to variance-true (an entry-day open→close move carries
+  **0.65** of a close-to-close session, so a k-session option is worth k − 1 + 0.65) and the
+  conservative one. Note this does *not* by itself resolve the bullet: T1's problem is that the
+  wrong convention is the one that fits, and putting the tenor right will move the prediction from
+  69.9 toward 88.7 against the 71 that occurred. Fixing the units and explaining the fit are two
+  jobs, and IV-5 only supplies the first.
 - **Three measurement traps**, worth a paragraph because all three were fallen into: reading
   depth on the day before exit discards nearly every exit; sampling lots on a synthetic τ_c grid
   scores periods at tenors never traded; and pricing an entry at the day's close when the
@@ -1384,13 +1423,30 @@ live data, not only simulation.
 - **The implied-volatility panel** (was #23). The within-name depth slope is **+30–40% relative
   IV** from shallow to deep. This is the measurement behind the article's decision to carry one
   scalar σ_IV; report it here and let [the returns section](#sec:returns)'s stated bias direction
-  be checked against it. **The level is withdrawn pending IV-5**: the panel's "~+10 points,
-  roughly double the call leg's" is measured on a calendar clock against a session-annualised
-  realised volatility, and about six of those ten points is that mismatch. Do not write §15 from
-  the old figure — re-run the panel once IV-5 lands and quote what it says then. The depth slope
-  is unaffected (within-leg, within-name and within-tenor, so the clock cancels), but it rests on
-  **9 contracts in the deepest bucket** of a column that is not monotone; quote it with that
-  qualifier or not at all.
+  be checked against it. The slope survived IV-5 unchanged, as predicted and for the stated
+  reason — it divides within leg, name and tenor, so the clock cancels: **1.00 → 1.39** relative
+  after against 0.94 → 1.29 before. It still rests on **9 contracts in the deepest bucket** of a
+  column that is not monotone; quote it with that qualifier or not at all.
+
+  **The level is restored, and it is less than half what this bullet used to carry** (IV-5 closed
+  2026-08-05). The put leg runs **+4.5 points** over subsequently realised volatility and the call
+  leg **+2.4**, against +10.7 and +7.0 as previously measured — so about six of the old ten points
+  was the calendar/session mismatch, as D2 estimated.
+
+  **Do not write "roughly double the call leg's" in any form.** IV-5 found the leg-level ratio is
+  not a well-defined quantity: the legs occupy disjoint moneyness ranges by construction, and the
+  ratio moves from 1.5× to 1.9× or from 4.3× to 2.3× depending purely on which cells are compared.
+  What §15 should report instead is what the cross-tab shows, which is a cleaner finding than the
+  one it replaces: **the spread is a function of distance from the money and barely of leg.**
+  Near-money contracts on both legs sit within a fraction of a point of realised volatility (puts
+  −5..−2% read −0.1% over 257 contracts, ATM calls −0.1% over 45), and the spread widens outward
+  on both — puts +6.0% at 5–10% below spot and +13.2% beyond, calls +1.8% / +3.1% / +5.4%. §09:162
+  already says this in prose; §15 is where the numbers go.
+
+  **And it is the direct evidence for §09:156's existing caveat**, which was argued rather than
+  measured: that the spread easiest to measure is the one on far-out-of-the-money puts, "and that
+  one is quoted precisely because those puts are not as far out of the money as they look". The
+  panel now shows exactly that shape. Worth landing the connection explicitly.
 - **The regime caveat, which bounds everything above:** the universe returned +9.96%/yr over the
   window and the held names +39.59%/yr, and **a covered-call overlay must lag in a strong
   up-market**. That is mechanical, not evidence. Neither the overlay nor the selection result is
@@ -1438,79 +1494,6 @@ cross-sectional one. Neither touches the spine.
   is out of scope and roughly which way the omission cuts. It also connects to **II-24**: the
   disposition effect's documented harm is largely a tax harm, and this article cannot price it —
   which is exactly why II-24's analogy must stay structural.
-
-**IV-5. `iv_panel.py` measures implied against realised volatility on two different clocks, and
-the article quotes the difference.** (Divergence D2 of
-[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); the clock half was found
-while converting it, 2026-07-31. **Must land before §15 is written**, and it edits §09.)
-
-**The claim at issue.** IV-2 records the put leg running **~+10 points** over subsequent realised
-volatility, roughly double the call leg. Against the *index* premium of 2–4 points that reads as
-"several points clear"; against the single-name baseline II-18 installs (1.07–1.5 points) it
-would be tenfold, which is too large to leave as an aside — the article uses it in two places at
-once, as evidence the premium is real and as evidence the premium does not arrive.
-
-**Most of it is a units mismatch.** `iv_panel.py` inverts Black–Scholes with
-`tau = (exp - open).days / 365` — calendar time — while `forward_vol` annualises realised
-volatility over **252 sessions**. The two coincide at monthly tenors and diverge badly at weekly
-ones: a four-day put is priced with too little diffusion, so the inversion hands back too much
-volatility to match the premium. Priced on session time at a true 20% and inverted on calendar
-time, a weekly put reads **26.6%**; the same test on a 25-day call reads **19.8%**. **An artifact
-that inflates only the short leg is exactly the shape of the reported finding.**
-
-Measured per contract against the real session calendar, the inflation factor is **1.204** at
-≤1wk, 1.089 at 1–3wk, ~1.04 at monthly and 1.016 at longer. Indicative effect on the panel's own
-medians (computed outside the script, 2026-07-31 — the re-cut must redo it per contract):
-
-| leg / tenor | as measured | on a session clock | RV | spread |
-|---|---|---|---|---|
-| puts ≤1wk (n=493) | 37.1% | 30.8% | 26.7% | **+10.5 → ~+4.1** |
-| calls ~monthly (n=78) | 34.8% | 33.6% | 31.0% | **+3.8 → ~+2.6** |
-
-So roughly **six of the ten points is the clock**, and the put/call asymmetry falls from ~2.8× to
-~1.6×. This is the same mismatch IV-1 documents for `model_vs_live.py` — the 1.35 factor at the
-median put — which nobody had connected to `iv_panel.py`. **The article's own
-formulas are unaffected**: τ_p = 1/52 is 4.85 sessions, so its week is already a trading week.
-
-**The skew half is measurable after all, and cheaply.** The pass prescribed an ATM-matched
-re-cut and doubted the data supported one. It does, on the call leg only, and *by design*: the
-call strike is frozen at the lot's basis, so a shallow lot writes a near-money call. Cross-tabbing
-the call leg by moneyness on a session clock gives a clean monotone skew signature —
-**+1.6 (ATM, n=43) / +3.1 / +4.1 / +6.7 (>+10%, n=65)**. The put leg has no ATM cell by design and
-never will; the 35 near-money puts in the current skew table are accidents and behave like one
-(median IV 18.1% against 45.7% two buckets out).
-
-**What to do, in order, with an early exit.**
-
-1. **Fix the clock.** Put the comparison on session time (τ = sessions spanned / 252, counted
-   from the price series, which knows the real calendar) and print the as-quoted calendar IV
-   beside it so the panel still ties to what the broker screen showed. This is a measurement
-   change, not a modelling one.
-2. **Add the missing cross-tab**: IV − RV by leg × moneyness × tenor. The panel currently reports
-   IV − RV by tenor and IV by moneyness and never crosses them, which is why the skew confound
-   was invisible.
-3. **Read the residual and stop.** If it lands near the single-name literature, the remaining
-   work is a confirmation, not a rescue.
-
-**Do not buy option-chain data for this.** Historical chains on ~500 name-days would be needed to
-match ATM on the put leg, and `prices.py` fetches underlying OHLC only — that is a paid-data
-question (OptionMetrics/ORATS/CBOE DataShop), not a scripting one. The ATM call cell already
-exists for free, and **it can characterise but not calibrate**: split by tenor it is 28 / 6 / 9
-contracts reading −3.0 / +2.0 / +9.1, so the cell that actually matches Bakshi & Kapadia's
-near-money short-dated object rests on nine contracts. That is why II-18 calibrates §09 from
-published figures and not from ours. If a fallback is ever wanted for the put leg, fitting a smile
-per name-date from the operator's own cross-section and evaluating at x = 0 is interpolation
-rather than new data — model-dependent, and it must be reported as such.
-
-**Two consequences, one of them in live text.**
-
-- **§09:162 says "the put leg's spread over realised volatility ran to roughly twice the call
-  leg's."** That rests on the uncorrected panel and is ~1.6× after the fix. Whoever runs this item
-  edits that sentence; it is the only Part II text IV-5 touches, and II-18 is working three lines
-  away in the same section.
-- **IV-2's "~+10 points, roughly double the call leg" is withdrawn pending this item** — see the
-  note on that bullet. **The depth slope survives**: it divides by each name's own median IV
-  within one leg at one tenor, so the clock cancels, and §09:164's "roughly a third" is untouched.
 
 **IV-8. MSG's two methodological cautions, one of which delivers a promise nothing currently
 delivers.** (From the Merton–Scholes–Gladstein read of 2026-08-01. Numbered **IV-8** and not IV-6: IV-6 and
