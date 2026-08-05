@@ -136,6 +136,37 @@ def main():
     check("yield lift from a 30% fall with the payout unchanged",
           1 / 0.70 - 1, 0.43, 0.005)
     check("capital per share of a lot 50% down in log terms", exp(0.5), 1.65, 0.01)
+    # Section 05's caveat on exercise style.  A dividend-driven early call
+    # exercise pays when the call's remaining TIME value falls below the
+    # dividend about to be paid, so the threshold is the S/K at which
+    # C - (S - K) = delta/4 * S.  The point the section makes is that the
+    # threshold at the START of a call period is the whole of one period's
+    # typical move -- and the lot begins that period BELOW its strike, so the
+    # required move is that plus the depth it starts at.
+    #
+    # These were 6.8/4.9/3.1/1.3/0.3 when II-25 raised them, computed with a
+    # ZERO dividend yield inside Black-Scholes while assuming the stock pays
+    # 2.5%.  Pricing a payer as a non-payer overstates the call and so its
+    # time value, which is why every figure ran high.
+    def _early_call_threshold(days):
+        tau, lo, hi = days / 365, 1.0, 3.0
+        for _ in range(200):
+            mid = (lo + hi) / 2
+            tv = bs_call(mid, 1.0, tau, STD.sigma, STD.r, STD.delta) - (mid - 1)
+            lo, hi = ((lo, mid) if tv < STD.delta / 4 * mid else (mid, hi))
+        return (lo + hi) / 2 - 1
+
+    for days, want in ((28, 0.055), (21, 0.041), (14, 0.028),
+                       (7, 0.012), (3, 0.002)):
+        check(f"early call exercise needs the stock this far above the strike, "
+              f"{days}d out", _early_call_threshold(days), want, 0.0007)
+    # The comparison the section draws: at the start of a period the threshold
+    # IS one period's standard deviation, and the lot starts below the strike.
+    check("...against one call period's typical move, sigma*sqrt(tau_c)",
+          STD.sigma * sqrt(STD.tau_c), 0.055, 0.0007)
+    # An ex-dividend date falls inside a four-week call about 4 times in 13.
+    check("chance an ex-dividend date lands inside one call period",
+          STD.tau_c / 0.25, 4 / 13, 0.01)
     # An invariant of the occupation walk rather than a quoted figure: the exit
     # mass sums to one whenever nu > 0.  Worth keeping beside
     # `examples/holding_trapped.py`, which reaches the same conclusion by a

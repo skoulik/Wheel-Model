@@ -8,8 +8,8 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, I-5, II-1 through II-19, II-22, II-26, II-27, IV-5, IV-6,
-IV-7, INF-1, INF-6 — mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
+recycled or closed up: the gaps — I-3, I-5, II-1 through II-19, II-22, II-25 through II-28, IV-5,
+IV-6, IV-7, INF-1, INF-6 — mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
 numbered around them; they closed on 2026-07-28 and had been missing from it since. IV-5 closed
 2026-08-05.)
 
@@ -19,8 +19,8 @@ to a reader and should be added only when the text genuinely defers something. *
 `sections/98-bibliography.md` (recounted 2026-08-05, after the II-18 reads), in the internal
 field after an entry's anchor, which is stripped at assembly and so never reaches a reader; they
 mark the two unread downloads, the one source that may be cited for its existence only, and the
-entries the readings of 2026-08-04 and 2026-08-05 left owing something to I-7, II-18, II-23, II-25,
-III-3, IV-3 or IV-9. The bibliography stands at **43 entries**, **18 of them [F]** against 18 [A]
+entries the readings of 2026-08-04 and 2026-08-05 left owing something to I-7, II-23, III-3, IV-3
+or IV-9. The bibliography stands at **43 entries**, **18 of them [F]** against 18 [A]
 and 7 [P] after the two promotions of 2026-08-05, and **twelve are cited** from seven sections.
 
 ## Where things stand
@@ -28,18 +28,17 @@ and 7 [P] after the two promotions of 2026-08-05, and **twelve are cited** from 
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with six items outstanding**
-(II-20 through II-28 less the closed II-22, II-26 and II-27 — five from the literature pass of
-2026-07-31, which reopened Part II the day it closed, and one from the Merton–Scholes–Gladstein
-read of 2026-08-01 that closed I-5; **not one of the six changes a formula, a verdict or a
-number**, the seven items that did having closed on 2026-08-04 and 2026-08-05);
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with four items outstanding**
+(II-20, II-21, II-23 and II-24, all four from the literature pass of 2026-07-31, which reopened
+Part II the day it closed; **not one of the four changes a formula, a verdict or a number**, the
+nine items that did having closed on 2026-08-04 and 2026-08-05);
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **six open items** (II-20 – II-28, less II-22, II-26, II-27) — two in §09, two in §05, one in §08; II-23's six remaining bullets reach §02, §07, §09, §10 and §11. §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30; §09 **five times** on 2026-08-05, by IV-5, II-18, II-26, II-27 and II-19 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **four open items** (II-20, II-21, II-23, II-24) — two in §09, one in §08; II-23's six remaining bullets reach §02, §07, §09, §10 and §11. **§05 is closed.** §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30; §09 five times on 2026-08-05 and §05 once |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -403,13 +402,13 @@ untouched by any of it**, being about risk rather than return, and they are the 
 that never depended on the literature pass's summaries — which, on the evidence of II-18, is the
 property worth noting about them.
 
-**Three came from the pass's harvest**, converted 2026-08-01, and none of them moves a number
-anywhere: **II-23** cites six borrowed things where the reader meets them, and reaches outside
-Part II to do it (§00, §02, §11); **II-24** gives §08's census its second analogy; **II-25** puts a
-size behind §05's early-exercise caveat. Two others of that vintage have closed — **II-22** on
-2026-08-04, which replaced §08's hand-derived census integrals with the theorem they are instances
-of and handed §10 the biconditional form of its own capital criterion, and **II-26** on 2026-08-05,
-the citations §09 owed for results it argued out unaided.
+**Two came from the pass's harvest**, converted 2026-08-01, and neither moves a number anywhere:
+**II-23** cites six borrowed things where the reader meets them, and reaches outside Part II to do
+it (§00, §02, §11); **II-24** gives §08's census its second analogy. Three others of that vintage
+have closed — **II-22** on 2026-08-04, which replaced §08's hand-derived census integrals with the
+theorem they are instances of and handed §10 the biconditional form of its own capital criterion,
+and **II-26** and **II-25** on 2026-08-05, the citations §09 owed for results it argued out
+unaided and the size behind §05's early-exercise caveat.
 
 **They were recorded as depending on §03 (I-1) for the citations themselves, and that dependency
 is weaker than it looks** (found 2026-08-04, writing II-29 and II-22). §07 and §08 have now landed
@@ -418,10 +417,12 @@ to the bibliography, and §03 will supply the pedigree when it exists. **§03 ca
 the section carries the pointer** still holds as a division of labour — it is not a running order,
 and none of these items is blocked.
 
-**Two came from actually reading what the pass had only listed at [A] or [P]**, and they are the
-ones that carried measurements: **II-27** and **II-28**, both from Merton–Scholes–Gladstein
-(2026-08-01). II-27 closed on 2026-08-05 — its conversion put their slope at ~50 bp per volatility
-point against §09's 45 — leaving **II-28**, which lands in §05 and moves nothing.
+**Two came from actually reading what the pass had only listed at [A] or [P]**, they were the ones
+that carried measurements, and **both are now closed**: **II-27** and **II-28**, from
+Merton–Scholes–Gladstein (2026-08-01), landing in §09 and §05 on 2026-08-05. II-27's conversion put
+their slope at ~50 bp per volatility point against §09's 45; II-28 gave §05 the reason the European
+treatment is *right* rather than merely small-error — assignment in the wheel is an entry and not
+an exit, so MSG's stop-loss is absent by construction.
 
 **Two more came the same way and are already closed**, which is why the reads are worth doing.
 **II-29** — Chang & Peres, Janssen & van Leeuwaarden, Chernoff — moved §07's grid tax from 2.1× to
@@ -693,122 +694,6 @@ the tax descope) — the analogy is structural, not a transfer of Odean's cost e
 detour must not be allowed to carry an argument: the result is already established by §08's length
 bias and [the holding-time section](#sec:holding)'s first passage, and the analogy only makes it
 memorable.
-
-**II-25. §05's exercise-style caveat asserts a conclusion that can be cited and sized.** (From the
-second-pass list of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md);
-converted 2026-08-01, with the threshold computed while converting.)
-
-§05's "caveat on exercise style" says early call exercise on dividend payers "shortens holding
-periods and therefore *helps* the strategy, so omitting it is conservative". That is an
-assertion, and `DONE.md`'s American-vs-European entry resolved the question on it. The pass
-supplies a figure the resolution did not have: **Bakshi & Kapadia (2003, JoD) [F]** measure the
-American-exercise premium at **about 2 volatility points** on short-dated near-money calls. At
-§09's ~45 bp of edge per volatility point that would be ~90 bp/yr if it bound — the size of the
-entire claimed edge — so it is worth knowing why it does not.
-
-**Verified against the copy 2026-08-05** and the qualifiers are exactly as this item states them:
-"the early exercise premium is equivalent to about 2 percentage points of volatility for our sample
-of short-term near-money calls", where short-term is **14–30 days** and near-money is **±2.5%**.
-Those two qualifiers are the whole of why the figure does not reach our calls, so quote it with
-them attached or not at all.
-
-**It does not bind, and the reason is structural rather than empirical.** Our calls are **out of
-the money on every date one is written**: the strike is frozen at the lot's basis and a lot
-survives only while x > 0, which is S < K_c. Bakshi & Kapadia's 2 points is a *near-money* figure,
-and near-money is exactly where the American premium concentrates. It is an upper bound on an
-object this strategy never sells.
-
-**The one channel that could bite, sized 2026-08-01.** A lot can rise above its strike
-*mid-period* — §07 reports a fifth of the live book's inventory-time was spent above its own call
-strikes — so a dividend-driven early exercise is available if an ex-dividend date falls inside the
-call period. It needs the call's remaining time value below the quarterly payout of δ/4 = 0.625%
-of the price. At σ = 20%, that requires the stock to be above the strike by:
-
-| days to expiry | 28 | 21 | 14 | 7 | 3 |
-|---|---|---|---|---|---|
-| stock above strike by | 6.8% | 4.9% | 3.1% | 1.3% | 0.3% |
-
-An ex-dividend date falls inside a given four-week call with probability ≈ 4/13. **The threshold
-is self-defeating in both directions.** Early in the period, where an exercise would actually
-shorten the wait, it demands 6.8% — more than a typical period's entire move of σ·√τ_c = 5.5%,
-starting from a lot that was *below* its strike at the last grid point. Late in the period the
-threshold collapses toward zero, but so does what is gained: exercise three days early instead of
-at expiry changes nothing, because the lot leaves either way. **And a lot that far above its
-strike was leaving at expiry in any case** — that is what q(x) says at negative depth. Early
-exercise accelerates exits that were already going to happen, which is the direction §05 claims;
-what is new is that the claim now has a size rather than a hand-wave.
-
-**What to do, and it is small.** Add the citation and the reason to §05's caveat, so that "is
-conservative" becomes "is conservative, and this is the size of what is omitted". Append a dated
-`**Amended:**` note to `DONE.md`'s American-vs-European entry recording that the literature pass
-reopened it and it closed the same way with a number behind it. **This does not reopen the
-descope** — nothing in the model changes, and the European treatment stands.
-
-**II-28. The put leg's early exercise, where MSG 1982 supplies a number and a warning — and one
-headline result that must not be imported.** (From the same read; **the put-side twin of II-25**,
-which sized this question for calls and found it did not bind. This one binds differently.)
-
-II-25 established that early exercise does not reach our *calls*: they are out of the money on
-every date one is written, and the American premium lives near the money. **The put leg has had
-no equivalent treatment.**
-
-**The frequencies.** Six-month puts, 136-stock sample, July 1963 – June 1977 (Table 1), percent
-exercised early / at expiration / never:
-
-| | early | at expiry | never |
-|---|---|---|---|
-| OTM, E = 0.9·S | 24.7 | 3.0 | 72.3 |
-| ATM, E = 1.0·S | 43.7 | 3.1 | 53.2 |
-| ITM, E = 1.1·S | 65.4 | 3.2 | 31.4 |
-
-DJ never-exercised: 73.7 / 52.3 / 25.2. Ours are OTM by construction, which is the top row — but
-these are *six-month* puts under 1970s rates and dividend yields against our weekly ones, so the
-window in which early exercise can pay is a fraction of theirs. Quote 24.7% with the tenor
-attached or it will read as a claim about us.
-
-**The warning is theirs** (p. 23): *"any simulation of put-option strategies that assumes all put
-positions are held until the expiration date will systematically understate the returns to the
-buyers of puts and overstate the returns to the writers of puts."* Our model is European; that
-sentence is aimed at what we do.
-
-**What it costs is the tail, not the mean**, and their own tables measure it. Table 6 re-runs the
-simulation with the same premiums and early exercise switched off:
-
-| 136-stock, ATM | with early exercise | held to expiry |
-|---|---|---|
-| average return % | 4.1 | 4.1 |
-| standard deviation % | 5.6 | 6.6 |
-| lowest return % | −6.4 | −13.2 |
-| skewness | +0.44 | −0.44 |
-
-The mean does not move. The left tail roughly doubles and the skew changes sign.
-
-**The result that must not be imported, and the item's reason to exist.** In Table 5 uncovered
-put writing beats fully covered call writing on every axis in all six strike-by-universe
-pairings — higher return, lower standard deviation, positive skew, smaller worst loss — and beats
-the DJ stock portfolio outright at E/S = 1.1. A reader who has met MSG will expect the wheel's
-put leg to inherit that. **It does not.** The advantage is early exercise acting as a
-*stop-loss*: when the stock falls far enough MSG repurchase the put at intrinsic value and the
-proceeds sit in commercial paper for the balance of the period, so the position is closed and the
-loss truncated. **The wheel has no such exit.** Assignment does not end our exposure; it converts
-the short put into a lot that then rides the depth process to its own barrier, which is the whole
-of Part II. So the wheel's put leg should be expected to resemble their Table 6 rather than their
-Table 5 — and the European treatment is the *right* model of it for a reason unrelated to the
-American premium being small.
-
-**What to do.** Extend §05's caveat on exercise style — calls-only after II-25 — with one
-paragraph for puts: the observed frequency at OTM strikes and six-month tenor, why a weekly tenor
-sees far less of it, and the structural point that assignment in the wheel is an *entry* and not
-an exit, so MSG's stop-loss is absent by construction. **This does not reopen the descope**, no
-formula changes, and like II-25 it turns an assertion into a sized one. Append the dated
-`**Amended:**` note to `DONE.md`'s American-vs-European entry alongside II-25's.
-
-**One smaller thing, folded in here rather than given an item.** 1982 pp. 9–11 finds the put–call
-parity model systematically understates American put values, worst in high-rate periods (1969,
-1974), concluding that "for all but the 'roughest' of evaluations, the parity model is not an
-appropriate put-pricing model". **We are not exposed today** — `model.py:120`'s `bs_put` is a
-direct European formula and does not go through `bs_call` — but parity is the natural shortcut
-for anyone extending the pricing, and §05's caveat is the place to spend a clause on it.
 
 ## Part III — Many assets
 
