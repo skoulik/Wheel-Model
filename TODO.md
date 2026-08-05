@@ -14,14 +14,18 @@ numbered around them; they closed on 2026-07-28 and had been missing from it sin
 2026-08-05.)
 
 Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section body carries such a
-flag** (checked 2026-08-01), and that is the intended steady state: an in-text flag is a promise
-to a reader and should be added only when the text genuinely defers something. **Fourteen** live in
-`sections/98-bibliography.md` (recounted 2026-08-05, after the II-18 reads), in the internal
-field after an entry's anchor, which is stripped at assembly and so never reaches a reader; they
-mark the two unread downloads, the one source that may be cited for its existence only, and the
-entries the readings of 2026-08-04 and 2026-08-05 left owing something to I-7, III-3, IV-3 or
-IV-9. The bibliography stands at **43 entries**, **18 of them [F]** against 18 [A]
-and 7 [P] after the two promotions of 2026-08-05, and **twelve are cited** from seven sections.
+flag** (checked 2026-08-05), and that is the intended steady state: an in-text flag is a promise to
+a reader and should be added only when the text genuinely defers something. Twenty-one live in
+`sections/98-bibliography.md`, in the internal field after an entry's anchor, which is stripped at
+assembly and so never reaches a reader; they mark the one unread download, the sources that may be
+cited for their existence only, and the entries the readings of 2026-08-04 and 2026-08-05 left
+owing something to I-7, III-3, IV-3 or IV-9.
+
+**The bibliography stands at 43 entries** — **16 [F]**, 17 [A], 6 [P] and 3 [R] textbooks — of
+which **26 are cited, from 9 sections**. Three still carry `[cite unverified]`. Those counts move
+most weeks and are printed by `python -m examples --references`, so **read them off the checker
+rather than from here**; what is recorded here is only the shape, which is that the uncited
+remainder is almost entirely §03's.
 
 ## Where things stand
 
@@ -119,14 +123,17 @@ acceptable; silently generalising from US indices to "what systematic option wri
 not.
 
 **The reading list now has a live counterpart, and §03 writes into it rather than beside it**
-(added 2026-08-01). `sections/98-bibliography.md` holds all thirty-eight entries — the pass's
-thirty-two plus the six textbook and foundational sources the sections were already leaning on
-informally — each with a `{#ref:...}` anchor, its read level and its local filename. The draft's
-§8 is now the *historical* list and the bibliography is the live one; keep read levels current in
-the bibliography, not there. Prose cites by anchor and never by number (see §00's citation
-convention), and `python -m examples --references` prints how many entries are still uncited —
-**thirty-two of them, essentially all of §03's**. That count is the readiness measure for this
-item: an entry §03 never cites should be deleted from the bibliography rather than shipped.
+(added 2026-08-01). `sections/98-bibliography.md` is the live list — the pass's entries plus the
+textbook and foundational sources the sections were already leaning on informally — each with a
+`{#ref:...}` anchor, its read level and its local filename. The draft's §8 is the *historical*
+list; keep read levels current in the bibliography, not there. Prose cites by anchor and never by
+number (see §00's citation convention).
+
+**The readiness measure for this item is the uncited count**, which `python -m examples
+--references` prints every run: **an entry §03 never cites should be deleted from the bibliography
+rather than shipped.** Read the number off the checker rather than from here — it has fallen
+steadily as Part II landed its own citations, and what is left uncited is now almost exactly §03's
+own working set.
 
 What remains is writing `sections/03-prior-work.md`, for which §6 of the draft proposes a
 six-subsection skeleton. Two things it must carry:
@@ -229,9 +236,9 @@ claim a later pass can only strengthen.
 **If it finds something**, the repair is confined to §03's subsection 6. No result in the article
 depends on being first, and that is worth saying inside §03 rather than only here.
 
-**I-7. Bibliography entries carrying details nobody has checked against a copy — eight cleared,
-five open.** (From building `sections/98-bibliography.md`, 2026-08-01; recounted 2026-08-04, three
-times.)
+**I-7. Bibliography entries carrying details nobody has checked against a copy — three open.**
+(From building `sections/98-bibliography.md`, 2026-08-01. The count moves whenever an entry is
+cleared; `python -m examples --references` prints it, and that is the number to trust.)
 
 Every entry the pass supplied came with its bibliographic details; the ones added to cover what
 the sections were already citing informally did not, and were reconstructed rather than read off
@@ -251,7 +258,10 @@ volume and year are settled from inside the copy by his own reference [4] — pa
 series, *Ann. Math. Statist.* **36** 28–54, 1965, the article immediately preceding this one in the
 same volume.
 
-**Four are open**, one of them new to the list rather than left over from it. (There were five; janssen-vanleeuwaarden-2007 closed with II-29 on 2026-08-04 — see below.)
+**Three are open**, and they are the residue after a run of clearings: janssen-vanleeuwaarden-2007
+closed with II-29 on 2026-08-04, and li-linetsky on 2026-08-05 (below). Of the three, **one can be
+finished** — israelov-covering-the-world, which only wants reading — and the other two are
+Siegmund's, where the obstacle is a missing copy rather than a missing read.
 
 - **israelov-covering-the-world** is downloaded but unread, and the title or author list is the
   guessed part. The read is owed by **I-1**; clearing the citation falls out of doing it.
@@ -265,13 +275,25 @@ same volume.
   This is the second instance of the Janssen pattern (a full read that cannot clear a citation),
   and the first where the *anchor itself* was wrong, which is worse than a wrong field: an anchor
   is what prose cites by.
-- **siegmund-1985** has no copy. Chang & Peres's reference list corroborates title, publisher and
-  city — better than memory, not a copy; the edition and printing are unchecked.
+- **siegmund-1985** has no copy, and it is a **book** — *Sequential Analysis: Tests and Confidence
+  Intervals*, Springer — which is why it is the hardest of the three to source. Chang & Peres's
+  reference list corroborates title, publisher and city; the edition and printing are unchecked.
 - **siegmund-1979** was **never tagged, and was wrong in exactly the way this item says matters
   most**: the title had been silently truncated to "Corrected Diffusion Approximations" for
   "Corrected diffusion approximations in certain random walk problems". Completed, with pages
-  701–719, from Chang & Peres's reference list — and now *tagged*, because that is not a copy
+  701–719, from Chang & Peres's reference list — and then *tagged*, because that is not a copy
   either.
+
+  **A copy arrived on 2026-08-05 (Sergei) and settled the field that mattered.** It is the Stanford
+  Technical Report No. 4 of August 1978 — the preprint — and its cover reads "Corrected Diffusion
+  Approximations in Certain Random Walk Problems". So the title is now off a source rather than a
+  reference list, and it **adjudicates the transposition**: Chang & Peres had it right and
+  **Janssen & van Leeuwaarden's list is the one that swapped this title with the 1985 book's**.
+  That is the first time two disagreeing reference lists have been settled by a copy, and it went
+  the way the *usage* pointed, as this item predicted it would. **The tag stays, narrowed**: a
+  technical report cannot supply the journal, volume, issue, pages or the 1979 date, all of which
+  are still Chang & Peres's. The level stays **[A]** — cover and front matter only — and §07 quotes
+  no number from it.
 **janssen-vanleeuwaarden-2007 was the fifth, and it was tagged and cleared within one day** — a
 whole life cycle of this item, worth keeping as its worked example. It was tagged 2026-08-04 **by
 having been read in full**: the copy is the authors' own typescript (`paperGRWdiffstyleFinal.dvi`,
@@ -284,15 +306,16 @@ II-29 put one of its figures in §07 — and cleared by **the publisher**, since
 could have closed it**, which is the strongest statement of the two-independent-checks point this
 item has produced. Full details in [`DONE.md`](DONE.md).
 
-The printed count therefore went 10 → 3 → 5 → 6 → 5 → **4**. Every rise was this item working
-rather than regressing, and both falls are entries it has *closed*.
+The printed count has gone 10 → 3 → 5 → 6 → 5 → 4 → **3**. Every rise was this item working
+rather than regressing, and every fall is an entry it has *closed*.
 
-**One entry was born clear**, and it is the standard the other four are being held to:
-`glynn-whitt-1989` was added on 2026-08-04 *after* its copy had been obtained and read, with every
-field taken off the JSTOR cover page and the article header. It is the first entry in the
-bibliography that never needed the tag, and the first added in that order. The 40th entry costs
-this item nothing, which is the argument for obtaining a copy before writing an entry rather than
-after.
+**One entry was born clear**, and it is the standard the remaining three are held to:
+`glynn-whitt-1989-extensions` was added on 2026-08-04 *after* its copy had been obtained and read,
+with every field taken off the JSTOR cover page and the article header. It is the first entry in
+the bibliography that never needed the tag, and the first added in that order. It cost this item
+nothing, which is the argument for obtaining a copy before writing an entry rather than after —
+and `carr-wu-2009` and `bakshi-kapadia-2003-rfs` repeated the pattern on 2026-08-05, both clean in
+every field on being read.
 
 **A fourth reference list, and it is wrong about the one paper we now hold.** (2026-08-04, from
 [Glynn & Whitt (1989)](#ref:glynn-whitt-1989-extensions), read in full the same day.) Their list gives
@@ -366,8 +389,29 @@ are not printed on the article's pages and come from [Carr & Wu](#ref:carr-wu-20
 list — which, in the same line, has the title wrong the other way, printing "Premium" singular
 where the copy is plural. **A sixth reference list, and it is wrong about the paper we hold, in
 the field this item says always goes first.** The two entries read that day and checked field by
+**And a sixth check, later the same day, was the first to *confirm* a title rather than correct
+one** — which is the outcome this item wants and had not yet seen. Sergei's copy of siegmund-1979
+(the 1978 Stanford technical report) reads "Corrected Diffusion Approximations in Certain Random
+Walk Problems", exactly the correction Chang & Peres's list had already supplied on 2026-08-04.
+That is not a sixth corruption; it is the first *verification* of one, and it does a second job
+besides: it **adjudicates between two disagreeing reference lists**, confirming Chang & Peres and
+convicting Janssen & van Leeuwaarden of the transposition. The lesson is the one this item has been
+circling — when two lists disagree, the one whose *usage* matches its list is the one to believe,
+and a copy is what proves it.
+
 field, `carr-wu-2009` and `bakshi-kapadia-2003-rfs`, were both **clean in every field** — the first
 two [A]→[F] promotions to cost this item nothing.
+
+**And the read-level rule caught a figure this item could never have seen** (2026-08-05). §09's
+BXM detour quoted "up and down betas of roughly **0.63 and 0.78**" — carried from the literature
+pass through II-21 into live prose, **with no citation attached at all**. A citation-based scan
+misses that by construction: there is no anchor in the sentence to check a read level against. The
+figures were pulled on read-level grounds (their source, [Whaley](#ref:whaley-2002), is **[A]** and
+paywalled), and reading [Israelov & Nielsen (2015)](#ref:israelov-nielsen-2015) an hour later
+showed **they were also wrong**: BXM's published split is **0.46 up and 0.85 down**, an asymmetry
+of 0.39 against the recorded 0.15. **So the worst case is not an unverified entry — it is a number
+with no entry at all**, and the check that would catch it is not a bibliography check but a scan
+for digits in prose that no source is named for. Worth building before assembly.
 
 **This is still a smaller worry than the read-level rule and a different one.** All four that
 remain open are pointers for further reading and the article quotes no figure from any of them. The one number
@@ -375,7 +419,7 @@ that looked like an exception — β = 0.5826, attributed in §07 to siegmund-19
 **two [F] sources**: chang-peres-1997 prints it to seven digits, and chernoff-1965 supplies an
 independent representation, Corollary 1(b)'s Wiener–Hopf integral, which evaluates to the same
 −0.5825972. (The value *printed* beside that integral is −0.5824; the discrepancy is his
-arithmetic and II-23 carries it.) Broadie–Glasserman–Kou carries the constant too. A reader
+arithmetic, and §07 says so.) Broadie–Glasserman–Kou carries the constant too. A reader
 following a wrong page range loses nothing but time; a reader following a wrong *title* is being
 misled.
 
@@ -1127,13 +1171,15 @@ are curves rather than points and the band between them — lot count stationary
 divergent — is visible as an area. `sensitivity()` prints it as a text grid; it wants to be drawn.
 
 **INF-5. Every quoted number gets a formula, a runnable script and a footnote.** The
-infrastructure landed 2026-07-30 — `code/examples/` with a harness, 19 modules covering all 46
-numbered formulas, 96 frozen cases, a generated appendix (`sections/99-reproduction.md`), eleven
-compositions promoted into `model.py`, and a coverage test wired into `verify_examples.py` that
+infrastructure landed 2026-07-30 — `code/examples/` with a harness, a module per formula, frozen
+cases, a generated appendix (`sections/99-reproduction.md`), eleven compositions promoted into
+`model.py`, and a coverage test wired into `verify_examples.py` that
 asserts every displayed `{#eq:...}` has a registered example, every example is cited from the
 prose, and every footnote names the script that actually backs its formula. The write-up, the
 design decision behind it (a `Case` *is* a command line) and the three prose errors it surfaced
-are in [`DONE.md`](DONE.md). **Two items of follow-up remain.**
+are in [`DONE.md`](DONE.md). The module, formula and case counts all grow with the article and are
+printed by `verify_examples.py` on every run; do not record them here. **Two items of follow-up
+remain, and both were re-checked on 2026-08-05 and are still live.**
 
 - **Five lower-value formula gaps**, all of them numbers quoted without a displayed formula: the
   census moments (§08's mean depth 38% and weighted q 0.066), the cost-basis capital of §09
