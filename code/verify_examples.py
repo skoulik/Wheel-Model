@@ -398,6 +398,38 @@ def main():
           trapped_zero_depth(hi_vol, "P"), 0.005)
 
     # ------------------------------------------------------------------
+    # Line endings, because a whole-file rewrite that silently flips them
+    # produces a diff in which every line has changed and the real edit is
+    # invisible inside it.  That happened twice on 2026-08-05, both times from
+    # reading a section with universal newlines and writing it back with
+    # newline="" -- the Edit tooling preserves endings and an ad-hoc rewrite
+    # does not.
+    #
+    # The repo is genuinely mixed and has been since before this check: the
+    # body sections are CRLF and the earliest files and stubs are LF, with no
+    # .gitattributes and core.autocrlf off.  That is nobody's decision to
+    # relitigate here, so this does NOT demand one convention.  What it catches
+    # is a file *flipping*, which is the actual failure -- so LF_SECTIONS is a
+    # baseline, and a new section is expected to match the body.
+    print("--- Structural: section files keep their line endings ---")
+    import glob as _glob
+    import os as _os
+    LF_SECTIONS = {"00-notation.md", "01-abstract.md", "02-introduction.md",
+                   "03-prior-work.md", "15-outlook.md", "98-bibliography.md"}
+    _here = _os.path.dirname(_os.path.abspath(__file__))
+    _flipped = []
+    for _p in sorted(_glob.glob(_os.path.join(_os.path.dirname(_here),
+                                              "sections", "*.md"))):
+        _name = _os.path.basename(_p)
+        with open(_p, "rb") as _fh:
+            _is_crlf = b"\r\n" in _fh.read()
+        if _is_crlf is (_name in LF_SECTIONS):
+            _flipped.append(f"{_name} is now {'CRLF' if _is_crlf else 'LF'}")
+    check("no section file has flipped its line endings", not _flipped, True, 0)
+    for _msg in _flipped:
+        print(f"      {_msg}")
+
+    # ------------------------------------------------------------------
     # Section 09's detour declines to compare its betas with BXM's published
     # pair, and quotes three numbers to say how far apart the estimators are.
     # `bxm_beta.py` measures them by replicating BXM's own construction; this

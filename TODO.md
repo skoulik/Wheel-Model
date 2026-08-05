@@ -114,13 +114,17 @@ existence** — that two arXiv papers name the wheel and neither builds a struct
 N1's evidence — and for nothing else. Svozil (2026), arXiv:2604.13334 **[P]**, is the other; it is
 qualitative, contributes no machinery, and is consistent with our regime caveat.
 
-**One unread download belongs to this item** (planned 2026-08-01).
-`literature/israelov-et-al-covering-the-world-global-covered-calls.pdf` is downloaded and **not
-read**. It is global evidence on covered calls, and its natural home is §03's subsection 2 — "what
-the record says" — which is otherwise entirely US index data (BXM, PUT/WPUT, CMBO). Read it before
-writing that subsection, **or** state there that the record cited is US-only and why. Either is
-acceptable; silently generalising from US indices to "what systematic option writing returns" is
-not.
+**The one unread download is read, and it settles the choice this item was offering** (read
+2026-08-05). [Israelov, Klein & Tummala (2018)](#ref:israelov-covering-the-world) **[F]** was the
+global evidence §03's subsection 2 needed, that subsection being otherwise entirely US index data
+(BXM, PUT/WPUT, CMBO). The item said: read it, **or** state there that the record cited is US-only
+and why. **Take the first branch — the record is global and it says the same thing.** Eleven
+indexes, 2006–2015: covered calls returned 6.6% against their underlyings' 7.2%, at 14.8%
+volatility against 21.2%, Sharpe 0.45 against 0.33, worst drawdown −45% against −63% — and
+*higher* compounded returns, 5.4% against 4.5%, purely through lower volatility drag. That last is
+the sentence subsection 2 wants, because it is the honest form of "equity-like returns with less
+risk". Their reference list also points at Londono (2011) for the volatility risk premium measured
+across eight global indexes, if §03 wants the premium itself shown to be non-US.
 
 **The reading list now has a live counterpart, and §03 writes into it rather than beside it**
 (added 2026-08-01). `sections/98-bibliography.md` is the live list — the pass's entries plus the
@@ -258,10 +262,12 @@ volume and year are settled from inside the copy by his own reference [4] — pa
 series, *Ann. Math. Statist.* **36** 28–54, 1965, the article immediately preceding this one in the
 same volume.
 
-**Three are open**, and they are the residue after a run of clearings: janssen-vanleeuwaarden-2007
-closed with II-29 on 2026-08-04, and li-linetsky on 2026-08-05 (below). Of the three, **one can be
-finished** — israelov-covering-the-world, which only wants reading — and the other two are
-Siegmund's, where the obstacle is a missing copy rather than a missing read.
+**Two are open, and both are Siegmund's** — the residue after a run of clearings:
+janssen-vanleeuwaarden-2007 closed with II-29 on 2026-08-04, li-linetsky and
+israelov-covering-the-world on 2026-08-05. **Every entry that a *read* could clear is now cleared.**
+What is left is blocked on copies rather than on effort: the 1979 paper wants its published
+version, since the preprint cannot supply a journal, and the 1985 entry is a **book**, which is why
+it is the hardest of all to source.
 
 - **israelov-covering-the-world** is downloaded but unread, and the title or author list is the
   guessed part. The read is owed by **I-1**; clearing the citation falls out of doing it.
