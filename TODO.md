@@ -15,13 +15,13 @@ numbered around them; they closed on 2026-07-28 and had been missing from it sin
 
 Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section body carries such a
 flag** (checked 2026-08-01), and that is the intended steady state: an in-text flag is a promise
-to a reader and should be added only when the text genuinely defers something. Eleven live in
-`sections/98-bibliography.md` (recounted 2026-08-04, after II-29 closed), in the internal
+to a reader and should be added only when the text genuinely defers something. **Fourteen** live in
+`sections/98-bibliography.md` (recounted 2026-08-05, after the II-18 reads), in the internal
 field after an entry's anchor, which is stripped at assembly and so never reaches a reader; they
 mark the two unread downloads, the one source that may be cited for its existence only, and the
-entries the reading of 2026-08-04 left owing something to I-7, II-23 or
-IV-9. The bibliography stands at **43 entries**, five of them added that day, and **seven of them
-are now cited** — §07's four arrived with II-29.
+entries the readings of 2026-08-04 and 2026-08-05 left owing something to I-7, II-18, II-23, II-25,
+III-3, IV-3 or IV-9. The bibliography stands at **43 entries**, **18 of them [F]** against 18 [A]
+and 7 [P] after the two promotions of 2026-08-05, and **twelve are cited** from seven sections.
 
 ## Where things stand
 
@@ -327,13 +327,25 @@ reader carried no tag, because it came from the pass rather than from memory and
 suspected. Before assembly every entry needs a copy or a named corroborating source, tagged or
 not.
 
-**Titles are the part to check first, and four for four now says so.** Every entry whose details
+**Titles are the part to check first, and five for five now says so.** Every entry whose details
 were put against a source on 2026-08-04 — chang-peres-1997 and chernoff-1965 against copies,
 siegmund-1979 against two reference lists, janssen-vanleeuwaarden-2007 against the publisher —
 turned out wrong in its title and right in everything else. Four different corruptions of the same
 field: a truncation, a spurious comma, a singular for a plural, and a title-casing of a journal
 that prints sentence case. Numbers get copied because they look like data; titles get retyped
 because they look like prose.
+
+**The fifth arrived on 2026-08-05 and it is a fifth distinct corruption: a dropped subtitle.**
+`bakshi-kapadia-2003-jod` was carried as "Volatility Risk Premiums Embedded in Individual Equity
+Options"; the copy reads "…**: Some New Insights**". The entry was **never tagged**, like
+siegmund-1979 before it, and for the same reason — it came from the pass rather than from memory.
+It also gained pages 45–54 off the copy, and its **volume and issue 11(1) remain uncopied**: they
+are not printed on the article's pages and come from [Carr & Wu](#ref:carr-wu-2009)'s reference
+list — which, in the same line, has the title wrong the other way, printing "Premium" singular
+where the copy is plural. **A sixth reference list, and it is wrong about the paper we hold, in
+the field this item says always goes first.** The two entries read that day and checked field by
+field, `carr-wu-2009` and `bakshi-kapadia-2003-rfs`, were both **clean in every field** — the first
+two [A]→[F] promotions to cost this item nothing.
 
 **This is still a smaller worry than the read-level rule and a different one.** All four that
 remain open are pointers for further reading and the article quotes no figure from any of them. The one number
@@ -400,12 +412,25 @@ corrected what the article said a source *assumes* rather than what it computes.
 equation's pedigree and was written directly after II-29.
 
 **Every read that has promoted a source off [A] or [P] so far has found the record wrong in some
-way that mattered** — four of four now — **but the fourth moved where the wrongness lives**. Chang
-& Peres, Chernoff and Janssen & van Leeuwaarden each turned up a defective bibliography entry;
-Little's two entries were clean, and what the read caught instead was §08's prose crediting the
-1961 paper with a freedom from assumptions that paper does not have. The record being checked is
-the article as much as the bibliography, and only one of the two has a checker. That is the
-argument for doing the ones still owed.
+way that mattered** — six of six now — **but the fourth moved where the wrongness lives, and the
+sixth moved it again**. Chang & Peres, Chernoff and Janssen & van Leeuwaarden each turned up a
+defective bibliography entry; Little's two entries were clean, and what the read caught instead was
+§08's prose crediting the 1961 paper with a freedom from assumptions that paper does not have. The
+record being checked is the article as much as the bibliography, and only one of the two has a
+checker. That is the argument for doing the ones still owed.
+
+**The two reads of 2026-08-05 found a third kind, and it is the worst kind** (Carr & Wu and Bakshi
+& Kapadia's *RFS* paper, both for II-18; see [`DONE.md`](DONE.md)). Both entries were clean and
+neither section's prose was at fault, because neither source is cited from a section yet. What was
+wrong was **TODO itself**: II-18 attributed to Carr & Wu a count of 32-of-35 that matches neither
+measure the paper reports, and in the direction that would have had §09 assert single-name
+volatility premiums are statistically absent when the paper's preferred measure finds 23 of 35
+significantly negative. It also listed the *RFS* paper among single-name evidence when it is an
+S&P 500 index study whose own closing section names single names as future work. **An unread source
+summarised in a TODO item is an unchecked claim with a plan attached**, and it is more dangerous
+than a bad bibliography entry: a wrong page range wastes a reader's time, and this would have put a
+wrong verdict into the article under a correct-looking citation. The read-level rule caught it
+exactly as designed, one item before it reached prose.
 
 **II-18. §09 quotes the *index* volatility risk premium at a single-name model.** (Divergence D1
 of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); raised 2026-07-31.)
@@ -416,16 +441,68 @@ premium of 2–4 points, the whole of it is edge" (§09:148). **2–4 points is 
 SPX 3.3 points, VIX minus realised 4.2. The single-name literature, which is the one a
 single-name model is entitled to, says materially less:
 
-- **Bakshi & Kapadia (2003, *J. Derivatives*)** — 25 large US caps, 1991–1995: implied exceeds
-  realised by **1.5 points** across all options, **1.07** once contracts with a dividend before
-  expiry are dropped, against **3.3 for SPX on the same measure**. Delta-hedged gains lose 0.03%
-  of the underlying for single names against 0.07% for the index. **[F]**
-- **Carr & Wu (2009)** — variance risk premia are **insignificant for 32 of 35 individual
-  stocks**, and strongly negative for every index. **[A]**
-- **Driessen, Maenhout & Vilkov (2009)** — the mechanism: the index premium is substantially a
-  **correlation** risk premium, which by construction has no single-name counterpart. **[A]**
-- **Bakshi & Kapadia again — idiosyncratic volatility is not priced at all.** What little premium
-  single-name options carry is the *market* volatility premium leaking through beta.
+**Both [A] sources on this list were read in full on 2026-08-05, and one of them does not say what
+this item recorded.** The reads are written up in [`DONE.md`](DONE.md); the bullets below are
+restated from the copies. **The headline survives untouched** — it rests entirely on Bakshi &
+Kapadia's *Journal of Derivatives* paper, which was already **[F]** and whose every figure checked
+out — but the supporting claim that single-name premiums are statistically absent does not, and
+§09 must not be written from it.
+
+- **[Bakshi & Kapadia (2003, *J. Derivatives*)](#ref:bakshi-kapadia-2003-jod) [F]** — 25 large US
+  caps, Berkeley Options Database, 1991–1995, near-money calls at 14–30 days. Implied exceeds
+  realised by **1.5 points** across all options, **1.07** once the ~25% of contracts with a
+  dividend before expiry are dropped, against **3.3 for SPX on the same measure**. Delta-hedged
+  gains lose **0.03%** of the underlying for single names against **0.07%** for the index.
+  **Every one of those four figures was verified against the copy on 2026-08-05** and the
+  attribution is right: they are the JoD paper's, not the RFS paper's.
+
+  **Three more from the same copy, none of them previously recorded, and they sharpen the item in
+  both directions.** For **23 of the 25 firms** implied still exceeds realised, so the single-name
+  premium is *pervasive* even where it is small — this is not a story about a few names carrying
+  everything. Only **14 of 25** have negative average delta-hedged gains, 7 significantly so at
+  99% and 4 significantly *positive*, which is the honest measure of how noisy the single-name
+  case is. And the cleanest statement of the size gap is theirs: the market volatility risk
+  premium is worth **8.65% of an at-the-money call's price** on their AIG example against **16%**
+  on SPX.
+- **[Carr & Wu (2009)](#ref:carr-wu-2009) [F] — read 2026-08-05, and this bullet was wrong.** It
+  had said "variance risk premia are insignificant for 32 of 35 individual stocks". **That count
+  matches neither measure the paper reports.** On the dollar measure RP = RV − SW, only **7 of 35**
+  are significantly negative at 95% — so 28, not 32, are insignificant. But the authors prefer the
+  **log** measure, because the dollar one "shows large kurtosis and sometimes large skewness" while
+  the log premiums' standard deviations are "much more uniform" across names — and on it **23 of
+  35 individual stocks are significantly negative**. A majority, not a handful.
+
+  **So this source does not support "single-name premiums are indistinguishable from zero", and it
+  never did.** What it actually supplies is better for the item: the **cross-sectional law**. Its
+  eq. (13) regresses the mean log premium on each name's market-variance beta across all 40 stocks
+  and indexes and gets **−0.3283·β^V with R² = 18.4%, slope t = −2.96 — and an intercept of 0.0061
+  with t = 0.09**. An insignificant intercept is the sharpest available statement that **a stock
+  with no market-variance beta earns no variance risk premium**, which is exactly Bakshi &
+  Kapadia's conclusion reached by a completely unrelated method. Two independent routes to the same
+  structure is the strongest evidence this item has, and it replaces a miscopied count.
+
+  Sample caveat worth carrying: 1996–Feb 2003, and the 35 names are tech-heavy dot-com-era
+  large caps (MSFT, INTC, CSCO, YHOO, AMZN, JNPR, CIEN, BRCD). Not the wheel's universe.
+- **[Bakshi & Kapadia (2003, *RFS*)](#ref:bakshi-kapadia-2003-rfs) [F] — read 2026-08-05, and it is
+  not a single-name source at all.** It is the **index** companion: "using a sample of S&P 500
+  index options", 1988–1995, and its own final section names individual equity options as the
+  natural extension — which *is* the JoD paper. Nothing single-name may be cited to it. It is
+  quotable for the index side: ATM index calls lose about **0.10%** of the index level per
+  delta-hedged contract and **−12.18%** of the option's value over the eight years, 68% of ATM
+  observations are losses, and the premium as a fraction of the call runs **−3.6% at 8% volatility
+  to −19.6% at 16%**.
+- **[Driessen, Maenhout & Vilkov (2009)](#ref:driessen-maenhout-vilkov-2009)** — the mechanism: the
+  index premium is substantially a **correlation** risk premium, which by construction has no
+  single-name counterpart. **[A]**, and it stays [A]: cite the mechanism, quote no number. Carr &
+  Wu now carries the same mechanism at [F] via its systematic variance factor, so §09 does not need
+  DMV to make the point.
+- **Idiosyncratic volatility is not priced at all, and this is now measured twice.** Bakshi &
+  Kapadia's Exhibit 4 regresses each firm's delta-hedged gains on *market* volatility and on the
+  **firm's own total** volatility together: market **−0.0233, p = 0.03** (z = −2.15), own
+  volatility **−0.0042, p = 0.39** (z = −0.86), and the firm's own volatility stays insignificant
+  even when market volatility is dropped. Carr & Wu's zero intercept above is the second
+  measurement. What little premium single-name options carry is the *market* volatility premium
+  leaking through beta.
 - **Merton–Scholes–Gladstein (1978), Appendix C [F]** — the earliest measurement of this gap that
   exists, and it is ~zero. 694 six-month single-name contracts, April 1973 – November 1975.
   Pooled, market premiums do run richer than Black–Scholes at trailing realised variance: ATM
@@ -438,17 +515,32 @@ single-name model is entitled to, says materially less:
   of this list.
 
 **What it costs.** At §09's own ~45 bp of edge per volatility point, 2–4 points reads as
-**90–180 bp/yr** over buy-and-hold. The single-name range supports **48–68 bp**, and something
-statistically indistinguishable from **zero** on a variance basis. The qualitative verdict is
-untouched — break-even is still zero, every point is still worth about 45 bp, the edge is still
-the whole of the volatility risk premium and nothing else. What moves is **the size of the
-prize**, by a factor of two to three, and that is the number a reader deciding whether to run
+**90–180 bp/yr** over buy-and-hold. The single-name range supports **48–68 bp**. The qualitative
+verdict is untouched — break-even is still zero, every point is still worth about 45 bp, the edge
+is still the whole of the volatility risk premium and nothing else. What moves is **the size of
+the prize**, by a factor of two to three, and that is the number a reader deciding whether to run
 this will take away.
+
+**The "and something indistinguishable from zero on a variance basis" clause is struck**
+(2026-08-05, on reading Carr & Wu). It rested on the miscopied 32-of-35 and is not what the paper
+says. **The single-name premium is smaller than the index one and it is real**: pervasive across
+23 of 25 names in one study, significantly negative for 23 of 35 in the other on the measure its
+authors prefer. §09 must not be written as though the single-name premium were absent — that would
+replace one wrong number with a wrong verdict, which is worse. **The honest statement is a real
+premium of about a point, worth about 45 bp, against an index figure two to three times larger
+that the reader has probably met instead.**
 
 **The item is a gain, not only a correction, and should be written as one.** σ_IV = σ is
 currently presented (§00, §05) as an assumption made to strip the machinery bare. The single-name
-literature makes it **the correct default for a single-name model**, not merely a conservative
-one — which is a stronger statement than the article makes for it anywhere. §09 should say so.
+literature turns it into an assumption whose **error is known, bounded and small** — which is a
+stronger statement than the article makes for it anywhere. §09 should say so.
+
+**But say it as "conservative by about a point", not as "correct"** (revised 2026-08-05 after the
+Carr & Wu read). The original wording of this paragraph — σ_IV = σ is *the correct default for a
+single-name model* — followed from the struck claim that single-name premiums are absent. They are
+not: they are real and worth roughly a point, so σ_IV = σ **understates** the strategy's edge by
+about 45–68 bp/yr, in the direction that costs the article nothing and protects every headline
+result. That is the defensible claim and it is nearly as good a sentence.
 
 **Three edits to §09.**
 
@@ -828,6 +920,12 @@ American-exercise premium at **about 2 volatility points** on short-dated near-m
 §09's ~45 bp of edge per volatility point that would be ~90 bp/yr if it bound — the size of the
 entire claimed edge — so it is worth knowing why it does not.
 
+**Verified against the copy 2026-08-05** and the qualifiers are exactly as this item states them:
+"the early exercise premium is equivalent to about 2 percentage points of volatility for our sample
+of short-term near-money calls", where short-term is **14–30 days** and near-money is **±2.5%**.
+Those two qualifiers are the whole of why the figure does not reach our calls, so quote it with
+them attached or not at all.
+
 **It does not bind, and the reason is structural rather than empirical.** Our calls are **out of
 the money on every date one is written**: the strike is frozen at the lot's basis and a lot
 survives only while x > 0, which is S < K_c. Bakshi & Kapadia's 2 points is a *near-money* figure,
@@ -1159,6 +1257,20 @@ components do not carry it. II-18 supplies the magnitudes — SPX **3.3 points**
 of single-name wheels collects the **single-name** premium, the small one, while in a crisis, as
 correlations rise toward one, it carries **index-like** risk.
 
+**This section's anchor is no longer an abstract** (2026-08-05). The paragraph above rested on DMV,
+which is **[A]** and must stay that way, with the magnitudes borrowed from elsewhere — a weak
+footing for Part III's central claim. [Carr & Wu (2009)](#ref:carr-wu-2009) is now **[F]** and
+carries the same structure independently: index variance risk premiums are strongly negative and
+highly significant on every index they measure (S&P 500, S&P 100, Dow), single-name premiums are
+much smaller and far noisier, and the cross-section is organised by each name's **market-variance
+beta** with an intercept indistinguishable from zero. They conclude there is "a systematic variance
+risk factor in the stock market that asks for a highly negative risk premium" which individual
+names carry only in proportion to their exposure to it. **That is "index-like risk, single-name
+pay" derived rather than asserted**, and §13 can now make the argument from an [F] source and use
+DMV only for the name of the mechanism. Their measured Sharpe ratios on shorting index variance —
+**0.98 / 0.85 / 0.87** — are also the right order-of-magnitude counterweight to any suggestion that
+the book should simply write index options instead, alongside DMV's frictions point below.
+
 **Index-like risk, single-name pay.** That is one sentence and it is both halves of Part III.
 §12's benefit and §13's vulnerability are not two subjects; they are one quantity with opposite
 signs, and it is the same quantity II-18 is correcting §09 for.
@@ -1476,6 +1588,19 @@ beta rather than being one flat scalar. That is a testable structure the model c
 is the natural companion to the term structure above: one gives σ_IV a tenor axis, the other a
 cross-sectional one. Neither touches the spine.
 
+**And it now has a published coefficient rather than only a direction** (2026-08-05, from reading
+[Carr & Wu](#ref:carr-wu-2009) **[F]**). Their eq. (13) is the cross-sectional law this extension
+would implement: mean log variance risk premium = **0.0061 − 0.3283·β^V**, R² 18.4%, across 35
+single names and 5 indexes, where β^V is the name's *variance* beta against the index's — the
+covariance of log realised variances, not the return beta. Two things that gives §16. The
+**intercept is insignificant** (t = 0.09), so the functional form the model should carry is
+proportional rather than affine: no market-variance beta, no premium. And the R² of 18.4% is the
+honest ceiling — this explains a fifth of the cross-section, so a beta-scaled σ_IV would be a
+better default than a flat scalar and still nothing like a calibration. Note the axis is variance
+beta and not the CAPM beta a practitioner would reach for first; the two are related but the paper
+is explicit that it estimates the former, and the distinction is the whole content of the
+structure.
+
 **Two more, from [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md), folded in
 2026-08-01.**
 
@@ -1486,6 +1611,16 @@ cross-sectional one. Neither touches the spine.
   quoted half-spread, so conventional estimates roughly double the truth. Hill et al.'s **3–6
   bp/month** at half an implied-volatility point of slippage is the covered-call-specific version.
   Both are quotable in a sentence and turn a descope into a bounded one.
+
+  **One [F] figure joins them, and it says the cost is worse on single names** (2026-08-05, from
+  [Carr & Wu](#ref:carr-wu-2009) Table 8). Their synthetic variance swap bid-ask spreads run
+  **1.55 to 8.28 volatility points**, and "the spreads are larger for individual stocks than for
+  stock indexes". Two useful things. It is a spread measured in the same units as the premium
+  II-18 is sizing, so a reader can set it directly against a single-name premium of about a point —
+  and on that comparison the friction is the same order as the prize. And it sharpens the descope's
+  direction: every published spread the article cites is an *index* number, and the strategy this
+  article models trades single names, where costs are larger and the premium is smaller. Both legs
+  of that comparison point the same way and §16 should say so plainly.
 - **Tax is missing from the list entirely**, which makes it read as an oversight rather than a
   decision. It is unexamined everywhere in this project and it is materially adverse for a wheel
   run in a taxable account: premium is short-term, repeated assignment on one name raises **wash
