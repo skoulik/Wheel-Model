@@ -178,7 +178,27 @@ One number stands in for the entire volatility surface here, and the simplificat
 
 **With depth.** The more interesting omission. A lot is deep because its stock fell, and a stock that has fallen is quoted at a higher implied volatility — so the model, holding σ_IV fixed, understates what deep lots earn on their calls. The live account confirms the direction: calls written against its deepest lots were quoted materially dearer than calls on its shallow ones. But most of that gap is not depth at all — deep lots sit on names that are volatile to begin with, and once each name is compared against its own typical level, the genuine depth effect is roughly a third. **That is why it is left out: a third more implied volatility on the smallest income term in the ledger, measured across a few dozen contracts, is not worth carrying a strike- and state-dependent volatility surface through every formula in this article.** It is recorded here as a known bias, and its sign is favourable — the model is, in this one respect, pessimistic about deep inventory.
 
-And a third, which no surface captures: the edge is paid on premium volume, which is largest exactly when inventory is shallow and smallest when it is deep.
+**Across tenor.** A real surface is not flat in maturity either, and this is the axis the running example straddles: weekly puts written against four-week calls. Short-dated options are normally quoted *cheaper* in volatility terms than longer-dated ones — the shape a reader may recognize as the VIX term structure in contango, where the nine-day index sits below the thirty-day one. If that holds, a single σ_IV **flatters the put leg relative to the call leg**, and by more than either of the two axes above: the live account's own contracts, read on a trading-day clock, put its weekly puts near 29% implied against roughly 33% on its four-week calls. Some of that gap is moneyness rather than tenor, since the two legs sit at different distances from the money by construction. But the direction is the one the term structure predicts, and it falls on the leg the strategy leans on. **This is the omission with the best claim to being first-order**, and the next subsection is what makes it matter.
+
+And a fourth, which no surface captures: the edge is paid on premium volume, which is largest exactly when inventory is shallow and smallest when it is deep.
+
+## The one dial the model says is free
+
+The three omissions above are all about *which* option is written. The remaining question is *how often*, and here the model returns an answer sharp enough to be uncomfortable. Holding the call period at four put periods and sweeping the absolute cadence over a thirteenfold range:
+
+    cadence              weekly  biweekly  monthly  quarterly
+    puts written / yr      52.0      26.0     12.0        4.0
+    lots acquired / yr    10.40      5.20     2.40       0.80
+    lots held             11.40      8.02     5.42       3.09
+    capital (market)      11.59      8.21     5.61       3.28
+    true excess          +1.60%    +1.59%   +1.56%     +1.47%
+    vs buy-and-hold      +0.01%    +0.00%   −0.01%     −0.07%
+
+**Thirteen basis points across a thirteenfold change.** Writing thirteen times as many contracts does not earn thirteen times as much, or twice as much, or measurably more at all: the return per unit of capital is the same, and what cadence really sets is **how much capital the position needs** — 11.59 share prices a name at weekly, 3.28 at quarterly. That is the same shape of conclusion the dividend sweep reached, and for a related reason: a faster clock does not create edge, it accumulates inventory faster. What it buys is on the other side of the ledger, and [the portfolio section](#sec:portfolio) is where it is spent — a given balance runs a few names quickly or many names slowly, at the same return.
+
+**The uncomfortable part is that the record disagrees, and the model cannot see why.** Cboe publishes both a monthly and a weekly at-the-money put-writing index on the same underlying, which is this sweep run for real. Over 2006–2018 the monthly programme compounded **5.97%** and the weekly **4.51%** — while the weekly collected **37.1%** of notional a year in premium against the monthly's **22.1%** ([Bondarenko](#ref:bondarenko-2019)). More premium, less money, and a gap of nearly a percentage and a half that this table puts at thirteen basis points with the sign reversed. At a *flat* volatility premium the model even tilts the wrong way, harvesting 45 basis points a point at weekly against 42 at monthly, because premium volume scales as one over the square root of tenor and a flat spread pays on volume.
+
+The reconciliation is the axis named just above. Take the two indices' own premium collections: pure square-root scaling says the weekly programme should gather √(52/12) = 2.08 times the monthly's, and it gathered 1.68 — so it was selling at roughly **0.81 of the monthly's implied volatility**, three points lower at those levels. Three points, at this section's own 45 basis points a point, is the right order to account for the whole gap. **So cadence is not free; it is free in a model whose σ_IV does not depend on tenor.** Giving σ_IV a term structure is the smallest extension that would let this article speak to the question at all, and [the outlook](#sec:outlook) records it as the first thing a practitioner would ask for.
 
 ## Dividends, resolved
 

@@ -194,12 +194,21 @@ def build_parser(mod):
         prog=f"python code/examples/{mod.__name__.rsplit('.', 1)[-1]}.py",
         description=getattr(mod, "TITLE", mod.__doc__),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    ref = Config()
     for f in fields(Config):
         if not f.init or f.name in _SKIP_ARGS:
             continue
+        # The DECLARED default, not one read off a constructed Config.  Every
+        # namespace this parser produces is passed to Config(**kw) in full, so
+        # a default taken post-init would pin a field that `__post_init__` was
+        # supposed to derive.  `cadence` is exactly that field: it is declared
+        # None and resolved to tau_p, so reading it off a reference instance
+        # gave 1/52 and every CLI-built Config then passed it explicitly --
+        # making `--tau-p 0.08333` sell a MONTHLY put every WEEK.  Nothing was
+        # wrong at the time only because no Case varied --tau-p or --cadence.
+        # (`f.default` is always concrete here: `Config()` takes no required
+        # arguments, so every init field has one.)
         ap.add_argument(f"--{f.name.replace('_', '-')}", dest=f.name,
-                        type=_field_type(f), default=getattr(ref, f.name))
+                        type=_field_type(f), default=f.default)
     ap.add_argument("--measure", choices=("P", "Q"), default="P",
                     help="P = real world (mu), Q = what option prices imply (r)")
     ap.add_argument("--horizon", type=float, default=30.0,

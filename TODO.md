@@ -8,8 +8,8 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, I-5, II-1 through II-18, II-22, II-26, II-27, IV-5, IV-6,
-IV-7, INF-1 — mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
+recycled or closed up: the gaps — I-3, I-5, II-1 through II-19, II-22, II-26, II-27, IV-5, IV-6,
+IV-7, INF-1, INF-6 — mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
 numbered around them; they closed on 2026-07-28 and had been missing from it since. IV-5 closed
 2026-08-05.)
 
@@ -28,18 +28,18 @@ and 7 [P] after the two promotions of 2026-08-05, and **twelve are cited** from 
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with seven items outstanding**
-(II-19 through II-28 less the closed II-22, II-26 and II-27 — six from the literature pass of
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is written, with six items outstanding**
+(II-20 through II-28 less the closed II-22, II-26 and II-27 — five from the literature pass of
 2026-07-31, which reopened Part II the day it closed, and one from the Merton–Scholes–Gladstein
-read of 2026-08-01 that closed I-5; **not one of the seven changes a formula, a verdict or a
-number**, the six items that did having closed on 2026-08-04 and 2026-08-05);
+read of 2026-08-01 that closed I-5; **not one of the six changes a formula, a verdict or a
+number**, the seven items that did having closed on 2026-08-04 and 2026-08-05);
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **seven open items** (II-19 – II-28, less II-22, II-26, II-27) — three in §09, two in §05, one in §08; II-23's six remaining bullets reach §02, §07, §09, §10 and §11. §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30; §09 four times on 2026-08-05, by IV-5, II-18, II-26 and II-27 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | written; **six open items** (II-20 – II-28, less II-22, II-26, II-27) — two in §09, two in §05, one in §08; II-23's six remaining bullets reach §02, §07, §09, §10 and §11. §00, §07, §08 and §10 were edited on 2026-08-04 by II-22, II-29 and II-30; §09 **five times** on 2026-08-05, by IV-5, II-18, II-26, II-27 and II-19 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -389,21 +389,19 @@ open**, they divide in three, and **none of them changes a formula, a verdict or
 not one of them even adds a number. The three that did — II-22, II-29 and II-30 — all closed on
 2026-08-04 and are in [`DONE.md`](DONE.md); §00, §07, §08 and §10 carry their edits.
 
-**Three land in §09**, so read them together before touching the section. One is a correction to
-what the section already says — **II-19**, its missing tenor axis — and two are additions the
-section never attempted: **II-20** the first risk statistic anywhere in the article, and **II-21**
-the detour that keeps II-20 from being read as a comparison it is not. Both add frozen cases;
-neither adds model machinery beyond what `model.py` already has.
+**Two land in §09**, and both are additions the section never attempted rather than corrections to
+what it says: **II-20** the first risk statistic anywhere in the article, and **II-21** the detour
+that keeps II-20 from being read as a comparison it is not. Both add frozen cases; neither adds
+model machinery beyond what `model.py` already has.
 
-**§09 was rewritten on 2026-08-05 and the three survivors must be read against what it now says**,
-not against what it said when they were raised. Four items landed there that day — IV-5, II-18,
-II-26 and II-27, all in [`DONE.md`](DONE.md). The section went from **no citations to six**, its
-premium subsection from one paragraph to seven, and the size of the prize from the index's two to
-four points to a single-name **about a point**. Consequences for what is left: **II-19**'s cadence
-sweep sits beside a subsection that now states a *level* as well as a slope, and its term-structure
-axis is the third the section names rather than the third it lacks; **II-20** and **II-21** are
-untouched by any of it, being about risk rather than return, and are the only two §09 items that
-never depended on the literature pass's summaries.
+**§09 was rewritten on 2026-08-05 and both survivors must be read against what it now says**, not
+against what it said when they were raised. Five items landed there that day — IV-5, II-18, II-26,
+II-27 and II-19, all in [`DONE.md`](DONE.md). The section went from **no citations to seven**, its
+premium discussion from one paragraph to seven plus a new subsection, and the size of the prize
+from the index's two to four points to a single-name **about a point**. **II-20 and II-21 are
+untouched by any of it**, being about risk rather than return, and they are the only two §09 items
+that never depended on the literature pass's summaries — which, on the evidence of II-18, is the
+property worth noting about them.
 
 **Three came from the pass's harvest**, converted 2026-08-01, and none of them moves a number
 anywhere: **II-23** cites six borrowed things where the reader meets them, and reaches outside
@@ -453,81 +451,6 @@ summarised in a TODO item is an unchecked claim with a plan attached**, and it i
 than a bad bibliography entry: a wrong page range wastes a reader's time, and this would have put a
 wrong verdict into the article under a correct-looking citation. The read-level rule caught it
 exactly as designed, one item before it reached prose.
-
-**II-19. §09's single σ_IV has no tenor axis, and the model's cadence-neutrality is not honest
-without one.** (Divergence D3 of
-[the literature pass](drafts/2026-07-31-prior-work-literature-pass.md); the neutrality test D3
-asked for was run on 2026-07-31 and is reported here.)
-
-**The fact the model cannot produce.** Bondarenko (2019), 2006–2018: PUT, the monthly ATM SPX
-put-write, compounded **5.97%** at Sharpe **0.50**; WPUT, the weekly programme, compounded
-**4.51%** at Sharpe **0.40** — having collected **37.1%** of notional a year against PUT's
-**22.1%**. More premium, less money.
-
-**The test, run.** Holding n = 4 and sweeping absolute cadence over a 13× range at fair prices
-(σ_IV = σ, 30y horizon):
-
-| cadence | τ_c | lots/yr | E[I] | capital | excess | vs buy-and-hold |
-|---|---|---|---|---|---|---|
-| weekly 1/52 | 0.0769 | 10.40 | 11.40 | 11.59 | +1.60% | +0.01% |
-| biweekly 1/26 | 0.1538 | 5.20 | 8.02 | 8.21 | +1.59% | +0.00% |
-| monthly 1/12 | 0.3333 | 2.40 | 5.42 | 5.61 | +1.56% | −0.01% |
-| quarterly 1/4 | 1.0000 | 0.80 | 3.09 | 3.28 | +1.47% | −0.07% |
-
-**The excess moves 13 bp across a 13× change in cadence, against an empirical gap of 146 bp.**
-So the model is cadence-neutral at fair prices, as D3 expected — and it is worse than silent: at
-a *flat* volatility premium it harvests **45.0 bp per point weekly against 42.0 monthly**, because
-premium volume scales as 1/√τ and a flat spread pays on volume. **The model's residual tilt
-favours weekly; the record favours monthly.** At fair prices the two collapse to ±1 bp, which is
-Israelov & Nielsen's Myth 4 confirmed — more frequent writing multiplies cash, not profit. The
-Q-world identity holds at every cadence (7.9 / 10.3 / 13.1 / 14.5 bp), so this is the model
-behaving correctly rather than a bug.
-
-**The mechanism, derivable from Bondarenko's own table.** An ATM premium is ≈ 0.4·σ_IV·√τ, so a
-programme writing 1/τ contracts a year collects ≈ 0.4·σ_IV/√τ. Pure √-scaling predicts WPUT
-should collect √(52/12) = **2.08×** PUT's premium; it collected **1.68×**. So the weekly
-programme's implied volatility ran at **1.68/2.08 = 0.81 of the monthly's** — roughly **3
-volatility points lower** at those levels. The name a reader will recognise is the **VIX term
-structure in contango**: VIX9D normally sits below VIX, so short-dated options are quoted cheaper
-in volatility terms and a weekly programme harvests a smaller spread against the same realised
-volatility. At §09's own ~45 bp per point, three points is the right order to close a 146 bp gap.
-*Indicative arithmetic on published aggregates: the ratio is robust, the absolute levels depend
-on that 0.4.*
-
-**What §09 is missing.** "What the single σ_IV leaves out" names **Across strikes** and **With
-depth**, and closes on premium volume. **It does not name tenor** — and the article's own running
-example straddles that axis, writing weekly puts against four-week calls. If the term structure
-is real, the flat σ_IV **flatters the put leg** relative to the call leg by something like three
-points, a first-order bias in the leg the strategy leans on. IV-5's corrected panel points the
-same way, and **the figures below are now measured rather than indicative** (2026-08-05, on the
-session clock): puts ≤1wk at **29.0%** against calls ~monthly at **33.4%** — weekly 4.4 points
-below monthly, a wider gap than the 30.8/33.6 this item was written against, and in the direction
-contango predicts. Still confounded by moneyness, and now visibly so: IV-5's cross-tab shows
-distance from the money is the dominant axis on both legs, so the tenor effect has to be read
-within a moneyness band or not at all.
-
-**Two edits to §09.**
-
-- **A cadence sweep**, formatted like the dividend sweep it sits beside and carrying the same
-  shape of conclusion — this dial barely moves the return per unit of capital and greatly moves
-  how much capital the position needs. Three rows is enough.
-- **"Across tenor"**, as a third bolded axis in "What the single σ_IV leaves out", with the sign
-  stated and the magnitude sourced to Bondarenko's ratio. **This is what makes the sweep
-  honest**: without it §09 reports cadence-neutrality as a result while the literature holds a
-  146 bp counterexample the model cannot see.
-
-**Precondition: INF-6.** The frozen cases this needs — `--tau-p` variants in
-`returns_benchmark.py` for the excess and the difference, `returns_capital.py` for lots, E[I] and
-capital — are *wrong* until the harness stops overriding `cadence`. `--tau-p 0.08333` currently
-reports +1.74% against the correct +1.56%, because it sells a monthly put every week.
-
-**Handed forward to III-1, not claimed here.** Capital per name is 11.59 weekly against 3.28
-quarterly, so a 100-share-price account carries **8.6 names doing 89.7 lots/yr, or 30.5 names
-doing 24.4 lots/yr, at the same ~1.5% return on capital** — cadence buys names by giving up
-throughput. That is a sizing statement and III-1 owns sizing; §09 states the invariance and
-points there. **Do not let §09 claim the extra names reduce variance**: that is §12's question and
-nothing answers it yet. And it is *not* a capital-efficiency gain — capital per lot of throughput
-**rises** 3.7× as cadence slows, from 1.11 to 4.10.
 
 **II-20. The article reports no risk statistic anywhere, and the two it is missing cost a line
 each.** (Divergence D4 of
@@ -961,8 +884,17 @@ are drafted rather than be discovered afterwards.
   capital per lot of throughput **rises 3.7×** as cadence slows, from 1.11 to 4.10. §09 states the
   invariance and points here; this subsection owns what an operator does with it. **The sizing
   argument may not assume the extra names reduce variance** — that is the distributional claim two
-  bullets up, which §12 has to *derive* before sizing is allowed to spend it. II-19 states the
+  bullets up, which §12 has to *derive* before sizing is allowed to spend it. II-19 stated the
   same prohibition from §09's side, where the answer is simply not available.
+
+  **II-19 closed on 2026-08-05 and §09 now makes the handoff explicitly**, so this bullet inherits
+  a promise rather than an opportunity: the section's new cadence subsection states the invariance,
+  gives the capital figures, and says in as many words that a given balance "runs a few names
+  quickly or many names slowly, at the same return", pointing here for what an operator does with
+  it. **All four rows are now frozen cases** in `returns_benchmark.py` and `returns_capital.py`
+  rather than figures measured once outside the harness — and they were re-derived through the
+  fixed harness (INF-6) and reproduce the table above exactly, so the numbers in this bullet are
+  confirmed rather than merely inherited.
 - **The live book's width** (was #24, figures restated 2026-07-27). The account sells puts
   across **95 names while holding inventory in 34**, so put margin is **$43.4k = 31% of Track B
   capital** against the single-name model's 1.6%. Premium is generated across a far wider book
@@ -1345,8 +1277,16 @@ takes §12 and §13.
 **One addition to that list, from II-19:** a **σ_IV(τ) term structure** is the minimal extension
 that would let the model speak to cadence at all. Cadence is currently the one dial the model
 reports as nearly free — 13 bp across a 13× range — where the record says it is not, and the
-model's residual tilt even points the wrong way. II-19 carries the size of the slope the record
-implies. It is also the first thing a practitioner would ask for.
+model's residual tilt even points the wrong way. It is also the first thing a practitioner would
+ask for.
+
+**§09 now says all of that itself, and names this section as where the extension belongs**
+(II-19 closed 2026-08-05). Its new subsection, "The one dial the model says is free", gives the
+sweep, sets Cboe's monthly-against-weekly record beside it, derives the ~3 volatility points of
+term structure that would reconcile them, and closes by pointing here. **So this bullet is now a
+commitment §09 has made to the reader, not a note to self** — the outlook has to carry it, and it
+is the strongest of the four extensions listed here because it is the only one for which the
+article has already shown a concrete empirical failure of its own model.
 
 **One more of the same kind, from II-18** (which sends it here; recorded 2026-08-01 so the pointer
 resolves): a **beta-scaled σ_IV**. Bakshi & Kapadia find that idiosyncratic volatility is not
@@ -1614,26 +1554,6 @@ are in [`DONE.md`](DONE.md). **Two items of follow-up remain.**
   matches the displayed set exactly, per section. That closes the one remaining way a numbered
   formula can be promised and not exist — and it is the guard that would have caught
   `eq:account-criterion` sitting promised-but-absent for a day.
-
-**INF-6. The example harness overrides `cadence`, so any `--tau-p` case is silently wrong.**
-(Found 2026-07-31, while running II-19's cadence test.)
-
-`build_parser` in `code/examples/_harness.py` takes each flag's default from a **post-init**
-reference `Config()`. By then `__post_init__` has already resolved `cadence` from `None` to
-`tau_p`, so the parser's default for `--cadence` is 1/52 and every CLI-built Config passes it
-explicitly — the `if self.cadence is None` branch never fires. Passing `--tau-p 0.08333`
-therefore builds a book that **sells a monthly put every week**: 52 arrivals a year instead of
-12, and `returns_benchmark.py` reports **+1.74%** excess against the correct **+1.56%**.
-
-**Nothing is wrong today and the trap is live.** `cadence` is the only field whose declared
-default differs from its post-init value, and no existing Case varies `--tau-p` or `--cadence`,
-so **no frozen number is currently affected**. It bites the first time someone adds one, which is
-exactly what II-19 does.
-
-**The fix is one line**: take each default from the dataclass field, `default=f.default`, rather
-than `getattr(ref, f.name)`. Every other init field's declared default already equals its
-post-init value, so nothing else moves and `ref` becomes unused. Add a case that varies `--tau-p`
-and asserts the arrival rate, so the trap cannot reopen.
 
 **INF-7. Pin the live-figure window before release.** (Raised 2026-08-01, when tranche 3
 arrived; deferred to release by the operator, who wants the figures tracking the data until

@@ -367,6 +367,45 @@ def main():
           trapped_zero_depth(hi_vol, "P"), 0.005)
 
     # ------------------------------------------------------------------
+    # The example harness turns a command line into a Config, and it must not
+    # pin a field that __post_init__ derives.  `cadence` is declared None and
+    # resolved to tau_p; taking the parser's default off a CONSTRUCTED Config
+    # therefore handed back 1/52 and made every `--tau-p` case silently wrong
+    # (INF-6).  `holding_trapped.py` carries the behavioural case; this checks
+    # the mechanism, so a new derived field cannot reopen the same trap
+    # somewhere no Case happens to look.
+    print("--- Structural: the example harness does not pin derived fields ---")
+    from dataclasses import MISSING, fields
+    from examples._harness import build_parser, params_from
+    from examples import holding_trapped as _ht
+    _defaults = vars(build_parser(_ht).parse_args([]))
+    # `fld`, not `f`: main() already binds `f` to a far-grid result at the top
+    # and reads it again several hundred lines below.
+    for fld in fields(Config):
+        if not fld.init or fld.name == "label":
+            continue
+        check(f"parser default for --{fld.name.replace('_', '-')} is declared",
+              _defaults[fld.name] == fld.default, True, 0)
+        check(f"...and {fld.name} declares one at all",
+              fld.default is not MISSING, True, 0)
+    # The whole point, stated as one assertion: no flags must reproduce the
+    # model's own defaults exactly, or every headline figure is off by whatever
+    # the harness pinned.
+    check("an empty command line reproduces Config()",
+          params_from(_ht, "")["cfg"] == Config(), True, 0)
+    # And a derived field must follow its parent rather than sit where the
+    # reference instance left it.
+    for tp, want in ((1 / 52, 1 / 52), (1 / 12, 1 / 12), (0.25, 0.25)):
+        check(f"cadence follows --tau-p {tp:.4f}",
+              params_from(_ht, f"--tau-p {tp}")["cfg"].cadence, want, 1e-9)
+    # An explicit --cadence still wins, which is the behaviour the flag exists
+    # for: T > tau_p is a real configuration (a put every month at a weekly
+    # tenor), and the fix must not have made the two fields one.
+    _c = params_from(_ht, "--tau-p 0.0192308 --cadence 0.25")["cfg"]
+    check("an explicit --cadence still overrides tau_p", _c.cadence, 0.25, 1e-9)
+    check("...without disturbing tau_p", _c.tau_p, 0.0192308, 1e-9)
+
+    # ------------------------------------------------------------------
     # The convolution has two implementations, and only one of them is the
     # reference: if numpy is installed everything above ran through it, so the
     # stdlib loop it replaced is exercised here on a short walk.

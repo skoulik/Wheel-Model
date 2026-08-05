@@ -10,7 +10,12 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 |  | `python code/examples/returns_benchmark.py --p-star 0.10` | wheel = 1.49%, buy_hold_adj = 1.57%, difference = -0.08% |
 |  | `python code/examples/returns_benchmark.py --iv-spread 0.005` | wheel = 1.83%, difference = 0.23% |
 |  | `python code/examples/returns_benchmark.py --iv-spread 0.010` | wheel = 2.05%, difference = 0.46% |
+|  | `python code/examples/returns_benchmark.py --iv-spread 0.015` | wheel = 2.29%, difference = 0.69% |
 |  | `python code/examples/returns_benchmark.py --iv-spread 0.020` | wheel = 2.52%, difference = 0.92% |
+|  | `python code/examples/returns_benchmark.py --tau-p 0.0384615385` | wheel = 1.59%, difference = 0.00% |
+|  | `python code/examples/returns_benchmark.py --tau-p 0.0833333333` | wheel = 1.56%, difference = -0.01% |
+|  | `python code/examples/returns_benchmark.py --tau-p 0.25` | wheel = 1.47%, difference = -0.07% |
+|  | `python code/examples/returns_benchmark.py --tau-p 0.0833333333 --iv-spread 0.010` | wheel = 1.98% |
 |  | `python code/examples/returns_benchmark.py --delta 0.0` | wheel = 1.98%, difference = 0.01% |
 |  | `python code/examples/returns_benchmark.py --delta 0.01` | wheel = 1.83%, difference = 0.01% |
 |  | `python code/examples/returns_benchmark.py --delta 0.04` | wheel = 1.38%, difference = 0.01% |
@@ -56,6 +61,7 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 |  | `python code/examples/holding_time.py --measure Q` | EW = 9.00 |
 | `eq:trapped` | `python code/examples/holding_trapped.py` | count_ok = yes, trapped = 0.0000, trapped_cf = 0.0000, growth = 0.000, zero = 0.0000 |
 |  | `python code/examples/holding_trapped.py --sigma 0.40` | nu = -0.0350, count_ok = no, trapped = 0.0444, trapped_cf = 0.0409, shortfall = 7.8%, lam = 10.40, growth = 0.461, zero = 0.0338, zero_cf = 0.0279, zero_shortfall = 17.6% |
+|  | `python code/examples/holding_trapped.py --tau-p 0.0833333` | lam = 2.40, count_ok = yes, nu = 0.0250 |
 
 ## 08-inventory.md
 
@@ -71,6 +77,9 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 |---|---|---|
 | `eq:capital` | `python code/examples/returns_capital.py` | inv = 11.40, mv_capital = 11.59, capital = 18.23, gap = 6.60 |
 |  | `python code/examples/returns_capital.py --p-star 0.10` | inv = 5.50, mv_capital = 5.70, capital = 8.90 |
+|  | `python code/examples/returns_capital.py --tau-p 0.0384615385` | inv = 8.02, mv_capital = 8.21 |
+|  | `python code/examples/returns_capital.py --tau-p 0.0833333333` | inv = 5.42, mv_capital = 5.61 |
+|  | `python code/examples/returns_capital.py --tau-p 0.25` | inv = 3.09, mv_capital = 3.28 |
 |  | `python code/examples/returns_capital.py --delta 0.0` | inv = 8.54, mv_capital = 8.74, capital = 12.11 |
 |  | `python code/examples/returns_capital.py --delta 0.01` | inv = 9.56, mv_capital = 9.75, capital = 14.15 |
 |  | `python code/examples/returns_capital.py --delta 0.04` | inv = 13.65, mv_capital = 13.84, capital = 24.00 |

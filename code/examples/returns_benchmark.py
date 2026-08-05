@@ -117,6 +117,33 @@ CASES = [
         "difference": (0.0092, 0.0005),     # "+0.92%"
     }, note="sigma_IV = 22.0%, two vol points dear"),
 
+    # The cadence sweep of section 09: thirteen basis points across a
+    # thirteenfold change in how often a put is written, which is the section's
+    # "the one dial the model says is free".  n = 4 throughout, so tau_c moves
+    # with tau_p and the call period stays four put periods.  These are the
+    # first Cases in the suite to vary --tau-p, and they were wrong until
+    # INF-6: the harness pinned `cadence` at 1/52, so --tau-p 0.08333 sold a
+    # monthly put every WEEK and reported +1.74% here instead of +1.56%.
+    Case("--tau-p 0.0384615385", {
+        "wheel": (0.0159, 0.0005),          # the table: "biweekly  +1.59%"
+        "difference": (0.0000, 0.0005),     # "vs buy-and-hold  +0.00%"
+    }, note="biweekly cadence, n = 4"),
+    Case("--tau-p 0.0833333333", {
+        "wheel": (0.0156, 0.0005),          # "monthly  +1.56%"
+        "difference": (-0.0001, 0.0005),    # "-0.01%"
+    }, note="monthly cadence, n = 4"),
+    Case("--tau-p 0.25", {
+        "wheel": (0.0147, 0.0005),          # "quarterly  +1.47%"
+        "difference": (-0.0007, 0.0005),    # "-0.07%"
+    }, note="quarterly cadence, n = 4"),
+    # The residual tilt the section admits to: at a FLAT premium the model
+    # harvests more per point the faster it writes, because premium volume goes
+    # as 1/sqrt(tau).  45.0bp weekly against 42.0 monthly -- the wrong way round
+    # against the record, which is the whole point of the subsection.
+    Case("--tau-p 0.0833333333 --iv-spread 0.010", {
+        "wheel": (0.0198, 0.0005),          # 42.0bp per point, against 45.0 weekly
+    }, note="monthly at one vol point, for the per-point harvest"),
+
     # The dividend sweep of section 09: the true excess falls ~90bp across it,
     # almost all of it the withholding tax -- so the gap over a buy-and-hold that
     # pays the same tax stays "essentially zero throughout -- never more than two

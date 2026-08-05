@@ -64,6 +64,24 @@ CASES = [
         "mv_capital": (5.70, 0.05),     # "capital (market) 5.70"
         "capital": (8.90, 0.06),        # "capital (cost) 8.90"
     }, note="Conservative regime"),
+    # The cadence sweep of section 09 ("The one dial the model says is free").
+    # What cadence really sets is the capital the position needs -- 11.59 share
+    # prices a name at weekly against 3.28 at quarterly -- while the return per
+    # unit of that capital barely moves.  The weekly column is the default Case
+    # above; the excess each row earns is in returns_benchmark.py.  n = 4
+    # throughout, so the call period stays four put periods.
+    Case("--tau-p 0.0384615385", {
+        "inv": (8.02, 0.05),            # the table: "biweekly  lots held 8.02"
+        "mv_capital": (8.21, 0.05),     # "capital (market) 8.21"
+    }, note="biweekly cadence, n = 4"),
+    Case("--tau-p 0.0833333333", {
+        "inv": (5.42, 0.05),            # "monthly  5.42"
+        "mv_capital": (5.61, 0.05),     # "5.61"
+    }, note="monthly cadence, n = 4"),
+    Case("--tau-p 0.25", {
+        "inv": (3.09, 0.05),            # "quarterly  3.09"
+        "mv_capital": (3.28, 0.05),     # "3.28"
+    }, note="quarterly cadence, n = 4"),
     # The dividend sweep of section 09 ("Dividends, resolved"): yield doubles the
     # inventory and nearly triples the cost-basis capital.  The δ = 2.5% column is
     # the default Case above; the true excess each row earns is in

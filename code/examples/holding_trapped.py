@@ -113,6 +113,20 @@ CASES = [
         "zero_cf": (0.027881, 0.000005),
         "zero_shortfall": (0.176, 0.002),   # "17.6% low, worst where strikes are furthest out"
     }, note="sigma = 40%, where ν goes negative"),
+    # INF-6's regression guard, and the only Case in the suite that varies the
+    # cadence.  lambda = p*/T, so a monthly put sold monthly arrives 2.40 times
+    # a year against the weekly 10.40.  Until 2026-08-05 the harness took each
+    # flag's default from a POST-INIT Config, which had already resolved
+    # `cadence` from None to tau_p -- so every CLI-built Config passed
+    # cadence=1/52 explicitly and this case would have read 10.40, a monthly
+    # put sold every week.  Nothing else in the suite varies --tau-p, which is
+    # why the trap sat live and invisible; if this case ever reads 10.40 again,
+    # the defaulting has regressed.
+    Case("--tau-p 0.0833333", {
+        "lam": (2.40, 0.01),
+        "count_ok": (True, 0),          # cadence does not touch the drift
+        "nu": (0.025, 0.0005),
+    }, note="monthly cadence: the arrival rate must follow tau_p"),
 ]
 
 
