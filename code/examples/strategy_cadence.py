@@ -7,14 +7,6 @@
 Backs eq:n in section 04.  Closed form -- the clocks are Config, the entry
 depth and the call-grid tax are analytic -- so there is nothing to declare.
 
-The tenor carries a square root of its own, which is why section 04 can say
-the three clocks are paid on different scales.  Premium goes as sigma*sqrt(tau),
-so a put run for half as long at an unchanged cadence gives up about 29% of the
-premium rather than half of it -- 1 - 1/sqrt(2) = 29.3% is the pure law, and
-the dial's strike moving with the tenor accounts for the rest.  Assignments do
-not follow the tenor at all: at a target p* per put they arrive at p*/T, set by
-the cadence alone.
-
 n is a bookkeeping ratio, but it is not inert.  Section 07 finds the call-grid
 tax beta*sigma*sqrt(tau_c) as a multiple of the typical entry depth E[x0], and
 since the tax carries sqrt(tau_c) = sqrt(n)*sqrt(tau_p) while E[x0] does not
@@ -24,7 +16,6 @@ outrun the puts, and the tax they levy on holding time never washes out.  Run
 this at a few values of n and watch the last line move.
 """
 
-import dataclasses
 import os
 import sys
 
@@ -46,9 +37,6 @@ FIELDS = [
     ("tax", "call-grid tax beta*sigma*sqrt(tau_c)", ".4f"),
     ("x0", "typical entry depth E[x0]", ".4f"),
     ("ratio", "  the tax as a multiple of it (~sqrt(n))", ".2f"),
-    ("c_p", "put premium c_p at the strike dial", ".4f"),
-    ("c_p_half", "  the same at half the tenor, cadence unmoved", ".4f"),
-    ("half_drop", "  premium given up (~1 - 1/sqrt 2)", ".1%"),
 ]
 
 
@@ -60,12 +48,6 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
     cfg = cfg if cfg is not None else model.Config()
     _, _, mean_x0, _ = model.entry_law(cfg, measure)
     tax = model.grid_tax(cfg, measure)
-    # Separating the clocks means shortening the tenor while the cadence holds
-    # still, so `cadence` is carried across explicitly rather than left to
-    # follow tau_p as it does at the defaults.
-    short = dataclasses.replace(cfg, tau_p=cfg.tau_p / 2, cadence=cfg.cadence)
-    c_p = model.put_premium(cfg, measure)
-    c_p_half = model.put_premium(short, measure)
     return {
         "n": cfg.n,
         "tau_p": cfg.tau_p,
@@ -75,9 +57,6 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "tax": tax,
         "x0": mean_x0,
         "ratio": tax / mean_x0,
-        "c_p": c_p,
-        "c_p_half": c_p_half,
-        "half_drop": 1 - c_p_half / c_p,
     }
 
 
@@ -91,8 +70,6 @@ CASES = [
         "ratio": (2.09, 0.05),          # section 07: "2.1 times the entry depth"
         "tax": (0.0323, 0.0005),        # "0.5826 x 0.20 x sqrt(1/13)"
         "x0": (0.0155, 0.0005),
-        "half_drop": (0.290, 0.005),    # "about 29% of the premium rather
-                                        # than half of it"
     }, note="the running example's rhythm"),
     Case("--n 1", {
         "n": (1, 0),                    # calls on the put clock, n = 1
