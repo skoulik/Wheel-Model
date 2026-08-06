@@ -32,7 +32,7 @@ L  =  u / γ_s    {#eq:leverage}
 
 of stock. The broker's own ceiling is u = 1, which is L = 1/γ_s: four times equity at portfolio margin, twice under Reg T, and no leverage at all for shares paid in full. The operator's **stopping rule** u\* is where they choose to stop selling new puts, and it need not be — and, it will turn out, should emphatically not be — the broker's.[^eq-leverage]
 
-One clarification before the machinery, since [the strategy section](#sec:strategy) has already made the argument and it should not be made twice. The quantity γ_s governs is **equity required**, which is not Track B and does not replace it. Track B remains exposure — what the position is worth at market, independent of how it was paid for — and it stays the denominator of every return in [the returns section](#sec:returns). What the finite account adds is a second ledger line beside the three tracks, and what that line determines is not return but **capacity**: how much of the strategy a given balance can run, and how far the price can fall before someone else closes it.
+One clarification before the machinery, since [the returns section](#sec:returns) has already made the argument and it should not be made twice. The quantity γ_s governs is **equity required**, which is not Track B and does not replace it. Track B remains exposure — what the position is worth at market, independent of how it was paid for — and it stays the denominator of every return there. What the finite account adds is a second ledger line beside the three tracks, and what that line determines is not return but **capacity**: how much of the strategy a given balance can run, and how far the price can fall before someone else closes it.
 
 ## The barrier
 
