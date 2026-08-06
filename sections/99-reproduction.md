@@ -26,7 +26,7 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 |  | `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 5 --collateral` | difference = -0.14%, gap_corrected = 0.20% |
 |  | `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 10 --collateral` | difference = -0.11%, gap_corrected = 0.14% |
 |  | `python code/examples/returns_benchmark.py --p-star 0.10 --collateral` | difference = -0.08%, overcharge = 0.17%, gap_corrected = 0.09% |
-| `eq:n` | `python code/examples/strategy_cadence.py` | n = 4, tau_p = 0.0192, cadence = 0.0192, tau_c = 0.0769, tau_c_wk = 4.0, ratio = 2.09, tax = 0.0323, x0 = 0.0155 |
+| `eq:n` | `python code/examples/strategy_cadence.py` | n = 4, tau_p = 0.0192, cadence = 0.0192, tau_c = 0.0769, tau_c_wk = 4.0, ratio = 2.09, tax = 0.0323, x0 = 0.0155, half_drop = 29.0% |
 |  | `python code/examples/strategy_cadence.py --n 1` | n = 1, tau_c = 0.0192, tau_c_wk = 1.0 |
 |  | `python code/examples/strategy_cadence.py --n 13` | n = 13, tau_c = 0.2500, tau_c_wk = 13.0 |
 
