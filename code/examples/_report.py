@@ -1,6 +1,6 @@
 """Coverage and the reproduction appendix.  Stdlib only.
 
-Three things the policy needs to stay true rather than aspirational:
+Four things the policy needs to stay true rather than aspirational:
 
 *   `coverage()` reads every `{#eq:...}` anchor out of `sections/` and checks
     it against the formulas the example modules claim to back.  A formula
@@ -13,13 +13,19 @@ Three things the policy needs to stay true rather than aspirational:
     within a month, and here the drift is silent, because a dead citation
     link still renders as text.
 
+*   `registers()` checks section 00's two hand-maintained anchor lists against
+    what the sections actually declare.  The other two checks left a hole
+    between them: both read the sections directly, so four formula anchors
+    stayed absent from the register that calls itself the single source of
+    truth while every other check ran green.
+
 *   `appendix()` generates the reproduction table -- every figure the article
     quotes, the command that produces it, and the value asserted.  It is
     generated rather than written because a hand-maintained version of this
     table drifts within a month.
 
-All three are called from `verify_examples.py`; `python -m examples
---coverage`, `--references` and `--appendix` are the shortcuts.
+All four are called from `verify_examples.py`; `python -m examples
+--coverage`, `--references`, `--registers` and `--appendix` are the shortcuts.
 """
 
 import os
@@ -49,6 +55,20 @@ def _anchor_of(footnote_label):
 
 APPENDIX = "99-reproduction.md"     # generated; see appendix() below
 BIBLIOGRAPHY = "98-bibliography.md"  # the only file that may declare {#ref:}
+NOTATION = "00-notation.md"          # declares both registers; see registers()
+
+# Section 00's two registers, each introduced by its own phrase.  They are
+# *declarations* of what the article means to contain, where declared_anchors()
+# and section_heads() are what it does contain -- which is why registers()
+# checks the two against each other rather than generating one from the other.
+# One statement copied twice is not two statements agreeing.
+_SEC_REGISTER = "Current anchors: "
+_EQ_REGISTER = "Current anchors, in reading order within each section: "
+# Groups in the formula register read `a, b, c (05)`, the first spelling it
+# "(section 04)" in full.
+_EQ_GROUP = re.compile(r"\((?:section\s+)?(\d\d)\)")
+_SEC_TOKEN = re.compile(r"sec:[a-z0-9-]+")
+_EQ_TOKEN = re.compile(r"eq:[a-z0-9-]+")
 
 # A citation is a markdown link to a bibliography anchor; the numbers a reader
 # sees are assigned at assembly, so the source never carries one.
@@ -101,12 +121,19 @@ def section_heads():
 
 
 def declared_anchors():
-    """Every {#eq:...} the article defines, mapped to the file defining it."""
+    """Every {#eq:...} the article defines, mapped to the file defining it.
+
+    Code spans are stripped for the reason given at `_CODE`, which applies to
+    formula anchors word for word: section 00 shows what a declaration looks
+    like -- ``E[I] = λ · E[W]  {#eq:little}`` -- and an example of the form is
+    not a use of it.  Counting it filed eq:little under 00-notation.md, since
+    that sorts first, and the appendix asks this function which section a
+    module belongs to.
+    """
     out = {}
     for name in section_files():
-        with open(os.path.join(SECTIONS, name), encoding="utf-8") as fh:
-            for anchor in _EQ.findall(fh.read()):
-                out.setdefault(anchor, name)
+        for anchor in _EQ.findall(_read(name, strip_code=True)):
+            out.setdefault(anchor, name)
     return out
 
 
@@ -244,6 +271,107 @@ def references():
     if unverified:
         print(f"    bibliographic details unverified: "
               f"{', '.join(a[len('ref:'):] for a in unverified)}")
+    return failures
+
+
+def _register_line(marker):
+    """Whatever section 00's register following `marker` says, or None."""
+    for line in _read(NOTATION).splitlines():
+        i = line.find(marker)
+        if i != -1:
+            return line[i + len(marker):]
+    return None
+
+
+def registered_sections():
+    """The `sec:` anchors section 00's cross-reference convention lists."""
+    text = _register_line(_SEC_REGISTER)
+    return None if text is None else _SEC_TOKEN.findall(text)
+
+
+def registered_anchors():
+    """The `eq:` register, as [(section number, [anchors as listed]), ...].
+
+    Order is preserved twice over -- the groups as the register runs, and the
+    anchors within each -- because the register claims to be in reading order
+    and a check that ignored order would certify half of what it claims.
+    """
+    text = _register_line(_EQ_REGISTER)
+    if text is None:
+        return None
+    out = []
+    for group in text.split(";"):
+        number = _EQ_GROUP.search(group)
+        out.append((number.group(1) if number else None,
+                    _EQ_TOKEN.findall(group)))
+    return out
+
+
+def registers():
+    """Check section 00's anchor registers against the sections.  Failures.
+
+    The two registers make different promises, so they get different checks.
+    The formula register claims every `{#eq:}` "in reading order within each
+    section", so it is held to exact agreement -- grouping and order included.
+    The section register is checked one way only: Part III and IV's anchors are
+    registered before their files exist, which is a promise rather than a
+    fault, while a declared anchor missing from the register is the drift this
+    function exists to catch.
+    """
+    failures = []
+
+    declared_secs = section_heads()
+    registered_secs = registered_sections()
+    if registered_secs is None:
+        failures.append(f"{NOTATION} declares no section register")
+    else:
+        for anchor in sorted(declared_secs):
+            if anchor not in registered_secs:
+                failures.append(f"{anchor} ({declared_secs[anchor]}) is missing "
+                                f"from {NOTATION}'s cross-reference register")
+
+    declared = declared_anchors()
+    by_file = {}
+    for anchor, name in declared.items():
+        by_file.setdefault(name, []).append(anchor)
+
+    groups = registered_anchors()
+    if groups is None:
+        return failures + [f"{NOTATION} declares no formula register"]
+
+    by_number = {f[:2]: f for f in section_files()}
+    listed = {}
+    for number, anchors in groups:
+        if number is None:
+            if anchors:
+                failures.append(f"{NOTATION}'s formula register has a group "
+                                f"naming no section: {', '.join(anchors)}")
+            continue
+        if number not in by_number:
+            failures.append(f"{NOTATION}'s formula register names section "
+                            f"{number}, which has no file")
+            continue
+        listed[by_number[number]] = anchors
+
+    for name in sorted(set(listed) | set(by_file)):
+        want, got = by_file.get(name, []), listed.get(name, [])
+        if want == got:
+            continue
+        missing = [a for a in want if a not in got]
+        stale = [a for a in got if a not in want]
+        if missing:
+            failures.append(f"{name} declares {', '.join(missing)}, which "
+                            f"{NOTATION}'s formula register omits")
+        if stale:
+            failures.append(f"{NOTATION}'s formula register lists "
+                            f"{', '.join(stale)} under {name}, which does not "
+                            f"declare them")
+        if not missing and not stale:
+            failures.append(f"{name}: register order {', '.join(got)} against "
+                            f"reading order {', '.join(want)}")
+
+    print(f"  {len(declared)} formula and {len(declared_secs)} section anchors "
+          f"against {NOTATION}'s registers; {len(failures)} gap(s)")
     return failures
 
 

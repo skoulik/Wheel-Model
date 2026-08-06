@@ -1128,6 +1128,12 @@ def main():
     print("--- Citation coverage ---")
     FAILURES.extend(R.references())
 
+    # And section 00 against the sections it claims to be the source of truth
+    # for: both checks above read the sections directly, so its hand-maintained
+    # anchor registers were the one cross-reference set nothing was reading.
+    print("--- Register coverage ---")
+    FAILURES.extend(R.registers())
+
     print()
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} check(s) FAILED: {FAILURES}")
