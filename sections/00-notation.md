@@ -108,7 +108,7 @@ Three conventions govern this block.
 | Track | Question it answers |
 |---|---|
 | A | Realized cash flows only: premiums received, dividends collected, and cash exchanged when lots are bought and sold. Assignment is inventory acquisition, not a loss. This is what a brokerage statement shows |
-| B | Capital committed, valued at market: broker margin on the live short put plus the **market value** of the shares held. What could be redeployed if the position were closed |
+| B | Capital committed, valued at market: broker margin on the live short put plus the **market value** of the shares held, before any borrowing against them. A put has bought nothing and ties up only collateral; shares have been bought and tie up what they are worth |
 | C | Opportunity cost: the risk-free rate charged against the capital in Track B |
 
 The headline number is the **true excess return** — [eq:excess](#eq:excess) in [the returns section](#sec:returns) — which values inventory at market, books the mark loss at acquisition and the upside surrendered at call-away, and charges r on Track B. It is the only convention that satisfies no-arbitrage, and that fact is used as a test in [the verification section](#sec:verification). The Track A cash view is reported next to it because it is what operators actually see, and because the gap between the two is instructive.
