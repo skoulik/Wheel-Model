@@ -193,25 +193,49 @@ that would strengthen the novelty claim is **I-6** and deliberately does *not* b
 **I-2. The abstract is written last.** `sections/01-abstract.md` is a stub by design; it cannot
 be honest until Parts III and IV fix what the article concludes.
 
-**I-4. §02 promises things Parts III and IV must actually deliver.** The contributions list
-commits the article to five results that do not yet exist anywhere:
+**I-4. §02 promises things Parts III and IV must actually deliver.** The list at the head of §02
+commits the article to three results that do not yet exist anywhere:
 
 - diversification leaves expected return and expected capital **completely unchanged** while
-  removing only the noise around them (contribution 7 → III-1);
+  removing only the noise around them (item 7 → III-1);
 - correlations rising toward one in a crisis is **the mechanism the strategy is most exposed
-  to**, not a tail scenario (contribution 7 → III-2);
-- the live comparison confirms the model **link by link** — entry law to within a percent, the
-  depth census to within five (contribution 8 → IV-1);
-- the account's advantage came entirely from the excluded lever while the option machinery
-  earned nothing distinguishable from zero (contribution 8 → IV-2);
-- the article shows **which of the model's predictions a career-length track record has no
-  power to test** (contribution 8 → IV-1). *Nothing currently delivers this one* — see IV-1.
+  to**, not a tail scenario (item 7 → III-2);
+- the spine **survives the live account link by link**, and several standard parameter
+  conventions do not (item 8 → IV-1).
 
 Either the sections deliver these or §02 is rewritten. Check the list against the finished
 Parts III and IV before assembly. **This is now a check, not a rewrite**: II-16 made the other
 editing pass over §02 on 2026-07-31, which added the finite account as contribution 6 and pushed
 portfolios to 7 and the live comparison to 8 — hence the numbering above. Items 1 through 6 are
 delivered and were re-read for stale figures in that pass; only 7 and 8 are still promises.
+
+**Restated 2026-08-06, when R-02-1 rewrote the list** (see [`DONE.md`](DONE.md)). Two things
+changed and neither moves what this item checks. The heading is now **"What the article answers"**
+and the items are a roadmap rather than a results list, so the word *contribution* survives only in
+this file's cross-references — the numbering is unchanged and item n is still item n. And **every
+model-output figure left §02**, which retires the third bullet's numeric half: it used to read
+"entry law to within a percent, the depth census to within five", which was itself stale — §02 had
+said *two* percent and *seven* since the tranche of 2026-07-24, and this item was never updated
+with it. The claim §14 must now honour is the qualitative one, "link by link", with the figures
+owed to IV-1 rather than to §02. Item 7 was deliberately left untouched, because III-3 and III-4
+quote its wording verbatim as the promise Part III has to keep.
+
+**Two of the five promises were withdrawn rather than restated, in the same pass**, when item 8 was
+cut back to the account's existence and one clause of verdict — it now says only that the spine
+survives link by link, that several standard parameter conventions do not, and that what the
+account says about its own success is uncomfortable. What §02 no longer promises:
+
+- the account's advantage came entirely from the excluded lever while the option machinery earned
+  nothing distinguishable from zero (was item 8 → IV-2);
+- the article shows **which of the model's predictions a career-length track record has no power to
+  test** (was item 8 → IV-1).
+
+**Neither withdrawal is an instruction to Part IV.** Both findings are real and measured, and §15
+is still the place for the first; what changed is that the introduction no longer spends them
+before the reader can hold them. The second is the more consequential, because this item recorded
+that *nothing currently delivers it* — so a debt the article had taken on without a payer is now
+simply not owed. Whether §14 delivers it anyway is IV-1's call, and it is worth making
+deliberately: it is the one promise that was pure liability.
 
 **I-6. A citation-graph pass on the novelty claim, before release.** (From §4's own caveat and
 the second-pass list of [the literature pass](drafts/2026-07-31-prior-work-literature-pass.md);
@@ -719,6 +743,13 @@ need rewriting; the claim is true as stated. What is missing is the sentence §1
 a reader does not over-read it — the same shape as III-3's "say which comparison is being made",
 and a constraint on how §12 is written rather than a correction to §02. Only if §12 cannot say it
 cleanly should contribution 7's wording be revisited, under I-4's standing "check, not a rewrite".
+
+**And it survived a rewrite of everything around it** (2026-08-06). R-02-1 rewrote §02's list —
+now headed "What the article answers" — stripping every model-output figure from it and recasting
+the other seven items. **Item 7 was the one left untouched, on this item's authority and III-3's**:
+it carries no figure, so the reader finding did not reach it, and both items quote its wording
+verbatim as the promise Part III has to keep. So the paragraph above binds unchanged, and the
+phrase to be careful with is still in §02 waiting for §12 to qualify it.
 
 **It is also the one piece of hard evidence Part III has on its own subject.** III-3 records that
 the literature on diversifying short-option books is the thinnest we have, and that DMV — the
