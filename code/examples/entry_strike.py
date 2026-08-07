@@ -19,15 +19,16 @@ import model                                                  # noqa: E402
 
 TITLE = "Entry: the strike dial"
 SECTION = "sec:entry"
-EQ = ["eq:kstar", "eq:p-screen", "eq:screen-gap"]
+EQ = ["eq:kstar", "eq:p-screen", "eq:screen-gap", "eq:gap-prob"]
 
 FIELDS = [
     ("k", "k*, strike fraction", ".4f"),
     ("otm", "out of the money", ".2%"),
     ("p_real", "realized assignment rate", ".2%"),
     ("p_screen", "p_screen = N(-d2), the screen's number", ".2%"),
+    ("sharpe", "  the asset's Sharpe ratio, (mu - r)/sigma", ".4f"),
     ("gap_z", "  the two worlds' gap, in d2 units", ".4f"),
-    ("gap_p", "  the same gap, in probability", ".4f"),
+    ("gap_p", "  eq:gap-prob, the same gap in probability", ".4f"),
     ("delta", "delta, what the screen shows instead", ".2%"),
 ]
 
@@ -44,6 +45,9 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "otm": 1 - k,
         "p_real": p_real,
         "p_screen": model.screen_prob(cfg, measure),
+        # gap_z is this times sqrt(tau_p), which is what makes eq:screen-gap
+        # checkable by eye: 0.10 * sqrt(1/52) = 0.0139.
+        "sharpe": (cfg.mu - cfg.r) / cfg.sigma,
         "gap_z": model.screen_gap(cfg),
         "gap_p": model.screen_gap(cfg, in_prob=True),
         "delta": model.put_delta(cfg, measure),
@@ -56,8 +60,11 @@ CASES = [
         "otm": (0.0226, 0.0005),        # "about 2.3% below the market"
         "p_real": (0.20, 1e-9),         # p* is real-world: no correction
         "p_screen": (0.2039, 0.001),    # "comes to 20.4%"
+        "sharpe": (0.10, 0.0005),       # section 05: "which is 0.10 here"
         "gap_z": (0.0139, 0.0005),      # eq:screen-gap, the shift in d2
-        "gap_p": (0.0039, 0.0005),      # "0.4 percentage points" once converted
+        # Exact, not the linearization: this must equal p_screen - p_real to
+        # the digit, which is what makes the two readings above consistent.
+        "gap_p": (0.003905, 1e-6),
         "delta": (0.19605, 1e-4),       # section 05: "~ 19.6% here".  Not
                                         # N(-d1) = 0.19614: see put_delta.
     }, note="Standard regime"),

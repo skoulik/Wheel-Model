@@ -336,12 +336,35 @@ def screen_gap(C, in_prob=False):
 
         gap_z  =  (mu - r) * sqrt(tau_p) / sigma
 
-    That is a shift in *d2 units*, not in probability.  Converting costs one
-    factor of the normal density at the threshold, phi(N^-1(p*)) -- near the
-    money about 0.28, so the probability gap is roughly a quarter of gap_z.
+    That is a shift in *d2 units*, not in probability.  Converting back is
+    exact and needs no approximation, because -d2 in the real world IS
+    N^-1(p*) by construction of the dial, so section 05's eq:gap-prob is
+
+        gap_p  =  N( N^-1(p*) + gap_z )  -  p*
+
+    which reproduces screen_prob() - p* to machine precision.  This returned
+    the LINEARIZATION phi(N^-1(p*)) * gap_z until 2026-08-07 -- 0.003882
+    against the true 0.003905, agreeing only because the article rounds to
+    0.0039, while `entry_strike.py` printed the exact p_screen and p_real two
+    lines above it.  The linearization is still the useful thing to say in
+    prose, because phi(N^-1(p*)) is the height of the bell curve where the
+    strike sits and that is WHY the probability gap depends on the strike
+    while the d2 gap does not.  It is not the useful thing to return.
+
+    EXACT ONLY AT sigma_IV = sigma, which is the article's standing assumption.
+    The derivation subtracts d2 at the two drifts and needs the sigma^2/2 terms
+    and the sigma in the denominator to cancel, which they do only when both
+    worlds carry the same volatility -- and world("Q") returns sigma_iv while
+    world("P") returns sigma.  At iv_spread = 0.03 the true d2 gap is 0.1257
+    against the 0.0139 this returns.  The function implements section 05's
+    displayed formula rather than the true difference, deliberately: it is what
+    eq:screen-gap backs.  A reader varying --iv-spread should know it stops
+    describing the other numbers on the page.
     """
     gap_z = (C.mu - C.r) * sqrt(C.tau_p) / C.sigma
-    return gap_z * phi(Ninv(C.p_star)) if in_prob else gap_z
+    if not in_prob:
+        return gap_z
+    return N(Ninv(C.p_star) + gap_z) - C.p_star
 
 
 def put_delta(C, measure):

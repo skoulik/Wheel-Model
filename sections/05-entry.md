@@ -34,7 +34,7 @@ That arrival rate is the one this article's machinery consumes, and everything d
 >
 > tallest at μ_Y and falling away symmetrically, fast enough that values more than three spreads from the mean are uncommon and more than five essentially never seen. The area beneath the density between two points is the probability Y lands between them, and the total area is one.
 >
-> **Every normal distribution is the same one, shifted and stretched.** Measure Y not in its own units but in spreads away from its mean — replace it by z = (Y − μ_Y)/σ_Y — and both parameters drop out. What is left is the **standard** normal, centred at zero with spread one, and its density has its own name:
+> **Every normal distribution is the same one, shifted and stretched.** Measure Y not in its own units but in spreads away from its mean — replace it by z = (Y − μ_Y)/σ_Y, its **z-score** — and both parameters drop out. What is left is the **standard** normal, centred at zero with spread one, and its density has its own name:
 >
 > φ(z)  =  e^(−z²/2)/√(2π),   so that   f_Y(y)  =  φ(z)/σ_Y   with   z = (y − μ_Y)/σ_Y    {#eq:phi}
 >
@@ -64,7 +64,7 @@ That arrival rate is the one this article's machinery consumes, and everything d
 >
 > Those are the only two option prices this article needs; the sections that follow build their own machinery on them.
 >
-> The two arguments recur throughout, so it is worth knowing what each one is: **N(−d₂) is the probability that the put finishes in the money**, computed at the drift that appears in the formula, and N(−d₁) is a stock-weighted version of the same thing. The e^(−δ·τ) beside it is there because the option's holder collects no dividends, so a position hedged to deliver one share at expiry needs only e^(−δ·τ) shares today. That dividend-paying version of the formula is [Merton's](#ref:merton-1973), from the same year as the original.
+> Both arguments are the standardization of the detour above, applied to the log price. **d₂ counts how far the strike sits below where the price is expected to end, in one-period moves σ·√τ** — so −d₂ is the strike's own z-score, and **N(−d₂) is the probability that the put finishes in the money**, computed at the drift that appears in the formula. d₁ is that same distance one move further out, and N(−d₁) a stock-weighted version of the same probability. The e^(−δ·τ) beside it is there because the option's holder collects no dividends, so a position hedged to deliver one share at expiry needs only e^(−δ·τ) shares today. That dividend-paying version of the formula is [Merton's](#ref:merton-1973), from the same year as the original.
 >
 > Notice which drift is in there: r, the risk-free rate, and nowhere the stock's own expected return μ. That is not an approximation. An option's payoff can be manufactured out of a continuously adjusted mixture of the stock and cash, and two things delivering the same payoff must cost the same — so the option's price is pinned by what that mixture costs, which depends on r and σ and not at all on how fast anyone expects the stock to grow. Two investors who disagree completely about μ must still agree on the option's price. Pricing as though the drift were r is called **risk-neutral** valuation, and the next subsection makes it the article's organizing distinction.
 >
@@ -89,27 +89,35 @@ That leaves one honest question, which [the returns section](#sec:returns) answe
 
 ## The strike dial
 
-Operators rarely pick a strike directly. They pick how often they are willing to be assigned, and the strike follows. Under the lognormal model the strike fraction k\* delivering a target assignment probability p\* is
+Operators rarely pick a strike directly. They pick how often they are willing to be assigned — a target probability p\*, and the strike follows from it. **That p\* is the strike dial**, the one control this article turns: everything the operator decides about entry is a setting of it, and every strike quoted below is what some setting produced. Under the lognormal model the strike fraction k\* delivering p\* is
 
 k\*  =  exp( N⁻¹(p\*) · σ·√τ_p  +  (m − σ²/2) · τ_p )    {#eq:kstar}
 
-For the **Standard** regime — p\* = 20%, weekly puts, σ = 20%, total return μ = 7%, δ = 2.5%, so m = 4.5% — this gives k\* ≈ **0.9774**, a strike about 2.3% below the market. For the **Conservative** regime, p\* = 10%, it gives k\* ≈ **0.9655**, about 3.5% below. Because p\* is defined in the real world, the realized assignment rate *is* p\*: one put in five, or one in ten. No correction is needed and none is applied.[^eq-kstar]
+For the **Standard** regime — p\* = 20%, weekly puts, σ = 20%, total return μ = 7%, δ = 2.5%, so m = 4.5% — this gives k\* ≈ **0.9774**, a strike about 2.3% below the market. For the **Conservative** regime, p\* = 10%, it gives k\* ≈ **0.9655**, about 3.5% below. Because p\* is defined in the real world, the realized assignment rate *is* p\*: one put in five, or one in ten.[^eq-kstar]
 
-The strikes are close to the money because the tenor is short. A week is not long enough for a 20%-volatility stock to travel far, so a one-in-five chance of finishing below the strike is only 2.3% away. This is the first appearance of a theme that runs through the whole article: **the cadence sets the scale of everything**, and quantities that look comparable at one cadence are not at another.
+The strikes are close to the money because the tenor is short. A week is not long enough for a 20%-volatility stock to travel far, so a one-in-five chance of finishing below the strike is only 2.3% away. This is the first appearance of a theme that runs through the whole article: **the cadence sets the scale of everything**. Both numbers this section produces — how far out of the money the strike sits, and how deep an assignment lands when it comes — are set by the size of one period's move, σ·√τ_p, so neither means anything until you know the cadence it was measured at.
 
 Read the other way round — fixing that strike and asking the market what it thinks — the probability implied by option prices is
 
 p_screen  =  N(−d₂),   d₂ = [ −ln(k) + (r − δ − σ²/2)·τ_p ] / (σ·√τ_p)    {#eq:p-screen}
 
-which comes to **20.4%** at the Standard strike, a little higher than the 20% that will actually occur. This is worth knowing because p_screen, not p\*, is the number practitioners quote to each other.
+which comes to **20.4%** at the Standard strike, a little higher than the 20% that will actually occur — higher because option prices behave as if the stock climbed at r − δ = 2.5% rather than the μ − δ = 4.5% it is actually expected to, and a stock that climbs more slowly finishes below any given strike more often. This is worth knowing because p_screen, not p\*, is the number practitioners quote to each other.
 
-The gap between the two worlds has a closed form, and it is the *entire* difference between them. The two drifts differ by μ − r, so over one tenor the argument of N(·) shifts by the asset's Sharpe ratio times the square root of the tenor:
+How far apart are the two worlds, then, and on what does the distance depend? The answer is short, and it is the *entire* difference between them: the drifts differ by μ − r and by nothing else, so over one tenor d₂ moves by the asset's **Sharpe ratio** — how much it returns above the risk-free rate for each unit of volatility, (μ − r)/σ, or 0.10 in the running example — times the square root of the tenor:
 
 Δd₂  =  (μ − r)·√τ_p / σ  =  0.0139    {#eq:screen-gap}
 
-That is a shift in d₂, not in probability, and the distinction is worth keeping because the two differ by a factor of four here. Converting costs one evaluation of the bell curve at the threshold, φ(N⁻¹(p\*)) ≈ 0.28, which turns 0.0139 into **0.4 percentage points** — precisely the distance from 20.0% to 20.4%. Both readings are small for short-dated options, and both shrink as √τ_p.
+It falls out of [eq:bs-put](#eq:bs-put) by subtraction. Write d₂ at each drift and, since this article prices at σ_IV = σ, everything but the drift is common to the two worlds and cancels. What is left is how much further the real world drifts over one tenor, (μ − r)·τ_p, divided by one period's move σ·√τ_p — the same units d₂ itself is measured in. d₁ shifts by exactly as much — the σ·√τ_p between them carries no drift — but it is d₂ that matters here, since p\* and p_screen are both N(−d₂), read at the two drifts.
 
-(Strictly, the screen usually shows the option's **delta**, ≈ 19.6% here, rather than the probability of finishing in the money, N(−d₂) ≈ 20.4%. The two are close for short-dated options and traders conflate them freely. This article always means a probability.)
+The gap is given in d₂ units rather than in probability because in them it is the same at every strike, where the probability gap is not: converting depends on where on the bell curve the strike sits. −d₂ in the real world *is* N⁻¹(p\*), by construction of the dial, so the gap converts back directly:
+
+Δp  =  N( N⁻¹(p\*) + Δd₂ )  −  p\*    {#eq:gap-prob}
+
+For the running example that comes to **0.0039**, or 0.4 percentage points — exactly what p\* and p_screen delivered above, the distance from 20.0% to 20.4%, and about three and a half times smaller than the shift in d₂ it came from. *Why* it depends on the strike is easiest to see in the approximation φ(N⁻¹(p\*))·Δd₂: the factor is the height of the bell curve where the strike sits, 0.28 at Standard and 0.18 at Conservative. Both readings are small for short-dated options, and both shrink as √τ_p.
+
+One clarification, because what a screen shows is not quite either number above. A broker displays the option's **delta** — how much its price moves for a one-point move in the stock, and equivalently how many shares it takes to replicate — which is ≈ 19.6% here, against the probability of finishing in the money, N(−d₂) ≈ 20.4%. They are different objects, a price sensitivity and a probability, built on d₁ and d₂ respectively, and the distance between them is about φ(N⁻¹(p\*))·σ·√τ_p: one period's move again. That comes to 0.8 of a percentage point at a weekly tenor, which is why traders call a strike a "20-delta put" and mean a one-in-five chance without anyone objecting. But it is a licence short tenors grant, not a fact about the two quantities — the gap grows as √τ_p, and by a one-year tenor it is several points wide. **This article always means a probability.**
+
+That completes the dial: a probability in, a strike out, and the numbers a screen reports placed beside them. Every strike in this article is set this way, and everything the model does downstream begins with a lot acquired at one.
 
 ## Where a real operator sits on the dial
 
@@ -178,6 +186,6 @@ There is also a path-versus-endpoint distinction — the stock may cross a strik
 
 [^eq-x0-def]: Reproduced by `python code/examples/entry_depth.py` — [eq:x0-def](#eq:x0-def), [eq:x0-law](#eq:x0-law), [eq:d-mean](#eq:d-mean), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --measure Q`. Pass `--help` for the full parameter set.
 
-[^eq-kstar]: Reproduced by `python code/examples/entry_strike.py` — [eq:kstar](#eq:kstar), [eq:p-screen](#eq:p-screen), [eq:screen-gap](#eq:screen-gap), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --sigma 0.297`. Pass `--help` for the full parameter set.
+[^eq-kstar]: Reproduced by `python code/examples/entry_strike.py` — [eq:kstar](#eq:kstar), [eq:p-screen](#eq:p-screen), [eq:screen-gap](#eq:screen-gap), [eq:gap-prob](#eq:gap-prob), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --sigma 0.297`. Pass `--help` for the full parameter set.
 
 [^eq-bs-put]: Reproduced by `python code/examples/entry_pricing.py` — [eq:lognormal](#eq:lognormal), [eq:bs-put](#eq:bs-put), [eq:bs-call](#eq:bs-call), [eq:iv](#eq:iv), and the other readings quoted here are `measure Q`; `delta 0.05 --tau-p 2.0 --sigma 0.30`; `iv-spread 0.03`. Pass `--help` for the full parameter set. This is the module to reach for when trying parameters of your own: it prints which volatility each line used, checks the put's delta against a numerical derivative of its own price rather than against another formula, and asserts put–call parity at every case.
