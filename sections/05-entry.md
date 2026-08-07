@@ -20,7 +20,21 @@ At **Standard**, p\* = 20%, a put assigns on the **fifth** attempt on average bu
 
 ## Detour: the normal distribution and N(·)
 
-> The **standard normal distribution** is the familiar bell curve, centered at zero with spread one. Its **cumulative distribution function** N(x) answers: what is the probability that a standard normal random variable lands below x? It is a lookup — every statistics package and spreadsheet provides it. Its inverse N⁻¹ goes the other way, converting a probability into the corresponding threshold. Under the price model below, probabilities of price events reduce to evaluations of N at the right argument.
+> The **normal distribution** is the familiar bell curve. A quantity Y that follows it is pinned down by two numbers — where the curve is centred, its mean **μ_Y**, and how wide it is, its spread **σ_Y** — and its shape is one formula, the **density**
+>
+> f_Y(y)  =  e^( −(y − μ_Y)² / (2·σ_Y²) ) / ( σ_Y·√(2π) )    {#eq:normal}
+>
+> tallest at μ_Y and falling away symmetrically, fast enough that values more than three spreads from the mean are uncommon and more than five essentially never seen. The area beneath the density between two points is the probability Y lands between them, and the total area is one.
+>
+> **Every normal distribution is the same one, shifted and stretched.** Measure Y not in its own units but in spreads away from its mean — replace it by z = (Y − μ_Y)/σ_Y — and both parameters drop out. What is left is the **standard** normal, centred at zero with spread one, and its density has its own name:
+>
+> φ(z)  =  e^(−z²/2)/√(2π),   so that   f_Y(y)  =  φ(z)/σ_Y   with   z = (y − μ_Y)/σ_Y    {#eq:phi}
+>
+> That conversion is the step this article performs most often. The 1/σ_Y is what keeps the total area at one under the stretch, and it is the divisor sitting outside φ in [eq:x0-law](#eq:x0-law).
+>
+> Two lookups turn φ into answers. The **cumulative distribution function** N(z) is the area under φ to the left of z: the probability that a **draw** — one value picked at random according to the density — comes in below z. Its inverse N⁻¹ runs the other way, turning a probability into the threshold that delivers it. Neither can be written with elementary functions, and neither needs to be; every statistics package and spreadsheet has both.
+>
+> [Ross's *A First Course in Probability*](#ref:ross-first-course) covers the distribution and the conversion.[^eq-normal]
 
 ## Detour: the lognormal price model and the Black–Scholes formula
 
@@ -109,7 +123,7 @@ the log-distance from the price paid to the price the market is offering. Since 
 
 > **Detour: truncated distributions and conditional expectation.** An ordinary expectation averages over all scenarios. A **conditional expectation** averages only over those in which some event occurred — "the average size of an insurance claim, *given* that a claim was filed". Computing one means cutting the distribution at the event's boundary and averaging what remains; the remaining piece is called a *truncated* distribution. For the normal distribution these truncated averages have closed forms built from the same N(·) used everywhere else. Any text deriving the Black–Scholes formula computes one along the way; [Hull](#ref:hull) covers it.
 
-Writing z = ln(S_T/S) for the log return over the put's life — normal, with mean (m − σ²/2)·τ_p and standard deviation σ·√τ_p — the entry depth is x₀ = ln k − z conditioned on z < ln k, with density
+Writing R = ln(S_τ/S) for the log return over the put's life — normal, with mean (m − σ²/2)·τ_p and spread σ·√τ_p — the entry depth is x₀ = ln k − R conditioned on R < ln k, with density
 
 f(x₀)  =  φ( (ln k − x₀ − (m − σ²/2)·τ_p) / (σ·√τ_p) ) / ( σ·√τ_p · p\* ),   x₀ > 0    {#eq:x0-law}
 
@@ -145,6 +159,8 @@ What that costs is **the tail rather than the mean**, which their own results me
 One consequence for anyone extending the pricing: the same authors found that valuing an American put by put–call parity understates it, badly in high-rate periods. This article does not take that shortcut — its put formula is a direct one — but it is the natural shortcut to reach for, and it is a worse approximation than the European assumption it would be trying to repair.
 
 There is also a path-versus-endpoint distinction — the stock may cross a strike mid-period and come back, which a terminal probability never sees. [The holding-time section](#sec:holding) turns that from a caveat into a quantity, because on the call leg the same effect has a name and a measurable size.
+
+[^eq-normal]: Reproduced by `python code/examples/entry_normal.py` — [eq:normal](#eq:normal), [eq:phi](#eq:phi), and the other readings quoted here are `sigma 0.30`; `p-star 0.10`; `measure Q`. Pass `--help` for the full parameter set. The quantity it works on is this section's own log return, and three of its lines are checks rather than readings: [eq:normal](#eq:normal) integrated over the whole line must come to one, the probability below the strike must agree whether it is integrated directly or standardized and read off N, and N must invert N⁻¹.
 
 [^eq-wait]: Reproduced by `python code/examples/entry_wait.py` — [eq:wait](#eq:wait), and the other readings quoted here are `p-star 0.10`; `measure Q`. Pass `--help` for the full parameter set. The simulated columns walk the price path and re-strike a put each period, so they check [eq:kstar](#eq:kstar) end to end rather than re-drawing the distribution the formula already describes. They do not test the independence assumed above, which no simulation of this model could.
 

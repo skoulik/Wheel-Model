@@ -103,6 +103,21 @@ def phi(z):
     return exp(-z * z / 2) / sqrt(2 * pi)
 
 
+def normal_density(y, mu_y, sigma_y):
+    """Density of a normal with mean mu_y and spread sigma_y, section 05's
+    eq:normal.
+
+    Written out from the exponential rather than as phi((y-mu)/sigma)/sigma
+    ON PURPOSE.  The article's claim is that those two are the same thing --
+    standardization plus the 1/sigma Jacobian -- and `entry_normal.py` checks
+    it.  Defining this one in terms of the other would make that check
+    incapable of failing.
+    """
+    if sigma_y <= 0:
+        raise ValueError(f"sigma_y must be positive, got {sigma_y}")
+    return exp(-((y - mu_y) ** 2) / (2 * sigma_y**2)) / (sigma_y * sqrt(2 * pi))
+
+
 # ----------------------------------------------------------------------
 # Primitives.  Probabilities take a price drift m and are evaluated in
 # whichever world m names; prices are quotes and always carry the
