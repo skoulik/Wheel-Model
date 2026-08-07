@@ -974,6 +974,40 @@ live data, not only simulation.
 - Reference III-1's book-width caveat rather than restating it: Track A yields are not
   comparable between a 95-name put book and a single-name model.
 
+- **Where the operator sits on the dial — moved here from §05 on 2026-08-07, verbatim.**
+  It was written as a §05 subsection and it derailed that section's spine: the flow reader
+  drifted for three paragraphs through a reconciliation of an account they had not been
+  introduced to (R-05-4), and the adversarial reader flagged that none of its figures can be
+  checked until this part exists (F-05-2). §05 keeps only what does not need the account —
+  why two regimes are carried and why Standard leads, and the same-dial-different-strike
+  reading of eq:kstar restated as pure model arithmetic (3.5% out at sigma = 20%, 5.2% at 30%).
+  Everything below needs the ledger and belongs here.
+
+  Two things to carry over when this is written. **Section 00's p-star row** currently sends the
+  reader to §05 "for the measurement and for why the stylized value leads" — the second half
+  stayed, the measurement is here, so repoint the first half at `sec:live`. And **the
+  trading-week argument is methodology, not decoration**: 1/52 of a year is 4.85 of the 252
+  sessions a year contains, which is what makes a Monday-to-Friday put and the article's weekly
+  tenor the same object. Any live measurement against a model tenor needs it.
+
+  One sentence was dropped rather than moved and should not return in this form: "[the returns
+  section] prices exactly how little: halving the dial halves the inventory, the capital and the
+  income, and moves the strategy's advantage over simply owning the stock by less than a tenth
+  of a percentage point." That stated §09's result where §05 had no machinery for it.
+
+  > Two regimes are two settings of one dial, and it is fair to ask which of them describes practice. The account behind this article answers that, though not at first glance. Over fifteen months, 956 of its put contracts can be priced against the market on the day they were written, and 71 of those were assigned — **7.4%**, apparently more cautious than either regime on offer.
+  >
+  > That number is not comparable, for two reasons that push it the same way. The first is the drift: the window was a bull market, its held names running at roughly +40% a year against the +4.5% assumed here, and a stock that is climbing finishes below the same strike less often. The second is that **a week is not seven days of market**. The account's dominant put is written Monday at the open and expires Friday at the close — five trading sessions, the weekend contributing nothing but a date. That is also exactly what this article's weekly tenor is worth: 1/52 of a year is 4.85 of the 252 sessions a year contains. The two clocks agree; it is only raw calendar arithmetic, which reads that put as four days rather than five sessions, that makes them look different.
+  >
+  > Correct for the drift, then, and put the operator's *own* strikes on the article's week — the same distance out of the money, on the same names, at their own volatilities. The assignment probability they were actually choosing comes to **10.8%**. That is the Conservative regime, to within a point.
+  >
+  > A second reading confirms it without any of that machinery. The names this operator trades carry volatility near 30%, not the running example's 20%, and the median put was written **5.5% out of the money**. At 30% volatility over one week, a one-in-ten strike sits **5.1%** out. Same dial, different strike — which is [eq:kstar](#eq:kstar) doing precisely the job it exists for: the operator picks a frequency, and volatility decides how far away that puts the strike.
+  >
+  > So the two regimes bracket practice from above, and Conservative is where a real book sits. Standard leads the worked examples anyway, and the reason is worth being explicit about rather than leaving as inertia. The market of the running example is a **stylized** one — 20% volatility, a 7% total return, a 5% risk-free rate — and p\* = 20% is the round, conventional number that belongs beside them; it is also the calibration practitioners quote to each other. Calibrating the dial alone, while the volatility and the drift stayed round numbers, would suggest more calibration than there is. Little rests on the choice in any case, and [the returns section](#sec:returns) prices exactly how little: halving the dial halves the inventory, the capital and the income, and moves the strategy's advantage over simply owning the stock by less than a tenth of a percentage point — nearly all of which turns out to be an accounting artifact rather than economics.
+  >
+  > One thing the dial does *not* account for, and it belongs here so it is not mistaken for a failure of [eq:kstar](#eq:kstar). The model sells a put every week. The live operator skips weeks, writing far fewer puts on any given name than a weekly cadence would, so lots arrive several times more slowly than even the Conservative regime predicts. None of that gap is p\*'s to close: it is an entry filter the model does not contain, and [the live-account section](#sec:live) takes it up.
+
+
 **IV-3. Rewrite §16, the outlook.** Currently a stub whose standing content is the list of
 things deliberately outside the model — the call-strike lever, permanent impairment and the
 dividend cut, the entry filter, transaction costs, skew, moving volatility, depth-dependent
