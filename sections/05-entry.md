@@ -79,11 +79,11 @@ A price model needs a **drift**: the average rate at which the price climbs. Two
 
 This article computes everything in terms of a single drift m, and reports two readings of the same chain of formulas: **m = μ − δ**, what actually happens, and **m = r − δ**, what the market's prices imply. Neither is ever mixed into the other. The real-world reading leads, because that is the world the operator lives in; the market's reading appears alongside wherever the two disagree, and [the stability section](#sec:stability) is where that disagreement matters most.
 
-A probability in this article is **computed**: the model produces it from a drift and a volatility. A premium is not — it is **observed**, read off the market and taken as given. The market's convention for quoting one is a volatility: the **implied volatility** σ_IV of a premium is the σ at which [eq:bs-put](#eq:bs-put) returns it,
+A probability in this article is **computed**: the model produces it from a drift and the stock's own volatility σ. A premium is not — it is **observed**, read off the market and taken as given. It too is quoted as a volatility, but a different one: the **implied volatility** σ_IV of a premium is the value at which [eq:bs-put](#eq:bs-put) returns it,
 
-σ_IV:  the one σ for which  c_p( k, τ_p, σ, r, δ )  equals the quoted premium    {#eq:iv}
+σ_IV:  the volatility for which  c_p( k, τ_p, σ_IV, r, δ )  equals the quoted premium    {#eq:iv}
 
-In general there is no algebra for that σ and it is found by search, though a few special cases — an option struck exactly at the forward price, most usefully — do invert in closed form. **Applied to a premium, Black–Scholes is a unit rather than a valuation**, and the convention earns its keep because implied volatility compares across strikes and expiries where a raw price does not. A premium is priced off r and δ alone — μ never enters it, even where the probabilities beside it are read at μ − δ.[^eq-bs-put]
+In general there is no algebra for σ_IV and it is found by search, though a few special cases — an option struck exactly at the forward price, most usefully — do invert in closed form. **Applied to a premium, Black–Scholes is a unit rather than a valuation**, and the convention earns its keep because implied volatility compares across strikes and expiries where a raw price does not. A premium is priced off r and δ alone — μ never enters it, even where the probabilities beside it are read at μ − δ.[^eq-bs-put]
 
 That leaves one honest question, which [the returns section](#sec:returns) answers with a number rather than an argument. Implied volatility is *systematically higher* than the volatility that subsequently materializes, and that gap — the volatility risk premium — is the documented edge of every option-selling strategy. Every headline result below assumes it away, σ_IV = σ, so that what remains is the machinery of the strategy and nothing else.
 
