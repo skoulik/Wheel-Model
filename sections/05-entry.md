@@ -12,9 +12,31 @@ Selling a put is one Bernoulli trial per cadence period: with probability p\* it
 
 > The **standard normal distribution** is the familiar bell curve, centered at zero with spread one. Its **cumulative distribution function** N(x) answers: what is the probability that a standard normal random variable lands below x? It is a lookup — every statistics package and spreadsheet provides it. Its inverse N⁻¹ goes the other way, converting a probability into the corresponding threshold. Under the price model below, probabilities of price events reduce to evaluations of N at the right argument.
 
-## Detour: the lognormal price model
+## Detour: the lognormal price model and the Black–Scholes formula
 
-> The **Black–Scholes model** ([1973](#ref:black-scholes-1973)) describes a stock price as drifting upward at some average rate while being knocked around by random shocks whose size is set by the volatility σ. Percentage changes are random, independent from period to period, and normally distributed — which makes the price itself *lognormally* distributed at any future date, and makes the **logarithm** of the price an ordinary random walk with drift. That last fact is the one this article leans on hardest. The model is a simplification — real markets have jumps, fat tails, and volatility that changes over time — but it is the shared language in which option prices are quoted, and its probabilities are accurate enough for the structural questions asked here. [Hull's *Options, Futures, and Other Derivatives*](#ref:hull) is the standard reference.
+> The **Black–Scholes model** ([1973](#ref:black-scholes-1973)) describes a stock price as drifting at some average rate while being knocked around by random shocks whose size is set by the volatility σ. Percentage changes are random, independent from period to period, and normally distributed. Written out, the price after a time τ is
+>
+> S_τ  =  S · exp( (m − σ²/2)·τ  +  σ·√τ·Z ),   Z a single draw from the standard normal distribution above    {#eq:lognormal}
+>
+> Two things to read off it. First, the price is the exponential of a normal quantity — that is what *lognormal* means — so the **logarithm** of the price is a **random walk**: a running total of independent random steps, each drawn from the same distribution. Those steps do not average to zero: the systematic tilt in them is the walk's **drift**, the first term in the exponent above, and the scatter around it is the wobble, the second. The two accumulate at different rates — the drift in proportion to τ, the wobble only in proportion to √τ — so a walk watched over a short span is nearly all wobble, and its drift emerges only with sufficient time. That the log price is such a walk is the fact this article leans on hardest, and every formula in this section is an algebraic rearrangement of it.
+>
+> Second, the drift of that walk is not m. The price is expected to grow at m, but the rate inside the exponent — the one the walk actually drifts at — is m − σ²/2. The σ²/2 between them has a name and a cost; [the depth section](#sec:depth) derives it, and is also where this walk stops being background and becomes the object of study.
+>
+> The same two parameters price an option. On this article's convention that prices are quoted as fractions of the share price, a European put struck at k is worth
+>
+> c_p  =  k·e^(−r·τ)·N(−d₂)  −  e^(−δ·τ)·N(−d₁),   d₁ = [ −ln k + (r − δ + σ²/2)·τ ] / (σ·√τ),   d₂ = d₁ − σ·√τ    {#eq:bs-put}
+>
+> and a call struck at the same k, on the same convention, is
+>
+> c_c  =  e^(−δ·τ)·N(d₁)  −  k·e^(−r·τ)·N(d₂)    {#eq:bs-call}
+>
+> Those are the only two option prices this article needs; the sections that follow build their own machinery on them.
+>
+> The two arguments recur throughout, so it is worth knowing what each one is: **N(−d₂) is the probability that the put finishes in the money**, computed at the drift that appears in the formula, and N(−d₁) is a stock-weighted version of the same thing. The e^(−δ·τ) beside it is there because the option's holder collects no dividends, so a position hedged to deliver one share at expiry needs only e^(−δ·τ) shares today. That dividend-paying version of the formula is [Merton's](#ref:merton-1973), from the same year as the original.
+>
+> Notice which drift is in there: r, the risk-free rate, and nowhere the stock's own expected return μ. That is not an approximation. An option's payoff can be manufactured out of a continuously adjusted mixture of the stock and cash, and two things delivering the same payoff must cost the same — so the option's price is pinned by what that mixture costs, which depends on r and σ and not at all on how fast anyone expects the stock to grow. Two investors who disagree completely about μ must still agree on the option's price. Pricing as though the drift were r is called **risk-neutral** valuation, and the next subsection makes it the article's organizing distinction.
+>
+> The model is a simplification — real markets have jumps, fat tails, and volatility that changes over time — but it is the shared language in which option prices are quoted, and its probabilities are accurate enough for the structural questions asked here. [Hull's *Options, Futures, and Other Derivatives*](#ref:hull) is the standard reference.[^eq-bs-put]
 
 ## Which probabilities? One measure, two worlds
 
@@ -117,3 +139,5 @@ There is also a path-versus-endpoint distinction — the stock may cross a strik
 [^eq-x0-def]: Reproduced by `python code/examples/entry_depth.py` — [eq:x0-def](#eq:x0-def), [eq:x0-law](#eq:x0-law), [eq:d-mean](#eq:d-mean), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --measure Q`. Pass `--help` for the full parameter set.
 
 [^eq-kstar]: Reproduced by `python code/examples/entry_strike.py` — [eq:kstar](#eq:kstar), [eq:p-screen](#eq:p-screen), [eq:screen-gap](#eq:screen-gap), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --sigma 0.297`. Pass `--help` for the full parameter set.
+
+[^eq-bs-put]: Reproduced by `python code/examples/entry_pricing.py` — [eq:lognormal](#eq:lognormal), [eq:bs-put](#eq:bs-put), [eq:bs-call](#eq:bs-call), and the other readings quoted here are `measure Q`; `delta 0.05 --tau-p 2.0 --sigma 0.30`; `iv-spread 0.03`. Pass `--help` for the full parameter set. This is the module to reach for when trying parameters of your own: it prints which volatility each line used, checks the put's delta against a numerical derivative of its own price rather than against another formula, and asserts put–call parity at every case.

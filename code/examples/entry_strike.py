@@ -28,7 +28,7 @@ FIELDS = [
     ("p_screen", "p_screen = N(-d2), the screen's number", ".2%"),
     ("gap_z", "  the two worlds' gap, in d2 units", ".4f"),
     ("gap_p", "  the same gap, in probability", ".4f"),
-    ("delta", "delta = N(-d1), what the screen shows instead", ".2%"),
+    ("delta", "delta, what the screen shows instead", ".2%"),
 ]
 
 
@@ -58,7 +58,8 @@ CASES = [
         "p_screen": (0.2039, 0.001),    # "comes to 20.4%"
         "gap_z": (0.0139, 0.0005),      # eq:screen-gap, the shift in d2
         "gap_p": (0.0039, 0.0005),      # "0.4 percentage points" once converted
-        "delta": (0.1961, 0.002),       # "N(-d1) ~ 19.6% here"
+        "delta": (0.19605, 1e-4),       # section 05: "~ 19.6% here".  Not
+                                        # N(-d1) = 0.19614: see put_delta.
     }, note="Standard regime"),
     Case("--measure Q", {
         "k": (0.9770, 0.0005),

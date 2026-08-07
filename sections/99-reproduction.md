@@ -38,7 +38,11 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 |  | `python code/examples/entry_depth.py --measure Q` | drop = 3.79% |
 |  | `python code/examples/entry_depth.py --p-star 0.10` | x0 = 0.0131, drop = 4.70% |
 |  | `python code/examples/entry_depth.py --p-star 0.10 --measure Q` | drop = 4.74% |
-| `eq:kstar`, `eq:p-screen`, `eq:screen-gap` | `python code/examples/entry_strike.py` | k = 0.9774, otm = 2.26%, p_real = 20.00%, p_screen = 20.39%, gap_z = 0.0139, gap_p = 0.0039, delta = 19.61% |
+| `eq:lognormal`, `eq:bs-put`, `eq:bs-call` | `python code/examples/entry_pricing.py` | m = 0.0450, nu_log = 0.0250, mean_factor = 1.000866, median_factor = 1.000481, k = 0.9774, n_md2 = 20.39%, delta_put = 19.6046%, delta_fd = 19.6046%, delta_naive = 19.6140%, parity = 1.4e-16, screen_check = 0.0e+00 |
+|  | `python code/examples/entry_pricing.py --measure Q` | m = 0.0250, nu_log = 0.0050, k = 0.9770, n_md2 = 20.00%, delta_put = 19.2234%, delta_fd = 19.2234%, parity = 2.8e-17, screen_check = 0.0e+00 |
+|  | `python code/examples/entry_pricing.py --delta 0.05 --tau-p 2.0 --sigma 0.30` | delta_fd = 10.9194%, delta_put = 10.9194%, delta_naive = 12.0678%, parity = -1.1e-16, screen_check = 0.0e+00 |
+|  | `python code/examples/entry_pricing.py --iv-spread 0.03` | sigma_dyn = 0.2000, sigma_iv = 0.2300, k = 0.9774, n_md2 = 23.70%, parity = -2.8e-17, screen_check = 0.0e+00 |
+| `eq:kstar`, `eq:p-screen`, `eq:screen-gap` | `python code/examples/entry_strike.py` | k = 0.9774, otm = 2.26%, p_real = 20.00%, p_screen = 20.39%, gap_z = 0.0139, gap_p = 0.0039, delta = 19.60% |
 |  | `python code/examples/entry_strike.py --measure Q` | k = 0.9770 |
 |  | `python code/examples/entry_strike.py --p-star 0.10` | k = 0.9655, otm = 3.45% |
 |  | `python code/examples/entry_strike.py --p-star 0.10 --sigma 0.297` | otm = 5.14% |
@@ -75,7 +79,7 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 
 | formula | command | the article's figures |
 |---|---|---|
-|  | `python code/examples/returns_beta.py` | beta_up = 0.830, beta_dn = 1.000, delta_dn20 = 1.069, delta_flat = 0.934, delta_up20 = 0.609, put_dn20 = 1.000, put_up20 = 0.000 |
+|  | `python code/examples/returns_beta.py` | beta_up = 0.830, beta_dn = 1.000, delta_dn20 = 1.069, delta_flat = 0.934, delta_up20 = 0.610, put_dn20 = 1.000, put_up20 = 0.000 |
 |  | `python code/examples/returns_beta.py --p-star 0.10` | beta_up = 0.826, beta_dn = 1.000 |
 |  | `python code/examples/returns_beta.py --n 1` | beta_up = 0.929, beta_gap = 0.071 |
 |  | `python code/examples/returns_beta.py --n 13` | beta_up = 0.684, beta_gap = 0.316 |

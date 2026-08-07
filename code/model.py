@@ -287,11 +287,24 @@ def screen_gap(C, in_prob=False):
 
 
 def put_delta(C, measure):
-    """N(-d1): the short put's delta, which is what the screen usually shows
-    instead of screen_prob.  Close to it for short tenors, and not the same."""
+    """The short put's delta magnitude, e^(-delta*tau_p) * N(-d1).
+
+    What a broker's screen usually shows instead of screen_prob.  Close to it
+    for short tenors, and not the same.
+
+    The dividend discount is the stock leg of the replicating portfolio: the
+    option's holder collects no dividends, so hedging one share of expiry
+    exposure takes only e^(-delta*tau) shares today.  Dropping it gives the
+    textbook delta = N(-d1), which is exact only at delta = 0.  That shorthand
+    was here until 2026-08-07 and is worth 0.05% at the running example -- but
+    9.5% at a two-year tenor on a 5% yielder, and this is a function readers
+    drive to their own parameters.  `entry_pricing.py` checks it against a
+    numerical derivative of the price rather than against the formula.
+    """
     m, s = C.world("Q")
     k = strike(C, measure)
-    return N(-(d2(k, C.tau_p, s, m) + s * sqrt(C.tau_p)))
+    d1 = d2(k, C.tau_p, s, m) + s * sqrt(C.tau_p)
+    return exp(-C.delta * C.tau_p) * N(-d1)
 
 
 def grid_tax(C, measure):
@@ -1097,22 +1110,28 @@ def book_delta(C, measure, shock, horizon=None, **census_kw):
     The short put is the leg that matters on the downside.  Its delta runs to
     +1 as it goes into the money -- the operator holds the shares *and* owes on
     a put that is losing -- which is what takes the book past fully exposed.
+
+    Both option legs carry the e^(-delta*tau) discount on their stock leg, for
+    the reason given at `put_delta`; the share the lot actually holds does not,
+    because its holder does collect the dividends.  The call leg's discount
+    runs over tau_c rather than tau_p, so it is the larger of the two.
     """
     m, s = C.world(measure)
     xs, wts = census_weights(C, measure, horizon, **census_kw)
     total = sum(wts)
     spot = 1.0 + shock
+    disc_c, disc_p = exp(-C.delta * C.tau_c), exp(-C.delta * C.tau_p)
     inv = 0.0
     for x, wx in zip(xs, wts):
         if wx <= 0.0:
             continue
         d1 = ((log(spot) - x + (C.r - C.delta + C.sigma_iv**2 / 2) * C.tau_c)
               / (C.sigma_iv * sqrt(C.tau_c)))
-        inv += (wx / total) * (1.0 - N(d1))
+        inv += (wx / total) * (1.0 - disc_c * N(d1))
     k = strike(C, measure)
     d1p = ((log(spot / k) + (C.r - C.delta + C.sigma_iv**2 / 2) * C.tau_p)
            / (C.sigma_iv * sqrt(C.tau_p)))
-    return inv, N(-d1p)
+    return inv, disc_p * N(-d1p)
 
 
 def trapped_fraction(C, measure, zero_depth=False):
