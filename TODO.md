@@ -1287,3 +1287,21 @@ an earlier corpus exactly — verified 2026-08-01, where the pre-tranche cut rep
 of the previous ledger, T1's 71.5/90.3 pair and the 27.4%/8.0% bucket to the digit. At release,
 freeze the default at whatever date the article is measured on and print the window in the
 banner, so a later tranche cannot restate a published number without someone typing the flag.
+
+**INF-8. Two implied-volatility inverters, and only one may live.** (Raised 2026-08-07, when
+§05 gained [eq:iv](#eq:iv) and needed a solver a worked example could call.) `model.implied_vol`
+now defines the inversion, because `model.py` is the single source of formulas and the article
+displays this one. `iv_panel.implied_vol` predates it and is a near-copy: same bisection, same
+monotonicity argument, its own `IV_LO`/`IV_HI` bounds and its own `None`-out-of-range behaviour
+for bad quotes.
+
+The duplication was left standing deliberately rather than refactored on the spot. `iv_panel`
+feeds every live implied-volatility figure §09 quotes — the 29%-against-33% weekly-put versus
+four-week-call pair, the six-points-against-three skew reading, the depth effect — and
+collapsing the two inverters inside a §05 pass would put those numbers at risk with no §09
+review to catch it.
+
+Settle it when §09 is next opened: have `iv_panel.implied_vol` delegate to `model.implied_vol`,
+keeping the range-guard wrapper where the data cleaning belongs, and **diff every §09 live
+figure before and after**. If any moves, the two solvers disagreed and that is a finding rather
+than a refactor.

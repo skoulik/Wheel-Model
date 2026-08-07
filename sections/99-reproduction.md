@@ -42,10 +42,10 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 |  | `python code/examples/entry_normal.py --sigma 0.30` | sigma_y = 0.041603, area = 1.000000000, std_gap = -1.4e-16, phi_at_dial = 0.2800 |
 |  | `python code/examples/entry_normal.py --p-star 0.10` | p_direct = 0.100000, p_standard = 0.100000, std_gap = 1.4e-17, phi_at_dial = 0.1755 |
 |  | `python code/examples/entry_normal.py --measure Q` | mu_y = 0.000096, area = 1.000000000, std_gap = -4.2e-16 |
-| `eq:lognormal`, `eq:bs-put`, `eq:bs-call` | `python code/examples/entry_pricing.py` | m = 0.0450, nu_log = 0.0250, mean_factor = 1.000866, median_factor = 1.000481, k = 0.9774, n_md2 = 20.39%, delta_put = 19.6046%, delta_fd = 19.6046%, delta_naive = 19.6140%, parity = 1.4e-16, screen_check = 0.0e+00 |
+| `eq:lognormal`, `eq:bs-put`, `eq:bs-call`, `eq:iv` | `python code/examples/entry_pricing.py` | m = 0.0450, nu_log = 0.0250, mean_factor = 1.000866, median_factor = 1.000481, k = 0.9774, n_md2 = 20.39%, delta_put = 19.6046%, delta_fd = 19.6046%, delta_naive = 19.6140%, iv_back = 0.200000, iv_err = -4.4e-16, parity = 1.4e-16, screen_check = 0.0e+00 |
 |  | `python code/examples/entry_pricing.py --measure Q` | m = 0.0250, nu_log = 0.0050, k = 0.9770, n_md2 = 20.00%, delta_put = 19.2234%, delta_fd = 19.2234%, parity = 2.8e-17, screen_check = 0.0e+00 |
 |  | `python code/examples/entry_pricing.py --delta 0.05 --tau-p 2.0 --sigma 0.30` | delta_fd = 10.9194%, delta_put = 10.9194%, delta_naive = 12.0678%, parity = -1.1e-16, screen_check = 0.0e+00 |
-|  | `python code/examples/entry_pricing.py --iv-spread 0.03` | sigma_dyn = 0.2000, sigma_iv = 0.2300, k = 0.9774, n_md2 = 23.70%, parity = -2.8e-17, screen_check = 0.0e+00 |
+|  | `python code/examples/entry_pricing.py --iv-spread 0.03` | sigma_dyn = 0.2000, sigma_iv = 0.2300, k = 0.9774, n_md2 = 23.70%, iv_back = 0.230000, iv_err = 1.9e-15, parity = -2.8e-17, screen_check = 0.0e+00 |
 | `eq:kstar`, `eq:p-screen`, `eq:screen-gap` | `python code/examples/entry_strike.py` | k = 0.9774, otm = 2.26%, p_real = 20.00%, p_screen = 20.39%, gap_z = 0.0139, gap_p = 0.0039, delta = 19.60% |
 |  | `python code/examples/entry_strike.py --measure Q` | k = 0.9770 |
 |  | `python code/examples/entry_strike.py --p-star 0.10` | k = 0.9655, otm = 3.45% |

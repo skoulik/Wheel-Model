@@ -45,7 +45,7 @@ import model                                                  # noqa: E402
 
 TITLE = "Entry: the lognormal model and the Black-Scholes formula"
 SECTION = "sec:entry"
-EQ = ["eq:lognormal", "eq:bs-put", "eq:bs-call"]
+EQ = ["eq:lognormal", "eq:bs-put", "eq:bs-call", "eq:iv"]
 
 FIELDS = [
     ("m", "m, this world's price drift", ".4f"),
@@ -63,6 +63,8 @@ FIELDS = [
     ("delta_put", "the put's delta, e^(-delta*tau)*N(-d1)", ".4%"),
     ("delta_fd", "  the same, differenced from c_p", ".4%"),
     ("delta_naive", "  N(-d1) alone, the no-dividend shorthand", ".4%"),
+    ("iv_back", "sigma_IV recovered from c_p by eq:iv", ".6f"),
+    ("iv_err", "  less the sigma_IV it was priced at", ".1e"),
     ("parity", "put-call parity residual", ".1e"),
     ("screen_check", "N(-d2) less model.screen_prob", ".1e"),
 ]
@@ -112,6 +114,12 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
     c_c = model.bs_call(1.0, k, tau, cfg.sigma_iv, cfg.r, cfg.delta)
     disc_d, disc_r = exp(-cfg.delta * tau), exp(-cfg.r * tau)
 
+    # eq:iv, round-tripped: price at a known sigma_IV, then invert the price
+    # and see whether the sigma comes back.  This is the whole content of the
+    # claim that implied volatility is a restatement of a price rather than an
+    # input to one, and it is a check the solver can fail.
+    iv_back = model.implied_vol(c_p, k, tau, cfg.r, cfg.delta, right="P")
+
     return {
         "m": m,
         "nu_log": nu_log,
@@ -128,6 +136,8 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "delta_put": model.put_delta(cfg, measure),
         "delta_fd": -_fd_put_delta(k, tau, cfg.sigma_iv, cfg.r, cfg.delta),
         "delta_naive": model.N(-_d1),
+        "iv_back": iv_back,
+        "iv_err": iv_back - cfg.sigma_iv,
         "parity": c_c - c_p - (disc_d - k * disc_r),
         "screen_check": model.N(-_d2) - model.screen_prob(cfg, measure),
     }
@@ -147,6 +157,8 @@ CASES = [
         "delta_put": (0.196046, 1e-6),
         "delta_fd": (0.196046, 1e-6),    # the derivative agrees to 1e-10
         "delta_naive": (0.196140, 1e-6),  # the shorthand, 0.05% high
+        "iv_back": (0.20, 1e-9),          # eq:iv returns the sigma_IV that
+        "iv_err": (0.0, 1e-9),            #   priced c_p in the first place
         "parity": (0.0, 1e-12),
         "screen_check": (0.0, 1e-12),
     }, note="Standard regime, the article's parameters"),
@@ -176,7 +188,9 @@ CASES = [
         "sigma_iv": (0.23, 1e-9),        # prices at sigma + spread
         "k": (0.9774, 0.0005),
         "n_md2": (0.2370, 0.001),
-        "parity": (0.0, 1e-12),
+        "iv_back": (0.23, 1e-9),          # and it tracks the spread, which is
+        "iv_err": (0.0, 1e-9),            #   the case that would expose a
+        "parity": (0.0, 1e-12),           #   solver pinned to sigma
         "screen_check": (0.0, 1e-12),
     }, note="a volatility risk premium: the two volatilities separate"),
 ]

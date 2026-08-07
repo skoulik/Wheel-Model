@@ -64,14 +64,18 @@ At **Standard**, p\* = 20%, a put assigns on the **fifth** attempt on average bu
 
 ## Which probabilities? One measure, two worlds
 
-A price model needs a **drift**: the average rate at which the price climbs. Two different numbers can be put there, and confusing them is the classic error in this subject.
+A price model needs a **drift**: the average rate at which the price climbs. Two different numbers can be put there, and they answer different questions.
 
 - The **real-world** drift is what the stock is actually expected to do: total return μ, less the dividend yield δ, which is paid out of the price rather than added to it. So m = μ − δ.
-- The **risk-neutral** drift is what option *prices* behave as if the stock will do: the risk-free rate r, less δ again. So m = r − δ. It is not a forecast, and nobody claims the stock will only return r. It is an artifact of how options are priced — and it is what lets a formula built out of option prices be read straight off the market.
+- The **risk-neutral** drift is what option *prices* behave as if the stock will do: the risk-free rate r, less δ again. So m = r − δ. It is not a forecast, and nobody claims the stock will only return r; it is the drift replication forces, as the detour above showed, and it is what lets a formula built out of option prices be read straight off the market.
 
-This article computes everything in terms of a single drift m, and reports two readings of the same chain of formulas: **m = μ − δ**, what actually happens, and **m = r − δ**, what the market's prices imply. Neither is ever mixed into the other. The real-world reading leads, because that is the world the operator lives in; the market's reading appears alongside wherever the two disagree, and in [the stability section](#sec:stability) that disagreement becomes the sharpest result in the article.
+This article computes everything in terms of a single drift m, and reports two readings of the same chain of formulas: **m = μ − δ**, what actually happens, and **m = r − δ**, what the market's prices imply. Neither is ever mixed into the other. The real-world reading leads, because that is the world the operator lives in; the market's reading appears alongside wherever the two disagree, and [the stability section](#sec:stability) is where that disagreement matters most.
 
-Premiums are treated differently, and deliberately so. **A premium is not a probability; it is a price.** The operator does not compute what a put ought to cost, they read what it does cost. Premiums therefore enter as market data. That the market publishes those quotes in Black–Scholes form, at a number called implied volatility, is a quoting convention — the same way a bond price is published as a yield. Where a premium is needed, the article uses that convention at the quoted volatility σ_IV.
+Every probability above is *computed*: pick a drift, and N does the rest. A premium is not computed at all — it is read off the market and taken as given. The market's convention for quoting one is a volatility: the **implied volatility** σ_IV of a premium is the σ at which [eq:bs-put](#eq:bs-put) returns it,
+
+σ_IV:  the one σ for which  c_p( k, τ_p, σ, r, δ )  equals the quoted premium    {#eq:iv}
+
+In general there is no algebra for that σ and it is found by search, though a few special cases — an option struck exactly at the forward price, most usefully — do invert in closed form. **Applied to a premium, Black–Scholes is a unit rather than a valuation**, and the convention earns its keep because implied volatility compares across strikes and expiries where a raw price does not. A premium is priced off r and δ alone — μ never enters it, even where the probabilities beside it are read at μ − δ.[^eq-bs-put]
 
 That leaves one honest question, which [the returns section](#sec:returns) answers with a number rather than an argument. Implied volatility is *systematically higher* than the volatility that subsequently materializes, and that gap — the volatility risk premium — is the documented edge of every option-selling strategy. Every headline result below assumes it away, σ_IV = σ, so that what remains is the machinery of the strategy and nothing else.
 
@@ -168,4 +172,4 @@ There is also a path-versus-endpoint distinction — the stock may cross a strik
 
 [^eq-kstar]: Reproduced by `python code/examples/entry_strike.py` — [eq:kstar](#eq:kstar), [eq:p-screen](#eq:p-screen), [eq:screen-gap](#eq:screen-gap), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --sigma 0.297`. Pass `--help` for the full parameter set.
 
-[^eq-bs-put]: Reproduced by `python code/examples/entry_pricing.py` — [eq:lognormal](#eq:lognormal), [eq:bs-put](#eq:bs-put), [eq:bs-call](#eq:bs-call), and the other readings quoted here are `measure Q`; `delta 0.05 --tau-p 2.0 --sigma 0.30`; `iv-spread 0.03`. Pass `--help` for the full parameter set. This is the module to reach for when trying parameters of your own: it prints which volatility each line used, checks the put's delta against a numerical derivative of its own price rather than against another formula, and asserts put–call parity at every case.
+[^eq-bs-put]: Reproduced by `python code/examples/entry_pricing.py` — [eq:lognormal](#eq:lognormal), [eq:bs-put](#eq:bs-put), [eq:bs-call](#eq:bs-call), [eq:iv](#eq:iv), and the other readings quoted here are `measure Q`; `delta 0.05 --tau-p 2.0 --sigma 0.30`; `iv-spread 0.03`. Pass `--help` for the full parameter set. This is the module to reach for when trying parameters of your own: it prints which volatility each line used, checks the put's delta against a numerical derivative of its own price rather than against another formula, and asserts put–call parity at every case.

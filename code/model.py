@@ -120,8 +120,14 @@ def normal_density(y, mu_y, sigma_y):
 
 # ----------------------------------------------------------------------
 # Primitives.  Probabilities take a price drift m and are evaluated in
-# whichever world m names; prices are quotes and always carry the
-# risk-neutral drift r - delta at the implied volatility.
+# whichever world m names.  Prices are quotes: they take r and delta
+# SEPARATELY, at the implied volatility, and never take m.  The two rates do
+# combine into the drift r - delta inside d1 and d2, but they also discount
+# the two legs on their own -- k*e^(-r*tau) and e^(-delta*tau) -- so a price
+# is not a function of r - delta alone.  Holding r - delta fixed at 2.5% and
+# moving (r, delta) from (5.0, 2.5) to (2.5, 0) moves a weekly put's premium
+# in the sixth decimal.  Section 05 said "priced at r - delta" until
+# 2026-08-07, which is the misreading this comment now exists to prevent.
 # ----------------------------------------------------------------------
 
 def d2(k, tau, sigma, m):
@@ -151,6 +157,43 @@ def bs_call(s, k, tau, sigma, r, delta=0.0):
     _d1 = (log(s / k) + (r - delta + sigma**2 / 2) * tau) / (sigma * sqrt(tau))
     _d2 = _d1 - sigma * sqrt(tau)
     return s * exp(-delta * tau) * N(_d1) - k * exp(-r * tau) * N(_d2)
+
+
+def implied_vol(premium, k, tau, r, delta=0.0, right="P", lo=1e-4, hi=5.0,
+                iters=80):
+    """Section 05's eq:iv: the sigma at which bs_put/bs_call returns `premium`.
+
+    This is the definition of implied volatility, and it is a definition by
+    inversion -- the price is the datum and the volatility is read back out of
+    it.  There is no algebra for it in general; bisection is what the article
+    means by "found by search".  (At the money forward the price does collapse
+    to something invertible in closed form, which is where the rule of thumb
+    that an at-the-money option costs about 0.4*sigma*sqrt(tau) comes from.
+    Nothing here needs that case, so nothing here special-cases it.)
+
+    Monotone in sigma, so bisection cannot miss; 80 halvings of [1e-4, 5]
+    lands well inside double precision.  Returns None when the premium is
+    outside what any sigma in range can produce, which is what a bad or stale
+    quote looks like.
+
+    NOTE: `iv_panel.py` carries its own copy of this inversion, which predates
+    this one and feeds section 09's live figures.  See TODO INF-8: that copy
+    should delegate here once section 09 is being worked on, and not before,
+    since the two must be shown to agree before any live figure moves.
+    """
+    def price(sig):
+        return (bs_put(k, tau, sig, r, delta) if right == "P"
+                else bs_call(1.0, k, tau, sig, r, delta))
+
+    if not price(lo) <= premium <= price(hi):
+        return None
+    for _ in range(iters):
+        mid = (lo + hi) / 2
+        if price(mid) < premium:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
 
 
 # ----------------------------------------------------------------------
