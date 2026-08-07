@@ -2,25 +2,33 @@
 
 Everything the wheel does downstream is set by two numbers decided at the moment a put is assigned: **how often** assignment happens, and **how far below the strike** the stock has fallen when it does. This section derives both, and settles which probabilities the article is talking about.
 
-## Detour: Bernoulli trials
+## Detour: Bernoulli trials and the geometric distribution
 
 > When something either happens or doesn't — a coin flip, a die roll checked for a six, a put option either assigning or not — probabilists call it a **Bernoulli trial**. Write X = 1 when it happens and X = 0 when it does not, and the whole object is two numbers: P(X = 1) = p and P(X = 0) = 1 − p. **That p is its only parameter**, and everything else follows from it — the average of X is p itself, and its spread, p(1 − p), is widest at p = 1/2, where the outcome is least predictable, and shrinks to nothing at either end, where it is not in doubt. A fair coin is p = 1/2; the puts in this article run at p = 0.2 or p = 0.1.
 >
-> Strings of Bernoulli trials — all sharing one p, none aware of the others — are the atoms from which the more elaborate distributions later in this article are built. Any introductory probability text covers them; [Ross's *A First Course in Probability*](#ref:ross-first-course) is a standard choice.
+> String such trials together — all sharing one p, none aware of the others — and the first question worth asking is how long you wait for something to happen. That waiting time has its own name, the **geometric distribution**, and its shape is easiest to see from the back: the only way to still be waiting after j trials is for all j of them to have failed, so
+>
+> P(still waiting after j trials)  =  (1 − p)^j
+>
+> Every empty trial multiplies the chance of continuing by the same factor 1 − p. A constant factor per step is what *geometric* means, and it is what makes the tail long: the decline is steady rather than abrupt, so there is always some chance of a much longer wait than usual. Two numbers summarize that wait:
+>
+> E[trials to the first success]  =  1/p,   its median  =  ⌈ ln(1/2) / ln(1 − p) ⌉    {#eq:wait}
+>
+> The median is simply where (1 − p)^j first falls through a half, and the mean needs no more than arithmetic: if one trial in five succeeds, it takes five on average to get one. Behind both sits the property that gives the distribution its character — it is **memoryless**. Each trial is deaf to the ones before it, so after four failures the wait still ahead of you is exactly the wait you began with. Believing otherwise — that a run of near misses has made the next one more likely — is the **gambler's fallacy**, and the geometric distribution is precisely what it is a fallacy about: nothing is ever *due*. That is also why the mean outruns the median: short waits are the rule, and a long one never builds up any pressure to end.
+>
+> Any introductory probability text covers both; [Ross's *A First Course in Probability*](#ref:ross-first-course) is a standard choice.
 
 Selling a put is one Bernoulli trial per cadence period: with probability p\* it assigns and delivers a lot of stock into inventory, otherwise it expires and the operator keeps the premium and sells another.
 
 **The trials are independent, and that is an assumption rather than a finding.** Successive puts sit on one stock, so it is fair to suspect that a fall this week makes assignment likelier next. Within the model it does not, because **the strike floats**: it is set as a fraction of the *current* price, so each period's put is re-struck wherever the stock now stands and asks its question of the coming period alone. The price model of the detour below makes those periods independent, and the trials inherit it. That inheritance is the entire justification, and it cannot be checked by simulating the same model — a model whose periods are independent by construction will reproduce that independence whatever is asked of it. Real markets cluster their volatility, which would bunch assignments into runs that the arithmetic below does not contain.
 
-So how long until a put assigns? Waiting on a string of independent trials at rate p\* is the **geometric distribution** — the first assignment falls on trial n with probability (1 − p\*)^(n−1)·p\* — and two numbers summarize it:
+So how long until a put assigns? Read [eq:wait](#eq:wait) at p\*: a lot arrives every **1/p\*** put periods on average. In the **Standard** regime p\* = 20%, and the running example sells one put a week, so this section's first question is answered — **a lot every five weeks on average, with a typical wait of four.** The gap between those two numbers is the mildest form of a pattern that runs through the whole article, and [the holding-time section](#sec:holding) is where it stops being mild.
 
-E[N]  =  1/p\*,   median N  =  ⌈ ln(1/2) / ln(1 − p\*) ⌉    {#eq:wait}
-
-At **Standard**, p\* = 20%, a put assigns on the **fifth** attempt on average but on the **fourth** typically. The mean sits above the median because a tail of long waits drags it there — the mildest form of a pattern that runs through the whole article, and [the holding-time section](#sec:holding) is where it stops being mild.[^eq-wait]
+That arrival rate is the one this article's machinery consumes, and everything downstream scales with it: [the inventory section](#sec:inventory) restates it in lots per year and builds the standing inventory on it.[^eq-wait]
 
 ## Detour: the normal distribution and N(·)
 
-> The **normal distribution** is the familiar bell curve. A quantity Y that follows it is pinned down by two numbers — where the curve is centred, its mean **μ_Y**, and how wide it is, its spread **σ_Y** — and its shape is one formula, the **density**
+> The last two objects answered whether something happens and how long you wait for it. This one is about **size** — how far a price moves — which is what decides both. The **normal distribution** is the familiar bell curve. A quantity Y that follows it is pinned down by two numbers — where the curve is centred, its mean **μ_Y**, and how wide it is, its spread **σ_Y** — and its shape is one formula, the **density**
 >
 > f_Y(y)  =  e^( −(y − μ_Y)² / (2·σ_Y²) ) / ( σ_Y·√(2π) )    {#eq:normal}
 >
@@ -38,7 +46,7 @@ At **Standard**, p\* = 20%, a put assigns on the **fifth** attempt on average bu
 
 ## Detour: the lognormal price model and the Black–Scholes formula
 
-> The **Black–Scholes model** ([1973](#ref:black-scholes-1973)) describes a stock price as drifting at some average rate while being knocked around by random shocks whose size is set by the volatility σ. Percentage changes are random, independent from period to period, and normally distributed. Written out, the price after a time τ is
+> Apply that bell curve to a stock's *logarithm*, period after period, and the result is the price model this article runs on. The **Black–Scholes model** ([1973](#ref:black-scholes-1973)) describes a stock price as drifting at some average rate while being knocked around by random shocks whose size is set by the volatility σ. Percentage changes are random, independent from period to period, and normally distributed. Written out, the price after a time τ is
 >
 > S_τ  =  S · exp( (m − σ²/2)·τ  +  σ·√τ·Z ),   Z a single draw from the standard normal distribution above    {#eq:lognormal}
 >

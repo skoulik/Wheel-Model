@@ -8,8 +8,9 @@
 Backs eq:wait in section 05.
 
 WHAT THE SIMULATION IS FOR, AND WHAT IT IS NOT FOR.  Drawing Bernoulli
-variates to check that E[N] = 1/p would be theatre: it samples the very
-distribution the formula describes and can only fail if `random` is broken.
+variates to check that the mean wait is 1/p would be theatre: it samples the
+very distribution the formula describes and can only fail if `random` is
+broken.
 So this draws the PRICE PATH instead.  Each period it re-strikes a put at
 k* times the current price, draws that period's lognormal return, and calls
 the put assigned if the return finishes below the strike.  That runs the
@@ -49,10 +50,10 @@ EXTRA = [("--sim-periods", dict(type=int, default=1000000,
 
 FIELDS = [
     ("p_star", "p*, the dial", ".2%"),
-    ("mean_closed", "E[N], puts until the first assignment", ".3f"),
-    ("median_closed", "  median N", ".0f"),
-    ("tail7", "  P(N > 7)", ".3f"),
-    ("tail13", "  P(N > 13)", ".3f"),
+    ("mean_closed", "E[puts to the first assignment]", ".3f"),
+    ("median_closed", "  its median", ".0f"),
+    ("tail7", "  P(still waiting after 7)", ".3f"),
+    ("tail13", "  P(still waiting after 13)", ".3f"),
     ("sim_rate", "simulated: assignments per put", ".4f"),
     ("sim_mean", "  mean wait", ".3f"),
     ("sim_median", "  median wait", ".0f"),
