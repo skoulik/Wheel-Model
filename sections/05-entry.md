@@ -79,7 +79,7 @@ A price model needs a **drift**: the average rate at which the price climbs. Two
 
 This article computes everything in terms of a single drift m, and reports two readings of the same chain of formulas: **m = μ − δ**, what actually happens, and **m = r − δ**, what the market's prices imply. Neither is ever mixed into the other. The real-world reading leads, because that is the world the operator lives in; the market's reading appears alongside wherever the two disagree, and [the stability section](#sec:stability) is where that disagreement matters most.
 
-Every probability above is *computed*: pick a drift, and N does the rest. A premium is not computed at all — it is read off the market and taken as given. The market's convention for quoting one is a volatility: the **implied volatility** σ_IV of a premium is the σ at which [eq:bs-put](#eq:bs-put) returns it,
+A probability in this article is **computed**: the model produces it from a drift and a volatility. A premium is not — it is **observed**, read off the market and taken as given. The market's convention for quoting one is a volatility: the **implied volatility** σ_IV of a premium is the σ at which [eq:bs-put](#eq:bs-put) returns it,
 
 σ_IV:  the one σ for which  c_p( k, τ_p, σ, r, δ )  equals the quoted premium    {#eq:iv}
 
