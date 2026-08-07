@@ -46,6 +46,9 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 |  | `python code/examples/entry_strike.py --measure Q` | k = 0.9770 |
 |  | `python code/examples/entry_strike.py --p-star 0.10` | k = 0.9655, otm = 3.45% |
 |  | `python code/examples/entry_strike.py --p-star 0.10 --sigma 0.297` | otm = 5.14% |
+| `eq:wait` | `python code/examples/entry_wait.py` | p_star = 20.00%, mean_closed = 5.000, median_closed = 4, tail7 = 0.210, tail13 = 0.055, sim_rate = 0.1999, sim_mean = 5.002, sim_median = 4 |
+|  | `python code/examples/entry_wait.py --p-star 0.10` | p_star = 10.00%, mean_closed = 10.000, median_closed = 7, sim_rate = 0.0998, sim_mean = 10.022, sim_median = 7 |
+|  | `python code/examples/entry_wait.py --measure Q` | p_star = 20.00%, sim_rate = 0.1999 |
 
 ## 06-depth-process.md
 

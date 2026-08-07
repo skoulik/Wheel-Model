@@ -4,9 +4,19 @@ Everything the wheel does downstream is set by two numbers decided at the moment
 
 ## Detour: Bernoulli trials
 
-> When something either happens or doesn't — a coin flip, a die roll checked for a six, a put option either assigning or not — probabilists call it a **Bernoulli trial**. Its only parameter is p, the probability the event happens. Strings of independent Bernoulli trials are the atoms from which the more elaborate distributions later in this article are built. Any introductory probability text covers them; [Ross's *A First Course in Probability*](#ref:ross-first-course) is a standard choice.
+> When something either happens or doesn't — a coin flip, a die roll checked for a six, a put option either assigning or not — probabilists call it a **Bernoulli trial**. Write X = 1 when it happens and X = 0 when it does not, and the whole object is two numbers: P(X = 1) = p and P(X = 0) = 1 − p. **That p is its only parameter**, and everything else follows from it — the average of X is p itself, and its spread, p(1 − p), is widest at p = 1/2, where the outcome is least predictable, and shrinks to nothing at either end, where it is not in doubt. A fair coin is p = 1/2; the puts in this article run at p = 0.2 or p = 0.1.
+>
+> Strings of Bernoulli trials — all sharing one p, none aware of the others — are the atoms from which the more elaborate distributions later in this article are built. Any introductory probability text covers them; [Ross's *A First Course in Probability*](#ref:ross-first-course) is a standard choice.
 
 Selling a put is one Bernoulli trial per cadence period: with probability p\* it assigns and delivers a lot of stock into inventory, otherwise it expires and the operator keeps the premium and sells another.
+
+**The trials are independent, and that is an assumption rather than a finding.** Successive puts sit on one stock, so it is fair to suspect that a fall this week makes assignment likelier next. Within the model it does not, because **the strike floats**: it is set as a fraction of the *current* price, so each period's put is re-struck wherever the stock now stands and asks its question of the coming period alone. The price model of the detour below makes those periods independent, and the trials inherit it. That inheritance is the entire justification, and it cannot be checked by simulating the same model — a model whose periods are independent by construction will reproduce that independence whatever is asked of it. Real markets cluster their volatility, which would bunch assignments into runs that the arithmetic below does not contain.
+
+So how long until a put assigns? Waiting on a string of independent trials at rate p\* is the **geometric distribution** — the first assignment falls on trial n with probability (1 − p\*)^(n−1)·p\* — and two numbers summarize it:
+
+E[N]  =  1/p\*,   median N  =  ⌈ ln(1/2) / ln(1 − p\*) ⌉    {#eq:wait}
+
+At **Standard**, p\* = 20%, a put assigns on the **fifth** attempt on average but on the **fourth** typically. The mean sits above the median because a tail of long waits drags it there — the mildest form of a pattern that runs through the whole article, and [the holding-time section](#sec:holding) is where it stops being mild.[^eq-wait]
 
 ## Detour: the normal distribution and N(·)
 
@@ -135,6 +145,8 @@ What that costs is **the tail rather than the mean**, which their own results me
 One consequence for anyone extending the pricing: the same authors found that valuing an American put by put–call parity understates it, badly in high-rate periods. This article does not take that shortcut — its put formula is a direct one — but it is the natural shortcut to reach for, and it is a worse approximation than the European assumption it would be trying to repair.
 
 There is also a path-versus-endpoint distinction — the stock may cross a strike mid-period and come back, which a terminal probability never sees. [The holding-time section](#sec:holding) turns that from a caveat into a quantity, because on the call leg the same effect has a name and a measurable size.
+
+[^eq-wait]: Reproduced by `python code/examples/entry_wait.py` — [eq:wait](#eq:wait), and the other readings quoted here are `p-star 0.10`; `measure Q`. Pass `--help` for the full parameter set. The simulated columns walk the price path and re-strike a put each period, so they check [eq:kstar](#eq:kstar) end to end rather than re-drawing the distribution the formula already describes. They do not test the independence assumed above, which no simulation of this model could.
 
 [^eq-x0-def]: Reproduced by `python code/examples/entry_depth.py` — [eq:x0-def](#eq:x0-def), [eq:x0-law](#eq:x0-law), [eq:d-mean](#eq:d-mean), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --measure Q`. Pass `--help` for the full parameter set.
 
