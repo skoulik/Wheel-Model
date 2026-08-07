@@ -85,7 +85,7 @@ A probability in this article is **computed**: the model produces it from a drif
 
 In general there is no algebra for σ_IV and it is found by search, though a few special cases — an option struck exactly at the forward price, most usefully — do invert in closed form. **Applied to a premium, Black–Scholes is a unit rather than a valuation**, and the convention earns its keep because implied volatility compares across strikes and expiries where a raw price does not. A premium is priced off r and δ alone — μ never enters it, even where the probabilities beside it are read at μ − δ.[^eq-bs-put]
 
-That leaves one honest question, which [the returns section](#sec:returns) answers with a number rather than an argument. Implied volatility is *systematically higher* than the volatility that subsequently materializes, and that gap — the volatility risk premium — is the documented edge of every option-selling strategy. Every headline result below assumes it away, σ_IV = σ, so that what remains is the machinery of the strategy and nothing else.
+That leaves one honest question, which [the returns section](#sec:returns) answers with a number rather than an argument. Implied volatility is *systematically higher* than the volatility that subsequently materializes — [Bakshi and Kapadia](#ref:bakshi-kapadia-2003-jod) measured the gap across individual companies, [Carr and Wu](#ref:carr-wu-2009) over a later decade — and that gap, the **volatility risk premium**, is the documented source of return in put-write and covered-call studies alike. Every headline result below assumes it away, σ_IV = σ, so that what remains is the machinery of the strategy and nothing else.
 
 ## The strike dial
 
