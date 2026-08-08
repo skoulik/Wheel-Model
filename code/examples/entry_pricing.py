@@ -45,7 +45,7 @@ import model                                                  # noqa: E402
 
 TITLE = "Entry: the lognormal model and the Black-Scholes formula"
 SECTION = "sec:entry"
-EQ = ["eq:lognormal", "eq:bs-put", "eq:bs-call", "eq:iv"]
+EQ = ["eq:lognormal", "eq:bs-put", "eq:bs-call", "eq:iv", "eq:early-exercise-call", "eq:early-exercise-put"]
 
 FIELDS = [
     ("m", "m, this world's price drift", ".4f"),
@@ -67,7 +67,19 @@ FIELDS = [
     ("iv_err", "  less the sigma_IV it was priced at", ".1e"),
     ("parity", "put-call parity residual", ".1e"),
     ("screen_check", "N(-d2) less model.screen_prob", ".1e"),
+    ("ex_div", "early exercise: the dividend it must beat, delta/4", ".4%"),
+    ("ex_days", "  days to expiry", ".0f"),
+    ("ex_thresh", "  stock above strike where holding stops paying", ".2%"),
+    ("px_int", "put leg: interest on the strike over one tenor", ".4%"),
+    ("px_below", "  stock below strike where time value is gone", ".2%"),
+    ("px_fall", "  that, as a fall from the price at writing", ".2%"),
+    ("px_sigma", "  the same in one-period moves", ".2f"),
+    ("px_prob", "  chance of TOUCHING it inside one tenor", ".4%"),
 ]
+
+# Section 05's caveat table, at the day counts it prints.  28 days is one
+# call period; 3 is the last moment an exercise could still be called early.
+EX_DAYS = [28, 21, 14, 7, 3]
 
 
 def _fd_put_delta(k, tau, sigma, r, delta, h=1e-6):
@@ -120,6 +132,11 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
     # input to one, and it is a check the solver can fail.
     iv_back = model.implied_vol(c_p, k, tau, cfg.r, cfg.delta, right="P")
 
+    # The put leg's own early-exercise boundary, eq:early-exercise-put.  The
+    # probability is a first passage, not a terminal one: the holder may act
+    # on any day, and the terminal reading understates it by half.
+    px_below, px_fall, px_sigma, px_prob = model.put_early_exercise(cfg, measure)
+
     return {
         "m": m,
         "nu_log": nu_log,
@@ -140,6 +157,14 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "iv_err": iv_back - cfg.sigma_iv,
         "parity": c_c - c_p - (disc_d - k * disc_r),
         "screen_check": model.N(-_d2) - model.screen_prob(cfg, measure),
+        "ex_div": cfg.delta / 4.0,
+        "ex_days": [float(d) for d in EX_DAYS],
+        "ex_thresh": [model.early_exercise_threshold(cfg, d) for d in EX_DAYS],
+        "px_int": cfg.r * tau,
+        "px_below": px_below,
+        "px_fall": px_fall,
+        "px_sigma": px_sigma,
+        "px_prob": px_prob,
     }
 
 
@@ -157,6 +182,16 @@ CASES = [
         "delta_put": (0.196046, 1e-6),
         "delta_fd": (0.196046, 1e-6),    # the derivative agrees to 1e-10
         "delta_naive": (0.196140, 1e-6),  # the shorthand, 0.05% high
+        "ex_div": (0.00625, 1e-9),        # 2.5% a year, paid quarterly
+        # Section 05's early-exercise table, which nothing backed until now:
+        # "5.5% 4.1% 2.8% 1.2% 0.2%" at 28, 21, 14, 7 and 3 days.
+        "ex_thresh": ([0.0546, 0.0414, 0.0275, 0.0124, 0.0023], 0.0005),
+        # And the put leg's, which section 05 quotes against MSG's quarter.
+        "px_int": (0.000962, 1e-6),      # r*tau_p: the whole prize, one week
+        "px_below": (0.0679, 0.0005),    # "6.8% below the strike"
+        "px_fall": (0.0890, 0.0005),     # "8.9% below the price at writing"
+        "px_sigma": (3.36, 0.02),        # "3.4 of one week's moves"
+        "px_prob": (0.000737, 1e-5),     # "0.074%", a touching probability
         "iv_back": (0.20, 1e-9),          # eq:iv returns the sigma_IV that
         "iv_err": (0.0, 1e-9),            #   priced c_p in the first place
         "parity": (0.0, 1e-12),

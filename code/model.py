@@ -497,6 +497,93 @@ def call_premium(C, x):
     return bs_call(1.0, exp(x), C.tau_c, C.sigma_iv, C.r, C.delta)
 
 
+def early_exercise_threshold(C, days, div=None):
+    """Section 05's caveat table: how far above its strike a lot must sit
+    before exercising its call early beats holding it to expiry.
+
+    The classic case is the day before the stock goes ex-dividend.
+    Exercising forfeits the call's remaining time value and collects the
+    dividend instead, so it pays only once time value has fallen below the
+    dividend about to be collected.  `div` is that dividend as a fraction
+    of the share price and defaults to one quarterly instalment of the
+    continuous yield, delta/4 -- the article's running example pays 2.5% a
+    year, so 0.625% a quarter.
+
+    Returns the u with S = K*(1 + u) at which the two are equal; below it,
+    holding wins.  A price, so quoted at sigma_IV like every premium here.
+    """
+    tau = days / 365.0
+    if div is None:
+        div = C.delta / 4.0
+
+    def time_value(u):
+        k = 1.0 / (1.0 + u)
+        return bs_call(1.0, k, tau, C.sigma_iv, C.r, C.delta) - (1.0 - k)
+
+    if time_value(0.0) <= div:
+        return 0.0                       # already worth exercising at the strike
+    lo, hi = 0.0, 1.0
+    while time_value(hi) > div:          # widen, so readers' parameters fit too
+        hi *= 2.0
+        if hi > 1e3:
+            raise ValueError("no early-exercise threshold below 1000x the strike: "
+                             "the dividend is too small to ever beat time value")
+    for _ in range(200):
+        mid = (lo + hi) / 2.0
+        if time_value(mid) > div:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2.0
+
+
+def put_early_exercise(C, measure):
+    """Section 05's put-leg counterpart to early_exercise_threshold.
+
+    A short put is assigned early once the holder's European value has
+    fallen to intrinsic (eq:early-exercise-put).  There is no cash to
+    collect the way a call collects a dividend: what the holder gets is
+    the strike itself, and the interest on it over the remaining life is
+    already inside c_p -- which is why the threshold here is zero rather
+    than a payment, and why the whole effect is governed by r*tau.
+
+    Returns, at the put tenor and in the chosen world: how far below the
+    strike the stock must sit, how far that is below the price the put was
+    written at, that fall in one-period moves, and the probability of
+    reaching it inside one tenor.  The last is a FIRST PASSAGE rather than
+    a terminal probability, because the holder may exercise on any day --
+    the very path-versus-endpoint distinction this subsection is about, so
+    using the terminal reading here would understate it by half.
+    """
+    m, s = C.world(measure)
+    k = strike(C, measure)
+    sd = s * sqrt(C.tau_p)
+
+    def time_value(below):
+        kk = k / (1.0 - below)          # the strike, against a spot that has fallen
+        return bs_put(kk, C.tau_p, C.sigma_iv, C.r, C.delta) - max(kk - 1.0, 0.0)
+
+    lo, hi = 0.0, 0.99
+    if time_value(lo) <= 0.0:
+        below = 0.0                     # already worth exercising at the strike
+    elif time_value(hi) > 0.0:
+        raise ValueError("the put still holds time value 99% down: no early-exercise "
+                         "boundary at this tenor and rate")
+    else:
+        for _ in range(200):
+            mid = (lo + hi) / 2.0
+            if time_value(mid) > 0.0:
+                lo = mid
+            else:
+                hi = mid
+        below = (lo + hi) / 2.0
+
+    barrier = k * (1.0 - below)         # as a fraction of the price at writing
+    a = -log(barrier)
+    return (below, 1.0 - barrier, a / sd,
+            first_passage_prob(a, m - s**2 / 2, s, C.tau_p))
+
+
 def put_premium(C, measure):
     """Put premium as a fraction of spot.  A price, quoted at implied vol."""
     return bs_put(strike(C, measure), C.tau_p, C.sigma_iv, C.r, C.delta)
