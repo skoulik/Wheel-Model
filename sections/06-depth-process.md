@@ -8,7 +8,7 @@ When a lot is assigned, its call strike is frozen at the price that was paid for
 
 x  =  ln( K_c / S )    {#eq:depth-def}
 
-Positive x means the stock is below the strike and the lot is stuck; x = 0 means the stock has climbed back to the strike and the lot leaves. Call it the lot's **depth**.[^eq-depth-def]
+Positive x means the stock is below the strike and the lot is stuck; x = 0 means the stock has climbed back to the strike and the lot leaves. Call it the lot's **depth** — a distance rather than a direction: it deepens as the stock falls, shallows as the stock recovers, and the way out is shallower.[^eq-depth-def]
 
 Two features make it the right variable. First, it is *self-contained*: two lots at the same depth face identical prospects regardless of what was paid for them or when, so a single function of x answers every question about a lot. Second, it is a *logarithm*, which converts the stock's multiplicative wandering into ordinary addition — and a quantity that moves by independent additive jolts is the most thoroughly understood object in probability.
 
@@ -20,7 +20,7 @@ The log price is a random walk with drift; the strike is a constant; so depth is
 
 x  →  x  −  ν·τ_c  +  σ·√τ_c · (a standard normal draw)    {#eq:depth-walk}
 
-The depth is dragged *down* — toward exit — at rate ν per year, and jostled by an amount σ·√τ_c each period. At the article's parameters the jostle is 0.2 × √(1/13) = **0.055**, five and a half log-points per four-week period, against a downward pull of just 0.025 ÷ 13 = **0.0019**. Noise beats drift by a factor of twenty-nine over one period. Depth does not march toward zero; it staggers, and the drift only asserts itself over many periods.
+Depth is drawn *toward exit* at rate ν per year, and jostled by an amount σ·√τ_c each period. At the article's parameters the jostle is 0.2 × √(1/13) = **0.055**, five and a half log-points per four-week period, against a pull toward exit of just 0.025 ÷ 13 = **0.0019**. Noise beats drift by a factor of twenty-nine over one period. Depth does not march toward zero; it staggers, and the drift only asserts itself over many periods.
 
 The drift itself is
 
@@ -28,9 +28,9 @@ The drift itself is
 
 and it deserves unpacking, because all three terms will matter and the last one surprises people.
 
-- **μ, the total return**, pulls depth down: a stock that climbs recovers toward its old strikes. This is where "fundamentally sound asset" stops being a slogan and becomes arithmetic. The assumption is not that the company is admirable; it is that μ is positive and reliable.
-- **δ, the dividend yield**, pushes depth back up. A dividend is paid *out of the price* — on the ex-dividend day the stock is worth less by exactly that amount. At a fixed total return, every point of yield is a point of price appreciation the operator does not get, and the climb back to the strike takes correspondingly longer. The stock pays you to wait, and makes you wait longer *because* it pays. What holding δ *constant* commits us to is the next subsection.
-- **σ²/2, the volatility drag**, also pushes depth up, and it is not a modelling artifact. A price that swings symmetrically in percentage terms drifts *downward* in logarithm: gain 20% then lose 20% and you are down 4%. Over long horizons what matters to a multiplicative process is not its average return but its average log return, and the difference is exactly σ²/2. At σ = 20% this costs 2% a year — of the same order as everything else in the formula.
+- **μ, the total return**, makes lots shallower: a stock that climbs recovers toward its old strikes. This is where "fundamentally sound asset" stops being a slogan and becomes arithmetic. The assumption is not that the company is admirable; it is that μ is positive and reliable.
+- **δ, the dividend yield**, keeps them deeper. A dividend is paid *out of the price* — on the ex-dividend day the stock is worth less by exactly that amount. At a fixed total return, every point of yield is a point of price appreciation the operator does not get, and the climb back to the strike takes correspondingly longer. The stock pays you to wait, and makes you wait longer *because* it pays. What holding δ *constant* commits us to is the next subsection.
+- **σ²/2, the volatility drag**, also keeps them deeper, and it is not a modelling artifact. A price that swings symmetrically in percentage terms drifts *downward* in logarithm: gain 20% then lose 20% and you are down 4%. Over long horizons what matters to a multiplicative process is not its average return but its average log return, and the difference is exactly σ²/2. At σ = 20% this costs 2% a year — of the same order as everything else in the formula.
 
 For the running example ν = 7% − 2.5% − 2% = **2.5% per year**, against a typical entry depth of 1.55%. Read that comparison slowly: the drift needs **the better part of a year** to work off the hole a *typical* assignment starts in, and the typical assignment is the shallow case.
 
