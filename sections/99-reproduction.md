@@ -34,14 +34,14 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 
 | formula | command | the article's figures |
 |---|---|---|
-| `eq:x0-def`, `eq:x0-law`, `eq:d-mean` | `python code/examples/entry_depth.py` | x0 = 0.0155, drop = 3.75% |
-|  | `python code/examples/entry_depth.py --measure Q` | drop = 3.79% |
-|  | `python code/examples/entry_depth.py --p-star 0.10` | x0 = 0.0131, drop = 4.70% |
-|  | `python code/examples/entry_depth.py --p-star 0.10 --measure Q` | drop = 4.74% |
-| `eq:normal`, `eq:phi` | `python code/examples/entry_normal.py` | mu_y = 0.000481, sigma_y = 0.027735, area = 1.000000000, p_direct = 0.200000, p_standard = 0.200000, std_gap = 8.3e-17, phi0 = 0.398942, phi_at_dial = 0.2800, roundtrip = 1.4e-16, tail3 = 2.70e-03, tail5 = 5.73e-07 |
-|  | `python code/examples/entry_normal.py --sigma 0.30` | sigma_y = 0.041603, area = 1.000000000, std_gap = -1.4e-16, phi_at_dial = 0.2800 |
-|  | `python code/examples/entry_normal.py --p-star 0.10` | p_direct = 0.100000, p_standard = 0.100000, std_gap = 1.4e-17, phi_at_dial = 0.1755 |
-|  | `python code/examples/entry_normal.py --measure Q` | mu_y = 0.000096, area = 1.000000000, std_gap = -4.2e-16 |
+| `eq:x0-def`, `eq:x0-law`, `eq:x0-mean`, `eq:d-mean` | `python code/examples/entry_depth.py` | x0 = 0.0155, x0_closed = 0.0155, x0_gap = -8.7e-18, drop = 3.75%, area = 1.000000000 |
+|  | `python code/examples/entry_depth.py --measure Q` | x0 = 0.0155, x0_gap = 2.3e-17, drop = 3.79%, area = 1.000000000 |
+|  | `python code/examples/entry_depth.py --p-star 0.10` | x0 = 0.0131, x0_closed = 0.0131, x0_gap = -1.2e-17, drop = 4.70%, area = 1.000000000 |
+|  | `python code/examples/entry_depth.py --p-star 0.10 --measure Q` | x0 = 0.0131, x0_gap = -3.3e-17, drop = 4.74%, area = 1.000000000 |
+| `eq:normal`, `eq:phi` | `python code/examples/entry_normal.py` | mu_y = 0.000481, sigma_y = 0.027735, area = 1.000000000, mean_int = 0.000481, mean_gap = -3.9e-17, p_direct = 0.200000, p_standard = 0.200000, std_gap = 8.3e-17, phi0 = 0.398942, phi_at_dial = 0.2800, roundtrip = 1.4e-16, tail3 = 2.70e-03, tail5 = 5.73e-07 |
+|  | `python code/examples/entry_normal.py --sigma 0.30` | sigma_y = 0.041603, area = 1.000000000, mean_gap = 4.6e-18, std_gap = -1.4e-16, phi_at_dial = 0.2800 |
+|  | `python code/examples/entry_normal.py --p-star 0.10` | p_direct = 0.100000, p_standard = 0.100000, mean_gap = -3.9e-17, std_gap = 1.4e-17, phi_at_dial = 0.1755 |
+|  | `python code/examples/entry_normal.py --measure Q` | mu_y = 0.000096, area = 1.000000000, mean_int = 0.000096, mean_gap = -2.8e-18, std_gap = -4.2e-16 |
 | `eq:lognormal`, `eq:bs-put`, `eq:bs-call`, `eq:iv` | `python code/examples/entry_pricing.py` | m = 0.0450, nu_log = 0.0250, mean_factor = 1.000866, median_factor = 1.000481, k = 0.9774, n_md2 = 20.39%, delta_put = 19.6046%, delta_fd = 19.6046%, delta_naive = 19.6140%, iv_back = 0.200000, iv_err = -4.4e-16, parity = 1.4e-16, screen_check = 0.0e+00 |
 |  | `python code/examples/entry_pricing.py --measure Q` | m = 0.0250, nu_log = 0.0050, k = 0.9770, n_md2 = 20.00%, delta_put = 19.2234%, delta_fd = 19.2234%, parity = 2.8e-17, screen_check = 0.0e+00 |
 |  | `python code/examples/entry_pricing.py --delta 0.05 --tau-p 2.0 --sigma 0.30` | delta_fd = 10.9194%, delta_put = 10.9194%, delta_naive = 12.0678%, parity = -1.1e-16, screen_check = 0.0e+00 |

@@ -1007,6 +1007,27 @@ live data, not only simulation.
   >
   > One thing the dial does *not* account for, and it belongs here so it is not mistaken for a failure of [eq:kstar](#eq:kstar). The model sells a put every week. The live operator skips weeks, writing far fewer puts on any given name than a weekly cadence would, so lots arrive several times more slowly than even the Conservative regime predicts. None of that gap is p\*'s to close: it is an entry filter the model does not contain, and [the live-account section](#sec:live) takes it up.
 
+- **How deep live assignments landed — moved here from §05 on 2026-08-08, verbatim.**
+  Same rule as the entry above: §05 keeps only what does not need the account. What stayed there
+  is the model-side caveat alone — a lognormal is continuous, so [eq:x0-law](#eq:x0-law) and
+  [eq:d-mean](#eq:d-mean) describe the assignment that *drifts* below the strike rather than the
+  one that gaps below it, and an operator sizing for the worst case should not read
+  E[d | assignment] as a worst case. Every figure below needs the ledger, and §05 now points
+  here for them.
+
+  **One sentence must be re-derived rather than pasted:** "Nothing downstream breaks — the tail
+  is rare enough to leave the census and the holding time where they are." That is a claim about
+  [the holding-time section](#sec:holding) and [the inventory section](#sec:inventory), and
+  nobody has run a jump tail through either of them. Do that work when this is written, or drop
+  the sentence — it is currently an assertion wearing the clothes of a result.
+
+  **And IV-3's standing list of omissions does not mention jumps at all** — it runs "the
+  call-strike lever, permanent impairment and the dividend cut, the entry filter, transaction
+  costs, skew, moving volatility, depth-dependent drift". Add them to it, since the outlook is
+  where a named model gap belongs once this measurement has a home.
+
+  > Live assignments support the shallow picture, and sharpen it in one respect worth stating here. In the account behind this article the ordinary assignment landed in the neighbourhood [eq:d-mean](#eq:d-mean) predicts — the formula sits between that account's median and its average — but the average landed nearly twice as deep as the median, because occasionally a stock does not drift below the strike: it gaps below it on an earnings miss or a profit warning, and the lot arrives a quarter of the way down. A lognormal has no room for that: it is a model of continuous drift and diffusion, and jumps are precisely what it excludes. So the derived depth should be read as a description of the ordinary case, with the understanding that the average is dragged by a tail this model does not contain. Nothing downstream breaks — the tail is rare enough to leave the census and the holding time where they are — but an operator sizing for the worst case should not take E[d | assignment] as the worst case.
+
 
 **IV-3. Rewrite §16, the outlook.** Currently a stub whose standing content is the list of
 things deliberately outside the model — the call-strike lever, permanent impairment and the

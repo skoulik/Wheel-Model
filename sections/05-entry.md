@@ -34,6 +34,8 @@ That arrival rate is the one this article's machinery consumes, and everything d
 >
 > tallest at μ_Y and falling away symmetrically, fast enough that values more than three spreads from the mean are uncommon and more than five essentially never seen. The area beneath the density between two points is the probability Y lands between them, and the total area is one.
 >
+> Everything one asks of a distribution is an integral of that density, and the two questions asked here differ only in what is accumulated. Accumulate the density itself across a range and the answer is a probability. Weight each value by the density before accumulating and the answer is an average in which every outcome counts for how likely it is — the **expectation** E[Y] = ∫ y·f_Y(y) dy, which for this density returns μ_Y, the parameter it was built from.
+>
 > **Every normal distribution is the same one, shifted and stretched.** Measure Y not in its own units but in spreads away from its mean — replace it by z = (Y − μ_Y)/σ_Y, its **z-score** — and both parameters drop out. What is left is the **standard** normal, centred at zero with spread one, and its density has its own name:
 >
 > φ(z)  =  e^(−z²/2)/√(2π),   so that   f_Y(y)  =  φ(z)/σ_Y   with   z = (y − μ_Y)/σ_Y    {#eq:phi}
@@ -127,25 +129,49 @@ Assignment tells us the stock finished below the strike; it does not say by how 
 
 x₀  =  ln( K_c / S )  >  0    {#eq:x0-def}
 
-the log-distance from the price paid to the price the market is offering. Since the log price is normally distributed and assignment is precisely the event that it finished below ln k, the entry depth is a **truncated normal** — the tail of a bell curve, cut at zero and flipped around.[^eq-x0-def]
+the log-distance from the price paid to the price the market is offering.
 
-> **Detour: truncated distributions and conditional expectation.** An ordinary expectation averages over all scenarios. A **conditional expectation** averages only over those in which some event occurred — "the average size of an insurance claim, *given* that a claim was filed". Computing one means cutting the distribution at the event's boundary and averaging what remains; the remaining piece is called a *truncated* distribution. For the normal distribution these truncated averages have closed forms built from the same N(·) used everywhere else. Any text deriving the Black–Scholes formula computes one along the way; [Hull](#ref:hull) covers it.
+Why a logarithm, rather than the percentage drop most people would reach for? Partly because the logarithm is where the mathematics already lives: [eq:lognormal](#eq:lognormal) makes a price the *exponential* of a normal quantity, so a log ratio of two prices is normal and a percentage difference of them is not — the entry depth has a tidy distribution in logs and no tidy one in percentages. But the reason worth remembering is about the quantity rather than the algebra. Depth is what a lot must climb back out of, and in logs the fall in and the climb out are the **same number**: a lot that dropped by x needs a rise of x to get back to its strike. In percentages those are two different numbers, and they part company quickly — a lot 25% below its strike needs a 33% rise, not a 25% one. So x says both how far the lot fell and how far it has to travel to leave, where a percentage says only the first; and where a percentage is the more natural thing to quote, the article converts back, as [eq:d-mean](#eq:d-mean) does below. [The depth section](#sec:depth) adds a third reason once the lot starts moving, and makes this quantity the state variable of the whole model.
 
-Writing R = ln(S_τ/S) for the log return over the put's life — normal, with mean (m − σ²/2)·τ_p and spread σ·√τ_p — the entry depth is x₀ = ln k − R conditioned on R < ln k, with density
+Assignment restricts the log price to one side of the strike, which makes the entry depth a **truncated normal**.[^eq-x0-def]
+
+> **Detour: truncated distributions and conditional expectation.** Conditioning on an event needs no new machinery. It needs the two integrals of the detour above — the area under f_Y, which gives a probability, and the value-weighted area ∫ y·f_Y(y) dy, which gives the expectation E[Y] — taken over (a, ∞) instead of over the whole line, and then renormalized.
+>
+> Let Y be that detour's quantity, with density f_Y, and let the event be that Y came in above some point a, the **point of truncation**. Discard the probability density below a. The area under what remains no longer integrates to one, so what remains is not a probability density; it integrates instead to the probability of the event,
+>
+> P(Y > a)  =  ∫ₐ^∞ f_Y(y) dy
+>
+> the missing share having gone with the part that was cut away. Renormalizing it back to one — dividing through by that same P(Y > a) — repairs it, and the result is the **conditional density** of Y given the event:
+>
+> f_Y(y | Y > a)  =  f_Y(y) / P(Y > a),   y > a
+>
+> This is an ordinary probability density again, though one that now depends on a as well as on f_Y's own mean and spread, and ordinary questions can be asked of it in the ordinary way. Its mean is called the **conditional expectation** of Y given the event — the average of Y over the scenarios in which the event occurred:
+>
+> E[Y | Y > a]  =  ∫ₐ^∞ y·f_Y(y) dy / P(Y > a)
+>
+> That is the expectation of the detour above with both changes applied at once: the range cut at a, the result renormalized. For a normal distribution f_Y all three come out in closed form, built from the same N(·) used everywhere else — which is why what follows can be written down rather than simulated. [Hull](#ref:hull) computes one on the way to the Black–Scholes formula.
+
+The assignment event means the stock finished below the strike that was set at a fraction k of the price when the put was sold: S_τ < k·S₀. Divide through by S₀ and take logs, and the same event reads R < ln k, where R = ln(S_τ/S₀) is the put's own log return — normal, with mean (m − σ²/2)·τ_p and spread σ·√τ_p, by [eq:lognormal](#eq:lognormal). A lot's call strike is frozen at what it cost, K_c = k·S₀, and the depth becomes x₀ = ln(k·S₀/S_τ) = ln k − R, conditioned on R < ln k, with density
 
 f(x₀)  =  φ( (ln k − x₀ − (m − σ²/2)·τ_p) / (σ·√τ_p) ) / ( σ·√τ_p · p\* ),   x₀ > 0    {#eq:x0-law}
 
-where φ is the standard normal bell curve. Its mean for the Standard regime is **E[x₀] ≈ 0.0155**: a typical assignment lands about **1.6% below its own strike**. Conservative entries land slightly shallower, E[x₀] ≈ 0.0131 — a strike further out of the money is reached only by a larger move, which then has less of the period left in which to overshoot.
+where φ is the standard normal bell curve and the division by p\* is the detour's renormalization: the event being conditioned on is x₀ > 0 — the put assigning — so the point of truncation is x₀ = 0, and the probability of that event is p\* by construction of the strike dial. Its mean is the conditional expectation of the detour, and for this density it has a closed form:
 
-Expressed as a drop from the pre-assignment price rather than from the strike — the form practitioners usually think in — the same result reads
+E[x₀]  =  σ·√τ_p · ( N⁻¹(p\*)  +  φ(N⁻¹(p\*)) / p\* )    {#eq:x0-mean}
+
+one period's move, scaled by a factor that depends on nothing but the dial. Notice what is missing from it: the drift m. It has been absorbed into the strike — [eq:kstar](#eq:kstar) sets that strike to deliver p\* whatever the drift is — and cancelled. So the real world and the market's pricing world — which differ only in drift — do not merely agree closely on this number; they agree exactly. For the Standard regime **E[x₀] ≈ 0.0155**: a typical assignment lands about **1.6% below its own strike**. Conservative entries land slightly shallower, E[x₀] ≈ 0.0131 — the further out the strike, the thinner the bell curve beyond it.
+
+Expressed as a drop from S₀, the price when the put was sold a full tenor earlier, rather than from the strike — the form practitioners usually think in — the same result reads
 
 E[d | assignment]  =  1 − e^(m·τ_p) · N(−d₁) / N(−d₂),   d₁ = d₂ + σ·√τ_p    {#eq:d-mean}
 
 giving **3.8%** for Standard and **4.7%** for Conservative. Under the market's drift they are 3.8% and 4.7% as well — the two readings differ in the fourth decimal. Conditioning on assignment does all the work here, and one week of drift is invisible beside it.
 
-Two things about this number deserve emphasis, because guessing it instead of deriving it is the most consequential shortcut available in this subject. First, it costs nothing: it falls out of the same σ and τ_p that priced the option, with no separate assumption. Second, it is **much smaller than intuition suggests**. A weekly put assigned is not a disaster in progress; it is a lot bought about 1.6% under a strike the operator chose on purpose. Whether 1.6% is easy or hard to work off is the question the rest of Part II answers — and the answer is not the comfortable one, because it turns out to have almost nothing to do with the 1.6%.
+One thing about E[x₀] deserves emphasis: it is **much smaller than intuition suggests**. A weekly put assigned is not a disaster in progress; it is a lot bought about 1.6% under a strike the operator chose on purpose. Whether 1.6% is easy or hard to work off is the question the rest of Part II answers — and the answer is not the comfortable one, because it turns out to have almost nothing to do with the 1.6%.
 
-Live assignments support the shallow picture, and sharpen it in one respect worth stating here. In the account behind this article the ordinary assignment landed in the neighbourhood [eq:d-mean](#eq:d-mean) predicts — the formula sits between that account's median and its average — but the average landed nearly twice as deep as the median, because occasionally a stock does not drift below the strike: it gaps below it on an earnings miss or a profit warning, and the lot arrives a quarter of the way down. A lognormal has no room for that: it is a model of continuous drift and diffusion, and jumps are precisely what it excludes. So the derived depth should be read as a description of the ordinary case, with the understanding that the average is dragged by a tail this model does not contain. Nothing downstream breaks — the tail is rare enough to leave the census and the holding time where they are — but an operator sizing for the worst case should not take E[d | assignment] as the worst case.
+One limit on all of this. A lognormal has no room for big jumps: it is a model of continuous drift and diffusion, so the depth it derives describes the assignment that *drifts* below the strike, not the one that gaps below it on an earnings miss or a profit warning. An operator sizing for the worst case should not take E[d | assignment] as the worst case. [The live-account section](#sec:live) measures how much of the average that tail carries.
+
+So, how deep? About **1.6% below the strike the operator chose**, and **3.8% below the price at which they chose it** — one event, measured against a strike that floats with the market and against a price that does not. Both are multiples of one period's move σ·√τ_p, scaled by a factor the dial alone sets. Turning the dial down to Conservative makes the first number *smaller* and the second *larger* — 1.3% and 4.7% — because a strike further out of the money is a longer fall to reach and a shallower overshoot once reached. All four describe the ordinary assignment, not the worst one.
 
 ## A caveat on exercise style
 
@@ -168,11 +194,11 @@ One consequence for anyone extending the pricing: the same authors found that va
 
 There is also a path-versus-endpoint distinction — the stock may cross a strike mid-period and come back, which a terminal probability never sees. [The holding-time section](#sec:holding) turns that from a caveat into a quantity, because on the call leg the same effect has a name and a measurable size.
 
-[^eq-normal]: Reproduced by `python code/examples/entry_normal.py` — [eq:normal](#eq:normal), [eq:phi](#eq:phi), and the other readings quoted here are `sigma 0.30`; `p-star 0.10`; `measure Q`. Pass `--help` for the full parameter set. The quantity it works on is this section's own log return, and three of its lines are checks rather than readings: [eq:normal](#eq:normal) integrated over the whole line must come to one, the probability below the strike must agree whether it is integrated directly or standardized and read off N, and N must invert N⁻¹.
+[^eq-normal]: Reproduced by `python code/examples/entry_normal.py` — [eq:normal](#eq:normal), [eq:phi](#eq:phi), and the other readings quoted here are `sigma 0.30`; `p-star 0.10`; `measure Q`. Pass `--help` for the full parameter set. The quantity it works on is this section's own log return, and four of its lines are checks rather than readings: [eq:normal](#eq:normal) integrated over the whole line must come to one, the same density weighted by y must integrate back to μ_Y, the probability below the strike must agree whether it is integrated directly or standardized and read off N, and N must invert N⁻¹.
 
 [^eq-wait]: Reproduced by `python code/examples/entry_wait.py` — [eq:wait](#eq:wait), and the other readings quoted here are `p-star 0.10`; `measure Q`. Pass `--help` for the full parameter set. The simulated columns walk the price path and re-strike a put each period, so they check [eq:kstar](#eq:kstar) end to end rather than re-drawing the distribution the formula already describes. They do not test the independence assumed above, which no simulation of this model could.
 
-[^eq-x0-def]: Reproduced by `python code/examples/entry_depth.py` — [eq:x0-def](#eq:x0-def), [eq:x0-law](#eq:x0-law), [eq:d-mean](#eq:d-mean), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --measure Q`. Pass `--help` for the full parameter set.
+[^eq-x0-def]: Reproduced by `python code/examples/entry_depth.py` — [eq:x0-def](#eq:x0-def), [eq:x0-law](#eq:x0-law), [eq:x0-mean](#eq:x0-mean), [eq:d-mean](#eq:d-mean), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --measure Q`. Pass `--help` for the full parameter set. Two of its lines are checks rather than readings. [eq:x0-law](#eq:x0-law) integrated over x₀ > 0 must come to one, which is the detour's division by p\* and the only thing that tests it — the mean and the density readings all come from the same expression, so a wrong divisor would move them together and still look consistent. And [eq:x0-mean](#eq:x0-mean), which carries no drift, is differenced against the same mean computed through the actual strike and the actual drift: that the two agree is what "exactly" above rests on.
 
 [^eq-kstar]: Reproduced by `python code/examples/entry_strike.py` — [eq:kstar](#eq:kstar), [eq:p-screen](#eq:p-screen), [eq:screen-gap](#eq:screen-gap), [eq:gap-prob](#eq:gap-prob), and the other readings quoted here are `measure Q`; `p-star 0.10`; `p-star 0.10 --sigma 0.297`. Pass `--help` for the full parameter set.
 

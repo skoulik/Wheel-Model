@@ -17,6 +17,11 @@ pass by construction:
 
   * TOTAL AREA.  Integrating eq:normal over the whole line must give 1.  A
     dropped sqrt(2*pi) or a lost 1/sigma_Y shows up here and nowhere else.
+  * MEAN.  The detour's other integral: weighting each value by the density
+    before accumulating must return mu_Y, the parameter the density was
+    built from.  Same density and same rule as TOTAL AREA, one factor of y
+    apart, which is the whole of the difference between a probability and
+    an expectation.
   * STANDARDIZATION.  P(R < ln k) is computed twice -- once by integrating
     the general density directly, once as N((ln k - mu_Y)/sigma_Y) -- and the
     two must agree.  `model.normal_density` is deliberately written from the
@@ -51,6 +56,8 @@ FIELDS = [
     ("mu_y", "mu_Y, the log return's mean over one put tenor", ".6f"),
     ("sigma_y", "sigma_Y, its spread", ".6f"),
     ("area", "total area under eq:normal, integrated", ".9f"),
+    ("mean_int", "E[R], by integrating y against eq:normal", ".6f"),
+    ("mean_gap", "  difference from mu_Y above", ".1e"),
     ("p_direct", "P(R < ln k), by integrating eq:normal", ".6f"),
     ("p_standard", "  the same, as N((ln k - mu_Y)/sigma_Y)", ".6f"),
     ("std_gap", "  difference", ".1e"),
@@ -98,6 +105,8 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "mu_y": mu_y,
         "sigma_y": sigma_y,
         "area": _simpson(dens, lo, hi),
+        "mean_int": _simpson(lambda y: y * dens(y), lo, hi),
+        "mean_gap": _simpson(lambda y: y * dens(y), lo, hi) - mu_y,
         "p_direct": _simpson(dens, lo, ln_k),
         "p_standard": model.N((ln_k - mu_y) / sigma_y),
         "std_gap": _simpson(dens, lo, ln_k) - model.N((ln_k - mu_y) / sigma_y),
@@ -115,6 +124,8 @@ CASES = [
         "mu_y": (0.000481, 1e-6),         # (m - sigma^2/2)*tau_p
         "sigma_y": (0.027735, 1e-6),      # sigma*sqrt(tau_p), NOT sigma
         "area": (1.0, 1e-9),              # eq:normal integrates to one
+        "mean_int": (0.000481, 1e-6),     # and, weighted by y, back to mu_Y:
+        "mean_gap": (0.0, 1e-12),         #   the density knows its own mean
         "p_direct": (0.20, 1e-6),         # and to p* below the strike, which
         "p_standard": (0.20, 1e-6),       #   is how k* was chosen
         "std_gap": (0.0, 1e-9),           # standardization costs nothing
@@ -130,18 +141,22 @@ CASES = [
     Case("--sigma 0.30", {
         "sigma_y": (0.041603, 1e-6),
         "area": (1.0, 1e-9),
+        "mean_gap": (0.0, 1e-12),
         "std_gap": (0.0, 1e-9),
         "phi_at_dial": (0.2800, 1e-4),
     }, note="a more volatile name: the spread moves, the dial does not"),
     Case("--p-star 0.10", {
         "p_direct": (0.10, 1e-6),
         "p_standard": (0.10, 1e-6),
+        "mean_gap": (0.0, 1e-12),
         "std_gap": (0.0, 1e-9),
         "phi_at_dial": (0.1755, 1e-4),    # the conversion factor is smaller
     }, note="Conservative: further out, so the bell curve is lower there"),
     Case("--measure Q", {
         "mu_y": (0.000096, 1e-6),         # r - delta in place of mu - delta
         "area": (1.0, 1e-9),
+        "mean_int": (0.000096, 1e-6),     # the mean moves with the drift, and
+        "mean_gap": (0.0, 1e-12),         #   the integral follows it
         "std_gap": (0.0, 1e-9),
     }, note="the same quantity under the pricing drift"),
 ]

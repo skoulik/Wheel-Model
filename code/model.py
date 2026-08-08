@@ -296,6 +296,23 @@ def entry_law(C, measure):
     return k, Z, mean_x0, dens
 
 
+def entry_mean(C, measure):
+    """eq:x0-mean: E[x0] in closed form -- one period's move times a factor
+    the strike dial alone decides.
+
+    No drift appears.  k* absorbs it (eq:kstar sets the strike to deliver
+    p* whatever m is), so alpha is Ninv(p*) exactly and m cancels out of
+    the conditional mean.  Two worlds differing only in drift therefore
+    agree on this number exactly, not approximately -- which is what
+    examples/entry_depth.py checks by differencing this against
+    entry_law's own expression, computed from the actual strike and drift.
+    """
+    _, s = C.world(measure)
+    sd = s * sqrt(C.tau_p)
+    alpha = Ninv(C.p_star)
+    return sd * (alpha + phi(alpha) / C.p_star)
+
+
 def entry_basis_ratio(C, measure):
     """E[e^x0 | assignment] = E[K/S'], the strike paid per unit of the price
     it was paid against — the immediate mark loss factor at acquisition."""
