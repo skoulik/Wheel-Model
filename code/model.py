@@ -313,6 +313,25 @@ def entry_mean(C, measure):
     return sd * (alpha + phi(alpha) / C.p_star)
 
 
+def entry_median(C, measure):
+    """Median entry depth, the companion to entry_mean's average.
+
+    x0 = sd (Ninv(p*) - Z) conditioned on Z < Ninv(p*), so P(x0 <= x) is
+    (N(a) - N(a - x/sd)) / p* with a = Ninv(p*).  Setting that to a half
+    puts N(a - x/sd) at p*/2, and
+
+        median  =  sigma sqrt(tau_p) (Ninv(p*) - Ninv(p*/2))
+
+    One period's move times a factor the dial alone decides, exactly as
+    eq:x0-mean is, and drift-free for the same reason -- the conditional
+    law of x0 knows only p* and sigma sqrt(tau_p).  It sits below the mean
+    because the conditional law is a bell curve's tail: most assignments
+    are shallow and the occasional deep one carries the average out.
+    """
+    _, s = C.world(measure)
+    return s * sqrt(C.tau_p) * (Ninv(C.p_star) - Ninv(C.p_star / 2))
+
+
 def entry_basis_ratio(C, measure):
     """E[e^x0 | assignment] = E[K/S'], the strike paid per unit of the price
     it was paid against — the immediate mark loss factor at acquisition."""
@@ -322,6 +341,29 @@ def entry_basis_ratio(C, measure):
     sd_z = s * sqrt(C.tau_p)
     alpha = (log(k) - mean_z) / sd_z
     return k * exp(-mean_z + sd_z**2 / 2) * N(alpha + sd_z) / N(alpha)
+
+
+def entry_depth_factor(C, measure):
+    """E[e^-x0 | assignment], the second factor of eq:fall-split.
+
+    The fall from the price the put was written at is two steps,
+    S_T/S0 = k* e^-x0: the strike's own distance out of the money, then the
+    depth below it.  This is the second, and it carries no drift -- x0 is
+    measured from the strike, and k* is where the drift went.  That is why
+    E[x0] has no m in it while eq:d-mean, measured from the far side of the
+    strike, does.
+
+    Same truncated-lognormal shape as `entry_basis_ratio` with the sign of
+    the exponent flipped, so the two are independent enough that a slip in
+    either shows.  Multiplying by k* must return 1 - expected_drop;
+    examples/entry_depth.py asserts that it does.
+    """
+    m, s = C.world(measure)
+    k = strike(C, measure)
+    mean_z = (m - s**2 / 2) * C.tau_p
+    sd_z = s * sqrt(C.tau_p)
+    alpha = (log(k) - mean_z) / sd_z
+    return exp(mean_z + sd_z**2 / 2) * N(alpha - sd_z) / (k * N(alpha))
 
 
 def expected_drop(C, measure):

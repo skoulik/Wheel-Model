@@ -34,10 +34,10 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 
 | formula | command | the article's figures |
 |---|---|---|
-| `eq:x0-def`, `eq:x0-law`, `eq:x0-mean`, `eq:d-mean` | `python code/examples/entry_depth.py` | x0 = 0.0155, x0_closed = 0.0155, x0_gap = -8.7e-18, drop = 3.75%, area = 1.000000000 |
-|  | `python code/examples/entry_depth.py --measure Q` | x0 = 0.0155, x0_gap = 2.3e-17, drop = 3.79%, area = 1.000000000 |
-|  | `python code/examples/entry_depth.py --p-star 0.10` | x0 = 0.0131, x0_closed = 0.0131, x0_gap = -1.2e-17, drop = 4.70%, area = 1.000000000 |
-|  | `python code/examples/entry_depth.py --p-star 0.10 --measure Q` | x0 = 0.0131, x0_gap = -3.3e-17, drop = 4.74%, area = 1.000000000 |
+| `eq:x0-def`, `eq:x0-law`, `eq:x0-mean`, `eq:d-mean`, `eq:fall-split` | `python code/examples/entry_depth.py` | x0 = 0.0155, x0_closed = 0.0155, x0_gap = -8.7e-18, x0_med = 0.0122, x0_pct = 1.53%, drop = 3.75%, factor = 0.98472021, split_gap = -1.1e-16, area = 1.000000000 |
+|  | `python code/examples/entry_depth.py --measure Q` | x0 = 0.0155, x0_gap = 2.3e-17, drop = 3.79%, factor = 0.98472021, split_gap = -1.1e-16, area = 1.000000000 |
+|  | `python code/examples/entry_depth.py --p-star 0.10` | x0 = 0.0131, x0_closed = 0.0131, x0_gap = -1.2e-17, drop = 4.70%, factor = 0.98701906, split_gap = 0.0e+00, area = 1.000000000 |
+|  | `python code/examples/entry_depth.py --p-star 0.10 --measure Q` | x0 = 0.0131, x0_gap = -3.3e-17, drop = 4.74%, factor = 0.98701906, split_gap = 1.1e-16, area = 1.000000000 |
 | `eq:normal`, `eq:phi` | `python code/examples/entry_normal.py` | mu_y = 0.000481, sigma_y = 0.027735, area = 1.000000000, mean_int = 0.000481, mean_gap = -3.9e-17, p_direct = 0.200000, p_standard = 0.200000, std_gap = 8.3e-17, phi0 = 0.398942, phi_at_dial = 0.2800, roundtrip = 1.4e-16, tail3 = 2.70e-03, tail5 = 5.73e-07 |
 |  | `python code/examples/entry_normal.py --sigma 0.30` | sigma_y = 0.041603, area = 1.000000000, mean_gap = 4.6e-18, std_gap = -1.4e-16, phi_at_dial = 0.2800 |
 |  | `python code/examples/entry_normal.py --p-star 0.10` | p_direct = 0.100000, p_standard = 0.100000, mean_gap = -3.9e-17, std_gap = 1.4e-17, phi_at_dial = 0.1755 |
