@@ -10,7 +10,7 @@ By [the holding-time section](#sec:holding), a lot leaves when its depth walk fi
 
 **ν  =  μ − δ − σ²/2  >  0**    {#eq:count-criterion}
 
-Above the line, every lot eventually comes back, mean holding time is finite, and Little's law returns a finite inventory. Below it, a fixed fraction of every year's assignments — [eq:trapped](#eq:trapped) — never returns. Those lots accumulate at a constant rate, forever, and no amount of patience recovers them. The failure is not that returns are poor; it is that the strategy has an absorbing state and keeps feeding it.[^eq-count-criterion]
+Above the line, every lot eventually comes back, mean holding time is finite, and Little's law returns a finite inventory. Below it, a fixed fraction of every year's assignments — [eq:trapped](#eq:trapped) — never returns. Those lots accumulate at a constant rate, forever, and no amount of patience recovers them. The failure is not that returns are poor; it is that the strategy has an absorbing state and keeps feeding it.
 
 Rearranged, this is a statement about volatility: the wheel needs **μ − δ > σ²/2**. At μ = 7% and δ = 2.5%, that means σ below **30%**.
 
@@ -22,7 +22,7 @@ Follow one surviving lot for a call period. Its depth moves by −ν·τ_c + σ�
 
 E[ multiplier ]  =  e^( (σ² − m) · τ_c )    {#eq:basis-multiplier}
 
-The lot's relative basis shrinks in expectation only if σ² < m. Equivalently — and this is the version worth remembering — the operator's capital is denominated in shares while their commitment is denominated in dollars paid, so what has to decay is E[1/S]. For a lognormal price that decays exactly when[^eq-basis-multiplier]
+The lot's relative basis shrinks in expectation only if σ² < m. Equivalently — and this is the version worth remembering — the operator's capital is denominated in shares while their commitment is denominated in dollars paid, so what has to decay is E[1/S]. For a lognormal price that decays exactly when
 
 **m  =  μ − δ  >  σ²**    {#eq:capital-criterion}
 
@@ -77,7 +77,7 @@ Its two ingredients are a race. A book carried on a debit is sold out when the d
 
 **ν  >  g**    {#eq:account-criterion}
 
-Three things about it earn it a place beside the other two rather than above them.[^eq-account-criterion]
+Three things about it earn it a place beside the other two rather than above them.
 
 **It is the only one of the three that spares an unlevered account.** An operator who borrows nothing has no debit, no barrier, and no exposure to this boundary whatever the stock does. That is the whole reason it is third rather than first: the other two bind everybody.
 
@@ -150,9 +150,3 @@ The wheel has three failure modes. The first two are slow, silent, and are not "
 3. **ν ≤ g** — the debit outgrows the price and someone else closes the account. This one *is* losing money on a trade, and it is the fast one; it is also the only one an unlevered operator is exempt from, and the only one any operator can move.
 
 Of the two that bind everybody, the second is the tighter and the less intuitive, and at the article's own running parameters it is 1.2 volatility points away. Whether an operator is inside it is not a matter of temperament or conviction about the company; it is arithmetic on three numbers. Whether they are inside the third is not arithmetic on the stock at all — it is arithmetic on what they do with the cash.
-
-[^eq-account-criterion]: Reproduced by `python code/examples/stability_criteria.py` — [eq:account-criterion](#eq:account-criterion), and the other readings quoted here are `g 0.05`; `g 0.025`. Pass `--help` for the full parameter set.
-
-[^eq-basis-multiplier]: Reproduced by `python code/examples/stability_basis.py` — [eq:basis-multiplier](#eq:basis-multiplier), [eq:theta](#eq:theta), and the other readings quoted here are `measure Q`; `sigma 0.212`. Pass `--help` for the full parameter set.
-
-[^eq-count-criterion]: Reproduced by `python code/examples/stability_criteria.py` — [eq:count-criterion](#eq:count-criterion), [eq:capital-criterion](#eq:capital-criterion), and the other readings quoted here are `measure Q`; `sigma 0.30`; `sigma 0.212`; `delta 0.05`. Pass `--help` for the full parameter set.

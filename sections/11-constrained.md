@@ -30,7 +30,7 @@ Margin posted as a fraction of equity is the **utilization** u, and posting γ_s
 
 L  =  u / γ_s    {#eq:leverage}
 
-of stock. The broker's own ceiling is u = 1, which is L = 1/γ_s: four times equity at portfolio margin, twice under Reg T, and no leverage at all for shares paid in full. The operator's **stopping rule** u\* is where they choose to stop selling new puts, and it need not be — and, it will turn out, should emphatically not be — the broker's.[^eq-leverage]
+of stock. The broker's own ceiling is u = 1, which is L = 1/γ_s: four times equity at portfolio margin, twice under Reg T, and no leverage at all for shares paid in full. The operator's **stopping rule** u\* is where they choose to stop selling new puts, and it need not be — and, it will turn out, should emphatically not be — the broker's.
 
 One clarification before the machinery, since [the returns section](#sec:returns) has already made the argument and it should not be made twice. The quantity γ_s governs is **equity required**, which is not Track B and does not replace it. Track B remains exposure — what the position is worth at market, independent of how it was paid for — and it stays the denominator of every return there. What the finite account adds is a second ledger line beside the three tracks, and what that line determines is not return but **capacity**: how much of the strategy a given balance can run, and how far the price can fall before someone else closes it.
 
@@ -46,7 +46,7 @@ The account survives if the price never touches f\* times where it started. Sinc
 
 P( sold out by H )  =  N( (−a − ν·H)/(σ·√H) )  +  e^(−2ν·a/σ²) · N( (−a + ν·H)/(σ·√H) )    {#eq:first-passage}
 
-whose first term counts the paths that finish below the barrier and whose second counts those that touched it and came back. Let H grow and the first term dies while the second collapses onto a strikingly simple limit:[^eq-first-passage]
+whose first term counts the paths that finish below the barrier and whose second counts those that touched it and came back. Let H grow and the first term dies while the second collapses onto a strikingly simple limit:
 
 P( sold out, ever )  =  e^(−θ·a)  =  f\*^θ,    θ = 2ν/σ²    {#eq:survive}
 
@@ -82,7 +82,7 @@ Equity A carrying leverage L_max buys room for
 
 I_max  =  L_max · A    {#eq:capacity}
 
-lots. A put whose assignment would breach that is not sold. And now Little's law, which [the inventory section](#sec:inventory) used to turn a known arrival rate into an inventory, runs the other way. Inventory is no longer an output — it is pinned at capacity by the account's capital. So the arrival rate becomes the output:[^eq-capacity]
+lots. A put whose assignment would breach that is not sold. And now Little's law, which [the inventory section](#sec:inventory) used to turn a known arrival rate into an inventory, runs the other way. Inventory is no longer an output — it is pinned at capacity by the account's capital. So the arrival rate becomes the output:
 
 λ_eff  =  I_max / E[W]    {#eq:lambda-eff}
 
@@ -175,7 +175,7 @@ Liquidation is a statement about the ratio of debit to market value, R = D/M. Wi
 
 g  =  r_b + ( draw − income ) / D    {#eq:debit-growth}
 
-Then ln R is a Brownian motion with drift g − ν, started at ln(1 − 1/L) and absorbed at ln(1 − γ_s) — the same barrier, the same distance, the same reflection formula. **A cash policy enters survival in exactly one way, by displacing the drift.** Only the exponent moves:[^eq-debit-growth]
+Then ln R is a Brownian motion with drift g − ν, started at ln(1 − 1/L) and absorbed at ln(1 − γ_s) — the same barrier, the same distance, the same reflection formula. **A cash policy enters survival in exactly one way, by displacing the drift.** Only the exponent moves:
 
 θ_eff  =  2 ( ν − g ) / σ²    {#eq:theta-eff}
 
@@ -317,11 +317,3 @@ What it leaves alone is the return. Leverage multiplies both the wheel and the b
 And one warning that outranks all four. **The closed forms in this section are right about capacity and wrong about survival**, and by a knowable amount: uniform thinning holds to under 1%, T_sat lands at 18.9 years simulated against 18.5 analytic, and the static barrier understates an operating book's liquidation risk by a factor of 3.6 because a book that is refilled after every recovery ratchets its barrier upward and never lowers it. Every survival figure here should be read as a lower bound on what an operating account faces.
 
 (The simulated figures in this section come from `python code/wheel_sim.py --scenario constrained --paths 4000`, at a fixed seed; the analytic ones from `python code/model.py`.)
-
-[^eq-capacity]: Reproduced by `python code/examples/account_capacity.py` — [eq:capacity](#eq:capacity), [eq:astar](#eq:astar), [eq:lambda-eff](#eq:lambda-eff), [eq:income-capacity](#eq:income-capacity), [eq:capacity-lots](#eq:capacity-lots), and the other readings quoted here are `gamma-s 0.25`; `gamma-s 0.50`; `gamma-s 0.15`; `gamma-s 0.25 --equity 11.59`. Pass `--help` for the full parameter set.
-
-[^eq-debit-growth]: Reproduced by `python code/examples/account_cash.py` — [eq:debit-growth](#eq:debit-growth), [eq:theta-eff](#eq:theta-eff), [eq:gmax](#eq:gmax), [eq:draw](#eq:draw), and the other readings quoted here are `gamma-s 0.25 --equity 11.59 --leverage 1.0`; `gamma-s 0.25 --equity 11.59 --leverage 1.0192`; `gamma-s 0.25 --equity 11.59 --leverage 1.1349`; `gamma-s 0.25 --equity 11.59 --leverage 1.25`. Pass `--help` for the full parameter set.
-
-[^eq-leverage]: Reproduced by `python code/examples/account_leverage.py` — [eq:leverage](#eq:leverage), [eq:barrier](#eq:barrier), and the other readings quoted here are `gamma-s 0.25 --u-star 1.0`; `gamma-s 0.50 --u-star 1.0`; `gamma-s 0.25 --u-star 0.5`. Pass `--help` for the full parameter set.
-
-[^eq-first-passage]: Reproduced by `python code/examples/account_survival.py` — [eq:first-passage](#eq:first-passage), [eq:survive](#eq:survive), [eq:lmax](#eq:lmax), and the other readings quoted here are `gamma-s 0.25`; `gamma-s 1.00`; `gamma-s 0.50`; `gamma-s 0.50 --eps 0.01`. Pass `--help` for the full parameter set.

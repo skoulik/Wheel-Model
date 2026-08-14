@@ -37,7 +37,7 @@ For the put and call clocks the ratio
 
 n = τ_c / τ_p ≥ 1    {#eq:n}
 
-is the natural bookkeeping unit. Every worked example in this article uses the rhythm of the live account behind it: **a put sold every week, T = τ_p = 1/52, and calls written for four weeks, so n = 4** and τ_c = 1/13 of a year. Why would an operator choose τ_c > τ_p at all? One reason needs nothing from the model: shorter puts let the operator re-price the entry strike more often as conditions change. The premium reason is not the obvious one — a longer call collects more per contract, but whether it collects more per unit of *time* depends on how far the lot has fallen, and [the depth section](#sec:depth) is where that is settled. Neither is what decides the choice: the call period also fixes how often a lot can leave at all, and [the holding-time section](#sec:holding) is where that is priced.[^eq-n]
+is the natural bookkeeping unit. Every worked example in this article uses the rhythm of the live account behind it: **a put sold every week, T = τ_p = 1/52, and calls written for four weeks, so n = 4** and τ_c = 1/13 of a year. Why would an operator choose τ_c > τ_p at all? One reason needs nothing from the model: shorter puts let the operator re-price the entry strike more often as conditions change. The premium reason is not the obvious one — a longer call collects more per contract, but whether it collects more per unit of *time* depends on how far the lot has fallen, and [the depth section](#sec:depth) is where that is settled. Neither is what decides the choice: the call period also fixes how often a lot can leave at all, and [the holding-time section](#sec:holding) is where that is priced.
 
 ## Three accounting tracks
 
@@ -53,10 +53,6 @@ The number that ultimately matters is the **true excess return**:
 
 (economic profit − Track C) / Track B, annualized    {#eq:excess-return}
 
-where the economic profit is Track A's cash *plus* the two things cash accounting cannot see — the shares' change in value, and the mark loss taken at the moment of assignment. [The returns section](#sec:returns) assembles it precisely.[^eq-excess-return]
+where the economic profit is Track A's cash *plus* the two things cash accounting cannot see — the shares' change in value, and the mark loss taken at the moment of assignment. [The returns section](#sec:returns) assembles it precisely.
 
 Keeping the tracks separate is a discipline enforced on every formula in this article. It is not pedantry: the most natural-looking formula for this strategy's return mixes the income of one track with the capital of another, and the resulting number is both far too flattering in the early years and far too damning later.
-
-[^eq-excess-return]: Reproduced by `python code/examples/returns_benchmark.py` — [eq:excess-return](#eq:excess-return), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
-
-[^eq-n]: Reproduced by `python code/examples/strategy_cadence.py` — [eq:n](#eq:n), and the other readings quoted here are `n 1`; `n 13`. Pass `--help` for the full parameter set.

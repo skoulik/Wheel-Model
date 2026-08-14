@@ -5,7 +5,10 @@ Four things the policy needs to stay true rather than aspirational:
 *   `coverage()` reads every `{#eq:...}` anchor out of `sections/` and checks
     it against the formulas the example modules claim to back.  A formula
     with no script is a number a reader cannot check; a script backing no
-    formula is either dead or an anchor someone forgot to add.
+    formula is either dead or an anchor someone forgot to add.  It also checks
+    the reader's route to the code: by formula number for a module that backs
+    one, and by an explicit `#repro:` link from the prose for a module that
+    does not.
 
 *   `references()` does the same job for citations: every `#ref:` a section
     cites must be an entry in the bibliography, and every entry must be an
@@ -19,12 +22,14 @@ Four things the policy needs to stay true rather than aspirational:
     stayed absent from the register that calls itself the single source of
     truth while every other check ran green.
 
-*   `appendix()` generates the reproduction table -- every figure the article
-    quotes, the command that produces it, and what that command prints.  It is
-    generated rather than written because a hand-maintained version of this
-    table drifts within a month, and it runs the cases rather than reading
+*   `appendix()` generates the reproduction appendix -- every figure the
+    article quotes, the command that produces it, and what that command prints.
+    It is generated rather than written because a hand-maintained version of
+    this table drifts within a month, and it runs the cases rather than reading
     their assertions because a table that disagrees with its own printed
-    command is worse than no table.
+    command is worse than no table.  Each module gets an anchored heading, so
+    the appendix is reachable in both directions: prose links in, and the
+    backs-line links back out to the formulas.
 
 All four are called from `verify_examples.py`; `python -m examples
 --coverage`, `--references`, `--registers` and `--appendix` are the shortcuts.
@@ -42,17 +47,21 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 SECTIONS = os.path.join(ROOT, "sections")
 
 _EQ = re.compile(r"\{#(eq:[a-z0-9-]+)\}")
-_FOOTNOTE = re.compile(r"code/examples/([a-z0-9_]+)\.py")
 
-# The article's footnote convention: a formula tagged {#eq:holding} is
-# reproduced by a footnote defined as [^eq-holding], whose body names the
-# script.  Keying the two together is what lets coverage() check that the
-# footnote a reader follows actually leads to the code for *that* formula.
-_FOOTNOTE_DEF = re.compile(r"^\[\^(eq-[a-z0-9-]+)\]:(.*)$", re.MULTILINE)
+# How a reader gets from a figure to the code behind it.  The article used to
+# carry a per-formula footnote naming the script; that footnote also hand-copied
+# the module's parameter variants, which nothing checked and which the appendix
+# already generates.  The route is now the formula number itself: the appendix
+# groups its rows by module and lists the anchors each backs, so a reader at
+# eq:holding looks eq:holding up there.  A module backing no *displayed*
+# formula has no number to be found by, so prose links straight at its
+# appendix row instead -- that is what this matches.
+_REPRO_LINK = re.compile(r"\]\(#(repro:[a-z0-9-]+)\)")
 
 
-def _anchor_of(footnote_label):
-    return "eq:" + footnote_label[len("eq-"):]
+def repro_anchor(module_name):
+    """The appendix anchor for a module: returns_beta -> repro:returns-beta."""
+    return "repro:" + module_name.replace("_", "-")
 
 
 APPENDIX = "99-reproduction.md"     # generated; see appendix() below
@@ -122,6 +131,19 @@ def section_heads():
     return out
 
 
+_H1 = re.compile(r"^#\s+(.*?)(?:\s*\{#[^}]*\})?\s*$", re.M)
+
+
+def _title_of(name):
+    """A section file's H1 text, anchor stripped; the filename if it has none.
+
+    The appendix used to head its groups with the filename, which is fine in a
+    repository and meaningless in the assembled article.
+    """
+    m = _H1.search(_read(name))
+    return m.group(1) if m else name
+
+
 def declared_anchors():
     """Every {#eq:...} the article defines, mapped to the file defining it.
 
@@ -139,23 +161,16 @@ def declared_anchors():
     return out
 
 
-def cited_modules():
-    """Every example module the article's footnotes point a reader at."""
+def repro_links():
+    """Every `#repro:` anchor the prose links at, anchor -> sections linking it.
+
+    The appendix is excluded from `section_files()`, so its own rows cannot
+    satisfy this -- the same reasoning that keeps the citation check honest.
+    """
     out = {}
     for name in section_files():
-        with open(os.path.join(SECTIONS, name), encoding="utf-8") as fh:
-            for mod in _FOOTNOTE.findall(fh.read()):
-                out.setdefault(mod, set()).add(name)
-    return out
-
-
-def footnote_defs():
-    """Every reproduction footnote the article defines, label -> its text."""
-    out = {}
-    for name in section_files():
-        with open(os.path.join(SECTIONS, name), encoding="utf-8") as fh:
-            for label, text in _FOOTNOTE_DEF.findall(fh.read()):
-                out[label] = text
+        for anchor in _REPRO_LINK.findall(_read(name, strip_code=True)):
+            out.setdefault(anchor, set()).add(name)
     return out
 
 
@@ -179,26 +194,29 @@ def coverage(mods=None, require_citations=True):
             failures.append(f"{anchor} is claimed by more than one module: {owners}")
 
     if require_citations:
-        # Every module must be reachable from the prose, and every reproduction
-        # footnote must lead to the script that actually backs its formula --
-        # a footnote pointing at the wrong module is worse than none.
-        cited = cited_modules()
-        owner = {name: m for m in mods
-                 for name in [m.__name__.rsplit(".", 1)[-1]]}
+        # Every module must be reachable from the prose.  A module that backs a
+        # displayed formula is reachable by that formula's number, since the
+        # appendix lists its rows under the anchors they back -- the loop above
+        # has already checked those anchors exist.  A module that backs none has
+        # no number to be found by, so the prose must link its appendix row.
+        # Without this second arm such a module is unreachable *and* silent:
+        # returns_beta backs no anchor, and nothing else would notice.
+        linked = repro_links()
         for m in mods:
             name = m.__name__.rsplit(".", 1)[-1]
-            if name not in cited:
-                failures.append(f"{name} is not cited by any section footnote")
-        for label, text in footnote_defs().items():
-            anchor = _anchor_of(label)
-            named = _FOOTNOTE.findall(text)
-            if anchor not in anchors:
-                failures.append(f"footnote [^{label}] names no formula in any section")
-            elif not named:
-                failures.append(f"footnote [^{label}] names no script")
-            elif not any(anchor in owner[n].EQ for n in named if n in owner):
+            if m.EQ:
+                continue
+            anchor = repro_anchor(name)
+            if anchor not in linked:
                 failures.append(
-                    f"footnote [^{label}] points at {named}, which does not back {anchor}")
+                    f"{name} backs no formula and no section links #{anchor}")
+        # The converse: a link into the appendix that lands nowhere. These are
+        # written by hand, so they rot the way any hand-written link rots.
+        known = {repro_anchor(m.__name__.rsplit(".", 1)[-1]) for m in mods}
+        for anchor, where in sorted(linked.items()):
+            if anchor not in known:
+                failures.append(f"{sorted(where)} links #{anchor}, "
+                                f"which no example module claims")
 
     print(f"  {len(anchors)} formulas in {len(section_files())} sections; "
           f"{len(backed)} backed by {len(mods)} modules; {len(failures)} gap(s)")
@@ -411,31 +429,47 @@ def appendix(mods=None):
                  else heads.get(getattr(m, "SECTION", None), "?"))
         by_section.setdefault(where, []).append(m)
 
-    out = ["# Reproducing every figure in this article", "",
+    out = ["# Reproducing every figure in this article {#sec:reproduction}", "",
            "Every number quoted in the text is produced by a script in "
            "`code/examples/`, listed here with the arguments that produce the "
            "article's own value and with what those arguments print. Each "
            "script takes the model's full parameter set, so any row can be "
            "re-run at other values: pass `--help` to see them. Figures the "
            "prose rounds may carry a digit more here, since these are the "
-           "command's output rather than the article's wording. This table is "
-           "generated by `python -m examples --appendix`, not maintained by "
-           "hand.", ""]
+           "command's output rather than the article's wording. This appendix "
+           "is generated by `python -m examples --appendix`, not maintained by "
+           "hand.", "",
+           "**How to find a figure here.** The entries below are grouped by "
+           "section and headed by the script that produces them, and each names "
+           "the formulas it backs. To check a displayed formula, look up its "
+           "number; figures quoted in prose without a formula of their own are "
+           "linked from the text at the point they are used.", ""]
 
     for where in sorted(by_section):
-        out += [f"## {where}", "",
-                "| formula | command | the article's figures |",
-                "|---|---|---|"]
+        title = _title_of(where)
+        out += [f"## {title}", ""]
         for m in sorted(by_section[where], key=lambda m: m.__name__):
             name = m.__name__.rsplit(".", 1)[-1]
-            eqs = ", ".join(f"`{e}`" for e in m.EQ)
             spec = {k: s for k, _, s in m.FIELDS}
+            # The heading anchor is what makes a row referenceable at assembly;
+            # the backs-line is the return path, formula numbers rather than
+            # anchor names once the links become \eqref.
+            out += [f"### `{name}.py` {{#{repro_anchor(name)}}}", ""]
+            if m.EQ:
+                out += ["Backs " + ", ".join(f"[{e}](#{e})" for e in m.EQ)
+                        + ".", ""]
+            else:
+                sec = getattr(m, "SECTION", None)
+                out += [("Backs figures quoted in the prose of "
+                         f"[{title}](#{sec}), which carry no formula of their "
+                         "own." if sec else
+                         "Backs figures quoted in prose."), ""]
+            out += ["| command | the article's figures |", "|---|---|"]
             for case in m.CASES:
                 cmd = f"python code/examples/{name}.py {case.flags}".rstrip()
                 got = m.compute(**H.params_from(m, case.flags), ctx=ctx)
                 figs = ", ".join(f"{k} = {H._fmt_one(got[k], spec.get(k, ''))}"
                                  for k in case.expect)
-                out.append(f"| {eqs} | `{cmd}` | {figs} |")
-                eqs = ""            # only label the first row of a module
-        out.append("")
+                out.append(f"| `{cmd}` | {figs} |")
+            out.append("")
     return "\n".join(out)

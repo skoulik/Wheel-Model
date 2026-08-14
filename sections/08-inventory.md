@@ -20,7 +20,7 @@ and each stays E[W] = 2.10 years by [eq:holding](#eq:holding). So
 
 E[I]  =  λ · E[W]  =  10.4 × 2.10  =  **21.8 lots**    {#eq:little}
 
-Twenty-two lots. The strategy was described at the outset as one that sells puts and occasionally takes assignment; at equilibrium it is a strategy that owns twenty-two lots of stock and sells puts on the side. And it earned that inventory honestly: 10.4 assignments a year, each lingering two years, is twenty-two.[^eq-lambda]
+Twenty-two lots. The strategy was described at the outset as one that sells puts and occasionally takes assignment; at equilibrium it is a strategy that owns twenty-two lots of stock and sells puts on the side. And it earned that inventory honestly: 10.4 assignments a year, each lingering two years, is twenty-two.
 
 Note what Little's law let us skip. Nothing here needed the exits to be independent, or the arrival stream to be smooth, or the holding times to follow any particular distribution — all of which are false for a single stock, whose lots ride one price path and are called away in batches. The average is exact regardless. That robustness is why this identity, rather than any distributional argument, is the load-bearing step of the article.
 
@@ -80,7 +80,7 @@ That composition is the last piece. Write ρ(x) for the **depth census**: how th
 
 ρ(x)  ∝  Σ_j  P( x_j ∈ dx,  J > j )    {#eq:census}
 
-For the Standard regime over a thirty-year horizon:[^eq-census]
+For the Standard regime over a thirty-year horizon:
 
     depth of lot below its strike     share of held time     q at mid-depth
     0 –  2%                                   8%                  0.442
@@ -139,7 +139,3 @@ The classical result — that an infinite-server queue settles into a **Poisson*
 There is also a distributional version of Little's law itself, which would seem to be exactly the tool for the job, and it is worth naming the reason it is not. It requires items to leave **in the order they arrived**. The wheel does no such thing: lots leave in order of *depth*, so a lot assigned last week can be called away years before one assigned in a drawdown, which is the whole of [the holding-time section](#sec:holding). That is the precise reason only the mean carries over — and it is a sharper reason than the shared price path, though the shared path is why the law's other condition fails too.
 
 So the distributional claims belong to [the portfolio section](#sec:portfolio), where they are earned, rather than here, where they would be assumed. [The verification section](#sec:verification) reports what the single-name distribution actually looks like.
-
-[^eq-census]: Reproduced by `python code/examples/inventory_census.py` — [eq:census](#eq:census), and the other readings quoted here are `stationary`. Pass `--help` for the full parameter set.
-
-[^eq-lambda]: Reproduced by `python code/examples/inventory_little.py` — [eq:lambda](#eq:lambda), [eq:little](#eq:little), [eq:little-finite](#eq:little-finite). Pass `--help` for the full parameter set.

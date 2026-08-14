@@ -12,7 +12,7 @@ Take the Standard regime at a thirty-year horizon, which by [the inventory secti
     ------------------------------------
     Track A income    0.7718 per year    {#eq:income}
 
-Three quarters of a share price per year, in cash, realized. It is a genuinely impressive-looking number, and it is the number that makes this strategy popular. Note also what the composition says: **the calls out-earn the puts more than two to one**, and the dividends out-earn the puts as well. The strategy is named after selling puts, but by the time it is running at scale, put premium is its smallest cash source.[^eq-income]
+Three quarters of a share price per year, in cash, realized. It is a genuinely impressive-looking number, and it is the number that makes this strategy popular. Note also what the composition says: **the calls out-earn the puts more than two to one**, and the dividends out-earn the puts as well. The strategy is named after selling puts, but by the time it is running at scale, put premium is its smallest cash source.
 
 The number is also, on its own, meaningless. It says nothing until we ask what had to be tied up to earn it.
 
@@ -28,7 +28,7 @@ The gap between them — 6.6 share prices — is the accumulated paper loss on t
 
 The right choice for measuring *return* is market value, and the reason is worth stating carefully because the other choice is so tempting. Capital committed means capital that could otherwise be doing something else. A share bought at 100 and now worth 60 does not commit 100 to the strategy; it commits 60, because 60 is what selling it would release. The other 40 is gone — it is a loss that has already happened, not an ongoing commitment. Charging opportunity cost on it counts the same loss twice: once when the price fell, and again every year afterwards.
 
-This is also what [the strategy section](#sec:strategy) promised — Track B was defined as capital at market prices — and it is the definition that survives the consistency test in [the verification section](#sec:verification), which the cost-basis version fails.[^eq-capital]
+This is also what [the strategy section](#sec:strategy) promised — Track B was defined as capital at market prices — and it is the definition that survives the consistency test in [the verification section](#sec:verification), which the cost-basis version fails.
 
 E[Capital]  =  γ_p·k  +  E[I]    {#eq:capital}
 
@@ -42,7 +42,7 @@ That objection has a formal counterpart, and it is sharper than a matter of tast
 
 L_acq  =  λ · ( E[ e^(x₀) ] − 1 )  =  **0.1632** per year    {#eq:mark-loss}
 
-the expectation being taken over the entry law of [eq:x0-law](#eq:x0-law).[^eq-mark-loss]
+the expectation being taken over the entry law of [eq:x0-law](#eq:x0-law).
 
 **This is the answer to the slogan [the introduction](#sec:introduction) declined to argue with.** *Assignment just means buying a good company at a discount* — and the number above is what the discount actually costs, booked at the moment it is taken rather than deferred into a cost basis nobody marks. A sixth of a share price a year, on this book, is not a rounding on the way to owning something cheaply; it is comparable to the entire put premium the strategy collects. [Israelov and Nielsen](#ref:israelov-nielsen-2014) dispatch the same slogan directly and reach the same place: the discount is real, and it is exactly paid for. The strike was chosen; the price was not.
 
@@ -145,7 +145,7 @@ Everything so far is an unlevered account, earning [eq:excess](#eq:excess)'s +1.
 
 net excess on equity  =  excess · L  −  (r_b − r) · (L − 1)    {#eq:levered-excess}
 
-Read as an equation in the spread, that gives the whole result at once. The two terms cancel for **every** L when r_b − r = excess: borrowing is exactly neutral, in whatever quantity, when the broker's spread equals the strategy's own excess return. The break-even spread, in other words, *is* the excess return — **1.60%** here, [eq:excess](#eq:excess)'s own number rather than a coincidence resembling it. Retail financing spreads of 1–3% straddle it, and above it leverage does not merely stop helping: it subtracts.[^eq-levered-excess]
+Read as an equation in the spread, that gives the whole result at once. The two terms cancel for **every** L when r_b − r = excess: borrowing is exactly neutral, in whatever quantity, when the broker's spread equals the strategy's own excess return. The break-even spread, in other words, *is* the excess return — **1.60%** here, [eq:excess](#eq:excess)'s own number rather than a coincidence resembling it. Retail financing spreads of 1–3% straddle it, and above it leverage does not merely stop helping: it subtracts.
 
 The tempting reading is the capital table's equity-required row. An account holding the thirty-year book on the broker's minimum equity of 3.04 is levered **3.81 times**, and at no spread at all [eq:levered-excess](#eq:levered-excess) reports **+6.11%** — close to four times the excess return, which is exactly the appeal. Two things happen to it. Financing eats it: at a 1.5% spread it is **+1.90%**, twenty-nine basis points of extra return for nearly four times the exposure, and at 3% it is **−2.31%**. And nobody holds that book anyway, because [the constrained section](#sec:constrained)'s barrier sits **1.7% below today's price** at that leverage — the account is sold out on the first bad afternoon, with an eventual probability of **97.9%**. So the four-times number is not a return an operator collects. It is a return they are liquidated out of.
 
@@ -292,16 +292,12 @@ The last two rows agree to a third of a basis point at every horizon, which is f
 
 That leaves the real result, which is the invariance. The choice of strike moves everything the operator experiences — how often they are assigned, how much capital they need, how large the book grows, how busy the account is — and moves the expected return not at all. It is the tidiest illustration in the article of what the model is for: the dial the operator actually turns is a dial over their own experience of the strategy, not over its returns.
 
-[^eq-capital]: Reproduced by `python code/examples/returns_capital.py` — [eq:capital](#eq:capital), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
 
-[^eq-income]: Reproduced by `python code/examples/returns_income.py` — [eq:income](#eq:income), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
 
-[^eq-levered-excess]: Reproduced by `python code/examples/returns_leverage.py --gamma-s 0.25` — [eq:levered-excess](#eq:levered-excess), and the other readings quoted here are `gamma-s 0.25 --fin-spread 0.015`; `gamma-s 0.25 --fin-spread 0.03`. Pass `--help` for the full parameter set.
 
-[^eq-mark-loss]: Reproduced by `python code/examples/returns_ledger.py` — [eq:mark-loss](#eq:mark-loss), [eq:giveaway](#eq:giveaway), [eq:econ-pnl](#eq:econ-pnl), [eq:excess](#eq:excess), and the other readings quoted here are `p-star 0.10`. Pass `--help` for the full parameter set.
 
 [^bxm-beta]: The three figures in this detour are measured by `python code/bxm_beta.py`, which replicates the index's construction and varies one convention at a time; the readings quoted are the aligned at-the-money case, the same on a calendar clock, and that with a strike 2% above spot. They are pinned in `code/verify_examples.py` under section 09.
 
-[^returns-beta]: Reproduced by `python code/examples/returns_beta.py` — the split betas, the shocked book exposures and the n sweep, whose other readings quoted here are `p-star 0.10`; `n 1`; `n 13`; `sigma 0.30`. Pass `--help` for the full parameter set. The betas are least-squares slopes fitted separately to rising and falling periods, inventory only, census-weighted; the shocked exposures are the whole book including the live short put, divided by the capital of [eq:capital](#eq:capital).
+[^returns-beta]: The betas are least-squares slopes fitted separately to rising and falling periods, inventory only, census-weighted; the shocked exposures are the whole book including the live short put, divided by the capital of [eq:capital](#eq:capital). These figures carry no displayed formula of their own, so [their appendix entry](#repro:returns-beta) is where the commands behind them are listed.
 
 [^msg-slope]: The conversion is checked in `code/verify_examples.py` under section 09. Inverting their reported at-the-money six-month call price of 10% of spot gives an implied volatility of 33.6%, from which one volatility point is worth about 3.2% of the premium; their reported slopes of 100 and 80 basis points of semiannual return per 10% of premium then annualize to 55 and 52 basis points per point. The short rate is the one input not read off the papers, and the answer is insensitive to it across the whole plausible 1963–77 range; 6% is the internally consistent reading, being where their observed put/call price ratio reproduces put-call parity.

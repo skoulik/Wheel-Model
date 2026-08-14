@@ -34,7 +34,7 @@ below its own call strike — near enough that β's limiting value has barely be
 
 E[W]  =  ( E[x₀] + E[overshoot] ) / ν .
 
-Run that backwards from the exact 2.10 years computed below, and the overshoot the model is really paying is **0.667** steps, not 0.583. So the **call-grid tax** at the running parameters is 0.667 × 0.20 × √(1/13) = **0.037** — which is **2.4 times the typical entry depth of 0.0155**. Read off β alone it would have been 2.1, and β understates the very thing it is there to measure.[^eq-siegmund]
+Run that backwards from the exact 2.10 years computed below, and the overshoot the model is really paying is **0.667** steps, not 0.583. So the **call-grid tax** at the running parameters is 0.667 × 0.20 × √(1/13) = **0.037** — which is **2.4 times the typical entry depth of 0.0155**. Read off β alone it would have been 2.1, and β understates the very thing it is there to measure.
 
 Read that again, because it reorders the intuition completely. The hole a lot has to climb out of is not mainly the 1.6% it fell through at assignment. It is mostly the *sampling* — the requirement that the recovery be standing on the right day, once every four weeks. Of the total hole, roughly **30% is the entry and 70% is the grid**. **The exit grid, not the entry overshoot, is what keeps lots in inventory.** An operator worried about being assigned too deep is worrying about less than a third of the problem.
 
@@ -83,7 +83,7 @@ Everything above assumed ν > 0. If the drift is unfavourable — ν ≤ 0 — t
 
 P( J = ∞ )  =  1 − E[ exp( −2|ν|·(x₀ + β·σ·√τ_c) / σ² ) ]    {#eq:trapped}
 
-At σ = 40% with the same μ and δ, ν = −3.5%, and this comes to 4.1%. But it carries β, so it inherits β's problem, and in the same direction as before: run the walk itself, with no constant standing in for anything, and the answer is **4.4% of every assignment permanently trapped**. Not delayed — trapped, with no mechanism in the strategy that will ever release them. The rest of the inventory keeps recycling around them while the trapped stratum grows by λ × 4.4% ≈ 0.46 lots a year, without bound. The per-assignment fraction is *smaller* than it would be on a slower call clock — a finer grid gives a doomed lot more chances to slip out early — but the arrival rate is more than four times higher, which more than undoes it. Selling more often traps a smaller share of more lots, and the arithmetic favours the arrivals.[^eq-trapped]
+At σ = 40% with the same μ and δ, ν = −3.5%, and this comes to 4.1%. But it carries β, so it inherits β's problem, and in the same direction as before: run the walk itself, with no constant standing in for anything, and the answer is **4.4% of every assignment permanently trapped**. Not delayed — trapped, with no mechanism in the strategy that will ever release them. The rest of the inventory keeps recycling around them while the trapped stratum grows by λ × 4.4% ≈ 0.46 lots a year, without bound. The per-assignment fraction is *smaller* than it would be on a slower call clock — a finer grid gives a doomed lot more chances to slip out early — but the arrival rate is more than four times higher, which more than undoes it. Selling more often traps a smaller share of more lots, and the arithmetic favours the arrivals.
 
 The closed form remains the one to reason with, because it shows that only two things govern the answer — the depth a lot enters at, and the tax sitting on top of it — but it should be read knowing which way it errs. It runs about 8% low here, and it is worst precisely where an operator would go to escape the problem. Write the puts so far out of the money that assignment lands at no depth at all, and the formula reads 2.8% where the truth is **3.4%**: short by nearly a fifth, in the regime chosen for safety. That last figure is one of the few numbers in this article known exactly rather than computed — it has a closed form, due to [Janssen & van Leeuwaarden](#ref:janssen-vanleeuwaarden-2007), and the walk above is checked against it.
 
@@ -94,7 +94,3 @@ This is the first appearance of something the model will keep saying in differen
 The naive 1/q calculation said ten weeks. The correct answer is a median of eight weeks and a mean of two years — and the gap between those two numbers is not a technicality, because capital is committed for the *mean*, not the median. Every lot that leaves quickly frees its capital quickly; the operator's balance sheet is dominated by the ones that don't.
 
 Turning "a mean holding time of 2.10 years" into "how much stock am I holding and what does it cost me" takes one more step, and it is a famous one. That is [the inventory section](#sec:inventory).
-
-[^eq-siegmund]: Reproduced by `python code/examples/holding_time.py` — [eq:siegmund](#eq:siegmund), [eq:survival](#eq:survival), [eq:holding](#eq:holding), [eq:holding-siegmund](#eq:holding-siegmund), and the other readings quoted here are `measure Q`. Pass `--help` for the full parameter set.
-
-[^eq-trapped]: Reproduced by `python code/examples/holding_trapped.py` — [eq:trapped](#eq:trapped), and the other readings quoted here are `sigma 0.40`. Pass `--help` for the full parameter set.
