@@ -64,7 +64,7 @@ That arrival rate is the one this article's machinery consumes, and everything d
 >
 > c_c  =  e^(−δ·τ)·N(d₁)  −  k·e^(−r·τ)·N(d₂)    {#eq:bs-call}
 >
-> Those are the only two option prices this article needs; the sections that follow build their own machinery on them.
+> Those are the only two option prices this article needs; the sections that follow build their own machinery on them. Neither will match a textbook's on sight, because both are quoted as fractions of the share price rather than in dollars; [the derivation](#drv:bs-convention) reconciles the two, and the difference is one of units rather than of substance.
 >
 > Both arguments are the standardization of the detour above, applied to the log price. **d₂ counts how far the strike sits below where the price is expected to end, in one-period moves σ·√τ** — so −d₂ is the strike's own z-score, and **N(−d₂) is the probability that the put finishes in the money**, computed at the drift that appears in the formula. d₁ is that same distance one move further out, and N(−d₁) a stock-weighted version of the same probability. The e^(−δ·τ) beside it is there because the option's holder collects no dividends, so a position hedged to deliver one share at expiry needs only e^(−δ·τ) shares today. That dividend-paying version of the formula is [Merton's](#ref:merton-1973), from the same year as the original.
 >
@@ -94,6 +94,8 @@ That leaves one honest question, which [the returns section](#sec:returns) answe
 Operators rarely pick a strike directly. They pick how often they are willing to be assigned — a target probability p\*, and the strike follows from it. **That p\* is the strike dial**, the one control this article turns: everything the operator decides about entry is a setting of it, and every strike quoted below is what some setting produced. Under the lognormal model the strike fraction k\* delivering p\* is
 
 k\*  =  exp( N⁻¹(p\*) · σ·√τ_p  +  (m − σ²/2) · τ_p )    {#eq:kstar}
+
+It comes from writing the assignment event as a statement about a single standard normal draw and inverting it; [the derivation](#drv:kstar) does that, and gets [eq:p-screen](#eq:p-screen) below out of the same two lines read in the other direction.
 
 Two settings of that dial are carried throughout: **Standard**, p\* = 20%, which leads every worked example, and **Conservative**, p\* = 10%, the more cautious setting. Against the running example's market — weekly puts, σ = 20%, total return μ = 7%, δ = 2.5%, so m = 4.5% — the first gives k\* ≈ **0.9774**, a strike about 2.3% below the market, and the second k\* ≈ **0.9655**, about 3.5% below. Because p\* is defined in the real world, it *is* the rate at which puts assign: one put in five, or one in ten.
 
@@ -155,7 +157,7 @@ The assignment event means the stock finished below the strike that was set at a
 
 f(x₀)  =  φ( (ln k − x₀ − (m − σ²/2)·τ_p) / (σ·√τ_p) ) / ( σ·√τ_p · p\* ),   x₀ > 0    {#eq:x0-law}
 
-where φ is the standard normal bell curve and the division by p\* is the detour's renormalization: the event being conditioned on is x₀ > 0 — the put assigning — so the point of truncation is x₀ = 0, and the probability of that event is p\* by construction of the strike dial. Its mean is the conditional expectation of the detour, and for this density it has a closed form:
+where φ is the standard normal bell curve and the division by p\* is the detour's renormalization: the event being conditioned on is x₀ > 0 — the put assigning — so the point of truncation is x₀ = 0, and the probability of that event is p\* by construction of the strike dial. [The derivation](#drv:x0-law) carries the bell curve through both steps, the change of variable and the conditioning, and shows which factor came from which. Its mean is the conditional expectation of the detour, and for this density it has a [closed form](#drv:x0-mean):
 
 E[x₀]  =  σ·√τ_p · ( N⁻¹(p\*)  +  φ(N⁻¹(p\*)) / p\* )    {#eq:x0-mean}
 
@@ -169,7 +171,7 @@ giving **3.8%** for Standard and **4.7%** for Conservative. d and x₀ measure o
 
 S_τ / S₀  =  k\* · e^(−x₀)    {#eq:fall-split}
 
-Take expectations of that — of e^(−x₀) — and [eq:d-mean](#eq:d-mean) is what comes out. The drift comes back with the first factor and only with it — k\* is where it was hiding, and d includes that step where x₀ does not. Under the market's drift the figures are 3.8% and 4.7% as well, differing in the fourth decimal, because the strike is the only thing that moves between the two worlds and over one week it barely moves.
+Take expectations of that — of e^(−x₀) — and [eq:d-mean](#eq:d-mean) is what comes out; [the derivation](#drv:d-mean) is three lines, and turns on a single Gaussian integral that recurs throughout the article. The drift comes back with the first factor and only with it — k\* is where it was hiding, and d includes that step where x₀ does not. Under the market's drift the figures are 3.8% and 4.7% as well, differing in the fourth decimal, because the strike is the only thing that moves between the two worlds and over one week it barely moves.
 
 One thing about E[x₀] deserves emphasis: it is **much smaller than intuition suggests**. A weekly put assigned is not a disaster in progress; it is a lot bought about 1.6% under a strike the operator chose on purpose. Whether 1.6% is easy or hard to work off is the question the rest of Part II answers — and the answer is not the comfortable one, because it turns out to have almost nothing to do with the 1.6%.
 

@@ -1118,8 +1118,8 @@ def main():
           f"{len({n.key for n in H.collect_needs(mods)})} distinct solves")
 
     # And the policy itself, as a test rather than an aspiration: every
-    # numbered formula has a script, every script is cited from the prose,
-    # and every footnote leads to the script that actually backs its formula.
+    # numbered formula has a script, and every script is reachable from the
+    # prose -- by its formula's number, or by an explicit #repro: link.
     print("--- Reproducibility coverage ---")
     FAILURES.extend(R.coverage(mods))
 
@@ -1133,6 +1133,12 @@ def main():
     # anchor registers were the one cross-reference set nothing was reading.
     print("--- Register coverage ---")
     FAILURES.extend(R.registers())
+
+    # The derivations appendix, on the same terms as the bibliography: every
+    # #drv: link resolves, every entry is reached from somewhere, and no
+    # derivation re-declares the {#eq:} anchor of the formula it derives.
+    print("--- Derivation coverage ---")
+    FAILURES.extend(R.derivations())
 
     print()
     if FAILURES:

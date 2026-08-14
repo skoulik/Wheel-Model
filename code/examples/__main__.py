@@ -28,6 +28,8 @@ def main():
                     help="every #ref: cited in sections/ is a bibliography entry")
     ap.add_argument("--registers", action="store_true",
                     help="section 00's anchor registers match what sections declare")
+    ap.add_argument("--derivations", action="store_true",
+                    help="every #drv: linked in sections/ is a derivations entry")
     ap.add_argument("--appendix", action="store_true",
                     help="print the reproduction appendix as markdown")
     ap.add_argument("--only", default=None,
@@ -35,7 +37,8 @@ def main():
     ap.add_argument("--quiet", action="store_true", help="failures only")
     args = ap.parse_args()
     if not (args.list or args.check or args.run or args.coverage
-            or args.references or args.registers or args.appendix):
+            or args.references or args.registers or args.derivations
+            or args.appendix):
         args.check = True
 
     mods = H.discover()
@@ -81,6 +84,13 @@ def main():
     if args.registers:
         from examples import _report
         gaps = _report.registers()
+        for g in gaps:
+            print(f"  {g}")
+        return 1 if gaps else 0
+
+    if args.derivations:
+        from examples import _report
+        gaps = _report.derivations()
         for g in gaps:
             print(f"  {g}")
         return 1 if gaps else 0

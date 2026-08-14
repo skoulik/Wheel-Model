@@ -66,7 +66,15 @@ def repro_anchor(module_name):
 
 APPENDIX = "99-reproduction.md"     # generated; see appendix() below
 BIBLIOGRAPHY = "98-bibliography.md"  # the only file that may declare {#ref:}
+DERIVATIONS = "97-derivations.md"    # the only file that may declare {#drv:}
 NOTATION = "00-notation.md"          # declares both registers; see registers()
+
+# The derivations appendix: hand-written, unlike the reproduction one, so its
+# cross-references need the same checking the bibliography's do.  An entry is a
+# heading carrying the anchor; prose reaches it by an ordinary markdown link.
+_DRV_HEAD = re.compile(r"^##\s+(.*?)\s*\{#(drv:[a-z0-9-]+)\}\s*$")
+_DRV_ANCHOR = re.compile(r"\{#(drv:[a-z0-9-]+)\}")
+_DRV_LINK = re.compile(r"\]\(#(drv:[a-z0-9-]+)\)")
 
 # Section 00's two registers, each introduced by its own phrase.  They are
 # *declarations* of what the article means to contain, where declared_anchors()
@@ -291,6 +299,76 @@ def references():
     if unverified:
         print(f"    bibliographic details unverified: "
               f"{', '.join(a[len('ref:'):] for a in unverified)}")
+    return failures
+
+
+def derivation_entries():
+    """Every {#drv:...} the derivations appendix declares, anchor -> its heading."""
+    if not os.path.exists(os.path.join(SECTIONS, DERIVATIONS)):
+        return {}
+    out = {}
+    for line in _read(DERIVATIONS).splitlines():
+        m = _DRV_HEAD.match(line)
+        if m:
+            out.setdefault(m.group(2), m.group(1).strip())
+    return out
+
+
+def derivation_links():
+    """Every #drv: the article links, anchor -> the files linking it.
+
+    Unlike the reproduction appendix, the derivations appendix *may* certify
+    part of itself, and deliberately: the shared Gaussian lemma exists to be
+    cited by other derivations rather than by a section, and demanding a prose
+    link for it would force a section to point at apparatus it never uses.
+    Every other entry still earns its place from the prose.
+    """
+    out = {}
+    for name in section_files():
+        for anchor in _DRV_LINK.findall(_read(name, strip_code=True)):
+            out.setdefault(anchor, set()).add(name)
+    return out
+
+
+def derivations():
+    """Check the derivations appendix.  Returns a list of failure strings.
+
+    Three ways this apparatus can rot, all of them silent in rendered output:
+    a link that lands nowhere, an entry nothing sends a reader to, and -- the
+    one worth the guard -- a derivation that re-declares the `{#eq:}` anchor of
+    the formula it derives.  That last would give one formula two homes;
+    `declared_anchors()` resolves ties by filename, so the formula would
+    silently move house to this appendix and `registers()` would then report it
+    missing from the section that actually states it.
+    """
+    entries = derivation_entries()
+    linked = derivation_links()
+
+    failures = []
+    # Only the appendix may declare one, for the reason the bibliography is the
+    # only file that may declare a {#ref:} -- two sources of truth is none.
+    for name in section_files():
+        if name == DERIVATIONS:
+            continue
+        for anchor in _DRV_ANCHOR.findall(_read(name, strip_code=True)):
+            failures.append(f"{anchor} is declared in {name}; "
+                            f"only {DERIVATIONS} may declare one")
+    for anchor, where in sorted(linked.items()):
+        if anchor not in entries:
+            failures.append(f"{sorted(where)} links #{anchor}, "
+                            f"which {DERIVATIONS} does not define")
+    for anchor in sorted(entries):
+        if anchor not in linked:
+            failures.append(f"#{anchor} is defined but nothing links it")
+    # The guard.  A derivation restates the formula it derives; restating the
+    # *anchor* is the mistake, and it is one keystroke away.
+    for anchor in _EQ.findall(_read(DERIVATIONS, strip_code=True)):
+        failures.append(f"{DERIVATIONS} declares {anchor}; a derivation may "
+                        f"reference a formula anchor but never declare one")
+
+    print(f"  {len(entries)} derivations, {len(linked)} linked from "
+          f"{len({s for w in linked.values() for s in w})} files; "
+          f"{len(failures)} gap(s)")
     return failures
 
 
