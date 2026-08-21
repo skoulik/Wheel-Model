@@ -571,6 +571,32 @@ are drafted rather than be discovered afterwards.
   than the inventory it creates. This is the structural difference that most damages
   comparability: **any direct comparison of Track A yields between model and live account is
   meaningless without it**, which makes it §12's business and a caveat §14 must reference.
+- **One σ across 96 names is the wrong instrument, and it biases the depth and holding-time
+  comparisons in a known direction** (added 2026-08-21). `model_vs_live.py` fits a single pooled
+  σ and a single pooled drift and compares them with a book of **96 names**. The book does not
+  hold those names evenly: **σ is 29.8% at the median put write and 34.6% inventory-weighted**,
+  because high σ means low ν means longer stays, so inventory self-sorts onto the volatile names.
+  Five points of σ moves σ²/2 by 1.5 points — over half of ν at these drifts. The pooled drift has
+  the matching defect in the other parameter: **+39.7% is the realised drift of held names, and
+  the names that rallied are exactly the ones that were called away**, so feeding it back asks the
+  residual book to recover at a rate only the departed lots achieved. Both errors run the same
+  way, and it is the direction actually observed — a pooled fit under-predicts survival and
+  under-predicts standing depth. §12 owes the per-name-then-aggregate treatment: E[W], E[I] and
+  the census are already per-name quantities, so a book is a weighted sum of them and **no formula
+  changes** — what changes is that the spine is evaluated per name and mixed, rather than
+  evaluated once at a pooled parameter.
+
+  **This is additive to `DONE.md` #9, not a reopening of it.** That decision — no mixture
+  parameterization is needed, since depth dependence plus the common path generates the fast,
+  metastable and trapped regimes from a single q(x) — is about the *shape* of the holding-time
+  distribution on one name and still stands. This bullet is about the *level* of a pooled
+  cross-name comparison, which #9 did not address and had no evidence bearing on.
+
+  **Run the cheap experiment before drafting.** Evaluate the existing spine per name and
+  aggregate, against the same live book. If that closes the survival and census gaps, §12's job
+  shrinks to stating why pooling fails and §14 gets a clean verification; if a residual survives,
+  the residual is the finding and is worth chasing. Which of the two sections carries the weight
+  is not currently known, and an afternoon in `model_vs_live.py` decides it.
 
 **III-2. Write §13, the correlation section** (`{#sec:correlation}`). Two results:
 
@@ -779,6 +805,18 @@ live data, not only simulation.
 - **Survival:** the model exits lots faster than observed at every horizon, and the comparison
   is Kaplan–Meier, so **this is not censoring** (was #9). Show the compounding of the
   per-period gap.
+
+  **Do not present this as a test of the spine until III-1's last bullet is settled** (added
+  2026-08-21). The gap is real — KM handles the censoring — but its cause is not established, and
+  the leading candidate is that the comparison pools one σ and one drift across 96 names when the
+  model is a single-name model. A pooled fit is predicted to under-predict survival, which is what
+  is observed, so a §14 drafted before §12 would report an aggregation artifact as a failure of
+  the model. Two related figures belong with this caveat and not in a bin-level claim: the mean is
+  separately **not measurable at all** on this window (40 exits, 15 open, and the KM curve is flat
+  at 15.8% from 180 d on because everything remaining is censored), so the model's 2.1-year mean
+  is neither confirmed nor refuted here; and the live median of **56 d** coincides with the
+  article's 8-week median while the model run at the account's own measured parameters gives about
+  31 d, which is two errors cancelling and must not be quoted as agreement.
 - **The two internal checks:** the grid-free Monte Carlo (`mc_holding.py`) that proves the
   extrapolated stationary figures, and the **Q-world no-arbitrage identity** — run at ν_Q with
   Q-priced premiums, expected excess return over r must vanish up to the dividend-withholding

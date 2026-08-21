@@ -34,7 +34,7 @@ and it deserves unpacking, because all three terms will matter and the last one 
 
 For the running example ν = 7% − 2.5% − 2% = **2.5% per year**. With that in hand the two terms of [eq:depth-walk](#eq:depth-walk) can be compared, and they are not remotely the same size. The jostle is 0.2 × √(1/13) = **0.055**, five and a half log-points per four-week period, against a pull toward exit of just 0.025 ÷ 13 = **0.0019** — noise beats drift by a factor of twenty-nine over one period. Depth does not march toward zero; it staggers, and the drift only asserts itself over many periods.
 
-Set the same 2.5% against a typical entry depth of 1.55% and the comparison is a striking one: the drift needs **the better part of a year** to work off the hole a *typical* assignment starts in, and the typical assignment is the shallow case.
+Set the same 2.5% against a typical entry depth of 1.55% and the comparison is a striking one: **the drift alone** would need the better part of a year to work off the hole a *typical* assignment starts in, and the typical assignment is the shallow case. That is not yet the wait a lot actually faces, and the number moves the wrong way from here — [the holding-time section](#sec:holding) adds a second hole on top of this one, dug by the call schedule rather than by the assignment.
 
 Under the market's pricing drift the same formula gives ν = 5% − 2.5% − 2% = **0.5%**, five times smaller. The market prices this stock as one whose strikes are worked off at a crawl.
 
