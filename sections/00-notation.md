@@ -23,7 +23,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 | S, S₀ | Price of the underlying stock; S₀ when a fixed reference moment matters |
 | μ | Real-world expected annual **total return** of the stock — price appreciation plus dividend yield |
 | r | Risk-free interest rate, annualized |
-| σ | Volatility of the stock's returns, annualized — the **realized** volatility, which governs the actual price path |
+| σ | Volatility of the stock's returns, annualized — the **realized** volatility, which governs the actual price path. Held **constant**: one number for every price level and every date, which is what makes depth a self-contained description of a lot; see [the depth section](#sec:depth) |
 | σ_IV | Implied volatility: the number the market quotes option prices in. The article's results assume σ_IV = σ (no volatility risk premium) unless stated, and [the returns section](#sec:returns) computes what spread would be needed to change the verdict. **A single scalar**: one value for both legs, every strike and every lot depth. Real surfaces are flat in neither direction, and [the returns section](#sec:returns) names what that costs and why it is not carried |
 | δ | Continuous dividend yield, annualized, gross of withholding (running example: 2.5%). Held **constant**, which assumes the payout tracks the price's *trend* — a company raising its dividend at the price's log drift ν has, by construction, a constant yield. It does **not** assume the payout is cut when the price dips; see [the depth section](#sec:depth) |
 | w | Withholding tax fraction on dividends (running example: 15%, the common treaty rate) |

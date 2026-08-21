@@ -187,3 +187,39 @@ E[ S_τ/S₀ | assignment ]  =  e^(m·τ_p) · N(a − σ·√τ_p) / p\*
 E[ S_τ/S₀ | assignment ]  =  e^(m·τ_p) · N(−d₁) / N(−d₂)
 
 and subtracting from one gives [eq:d-mean](#eq:d-mean). The d₁ that appears in it is the same d₁ as in the option formulas, and for the same reason: the lemma's shift by c is what turns a probability into a stock-weighted one, which is exactly the difference between d₂ and d₁ that [the entry section](#sec:entry)'s detour describes.
+
+## The depth walk and its drift {#drv:nu}
+
+[eq:depth-walk](#eq:depth-walk) and [eq:nu](#eq:nu) are the two lines the rest of the article is built on, and [the depth section](#sec:depth) states both with a sentence of justification apiece. Neither needs much algebra. But everything downstream inherits whatever these two get wrong, and one of them has a sign that looks like a mistake, so they are worth making rather than asserting.
+
+**From the price to the depth.** A lot's call strike is frozen at what the lot cost, so K_c is a constant and the depth of [eq:depth-def](#eq:depth-def) splits into a fixed part and a moving one:
+
+x  =  ln K_c  −  ln S
+
+Only the second term moves, and [eq:lognormal](#eq:lognormal) says how: over a span τ_c the log price advances by
+
+ln S_(t+τ_c)  −  ln S_t  =  (m − σ²/2)·τ_c  +  σ·√τ_c·Z
+
+Depth advances by the negative of that, since it is the negative of ln S plus a constant:
+
+x  →  x  −  (m − σ²/2)·τ_c  −  σ·√τ_c·Z
+
+Writing ν for m − σ²/2 gives the drift term of [eq:depth-walk](#eq:depth-walk) exactly. The noise term does not match — the article states it with a **plus** — and the resolution is that the standard normal is symmetric, so −Z has the same distribution as Z and the two displays describe the same walk. **The mixed signs in [eq:depth-walk](#eq:depth-walk) are deliberate rather than a slip.** The minus in front of the drift is real and carries the section's meaning, that depth is pulled toward exit. The plus in front of the jostle is a free choice about which way to point a draw that has no direction of its own, and it is made that way so the formula reads as a pull and a wobble rather than as two subtractions.
+
+**Where the σ²/2 comes from.** The drift inside the exponent is not m, and the gap is forced rather than chosen. Leave the drift unnamed — write it g — so that over a span τ
+
+S_τ/S₀  =  exp( g·τ  +  σ·√τ·Z )
+
+and ask what g has to be. What pins it down is that m is already spoken for: [the notation section](#sec:notation) defines m as the drift of the **price**, so the price is expected to grow by e^(m·τ) over the span, with the dividend subtracted out of it because a dividend is paid out of the price rather than on top of it. Averaging the display above is the exponential integral of [the lemma](#drv:partial-expectation) with c = σ·√τ and the cut-off removed, the g·τ coming out as a factor because it carries no Z:
+
+E[ S_τ/S₀ ]  =  e^(g·τ) · E[ e^(σ·√τ·Z) ]  =  e^(g·τ) · e^(σ²·τ/2)
+
+Set that equal to e^(m·τ), take logarithms, and divide by τ:
+
+g  +  σ²/2  =  m,   so   g  =  m − σ²/2
+
+which is [eq:nu](#eq:nu). Nothing was assumed about the stock to get there: **given that a price is the exponential of a normal quantity, requiring it to grow at m in expectation leaves no freedom in what its logarithm drifts at.** The σ²/2 is the price of that requirement, and it is subtracted rather than added because the averaging step could only ever produce a positive e^(σ²·τ/2) to be compensated for.
+
+**A reading.** The two rates are one distribution measured twice. e^(m·τ) is where the *average* outcome sits, and the average of a lognormal is dragged upward by a thin tail of very large ones — a price can multiply without limit but can only fall to zero, so the outcomes above the middle are the ones with room to be extreme. e^((m − σ²/2)·τ) is where the *middle* sits: the exponent is symmetric about its own mean, and exponentiating preserves the middle even though it does not preserve the average. So a lognormal's mean grows at m while its median grows at m − σ²/2, and the gap widens with σ because that is what lengthens the tail doing the dragging. [The mean fall](#drv:d-mean) is the same fact met from the other side, as a cancellation that puts m back where m − σ²/2 stood.
+
+**Why the article runs on ν and not m.** Every result after [the depth section](#sec:depth) is an answer to *when does the walk first reach zero* — and that is a question about ln S, not about S. The rate that governs a first passage is the drift of the quantity doing the passing, and the quantity doing the passing is the logarithm. m is what the price averages; ν is what the logarithm drifts at; only the second is a property of the walk. This is also why σ reaches every downstream result twice, once through the jostle σ·√τ_c and once through ν, and why [the stability section](#sec:stability) can state its boundaries as comparisons between a drift and a variance.
