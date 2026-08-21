@@ -1154,6 +1154,34 @@ structure.
   disposition effect's documented harm is largely a tax harm, and this article cannot price it —
   which is exactly why II-24's analogy must stay structural.
 
+**A correction the impairment entry needs before it is rewritten** (found 2026-08-21, while
+reviewing §06). The standing list's dividend-cut item makes the payout drag a function of an
+*individual lot's* depth: "the yield on market value rises with depth, so the drag on the price
+does too", with a depth drift of ν − δ·(e^x − 1) changing sign at x\* = ln(1 + ν/δ), and two thirds
+of standing inventory quoted as past it under the market's drift. **There is one price and one
+drift.** Every lot in the book shares S, so the drag on the price cannot differ between a deep lot
+and a shallow one — and §06 states the correct version flatly, that whatever a sticky dividend
+does "it does not pay deep lots more than shallow ones", because the company pays the same cash on
+every share it has issued.
+
+The formula is arithmetically sound: x\* = ln(1 + ν/δ) is ln 2 at the running parameters and ln 1.2
+under the market's drift, which are the 50% and 17% quoted. **What is in question is what x means
+in it.** The construction works if x is read as *how far the price has fallen since the payout was
+last set* — but that equals a lot's depth for exactly one lot, the one bought when the payout was
+set. As written the text calls it "the depth drift", quotes x\* as a depth below the strike, and
+reads "two thirds of the standing inventory" off the depth census, so the per-lot reading is the
+one on the page.
+
+Two things follow for the rewrite. The economics survive — a payout frozen in dollars while the
+market falls does raise the drag on the price, and does have a level past which it stops being
+payable — but the threshold is a statement about the **market's** fall since the last raise, not
+about a lot's private distance below its own strike, so it cannot be applied to the depth census
+the way the current text applies it. And the inventory share quoted from it was computed under the
+per-lot reading: recompute it against a market-level state or drop it. Whether the impairment
+hazard is best hung off a market-level variable or off some lot as a proxy is the modelling
+question §16 has to settle, and settling it is a precondition for the entry rather than part of
+the prose.
+
 **IV-8. MSG's two methodological cautions, one of which delivers a promise nothing currently
 delivers.** (From the Merton–Scholes–Gladstein read of 2026-08-01. Numbered **IV-8** and not IV-6: IV-6 and
 IV-7 both closed on 2026-07-28 and are in `DONE.md`.)

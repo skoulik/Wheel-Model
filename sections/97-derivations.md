@@ -6,7 +6,7 @@ Two conventions. Displayed steps inside a derivation carry no numbers of their o
 
 ## Two Gaussian integrals {#drv:partial-expectation}
 
-Two of the derivations below — the mean entry depth and the mean fall from the price the put was sold at — are the same integral wearing different clothes, and so are the mark loss and the call-away giveaway that [the returns section](#sec:returns) books later. It is worth doing once.
+Three of the derivations below — the mean entry depth, the mean fall from the price the put was sold at, and the drift of the depth walk itself — are the same integral wearing different clothes, and so are the mark loss and the call-away giveaway that [the returns section](#sec:returns) books later. It is worth doing once.
 
 Throughout, Z is a draw from the standard normal distribution of [eq:phi](#eq:phi), φ is its bell curve and N its running total, as [the entry section](#sec:entry) defines them. Both results below concern a **partial** expectation: an average taken not over every outcome but only over those below some cut-off a, with the rest of the outcomes contributing nothing. Written with an indicator — 1{Z < a}, a quantity that is 1 when the condition holds and 0 when it does not — an average over the whole line with that factor inside it *is* an average over the part below a.
 
