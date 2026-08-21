@@ -71,6 +71,11 @@ CASES = [
     Case("--sigma 0.30", {
         "nu": (0.0, 1e-6),              # "sigma = 30% would cut nu ... to zero"
     }, note="the volatility at which nu vanishes"),
+    Case("--n 13", {
+        # section 06 sets the four-week jostle against a quarterly one to show
+        # that depth is only ever measured in units of one period's step.
+        "jostle": (0.1000, 0.0002),     # "0.100 on a quarterly one"
+    }, note="a quarterly call clock, the comparison section 06 draws"),
 ]
 
 

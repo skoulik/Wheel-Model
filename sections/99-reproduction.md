@@ -109,6 +109,7 @@ Backs [eq:qx](#eq:qx), [eq:ccx](#eq:ccx).
 |---|---|
 | `python code/examples/depth_tables.py` | depths = 0.0155  0.0300  0.0500  0.1000  0.1500  0.2000, q = 0.403  0.306  0.193  0.039  0.004  0.000, cc = 0.0161  0.0110  0.0060  0.0009  0.0001  0.0000 |
 | `python code/examples/depth_tables.py --depths 0.0155,0.03,0.05` | q = 0.403  0.306  0.193, cc = 0.0161  0.0110  0.0060 |
+| `python code/examples/depth_tables.py --n 13` | q = 0.463  0.406  0.331  0.174  0.075  0.026, cc = 0.0354  0.0293  0.0221  0.0098  0.0036  0.0011 |
 
 ### `depth_walk.py` {#repro:depth-walk}
 
@@ -119,6 +120,7 @@ Backs [eq:depth-def](#eq:depth-def), [eq:depth-walk](#eq:depth-walk), [eq:nu](#e
 | `python code/examples/depth_walk.py` | m = 4.50%, nu = 2.50%, jostle = 0.0555, drift_step = 0.0019, ratio = 28.8 |
 | `python code/examples/depth_walk.py --measure Q` | m = 2.50%, nu = 0.50% |
 | `python code/examples/depth_walk.py --sigma 0.30` | nu = 0.00% |
+| `python code/examples/depth_walk.py --n 13` | jostle = 0.1000 |
 
 ## How Long a Lot Stays
 

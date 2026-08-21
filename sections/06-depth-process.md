@@ -58,20 +58,20 @@ Between them the two bounds settle the parameter: δ held constant is right abou
 
 ## The exit probability at depth x
 
-A lot at depth x is called away at the end of the current call period if the stock closes at or above the strike — that is, if the walk in [eq:depth-walk](#eq:depth-walk) lands at or below zero:
+A lot at depth x is called away at the end of the current call period if the stock closes at or above the strike — that is, if the walk in [eq:depth-walk](#eq:depth-walk) lands at or below zero. Solving that for the normal draw is [the strike dial](#drv:kstar)'s manoeuvre one step shorter, since the walk is already in logarithms:
 
 q(x)  =  N( (ν·τ_c − x) / (σ·√τ_c) )    {#eq:qx}
 
-This is the same recovery probability a practitioner would compute for a freshly assigned lot, but written as a *function* rather than a constant — and that difference is the entire content of this article. Evaluated for the running example, four-week calls:
+This is the same recovery probability a practitioner would compute for a freshly assigned lot, but written as a *function* rather than a constant. Evaluated for the running example, four-week calls:
 
     depth x        0.0155     0.03      0.05      0.10      0.15      0.20
     q(x)            0.404     0.306     0.193     0.039     0.004     0.000
 
-A fresh lot is close to a coin flip: **q ≈ 0.40**, so about two lots in five leave on their first call. Five log-points down, the odds are one in five. Ten points down, one in twenty-six. Fifteen points down, one in two hundred and sixty. Twenty points down — a stock that has fallen by a fifth since the lot was bought — the call is a formality, worth nothing and virtually certain to expire.
+A fresh lot is close to a coin flip: **q ≈ 0.40**, so about two lots in five leave on their first call. Ten log-points down the odds are one in twenty-six, and twenty points down — a stock that has fallen by a fifth since the lot was bought — the call is a formality, worth nothing and virtually certain to expire.
 
 The collapse is fast because the *drift term is negligible next to the noise*. Over one four-week period, ν·τ_c contributes 0.0019 while a standard deviation is 0.055; a lot escapes not because the stock is trending up but because it got lucky this month. Depth is worked off by luck in the short run and by drift only in the long run, and how long "the long run" takes is [the next section](#sec:holding).
 
-Notice how much steeper this collapse is than it would be on a slower call clock. The scale on which depth matters is the one period's jostle σ·√τ_c, so shortening the call period does not merely change the units — it moves the cliff edge closer. A lot ten points under water is a live position against a quarterly call and a dead one against a four-week call.
+How steep that collapse is depends on the call clock, and the two are worth separating. Depth means something only relative to one period's jostle σ·√τ_c — **0.055 on the article's four-week call, 0.100 on a quarterly one** — so a lot ten log-points under water stands 1.8 jostles from the exit on the first clock and 1.0 on the second. The one-period odds follow: **one in twenty-six against the four-week call, one in six against the quarterly**. Shortening the call period does not merely change the units; it moves the cliff edge closer.
 
 ## The premium at depth x
 

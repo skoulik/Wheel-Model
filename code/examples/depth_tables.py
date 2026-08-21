@@ -69,6 +69,13 @@ CASES = [
         "q": ([0.404, 0.306, 0.193], 0.002),
         "cc": ([0.0161, 0.0110, 0.0060], 0.0002),
     }, note="a reader's own depth list"),
+    Case("--n 13", {
+        # section 06 contrasts the four-week clock with a quarterly one: the
+        # same ten log-points that read 0.039 above read 0.174 here, because
+        # the depth is 1.8 of one period's jostle there and 1.0 of it here.
+        "q": ([0.463, 0.406, 0.331, 0.174, 0.075, 0.026], 0.002),
+        "cc": ([0.0354, 0.0293, 0.0221, 0.0098, 0.0036, 0.0011], 0.0002),
+    }, note="a quarterly call clock, for section 06's cliff-edge comparison"),
 ]
 
 
