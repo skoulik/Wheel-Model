@@ -8,7 +8,7 @@ citations in `drafts/` stay traceable.
 **Nothing resolved is kept in this file.** When an item closes its write-up goes to `DONE.md`, and
 any figure a still-open item needs is folded into that item rather than left behind as a
 hand-forward block. So every entry below is work someone still has to do. Numbers are never
-recycled or closed up: the gaps — I-3, I-5, **all of Part II**, IV-5, IV-6, IV-7, INF-1, INF-6 —
+recycled or closed up: the gaps — I-3, I-5, **II-1 to II-30**, IV-5, IV-6, IV-7, INF-1, INF-6 —
 mean those items are in `DONE.md`. (IV-6 and IV-7 were added to this list on 2026-08-01, when IV-8 was
 numbered around them; they closed on 2026-07-28 and had been missing from it since. IV-5 closed
 2026-08-05.)
@@ -479,6 +479,39 @@ II-19's**, and it was checked because the other three were not. The rule that ca
 the read-level rule, and the pattern worth carrying into Parts III and IV is simpler than the rule:
 *a number that has never been recomputed since it was first written down is not evidence, whoever
 wrote it.*
+
+**II-31. §07 attributes all of the live account's above-strike lot-time to the grid, and that
+attribution has never been checked** (opened 2026-08-21). This reopens Part II, but not on the axis
+the note above declares spent — no unread source is involved. It is the note's own moral applied to
+an attribution rather than to a figure.
+
+§07 reports that **18.7% of the time the live account's lots spent in inventory was spent above
+their own call strikes**, and reads the whole of it as the call-grid tax: "shares that had already
+recovered past the price they would be sold at, **sitting there only because the call had not
+expired yet**. That is the grid, in the flesh." The measurement is sound. The clause in bold is an
+inference, and there is a second way for a lot to sit above its strike uncalled: **no call was
+written against it at all**, in which case it cannot be called away at any price. §06 supplies the
+motive — a lot fifteen points down carries a call worth one basis point, so an operator has little
+reason to write it — and the model has no room for the state, since every lot in it faces a call
+every period by construction.
+
+**Nothing in the code can currently tell the two apart.** `analyze_statement.py` has no
+call-coverage column; the crude arithmetic available (209 call positions at 18 d median tenor
+against 4,204 lot-days) suggests coverage is high but not complete, and crude arithmetic is exactly
+what the note above says not to trust. The work is one column — per lot-day, was a call open — and
+then three things follow from it:
+
+- **§07:43 either keeps its sentence or qualifies it.** If the uncovered share is negligible the
+  claim stands as written, which is the likely outcome and worth confirming rather than assuming.
+- **III-1's per-name aggregation gets a second input.** Uncovered deep lots lengthen exactly the
+  tail where the pooled comparison already over-predicts exits, so the two candidate explanations
+  are separable only once coverage is measured.
+- **[The outlook](#sec:outlook) may owe a line.** The call-strike lever is already
+  recorded there as outside the model; *declining to write the call at all* is the same operator
+  discretion in its cheapest form, and unlike the lever it costs nothing to model — scale q(x) by a
+  coverage function falling with depth.
+
+Do the measurement before §14 is drafted, since §14 will present the same lot-day figure.
 
 ## Part III — Many assets
 
