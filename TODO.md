@@ -598,6 +598,21 @@ are drafted rather than be discovered afterwards.
   the residual is the finding and is worth chasing. Which of the two sections carries the weight
   is not currently known, and an afternoon in `model_vs_live.py` decides it.
 
+  **The live inventory sits astride §10's first boundary, and which side it falls on depends on
+  which drift is used** (added 2026-08-21). At the article's μ = 7% and δ = 2.5% that boundary is
+  σ below **30%** ([eq:count-criterion](#eq:count-criterion)), and the book's
+  inventory-weighted σ is **34.6%** — past it, ν negative, and
+  [eq:trapped](#eq:trapped) predicting a positive permanently-trapped fraction.
+  At the window's realised drift the same names are comfortably inside it. So the drift ambiguity
+  IV-1 already flags for the census — model mean depth 0.157 at the article's μ against 0.097 at
+  the realised one — decides something qualitatively larger for holding time: **whether the
+  model's answer for the deep live lots is "slow" or "never"**, which is a regime change and not a
+  shift in a number. This is a second reason the aggregation has to be per name: 34.6% is itself a
+  pooled figure, and a real book will straddle the boundary with some names each side, which no
+  single σ can represent. Compute the trapped fraction from [eq:trapped](#eq:trapped)
+  per name rather than estimating it — the closed form runs about 8% low and inherits β's problem,
+  so §07's own guidance is to run the walk.
+
 **III-2. Write §13, the correlation section** (`{#sec:correlation}`). Two results:
 
 - **Common-shock arrivals** (was #11). Assignments across a portfolio of wheels cluster on
