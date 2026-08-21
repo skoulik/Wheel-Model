@@ -264,6 +264,8 @@ The δ = 6% row deserves its flag: ν has gone negative there, which by [the hol
 
 **Four basis points at thirty years, and negative.** The extra carry is real and it is outweighed, by the same two mechanisms the sweep above already identified: a higher yield drags harder on the price, so the book deepens (inventory rises 3.4%, cost-basis capital 5.1%), and a larger share of the total return arrives in the one form that is taxed on the way in.
 
+One warning about that inflation factor, since it is the kind of number a reader might reach for. It corrects a δ defined as the payout over the *trend* price — the yield at y = 0. A δ read off observed dividend yields is not that number: it is already an average taken over whatever deviations the period contained, so the inflation is inside it already. **Applied to a measured yield the factor corrects a number that was never wrong**, and it double-counts by precisely the quantity computed here.
+
 The last line is the one that settles it. The article's verdict is not the wheel's excess return in isolation but its *gap* against owning the stock, and the sweep above showed that gap is flat in δ to a basis point or two. A sticky dividend moves the wheel and the benchmark together, so it cannot change the verdict — and if anything it favours the wheel, since a buy-and-hold position holds one anchor for the entire horizon and picks up a larger inflation factor for it (1.37 at thirty years, against the wheel's 1.11) while the wheel's lots turn over.
 
 Two boundaries on this, both worth stating because they mark where the analysis stops rather than where it is comfortable.
