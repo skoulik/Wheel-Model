@@ -44,7 +44,7 @@ FIELDS = [
     ("tax_charged", "  the tax that makes", ".4f"),
     ("ratio_charged", "  and its multiple over E[x0]", ".2f"),
     ("entry_share", "  entry's share of the hole a lot must climb", ".1%"),
-    ("q_x0", "exit probability of a fresh lot", ".3f"),
+    ("q_Ex0", "exit probability of a fresh lot, q(E[x0])", ".3f"),
     ("naive", "  the naive 1/q answer, in periods", ".2f"),
     ("columns", "survival curve, at the columns below", ".2f"),
     ("labels", "  ", ">6s"),
@@ -84,6 +84,13 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
     # Off the extrapolated walk, not the near grid: the identity is only as
     # exact as the E[W] put into it, and the near grid reads 2.05 against 2.10.
     wald = model.overshoot_wald(cfg, measure, full)
+    # The section's opening names q at the *typical* entry depth: the naive 1/q
+    # argument treats every period as one coin at one depth, so the object is
+    # eq:qx evaluated at E[x0], which is the 0.404 section 06 tabulates.  Not
+    # near["q(x0)"], which despite its name is 1 - S_1 -- q averaged over the
+    # whole entry law.  Both round to 0.40 and they are not the same quantity;
+    # this checks the one the sentence makes a claim about.
+    q_entry = model.q_exit(cfg, measure, econ["E[x0]"])
     return {
         "tax": tax,
         "x0": econ["E[x0]"],
@@ -93,8 +100,8 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "tax_charged": wald["tax"],
         "ratio_charged": wald["ratio"],
         "entry_share": wald["entry_share"],
-        "q_x0": near["q(x0)"],
-        "naive": 1 / near["q(x0)"],
+        "q_Ex0": q_entry,
+        "naive": 1 / q_entry,
         "columns": [surv[round(y / cfg.tau_c)] for y in COLUMNS
                     if round(y / cfg.tau_c) < len(surv)],
         "labels": [_label(y) for y in COLUMNS
@@ -122,8 +129,8 @@ CASES = [
         "tax_charged": (0.0370, 0.0005),
         "ratio_charged": (2.39, 0.03),  # "2.4 times the typical entry depth"
         "entry_share": (0.295, 0.01),   # "29% entry, 71% grid"
-        "q_x0": (0.405, 0.005),         # "a 40% chance of leaving on its first call"
-        "naive": (2.47, 0.02),          # "about 2.5 periods, call it ten weeks"
+        "q_Ex0": (0.403, 0.005),        # "a 40% chance of leaving on its first call"
+        "naive": (2.48, 0.02),          # "would have said ten weeks" (x4 wk)
         "columns": ([0.60, 0.46, 0.38, 0.27, 0.18, 0.12, 0.07, 0.04, 0.02], 0.005),
         "median": (2, 0),               # "a median of eight weeks"
         "EW": (2.10, 0.02),             # eq:holding

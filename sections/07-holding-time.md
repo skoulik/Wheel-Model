@@ -1,12 +1,10 @@
 # How Long a Lot Stays {#sec:holding}
 
-A fresh lot has a 40% chance of leaving on its first call. The obvious next step is to multiply: if each four-week period is a coin weighted 0.40, a lot should last about 1/0.40 = 2.5 periods, call it ten weeks, and the operator can plan around that.
+A fresh lot has a 40% chance of leaving on its first call — the exit probability [eq:qx](#eq:qx) read at the typical entry depth of 1.6%, tabulated in [the depth section](#sec:depth). But that is one period's odds at one depth, and neither holds still.
 
-That reasoning is wrong, and it is wrong by a factor of eleven. This section computes the real answer.
+## What the question actually is
 
-## Why the obvious calculation fails
-
-The 1/q rule assumes every period is the same coin. It is not. A lot that fails to exit has, by that very fact, usually drifted *deeper* — and at greater depth its next coin is worse. Failure makes failure more likely. The survivors are not a random sample of the original lots; they are the unlucky ones, selected for exactly the property that keeps them from leaving.
+A lot that fails to exit has, by that very fact, usually drifted *deeper* — and at greater depth its next coin is worse. Failure makes failure more likely. The survivors are not a random sample of the original lots; they are the unlucky ones, selected for exactly the property that keeps them from leaving. That is what separates this from [the geometric waiting time](#sec:entry): those trials are memoryless, and these are not.
 
 So the question "how long does a lot stay?" is not a question about a coin at all. It is a question about a wandering path: **when does the depth walk of [eq:depth-walk](#eq:depth-walk) first reach zero?** That is one of the classical questions of probability.
 
@@ -91,6 +89,6 @@ This is the first appearance of something the model will keep saying in differen
 
 ## What this section changed
 
-The naive 1/q calculation said ten weeks. The correct answer is a median of eight weeks and a mean of two years — and the gap between those two numbers is not a technicality, because capital is committed for the *mean*, not the median. Every lot that leaves quickly frees its capital quickly; the operator's balance sheet is dominated by the ones that don't.
+Repeating one period's odds would have said ten weeks. The correct answer is a median of eight weeks and a mean of two years — and the gap between those two numbers is not a technicality, because capital is committed for the *mean*, not the median. Every lot that leaves quickly frees its capital quickly; the operator's balance sheet is dominated by the ones that don't.
 
 Turning "a mean holding time of 2.10 years" into "how much stock am I holding and what does it cost me" takes one more step, and it is a famous one. That is [the inventory section](#sec:inventory).

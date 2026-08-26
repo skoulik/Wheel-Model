@@ -52,8 +52,8 @@ Backs [eq:x0-def](#eq:x0-def), [eq:x0-law](#eq:x0-law), [eq:x0-mean](#eq:x0-mean
 | command | the article's figures |
 |---|---|
 | `python code/examples/entry_depth.py` | x0 = 0.0155, x0_closed = 0.0155, x0_gap = -8.7e-18, x0_med = 0.0122, x0_pct = 1.53%, drop = 3.75%, factor = 0.98472021, split_gap = -1.1e-16, area = 1.000000000 |
-| `python code/examples/entry_depth.py --measure Q` | x0 = 0.0155, x0_gap = 2.3e-17, drop = 3.79%, factor = 0.98472021, split_gap = -1.1e-16, area = 1.000000000 |
-| `python code/examples/entry_depth.py --p-star 0.10` | x0 = 0.0131, x0_closed = 0.0131, x0_gap = -1.2e-17, drop = 4.70%, factor = 0.98701906, split_gap = 0.0e+00, area = 1.000000000 |
+| `python code/examples/entry_depth.py --measure Q` | x0 = 0.0155, x0_gap = 1.6e-17, drop = 3.79%, factor = 0.98472021, split_gap = -1.1e-16, area = 1.000000000 |
+| `python code/examples/entry_depth.py --p-star 0.10` | x0 = 0.0131, x0_closed = 0.0131, x0_gap = -1.2e-17, drop = 4.70%, factor = 0.98701906, split_gap = 1.1e-16, area = 1.000000000 |
 | `python code/examples/entry_depth.py --p-star 0.10 --measure Q` | x0 = 0.0131, x0_gap = -3.3e-17, drop = 4.74%, factor = 0.98701906, split_gap = 1.1e-16, area = 1.000000000 |
 
 ### `entry_normal.py` {#repro:entry-normal}
@@ -62,10 +62,10 @@ Backs [eq:normal](#eq:normal), [eq:phi](#eq:phi).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/entry_normal.py` | mu_y = 0.000481, sigma_y = 0.027735, area = 1.000000000, mean_int = 0.000481, mean_gap = -3.9e-17, p_direct = 0.200000, p_standard = 0.200000, std_gap = 8.3e-17, phi0 = 0.398942, phi_at_dial = 0.2800, roundtrip = 1.4e-16, tail3 = 2.70e-03, tail5 = 5.73e-07 |
-| `python code/examples/entry_normal.py --sigma 0.30` | sigma_y = 0.041603, area = 1.000000000, mean_gap = 4.6e-18, std_gap = -1.4e-16, phi_at_dial = 0.2800 |
+| `python code/examples/entry_normal.py` | mu_y = 0.000481, sigma_y = 0.027735, area = 1.000000000, mean_int = 0.000481, mean_gap = -3.9e-17, p_direct = 0.200000, p_standard = 0.200000, std_gap = 8.3e-17, phi0 = 0.398942, phi_at_dial = 0.2800, roundtrip = 1.1e-16, tail3 = 2.70e-03, tail5 = 5.73e-07 |
+| `python code/examples/entry_normal.py --sigma 0.30` | sigma_y = 0.041603, area = 1.000000000, mean_gap = 4.5e-18, std_gap = -8.3e-17, phi_at_dial = 0.2800 |
 | `python code/examples/entry_normal.py --p-star 0.10` | p_direct = 0.100000, p_standard = 0.100000, mean_gap = -3.9e-17, std_gap = 1.4e-17, phi_at_dial = 0.1755 |
-| `python code/examples/entry_normal.py --measure Q` | mu_y = 0.000096, area = 1.000000000, mean_int = 0.000096, mean_gap = -2.8e-18, std_gap = -4.2e-16 |
+| `python code/examples/entry_normal.py --measure Q` | mu_y = 0.000096, area = 1.000000000, mean_int = 0.000096, mean_gap = -2.8e-18, std_gap = -3.6e-16 |
 
 ### `entry_pricing.py` {#repro:entry-pricing}
 
@@ -73,10 +73,10 @@ Backs [eq:lognormal](#eq:lognormal), [eq:bs-put](#eq:bs-put), [eq:bs-call](#eq:b
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/entry_pricing.py` | m = 0.0450, nu_log = 0.0250, mean_factor = 1.000866, median_factor = 1.000481, k = 0.9774, n_md2 = 20.39%, delta_put = 19.6046%, delta_fd = 19.6046%, delta_naive = 19.6140%, ex_div = 0.6250%, ex_thresh = 5.46%  4.14%  2.75%  1.24%  0.23%, px_int = 0.0962%, px_below = 6.79%, px_fall = 8.90%, px_sigma = 3.36, px_prob = 0.0737%, iv_back = 0.200000, iv_err = -4.4e-16, parity = 1.4e-16, screen_check = 0.0e+00 |
+| `python code/examples/entry_pricing.py` | m = 0.0450, nu_log = 0.0250, mean_factor = 1.000866, median_factor = 1.000481, k = 0.9774, n_md2 = 20.39%, delta_put = 19.6046%, delta_fd = 19.6046%, delta_naive = 19.6140%, ex_div = 0.6250%, ex_thresh = 5.46%  4.14%  2.75%  1.24%  0.23%, px_int = 0.0962%, px_below = 6.79%, px_fall = 8.90%, px_sigma = 3.36, px_prob = 0.0737%, iv_back = 0.200000, iv_err = -7.2e-16, parity = 2.8e-17, screen_check = 0.0e+00 |
 | `python code/examples/entry_pricing.py --measure Q` | m = 0.0250, nu_log = 0.0050, k = 0.9770, n_md2 = 20.00%, delta_put = 19.2234%, delta_fd = 19.2234%, parity = 2.8e-17, screen_check = 0.0e+00 |
-| `python code/examples/entry_pricing.py --delta 0.05 --tau-p 2.0 --sigma 0.30` | delta_fd = 10.9194%, delta_put = 10.9194%, delta_naive = 12.0678%, parity = -1.1e-16, screen_check = 0.0e+00 |
-| `python code/examples/entry_pricing.py --iv-spread 0.03` | sigma_dyn = 0.2000, sigma_iv = 0.2300, k = 0.9774, n_md2 = 23.70%, iv_back = 0.230000, iv_err = 1.9e-15, parity = -2.8e-17, screen_check = 0.0e+00 |
+| `python code/examples/entry_pricing.py --delta 0.05 --tau-p 2.0 --sigma 0.30` | delta_fd = 10.9194%, delta_put = 10.9194%, delta_naive = 12.0678%, parity = -5.6e-17, screen_check = 0.0e+00 |
+| `python code/examples/entry_pricing.py --iv-spread 0.03` | sigma_dyn = 0.2000, sigma_iv = 0.2300, k = 0.9774, n_md2 = 23.70%, iv_back = 0.230000, iv_err = 6.9e-16, parity = 2.8e-17, screen_check = 0.0e+00 |
 
 ### `entry_strike.py` {#repro:entry-strike}
 
@@ -130,7 +130,7 @@ Backs [eq:siegmund](#eq:siegmund), [eq:survival](#eq:survival), [eq:holding](#eq
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/holding_time.py` | tax = 0.0323, ratio = 2.09, x0 = 0.0155, b = 0.279, overshoot = 0.667, tax_charged = 0.0370, ratio_charged = 2.39, entry_share = 29.5%, q_x0 = 0.405, naive = 2.47, columns = 0.60  0.46  0.38  0.27  0.18  0.12  0.07  0.04  0.02, median = 2, EW = 2.10, EW_siegmund = 1.91, EW_far = 1.93, EW_near = 2.22, prem = 0.0372, exitcost = 0.0358 |
+| `python code/examples/holding_time.py` | tax = 0.0323, ratio = 2.09, x0 = 0.0155, b = 0.279, overshoot = 0.667, tax_charged = 0.0370, ratio_charged = 2.39, entry_share = 29.5%, q_Ex0 = 0.403, naive = 2.48, columns = 0.60  0.46  0.38  0.27  0.18  0.12  0.07  0.04  0.02, median = 2, EW = 2.10, EW_siegmund = 1.91, EW_far = 1.93, EW_near = 2.22, prem = 0.0372, exitcost = 0.0358 |
 | `python code/examples/holding_time.py --measure Q` | EW = 9.01 |
 
 ### `holding_trapped.py` {#repro:holding-trapped}
