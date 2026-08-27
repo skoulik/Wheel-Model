@@ -517,6 +517,9 @@ def main():
         check("survival curve: largest absolute disagreement",
               max(abs(a - b) for a, b in zip(fast["surv"], ref["surv"])),
               0.0, 1e-14)
+        check("conditional depth: largest absolute disagreement",
+              max(abs(a - b) for a, b in zip(fast["depth"], ref["depth"])),
+              0.0, 1e-14)
 
     # ------------------------------------------------------------------
     print("--- Structural: no-arbitrage in the Q-world ---")

@@ -739,13 +739,15 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
     u = walk.entry_vector(dens)
     cc = [call_premium(C, x) for x in walk.xs]
     ex = [exp(x) for x in walk.xs]
+    xv = list(walk.xs)
     if _np is not None:
         cc, ex = _np.array(cc), _np.array(ex)
+        xv = _np.array(xv)
         cost_v, exit_v = walk.exit_cost_np, walk.exit_prob_np
     else:
         cost_v, exit_v = walk.exit_cost, walk.exit_prob
 
-    surv, prem, basis, exitcost, exits = [], [], [], [], []
+    surv, prem, basis, exitcost, exits, depth = [], [], [], [], [], []
     escaped = 0.0
     for j in range(j_max):
         if _np is not None:
@@ -755,6 +757,7 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
             basis.append(float(u @ ex))
             exitcost.append(float(u @ cost_v))
             exits.append(float(u @ exit_v))
+            depth.append(float(u @ xv) / S if S > 0 else float("nan"))
         else:
             S = sum(u)
             surv.append(S)
@@ -762,6 +765,8 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
             basis.append(sum(ui * ei for ui, ei in zip(u, ex)))
             exitcost.append(sum(ui * ci for ui, ci in zip(u, cost_v)))
             exits.append(sum(ui * pi for ui, pi in zip(u, exit_v)))
+            depth.append(sum(ui * xi for ui, xi in zip(u, xv)) / S
+                         if S > 0 else float("nan"))
         if S < eps and j >= min_steps:
             break
         escaped += walk.escaped(u)
@@ -785,6 +790,7 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
     return {
         "nu": nu, "m": m, "sigma": s, "steps": len(surv),
         "surv": surv, "prem": prem, "basis": basis, "exitcost": exitcost,
+        "depth": depth,
         "E[J]": EJ, "E[prem]": Eprem, "E[basis]": Ebasis,
         "E[exitcost]": Ecost, "P[exit]": Eexits,
         "ratio": (r_s, r_p, r_b), "escaped": escaped,

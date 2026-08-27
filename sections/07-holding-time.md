@@ -4,9 +4,9 @@ A fresh lot has a 40% chance of leaving on its first call — the exit probabili
 
 ## What the question actually is
 
-A lot that fails to exit has, by that very fact, usually drifted *deeper* — and at greater depth its next coin is worse. Failure makes failure more likely. The survivors are not a random sample of the original lots; they are the unlucky ones, selected for exactly the property that keeps them from leaving. That is what separates this from [the geometric waiting time](#sec:entry): those trials are memoryless, and these are not.
+A lot that fails to exit has, by that very fact, usually drifted *deeper* — and at greater depth its next coin is worse. The periods themselves are independent; what changes is who is still playing. The survivors are not a random sample of the original lots; they are the ones selected for exactly the property that keeps them from leaving. Both halves of that are in [the survival curve](#eq:survival) below: the exit rate falls with every period a lot stays — **0.40** on the first call, **0.23** on the second, **0.07** by the eighth — because the lots still standing are steadily deeper. That is what separates this from [the geometric waiting time](#sec:entry): those trials are memoryless, and these are not.
 
-So the question "how long does a lot stay?" is not a question about a coin at all. It is a question about a wandering path: **when does the depth walk of [eq:depth-walk](#eq:depth-walk) first reach zero?** That is one of the classical questions of probability.
+So the question "how long does a lot stay?" is not a question about a coin at all. It is a question about a wandering path: **when does the depth walk of [eq:depth-walk](#eq:depth-walk) first stand at or below zero on a day a call expires?** That is one of the classical questions of probability.
 
 > **Detour: first-passage time.** Given a random walk, the **first-passage time** is the number of steps until it first reaches a specified level. It is a much subtler quantity than it looks. Even for a walk with a favourable drift, the first-passage time has a **heavy tail**: most paths arrive quickly, but a minority wander the wrong way and take enormously longer, and those rare paths dominate the average. The result is a distribution whose mean sits far above its median — the mean is not "the typical outcome" and using it as one is a standard way to be badly surprised. If the drift is unfavourable, the walk may never arrive at all, and the mean is infinite. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) treats first passage for random walks and Brownian motion.
 >
@@ -48,10 +48,13 @@ S_j  =  P( J > j )  =  P( x₁ > 0, x₂ > 0, …, x_j > 0 )    {#eq:survival}
 
 Each x is the running depth from [eq:depth-walk](#eq:depth-walk), started from an entry depth drawn from [eq:x0-law](#eq:x0-law). There is no closed form, but the sequence is easy to compute exactly: the chance of surviving one more period, from wherever the walk currently is, is a Gaussian integral over the surviving region, and applying that step repeatedly gives the whole sequence. (`code/model.py` does this on a grid in x. The grid needs care: representing the depth in cells effectively places the exit boundary half a cell too deep, which holds lots marginally too long, so the long-run figures below are computed at two resolutions and extrapolated. [The verification section](#sec:verification) checks the result against a simulation of the same walk that uses no grid at all.)
 
-For the Standard regime, tabulated in call periods — every column is an exact multiple of the four-week call, and thirteen of them make a year:
+For the Standard regime, tabulated in call periods — every column is an exact multiple of the four-week call, and thirteen of them make a year. Two rows: how many lots are left, and how deep the ones left are.
 
     still held after     4 wk    8 wk   12 wk   24 wk     1 y     2 y     5 y    10 y    20 y
     probability          0.60    0.46    0.38    0.27    0.18    0.12    0.07    0.04    0.02
+    their mean depth     0.05    0.08    0.09    0.14    0.21    0.31    0.48    0.66    0.90
+
+The second row is the selection effect of the section's opening, made numerical. It is not that lots deepen with age — every period applies the same drift and the same volatility, and the drift points *toward* the exit. It is that the shallow ones keep leaving. A lot still held at two years is sitting **31% below its own call strike**, and one still held at twenty years is **90%** below it: by then the position is a different object from the one the operator opened, and the call written against it has stopped paying. A fresh lot's call is worth **160 basis points**; the call on a lot a year old is worth **about a hundredth of one**, and past that the model prices it below a millionth of the share price. This is also where [the inventory section](#sec:inventory)'s standing-inventory depths come from — deep inventory is old inventory.
 
 and the mean of the whole distribution is
 

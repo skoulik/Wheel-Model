@@ -47,6 +47,8 @@ FIELDS = [
     ("q_Ex0", "exit probability of a fresh lot, q(E[x0])", ".3f"),
     ("naive", "  the naive 1/q answer, in periods", ".2f"),
     ("columns", "survival curve, at the columns below", ".2f"),
+    ("depth_cols", "  mean depth of those still held, same columns", ".2f"),
+    ("cc_age", "  call premium at entry / 1 y / 2 y, in bp", ".4f"),
     ("labels", "  ", ">6s"),
     ("median", "median lifetime, in call periods", "d"),
     ("median_wk", "  the same, in weeks", ".0f"),
@@ -102,6 +104,13 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "entry_share": wald["entry_share"],
         "q_Ex0": q_entry,
         "naive": 1 / q_entry,
+        "depth_cols": [near["depth"][round(y / cfg.tau_c)] for y in COLUMNS
+                       if round(y / cfg.tau_c) < len(near["depth"])],
+        "haz": [1 - surv[j + 1] / surv[j] for j in (0, 1, 7)],
+        # What the call is still paying at those depths: the premium a lot
+        # carries fresh, after a year, and after two.
+        "cc_age": [model.call_premium(cfg, near["depth"][j]) * 1e4
+                   for j in (0, 13, 26)],
         "columns": [surv[round(y / cfg.tau_c)] for y in COLUMNS
                     if round(y / cfg.tau_c) < len(surv)],
         "labels": [_label(y) for y in COLUMNS
@@ -132,6 +141,11 @@ CASES = [
         "q_Ex0": (0.403, 0.005),        # "a 40% chance of leaving on its first call"
         "naive": (2.48, 0.02),          # "would have said ten weeks" (x4 wk)
         "columns": ([0.60, 0.46, 0.38, 0.27, 0.18, 0.12, 0.07, 0.04, 0.02], 0.005),
+        # "0.40 on the first call, 0.23 on the second, 0.07 by the eighth"
+        "haz": ([0.405, 0.234, 0.068], 0.002),
+        # "160 basis points ... about a hundredth of one ... below a millionth"
+        "cc_age": ([159.593, 0.0105, 0.0000], 0.002),
+        "depth_cols": ([0.05, 0.08, 0.09, 0.14, 0.21, 0.31, 0.48, 0.66, 0.90], 0.005),
         "median": (2, 0),               # "a median of eight weeks"
         "EW": (2.10, 0.02),             # eq:holding
         "EW_siegmund": (1.9, 0.05),     # eq:holding-siegmund, "9% below"
