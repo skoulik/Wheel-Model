@@ -451,9 +451,12 @@ def grid_tax(C, measure):
     """beta*sigma*sqrt(tau_c), Siegmund's correction.
 
     A lot may only leave when a call expires, so the walk is sampled on the
-    call grid rather than watched continuously.  That places the effective
-    exit barrier this much deeper than the true one -- the depth a lot must
-    climb past purely to be standing on the right side on the right day.
+    call grid rather than acted on continuously.  By the time a crossing
+    counts the walk is typically already past zero, and this is the size of
+    that excess -- the depth a lot must climb past purely to be standing on
+    the right side on the right day.  Nothing here shifts the exit level:
+    occupation() absorbs at x <= 0 throughout, and the shifted barrier
+    belongs to the Siegmund/BGK closed form rather than to the walk.
     """
     _, s = C.world(measure)
     return BETA * s * sqrt(C.tau_c)
