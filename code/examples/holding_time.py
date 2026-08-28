@@ -25,7 +25,8 @@ import model                                                  # noqa: E402
 
 TITLE = "Holding time: first passage on the call grid"
 SECTION = "sec:holding"
-EQ = ["eq:siegmund", "eq:survival", "eq:holding", "eq:holding-siegmund"]
+EQ = ["eq:siegmund", "eq:wald", "eq:wald-holding", "eq:survival",
+      "eq:holding", "eq:holding-siegmund"]
 
 # The columns section 07 tabulates, in years.  Quoted in weeks up to half a
 # year and in years after that; they land on exact call periods only when the
@@ -49,6 +50,8 @@ FIELDS = [
     ("columns", "survival curve, at the columns below", ".2f"),
     ("depth_cols", "  mean depth of those still held, same columns", ".2f"),
     ("cc_age", "  call premium at entry / 1 y / 2 y, in bp", ".4f"),
+    ("over_measured", "overshoot measured off the absorbed mass, in steps", ".3f"),
+    ("wald_gap", "  Wald identity: relative gap between its two sides", ".1e"),
     ("labels", "  ", ">6s"),
     ("median", "median lifetime, in call periods", "d"),
     ("median_wk", "  the same, in weeks", ".0f"),
@@ -93,6 +96,7 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
     # whole entry law.  Both round to 0.40 and they are not the same quantity;
     # this checks the one the sentence makes a claim about.
     q_entry = model.q_exit(cfg, measure, econ["E[x0]"])
+    step = cfg.world(measure)[1] * model.sqrt(cfg.tau_c)
     return {
         "tax": tax,
         "x0": econ["E[x0]"],
@@ -107,6 +111,12 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "depth_cols": [near["depth"][round(y / cfg.tau_c)] for y in COLUMNS
                        if round(y / cfg.tau_c) < len(near["depth"])],
         "haz": [1 - surv[j + 1] / surv[j] for j in (0, 1, 7)],
+        # The overshoot read straight off the absorbed mass, which owes
+        # nothing to Wald -- so the identity can be tested rather than
+        # assumed.  The gap is O(h^2) and is the grid, not the identity.
+        "over_measured": near["E[overshoot]"] / step,
+        "wald_gap": abs((econ["E[x0]"] + near["E[overshoot]"])
+                        / (near["E[J]"] * econ["nu"] * cfg.tau_c) - 1),
         # What the call is still paying at those depths: the premium a lot
         # carries fresh, after a year, and after two.
         "cc_age": [model.call_premium(cfg, near["depth"][j]) * 1e4
@@ -145,6 +155,8 @@ CASES = [
         "haz": ([0.405, 0.234, 0.068], 0.002),
         # "160 basis points ... about a hundredth of one ... below a millionth"
         "cc_age": ([159.593, 0.0105, 0.0000], 0.002),
+        # "0.666 steps, measured" -- against 0.667 inferred through Wald
+        "over_measured": (0.666, 0.005),
         "depth_cols": ([0.05, 0.08, 0.09, 0.14, 0.21, 0.31, 0.48, 0.66, 0.90], 0.005),
         "median": (2, 0),               # "a median of eight weeks"
         "EW": (2.10, 0.02),             # eq:holding

@@ -520,6 +520,8 @@ def main():
         check("conditional depth: largest absolute disagreement",
               max(abs(a - b) for a, b in zip(fast["depth"], ref["depth"])),
               0.0, 1e-14)
+        check("measured overshoot: disagreement",
+              abs(fast["E[overshoot]"] - ref["E[overshoot]"]), 0.0, 1e-14)
 
     # ------------------------------------------------------------------
     print("--- Structural: no-arbitrage in the Q-world ---")

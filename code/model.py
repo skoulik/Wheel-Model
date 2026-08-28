@@ -681,16 +681,22 @@ class DepthWalk:
         # E[(1 - e^X) 1{X<=0}] with X ~ Normal(x - nu*tau_c, sc^2), in closed form.
         self.exit_cost = []
         self.exit_prob = []
+        self.exit_depth = []
         for x in self.xs:
             mu_x = x - nu * tau_c
             p_exit = N(-mu_x / sc)
             e_part = exp(mu_x + sc * sc / 2) * N((-mu_x - sc * sc) / sc)
             self.exit_cost.append(p_exit - e_part)
             self.exit_prob.append(p_exit)
+            # E[X 1{X<=0}], the signed depth a lot lands at when it does leave.
+            # Measuring this is what makes the overshoot an observation rather
+            # than something inferred from Wald and E[W]; see eq:wald.
+            self.exit_depth.append(mu_x * p_exit - sc * phi(mu_x / sc))
         if _np is not None:
             self.up_np = _np.array(self.up)
             self.exit_cost_np = _np.array(self.exit_cost)
             self.exit_prob_np = _np.array(self.exit_prob)
+            self.exit_depth_np = _np.array(self.exit_depth)
             self.xs_np = _np.array(self.xs)
 
     def escaped(self, u):
@@ -747,10 +753,13 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
         cc, ex = _np.array(cc), _np.array(ex)
         xv = _np.array(xv)
         cost_v, exit_v = walk.exit_cost_np, walk.exit_prob_np
+        depth_v = walk.exit_depth_np
     else:
         cost_v, exit_v = walk.exit_cost, walk.exit_prob
+        depth_v = walk.exit_depth
 
     surv, prem, basis, exitcost, exits, depth = [], [], [], [], [], []
+    exitdepth = []
     escaped = 0.0
     for j in range(j_max):
         if _np is not None:
@@ -761,6 +770,7 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
             exitcost.append(float(u @ cost_v))
             exits.append(float(u @ exit_v))
             depth.append(float(u @ xv) / S if S > 0 else float("nan"))
+            exitdepth.append(float(u @ depth_v))
         else:
             S = sum(u)
             surv.append(S)
@@ -770,6 +780,7 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
             exits.append(sum(ui * pi for ui, pi in zip(u, exit_v)))
             depth.append(sum(ui * xi for ui, xi in zip(u, xv)) / S
                          if S > 0 else float("nan"))
+            exitdepth.append(sum(ui * di for ui, di in zip(u, depth_v)))
         if S < eps and j >= min_steps:
             break
         escaped += walk.escaped(u)
@@ -790,10 +801,15 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
     Ebasis, r_b = close(basis)
     Ecost, _ = close(exitcost)
     Eexits, _ = close(exits)
+    Edepth, _ = close(exitdepth)
+    # Mean signed depth a lot stands at when it is finally called away.  It is
+    # <= 0, and its magnitude is the overshoot -- measured off the absorbed
+    # mass, so it does not go through Wald and can be used to test it.
+    Eover = -Edepth / Eexits if Eexits > 0 else float("nan")
     return {
         "nu": nu, "m": m, "sigma": s, "steps": len(surv),
         "surv": surv, "prem": prem, "basis": basis, "exitcost": exitcost,
-        "depth": depth,
+        "depth": depth, "E[overshoot]": Eover,
         "E[J]": EJ, "E[prem]": Eprem, "E[basis]": Ebasis,
         "E[exitcost]": Ecost, "P[exit]": Eexits,
         "ratio": (r_s, r_p, r_b), "escaped": escaped,
