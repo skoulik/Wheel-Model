@@ -480,38 +480,11 @@ the read-level rule, and the pattern worth carrying into Parts III and IV is sim
 *a number that has never been recomputed since it was first written down is not evidence, whoever
 wrote it.*
 
-**II-31. §07 attributes all of the live account's above-strike lot-time to the grid, and that
-attribution has never been checked** (opened 2026-08-21). This reopens Part II, but not on the axis
-the note above declares spent — no unread source is involved. It is the note's own moral applied to
-an attribution rather than to a figure.
-
-§07 reports that **18.7% of the time the live account's lots spent in inventory was spent above
-their own call strikes**, and reads the whole of it as the call-grid tax: "shares that had already
-recovered past the price they would be sold at, **sitting there only because the call had not
-expired yet**. That is the grid, in the flesh." The measurement is sound. The clause in bold is an
-inference, and there is a second way for a lot to sit above its strike uncalled: **no call was
-written against it at all**, in which case it cannot be called away at any price. §06 supplies the
-motive — a lot fifteen points down carries a call worth one basis point, so an operator has little
-reason to write it — and the model has no room for the state, since every lot in it faces a call
-every period by construction.
-
-**Nothing in the code can currently tell the two apart.** `analyze_statement.py` has no
-call-coverage column; the crude arithmetic available (209 call positions at 18 d median tenor
-against 4,204 lot-days) suggests coverage is high but not complete, and crude arithmetic is exactly
-what the note above says not to trust. The work is one column — per lot-day, was a call open — and
-then three things follow from it:
-
-- **§07:43 either keeps its sentence or qualifies it.** If the uncovered share is negligible the
-  claim stands as written, which is the likely outcome and worth confirming rather than assuming.
-- **III-1's per-name aggregation gets a second input.** Uncovered deep lots lengthen exactly the
-  tail where the pooled comparison already over-predicts exits, so the two candidate explanations
-  are separable only once coverage is measured.
-- **[The outlook](#sec:outlook) may owe a line.** The call-strike lever is already
-  recorded there as outside the model; *declining to write the call at all* is the same operator
-  discretion in its cheapest form, and unlike the lever it costs nothing to model — scale q(x) by a
-  coverage function falling with depth.
-
-Do the measurement before §14 is drafted, since §14 will present the same lot-day figure.
+One item was opened here after that and is no longer in this part. **II-31**, opened 2026-08-21
+against §07's reading of the live account's above-strike lot-time, moved to **IV-10** on
+2026-08-26: §07's live paragraph was cut, the text parked under IV-1, and the claim is now §14's
+to make or qualify, so the constraint belongs with the section that will carry it. Part II is
+closed and nothing else has reopened it.
 
 ## Part III — Many assets
 
@@ -834,8 +807,9 @@ benefit is first claimed.
 ## Part IV — Reality
 
 Neither §14 nor §15 exists; the outlook is a stub. Everything below is measured — these are
-write-ups, with one exception: **IV-9 is a constraint on how §14 measures**, added 2026-08-04, and
-it should be read before either section is drafted rather than after.
+write-ups, with two exceptions: **IV-9 and IV-10 are constraints on how §14 measures**, added
+2026-08-04 and 2026-08-21, and both should be read before either section is drafted rather than
+after.
 
 **The one thing blocking §15 has cleared**: IV-5 closed on 2026-08-05, so IV-2's withdrawn
 implied-volatility level is restored and nothing else here is waiting on a measurement.
@@ -865,6 +839,20 @@ live data, not only simulation.
   is neither confirmed nor refuted here; and the live median of **56 d** coincides with the
   article's 8-week median while the model run at the account's own measured parameters gives about
   31 d, which is two errors cancelling and must not be quoted as agreement.
+- **Above-strike lot-time — text carried over from §07** (moved here 2026-08-26). §07 had the
+  live figure as its closing paragraph and no longer does; the subsection now ends on the grid tax
+  and hands to the survival curve. What was cut, for §14 to use or rewrite:
+
+  > The tax is also directly visible in a real book, which is reassuring for a correction that
+  > arrives here as pure theory. Tracking the live account's inventory day by day, **a fifth of all
+  > the time its lots spent in inventory was spent above their own call strikes** — shares that had
+  > already recovered past the price they would be sold at, sitting there only because the call had
+  > not expired yet. That is the grid, in the flesh: not a subtlety of the mathematics but a stack
+  > of positions waiting for a date on the calendar.
+
+  The bolded attribution is what **IV-10** is about: do not reuse the sentence unqualified until
+  the coverage column exists.
+
 - **The two internal checks:** the grid-free Monte Carlo (`mc_holding.py`) that proves the
   extrapolated stationary figures, and the **Q-world no-arbitrage identity** — run at ν_Q with
   Q-priced premiums, expected excess return over r must vanish up to the dividend-withholding
@@ -1331,6 +1319,41 @@ central limit theorem **iff** the time-average queue length does, jointly, with 
 limits. It is a satisfying fact and it is not a tool for us — our single-name book violates the
 stationarity these CLTs assume, which is III-1's whole problem, and the honest route to intervals
 on live figures stays the empirical one.
+
+**IV-10. The live account's above-strike lot-time is attributed entirely to the grid, and that
+attribution has never been checked** (opened 2026-08-21 as II-31, moved here 2026-08-26 when §07's
+live paragraph was cut to IV-1's queue — the claim is now §14's to make or qualify, so the item
+belongs with the sections that will make it). It is Part II's closing moral applied to an
+attribution rather than to a figure.
+
+The measurement is that **18.7% of the time the live account's lots spent in inventory was spent above
+their own call strikes**, and §07 read the whole of it as the call-grid tax: "shares that had already
+recovered past the price they would be sold at, **sitting there only because the call had not
+expired yet**. That is the grid, in the flesh." The measurement is sound. The clause in bold is an
+inference, and there is a second way for a lot to sit above its strike uncalled: **no call was
+written against it at all**, in which case it cannot be called away at any price. §06 supplies the
+motive — a lot fifteen points down carries a call worth one basis point, so an operator has little
+reason to write it — and the model has no room for the state, since every lot in it faces a call
+every period by construction.
+
+**Nothing in the code can currently tell the two apart.** `analyze_statement.py` has no
+call-coverage column; the crude arithmetic available (209 call positions at 18 d median tenor
+against 4,204 lot-days) suggests coverage is high but not complete, and crude arithmetic is exactly
+what Part II's closing note says not to trust. The work is one column — per lot-day, was a call open — and
+then three things follow from it:
+
+- **§14 either makes the claim or qualifies it.** If the uncovered share is negligible the
+  attribution stands as the parked paragraph wrote it, which is the likely outcome and worth
+  confirming rather than assuming.
+- **III-1's per-name aggregation gets a second input.** Uncovered deep lots lengthen exactly the
+  tail where the pooled comparison already over-predicts exits, so the two candidate explanations
+  are separable only once coverage is measured.
+- **[The outlook](#sec:outlook) may owe a line.** The call-strike lever is already
+  recorded there as outside the model; *declining to write the call at all* is the same operator
+  discretion in its cheapest form, and unlike the lever it costs nothing to model — scale q(x) by a
+  coverage function falling with depth.
+
+Do the measurement before §14 is drafted, since §14 will present the same lot-day figure.
 
 **IV-4. Live data keeps arriving — standing.** Statements land roughly monthly and will keep
 landing until the article is frozen for release. **Every tranche is ingested when it arrives and
