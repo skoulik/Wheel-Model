@@ -16,7 +16,7 @@ So the question "how long does a lot stay?" is not a question about a coin at al
 
 One complication has to go in before any numbers come out, and the detour above has already named it: the exit is sampled on a schedule rather than watched. If the stock rallies through the strike midway through the four-week call and slips back before expiry, nothing happens: the call finishes out of the money, the lot stays, and the visit is wasted.
 
-The cost of this is not small, and it has a known size. A lot leaves by climbing to its call strike. If the crossing counted the moment it happened, arriving would be the end of it — but assignment is settled at expiry, so a lot can trade above its strike for days, in full view of everyone, and nothing follows. The climb it actually has to make is longer than the climb to the strike, by
+The cost of this is not small, and it has a known size. Those wasted visits are also what produces the second effect: the crossing that barely happens is the one that slips back before anything acts on it, so the crossings that survive to an expiry are the decisive ones. A lot standing on the right side on the right day has usually gone well past its strike rather than just reached it, and the climb it actually has to make is longer than the climb to the strike, by
 
 β · σ·√τ_c ,   β = −ζ(1/2)/√(2π) ≈ 0.5826    {#eq:siegmund}
 
@@ -26,11 +26,11 @@ Shifting a continuously watched barrier to price something watched only on a sch
 
 > **Detour: where 0.5826 came from, and what it was for.** Nobody knew it measured an overshoot when the number was first computed, which is the more interesting half of its history. It appears in [Chernoff (1965)](#ref:chernoff-1965), where the problem is not a barrier at all but when to stop a sequential experiment that can only be inspected at fixed times, and where it arrives as a definite integral — one that Gordon Latta recognised as −ζ(1/2)/√(2π). That it *measures an overshoot* was established twenty-one years later, in the work the paragraph above draws on. A reader who opens Chernoff will find −0.5824 printed beside the integral; evaluating the integral gives −0.5826, so that is a slip in his arithmetic and not a second constant.
 
-One caveat about β, and it cuts against the operator rather than for them. 0.5826 is the overshoot for a barrier *infinitely far away*, and a fresh lot is not far from its barrier at all: it sits
+One caveat about β, and it cuts against the operator rather than for them. 0.5826 is a limit rather than a fixed feature of the problem: it is what the overshoot settles down to when the barrier is many steps away, so that the walk only reaches it after a long run and no longer arrives from any particular place. A lot is not in that regime. Measured in the unit that governs it — one period's step, σ·√τ_c — a fresh lot sits
 
 E[x₀] / (σ·√τ_c)  =  **0.28** of one period's step
 
-below its own call strike — near enough that β's limiting value has barely begun to apply. At such short range the overshoot is larger. How much larger is settled by **Wald's identity**, which is exact rather than approximate: a lot's mean life is the hole it has to climb divided by the rate the drift fills it,
+below its own call strike. A single step is several times that whole distance, so a lot usually clears the strike on its first or second one, straight from where it started, and the overshoot is set by the size of one step rather than by the limit β describes. At such short range it is larger. β stays in the argument as a benchmark rather than as the answer: it fixes what the tax would be if this strategy operated where the textbook does, and the distance between that and what the tax actually is turns out to be the more interesting quantity. How much larger is settled by **Wald's identity**, which is exact rather than approximate: a lot's mean life is the hole it has to climb divided by the rate the drift fills it,
 
 E[W]  =  ( E[x₀] + E[overshoot] ) / ν .
 
