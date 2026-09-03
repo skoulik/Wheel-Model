@@ -26,6 +26,7 @@ import model                                                  # noqa: E402
 TITLE = "Holding time: first passage on the call grid"
 SECTION = "sec:holding"
 EQ = ["eq:siegmund", "eq:wald", "eq:wald-holding", "eq:survival",
+      "eq:survival-step",
       "eq:holding", "eq:holding-siegmund"]
 
 # The columns section 07 tabulates, in years.  Quoted in weeks up to half a
@@ -42,6 +43,9 @@ FIELDS = [
     # is really paying.  Both are printed because the section quotes both.
     ("b", "barrier distance E[x0]/(sigma*sqrt(tau_c)), in steps", ".3f"),
     ("overshoot", "the overshoot actually charged, in steps", ".3f"),
+    ("theta", "  a period's drift in step units, nu*sqrt(tau_c)/sigma", ".3f"),
+    ("far", "  the b -> infinity constant, beta + theta/4", ".3f"),
+    ("near", "  the b -> 0 constant, the mean first ladder height", ".3f"),
     ("tax_charged", "  the tax that makes", ".4f"),
     ("ratio_charged", "  and its multiple over E[x0]", ".2f"),
     ("entry_share", "  entry's share of the hole a lot must climb", ".1%"),
@@ -50,6 +54,8 @@ FIELDS = [
     ("columns", "survival curve, at the columns below", ".2f"),
     ("depth_cols", "  mean depth of those still held, same columns", ".2f"),
     ("cc_age", "  call premium at entry / 1 y / 2 y, in bp", ".4f"),
+    ("closed_mean", "mean life of lots closing inside 2 y, in years", ".2f"),
+    ("closed_median", "  their median, in call periods", "d"),
     ("over_measured", "overshoot measured off the absorbed mass, in steps", ".3f"),
     ("wald_gap", "  Wald identity: relative gap between its two sides", ".1e"),
     ("labels", "  ", ">6s"),
@@ -78,6 +84,26 @@ def requires(cfg, measure="P", horizon=None, **kw):
     return [need_occupation(cfg, measure), need_stationary(cfg, measure)]
 
 
+
+def _closed(surv, tau_c, years):
+    """Mean and median life of the lots that close inside a window.
+
+    The window censors the slow lots, which is the whole point: they are
+    still open, so a track record cannot see them.  Returns (mean in years,
+    median in call periods) over the closed ones only.
+    """
+    W = round(years / tau_c)
+    pmf = [surv[j] - surv[j + 1] for j in range(min(W, len(surv) - 1))]
+    tot = sum(pmf)
+    mean = sum((j + 1) * p for j, p in enumerate(pmf)) / tot
+    c = 0.0
+    for j, p in enumerate(pmf):
+        c += p
+        if c >= tot / 2:
+            return mean * tau_c, j + 1
+    return mean * tau_c, len(pmf)
+
+
 def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
     cfg = cfg if cfg is not None else model.Config()
     near = resolve(ctx, need_occupation(cfg, measure))
@@ -103,6 +129,9 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "ratio": tax / econ["E[x0]"],
         "b": wald["b"],
         "overshoot": wald["overshoot"],
+        # The two ends of the bracket, quoted in the text as the values that
+        # 0.667 has to fall between.  Both are Chang & Peres constants.
+        "theta": wald["theta"], "far": wald["far"], "near": wald["near"],
         "tax_charged": wald["tax"],
         "ratio_charged": wald["ratio"],
         "entry_share": wald["entry_share"],
@@ -110,6 +139,12 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "naive": 1 / q_entry,
         "depth_cols": [near["depth"][round(y / cfg.tau_c)] for y in COLUMNS
                        if round(y / cfg.tau_c) < len(near["depth"])],
+        # Survivorship: average only the lots that have *closed* inside a
+        # two-year window and the mean collapses, because the lots carrying
+        # it are the ones still open.  The median barely moves.  This is a
+        # prediction for section 14 to test, not a report of what it found.
+        "closed_mean": _closed(full["surv"], cfg.tau_c, 2.0)[0],
+        "closed_median": _closed(full["surv"], cfg.tau_c, 2.0)[1],
         "haz": [1 - surv[j + 1] / surv[j] for j in (0, 1, 7)],
         # The overshoot read straight off the absorbed mass, which owes
         # nothing to Wald -- so the identity can be tested rather than
@@ -145,6 +180,9 @@ CASES = [
         "x0": (0.0155, 0.0005),
         "b": (0.279, 0.002),            # "0.28 of one period's step"
         "overshoot": (0.667, 0.005),    # "the grid charges 0.667"
+        "theta": (0.035, 0.001),        # "theta = nu*sqrt(tau_c)/sigma = 0.035"
+        "far": (0.591, 0.002),          # "beta + theta/4 = 0.591"
+        "near": (0.722, 0.002),         # "e^(beta*theta)/sqrt(2) = 0.722"
         "tax_charged": (0.0370, 0.0005),
         "ratio_charged": (2.39, 0.03),  # "2.4 times the typical entry depth"
         "entry_share": (0.295, 0.01),   # "29% entry, 71% grid"
@@ -157,6 +195,10 @@ CASES = [
         "cc_age": ([159.593, 0.0105, 0.0000], 0.002),
         # "0.666 steps, measured" -- against 0.667 inferred through Wald
         "over_measured": (0.666, 0.005),
+        # "the mean holding time is 0.30 years against the true 2.10"
+        "closed_mean": (0.30, 0.01),
+        # "eight weeks either way" -- 2 call periods, as the true median
+        "closed_median": (2, 0),
         "depth_cols": ([0.05, 0.08, 0.09, 0.14, 0.21, 0.31, 0.48, 0.66, 0.90], 0.005),
         "median": (2, 0),               # "a median of eight weeks"
         "EW": (2.10, 0.02),             # eq:holding
