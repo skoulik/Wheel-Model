@@ -141,6 +141,7 @@ Backs [eq:trapped](#eq:trapped).
 |---|---|
 | `python code/examples/holding_trapped.py` | count_ok = True, trapped = 0.0000, trapped_cf = 0.0000, growth = 0.000, zero = 0.0000 |
 | `python code/examples/holding_trapped.py --sigma 0.40` | nu = -0.0350, count_ok = False, trapped = 0.0444, trapped_cf = 0.0409, shortfall = 7.8%, lam = 10.40, growth = 0.461, zero = 0.0338, zero_cf = 0.0279, zero_shortfall = 17.6% |
+| `python code/examples/holding_trapped.py --sigma 0.40 --tau-p 0.07692 --n 1` | nu = -0.0350, trapped = 0.0559, lam = 2.60, growth = 0.145 |
 | `python code/examples/holding_trapped.py --tau-p 0.0833333` | lam = 2.40, count_ok = True, nu = 0.0250 |
 
 ## The Inventory

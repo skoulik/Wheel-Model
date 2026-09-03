@@ -113,6 +113,16 @@ CASES = [
         "zero_cf": (0.027881, 0.000005),
         "zero_shortfall": (0.176, 0.002),   # "17.6% low, worst where strikes are furthest out"
     }, note="sigma = 40%, where ν goes negative"),
+    # The put clock, not the call clock, is what moves the arrival rate: tau_c
+    # is 4 wk in both this case and the one above, so the grid tax is identical
+    # and the whole difference in the trapped share is the entry law getting
+    # shallower.  Section 07 quotes the pair against each other.
+    Case("--sigma 0.40 --tau-p 0.07692 --n 1", {
+        "nu": (-0.035, 0.0005),
+        "trapped": (0.0559, 0.0002),    # "falls from 5.6% to 4.4%"
+        "lam": (2.60, 0.02),            # "the arrival rate quadruples"
+        "growth": (0.145, 0.002),       # "0.46 lots a year against 0.15"
+    }, note="monthly put clock: fewer arrivals, deeper entries, more trapped"),
     # INF-6's regression guard, and the only Case in the suite that varies the
     # cadence.  lambda = p*/T, so a monthly put sold monthly arrives 2.40 times
     # a year against the weekly 10.40.  Until 2026-08-05 the harness took each
