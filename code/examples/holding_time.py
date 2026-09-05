@@ -106,6 +106,37 @@ def _closed(surv, tau_c, years):
 
 def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
     cfg = cfg if cfg is not None else model.Config()
+    # This module answers a nu > 0 question.  At nu = 0 the depth walk is
+    # driftless: every lot still leaves, with probability one, but the expected
+    # wait is infinite -- null recurrence, not a degeneracy.  Below zero a
+    # positive fraction never leaves at all.  Either way the grid returns a
+    # finite number only because it truncates the tail (17.10 years at
+    # sigma = 30%, which is the lattice and not the strategy), so refuse rather
+    # than print it.  eq:count-criterion is the boundary; holding_trapped.py is
+    # the module for the far side of it.
+    _m, _s = cfg.world(measure)
+    _nu = _m - _s * _s / 2
+    if _nu <= 0:
+        raise SystemExit(
+            "nu = %+.4f at sigma = %.1f%%: past the count boundary "
+            "(eq:count-criterion, nu = m - sigma^2/2 > 0), where a positive "
+            "fraction of lots never leaves and the mean is infinite.  Use "
+            "holding_trapped.py." % (_nu, cfg.sigma * 100))
+    # A sign test is not enough.  At sigma = 30% exactly, nu is zero in real
+    # arithmetic and a hair above it in floating point, so the walk sails past
+    # the check and prints 1.2e16 years.  Refuse on the estimate instead: if
+    # the closed form puts a lot's mean life past a century the answer is not
+    # about a strategy any more, and what the grid returns is its own
+    # truncation rather than the tail.
+    _est = (model.entry_mean(cfg, measure) + model.grid_tax(cfg, measure)) / _nu
+    if _est > 100.0:
+        raise SystemExit(
+            "nu = %.2e at sigma = %.1f%%: on the count boundary, where the "
+            "walk is driftless.  Every lot still leaves, with probability one, "
+            "but the expected wait is infinite -- eq:holding-siegmund puts it "
+            "at %.3g years.  Whatever this module printed would be the "
+            "lattice, not the strategy."
+            % (_nu, cfg.sigma * 100, _est))
     near = resolve(ctx, need_occupation(cfg, measure))
     full = resolve(ctx, need_stationary(cfg, measure))
     econ = model.economics(cfg, measure, full)
