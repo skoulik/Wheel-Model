@@ -35,7 +35,7 @@ import model                                                  # noqa: E402
 
 TITLE = "Trapped lots: the fraction that never comes back"
 SECTION = "sec:holding"
-EQ = ["eq:trapped"]
+EQ = ["eq:trapped", "eq:trapped-zero"]
 
 FIELDS = [
     ("nu", "drift nu = m - sigma^2/2", ".4f"),
@@ -45,6 +45,7 @@ FIELDS = [
     ("shortfall", "  how far the closed form runs low", ".1%"),
     ("lam", "arrival rate lambda (lots/year)", ".2f"),
     ("growth", "  trapped stratum growth, lambda*P (lots/year)", ".3f"),
+    ("theta", "  drift per step, |nu|*sqrt(tau_c)/sigma", ".3f"),
     ("zero", "at zero entry depth: exact (Janssen & van Leeuwaarden)", ".4f"),
     ("zero_cf", "  the closed form there", ".4f"),
     ("zero_shortfall", "  and how far low it runs", ".1%"),
@@ -83,6 +84,7 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "shortfall": _short(cf, trapped),
         "lam": lam,
         "growth": lam * trapped,
+        "theta": abs(crit["nu"]) * model.sqrt(cfg.tau_c) / cfg.world(measure)[1],
         "zero": zero,
         "zero_cf": zero_cf,
         "zero_shortfall": _short(zero_cf, zero),
@@ -110,6 +112,7 @@ CASES = [
         # than computed: Janssen & van Leeuwaarden theorem 1.  A route that
         # gets the entry-law figure right and misses this has the shape wrong.
         "zero": (0.033838, 0.000005),
+        "theta": (0.024, 0.001),        # "theta = |nu|*sqrt(tau_c)/sigma = 0.024"
         "zero_cf": (0.027881, 0.000005),
         "zero_shortfall": (0.176, 0.002),   # "17.6% low, worst where strikes are furthest out"
     }, note="sigma = 40%, where ν goes negative"),
