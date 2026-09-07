@@ -27,6 +27,7 @@ From the repo root, with the new CSV dropped into `statements/`:
 
 ```
 python code/prices.py                    # extend the cache to the new dates
+python code/market_regime.py             # the regime, both rules — run this FIRST
 python code/analyze_statement.py         # sanity: seam, dedupe, new symbols
 python code/live_ledger.py --bootstrap   # the ledger, the intervals, concentration
 python code/model_vs_live.py             # the spine, link by link
@@ -36,8 +37,10 @@ python code/iv_panel.py                  # the volatility panel
 
 Copy the previous corpus into a scratch `statements/` and run the same set against it, so every
 restated figure arrives with a verified before/after rather than as a bare new number. Classify
-the regime from the tranche's own universe return **before** reading anything else off the
-refresh. Then append one row to each table, and carry every moved figure into the sections and
+the regime **before** reading anything else off the refresh — `market_regime.py` prints both
+rules, and **both labels are recorded**: the market rule (the S&P 500's plain return over the
+tranche) and the book rule (the traded universe, exposure-matched), per the pre-registration's
+Appendix C. Then append one row to each table, and carry every moved figure into the sections and
 into TODO IV-1/IV-2.
 
 ## What arrived
@@ -56,6 +59,40 @@ a rule. The third row is noisier still in the same direction: +55.25%/yr is +4.2
 movement over 28 days, and it is by some distance the strongest tranche so far. It is also the
 first tranche whose *lots* moved rather than its quotes — seven called away, no new assignments —
 so the ledger below moves more between rows two and three than it did between one and two.
+
+### 2026-09-07: the regime column was measuring the operator, and a second rule joins it
+
+The rows above are untouched, as rows here always are. What follows is the restatement, and the
+reason for it is in the pre-registration's [Appendix C](2026-07-27-out-of-sample-preregistration.md).
+
+The regime column classifies from the **traded universe**, which is a basket the operator chose —
+daily, it regresses on NOBL at beta 0.951 with R² 0.888 against 0.571 / 0.471 on SPY, so it *is* a
+dividend-aristocrat basket, and a rotation into that style reads on this rule as a market move.
+Exposure-matching compounds it: weighting days by the book's own inventory asks what these names
+did on the days we were long, which is a question about the book. From now on both rules are
+recorded, and `code/market_regime.py` computes them.
+
+| window | days | S&P 500 | market rule | universe, matched | book rule |
+|---|---|---|---|---|---|
+| `USD` 2025-02-07 .. 2026-05-02 | 449 | +18.86% (+15.3%/yr) | rally | +7.58% (+6.2%/yr) | flat |
+| `USD1` 2026-05-02 .. 2026-07-09 | 68 | +4.31% (+23.2%/yr) | rally | +1.95% (+10.5%/yr) | rally |
+| `USD2` 2026-07-09 .. 2026-07-30 | 21 | **−1.33% (−23.2%/yr)** | **drawdown** | +3.14% (+54.6%/yr) | rally |
+| `USD3` 2026-07-30 .. 2026-09-01 | 33 | +2.71% (+30.0%/yr) | rally | +3.35% (+37.1%/yr) | rally |
+| **all to date** | 571 | +25.64% (+16.4%/yr) | rally | +18.83% (+12.0%/yr) | rally |
+
+**These book-rule figures are not the ones in the rows above and are not a correction to them.**
+Each row above was computed on the corpus available that month over a hand-typed window, and the
+first is a whole-window figure where the other two are tranche-only; the table here is one rule
+applied to every window on today's corpus, with windows contiguous — each running from the
+previous tranche's last statement date to its own. The windows also do not line up: the record's
+baseline row spans `USD` and `USD1` together.
+
+**`USD2` flips.** Three weeks the record labels a rally were a **−1.33% month for the S&P 500**.
+The basket outran the index and the old rule read that as the market rising.
+
+**The accumulated window is a rally on both rules**, +16.4%/yr and +12.0%/yr, so nothing about
+§15's regime caveat softens: everything this account has measured, it measured in a rising market.
+One down month inside sixteen is not the drawdown P7 and P8 are waiting for.
 
 ## The ledger
 

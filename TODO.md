@@ -494,7 +494,18 @@ missing is the derivation and the prose. **III-3 is not a third section** — it
 how the other two are written, and it is recorded now precisely because it must bind before they
 are drafted rather than be discovered afterwards.
 
-**III-1. Write §12, the portfolio section** (`{#sec:portfolio}`). It owes four things:
+**III-1. Write §12, the portfolio section** (`{#sec:portfolio}`). It owes five things:
+
+- **A pointer §04 now makes, added 2026-09-07.** §04 names the Dividend Aristocrats index and
+  warns the reader not to read its volatility as the asset's, on the ground that σ belongs to a
+  *single lot* — what carries one name away from one frozen strike — and stays a single name's
+  however many lots are held, "which is [the portfolio section](#sec:portfolio)'s subject rather
+  than an exception to it". §12 must actually say that: diversification averages *across* lots
+  and never enters the per-lot depth walk. It is one sentence and it is load-bearing, because
+  without it §04's caution and §12's diversification result look like they contradict each other.
+  Measured sizes for the contrast are in `python code/market_regime.py` — the aristocrat index at
+  **14.4%** and the live account's own hundred-name basket at **14.6%**, against the article's
+  single-name 20%.
 
 - **The diversification result** §02 promises: expected return and expected capital are
   unchanged by diversification, which removes only the variance around them. Little's law needs
@@ -982,6 +993,32 @@ live data, not only simulation.
   Track A has barely moved across three refreshes (+38.11%, +38.36%, +36.96%) while Track B has
   climbed twelve points (+19.73%, +24.34%, +32.11%),
   which is the ledger gap this section leads with, drawn from the account's own history.)
+- **The benchmark ladder replaces the two-way selection split** (2026-09-07, `live_ledger.py`).
+  The old report gave "same dollars in the universe +12.87%" against the wheel's +51.58% and
+  charged the whole +38.71% gap to the operator. The universe is itself a *chosen* basket — it
+  regresses on NOBL at beta 0.951, R² 0.888, against 0.571 / 0.471 on SPY — so the ladder now
+  splits it four ways, exposure-matched on the same days and additive by construction:
+
+  | rung | | annualised |
+  |---|---|---|
+  | market | SPY | **+26.63%** |
+  | style | NOBL − SPY | **−9.83%** |
+  | universe tilt | universe − NOBL | **−3.93%** |
+  | entry timing | wheel − universe | **+38.71%** |
+  | | wheel's own inventory | +51.58% |
+
+  **The story is better than the two-way version, and it is not the flattering one.** The
+  operator's *basket* choice cost 13.8 points a year against the S&P — being in dividend
+  aristocrats was a drag in this window, and picking these particular aristocrats was a further
+  drag. Every bit of the outperformance, and more, is *when* they entered. That sharpens §15's
+  verdict rather than softening it: the article says the option machinery is worth nothing and
+  the edge is entry, and the ladder says the edge is entry **timing** specifically, not stock
+  selection in the sense a reader would assume from "which names".
+- **Keep §15's index comparison away from §09's beta.** §09 reports up/down beta **against the
+  underlying** — 0.83 up, 1.00 down, census-weighted — and already spends a detour on why that is
+  not comparable with a published buy-write beta. §15's ladder is against **an index**, which is
+  a third object again. A reader who meets both will conflate them. One sentence in §15 keeping
+  them apart, and do not reuse the word "beta" for any rung of the ladder.
 - **This section owes the reader the intervals, and it is the only section that does.** Parts I
   and II assert three times — in `02-introduction`, `04-strategy` and `09-returns` — that the
   overlay "earned nothing distinguishable from zero", with no number anywhere behind it. That is
@@ -1104,12 +1141,20 @@ live data, not only simulation.
   up-market**. That is mechanical, not evidence. Neither the overlay nor the selection result is
   an unconditional estimate.
 
-  **All four tranches are labelled rally, and the rally is accelerating** — the tranche-only
-  universe return reads +8.96%, +19.50%, +55.25%/yr across the record. The caveat is therefore not
-  a hedge the section adds at the end; it is the single most important qualification on the
-  headline number, and the record in `drafts/tranche-record.md` is the evidence for it. §15 should
-  quote the three tranche returns, because a reader who sees them cannot mistake −5.61% for an
-  unconditional verdict on covered calls.
+  **Quote the S&P, not the universe return, and the caveat becomes checkable** (2026-09-07). The
+  window is **+25.64% on the S&P 500, +16.4%/yr**, against which a covered-call overlay must lag
+  mechanically. That is a sentence a general reader can verify; "the traded universe returned
+  +12.87%/yr exposure-matched" is not, and it is also the *wrong* number for the job — see the
+  pre-registration's Appendix C. The caveat is not a hedge the section adds at the end; it is the
+  single most important qualification on the headline, and a reader who sees +16.4%/yr cannot
+  mistake −5.61% for an unconditional verdict on covered calls.
+
+  **Do not write "all four tranches are labelled rally" any more.** Both classifiers now run
+  (`code/market_regime.py`), and on the market rule `USD2` is a **drawdown** — a −1.33% month the
+  old rule called a +19.50%/yr rally. What survives, and is what §15 should actually say, is that
+  the **accumulated window is a rally on both rules** (+16.4%/yr market, +12.0%/yr book), so
+  everything the account has measured it measured in a rising market. One down month inside
+  sixteen is not the regime P7 and P8 wait for, and §15 must not imply it is.
 - Reference III-1's book-width caveat rather than restating it: Track A yields are not
   comparable between a 99-name put book and a single-name model.
 
@@ -1175,6 +1220,14 @@ drift. That list is accurate and should survive. What it cannot be written aroun
 III and IV land is the forward-looking half: what the model should become, given what the live
 comparison actually showed. Write last, and rename the file to `16-outlook.md` when Part III
 takes §12 and §13.
+
+**One addition to that list, from the index work of 2026-09-07: there is no market factor.** The
+model has one asset and one σ, so it cannot say what happens when every name falls together, and
+it has no notion of a lot's move being partly the market's. That is not a small omission for a
+strategy whose inventory accumulates in exactly the conditions that correlate names — Part III
+makes the point for portfolios, and the outlook should name it as a *model* gap rather than only
+a portfolio one. The live measurement that makes it concrete is in §15's ladder: **half** of the
+account's own equity result is the market (+26.63% of +51.58%), and the model has no name for it.
 
 **One addition to that list, from II-19:** a **σ_IV(τ) term structure** is the minimal extension
 that would let the model speak to cadence at all. Cadence is currently the one dial the model

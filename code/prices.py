@@ -18,9 +18,15 @@ number. The cache refreshes itself when it falls behind the calendar -- see
 `is_stale()` -- so adding statements that run past the cached range fetches the
 missing days instead of quietly dropping those dates from the marks.
 
-    python code/prices.py            # fetch/refresh every symbol in statements/
+    python code/prices.py            # every symbol in statements/, plus the indices
     python code/prices.py ABT ACN    # just these
     python code/prices.py --refresh  # force, ignoring cache freshness
+
+Three market references are cached beside the traded names -- see
+INDEX_SYMBOLS. They are not part of any basket the account trades; they are
+there because the account's own universe cannot say what the *market* did,
+being a selected basket whose return over a window mixes the world's behaviour
+with the operator's choice of names.
 
 **As-traded vs. adjusted, which matters here.** Yahoo returns closes that are
 retroactively *split-adjusted*: after a 2:1 split every earlier close is halved.
@@ -76,6 +82,25 @@ UA = {"User-Agent": "Mozilla/5.0"}
 # that the trailing 5-year range of the pre-registered `pct5y` feature is
 # defined on the first day of the window rather than growing into existence.
 HISTORY_START = date(2019, 1, 1)
+
+# Market references, fetched alongside the statement symbols and never part of
+# the traded universe. They exist because the account's own basket cannot say
+# what the market did: it is *selected*, and its return over a window is the
+# operator's choice of names as much as the world's behaviour. See
+# `market_regime.py` for the classifier and `live_ledger.universe_benchmark`
+# for the attribution ladder they support.
+#
+#   SPY   the S&P 500. "The market" as a general reader means it, and the only
+#         one of the three that is exogenous to the operator's style.
+#   NOBL  the S&P 500 Dividend Aristocrats -- equal-weighted, 25+ consecutive
+#         years of dividend increases. The style control: the account's own
+#         universe regresses on it at beta 0.95, R^2 0.89, against 0.57 / 0.47
+#         on SPY, so most of the account's gap to the S&P is *being a
+#         quality-dividend basket* rather than anything the operator did.
+#   RSP   the equal-weighted S&P 500. A diagnostic only, never quoted: NOBL is
+#         itself equal-weighted, so it controls for weighting and style at
+#         once, and RSP is the only way to separate the two if asked.
+INDEX_SYMBOLS = ("SPY", "NOBL", "RSP")
 
 # A cache whose last row is older than this many days is refetched. Sized for
 # a long weekend plus a holiday; see is_stale().
@@ -386,6 +411,17 @@ def load_all(syms, refresh=False):
     return out
 
 
+def load_indices(refresh=False):
+    """The market references of INDEX_SYMBOLS, as {sym: Series}.
+
+    Kept separate from `load_all` so that an index can never reach a caller
+    that is iterating "the universe": every consumer of the ladder has to name
+    the reference it wants, and a stray index symbol cannot slip into an
+    equal-weighted basket or a per-name attribution.
+    """
+    return load_all(INDEX_SYMBOLS, refresh=refresh)
+
+
 def statement_symbols(pattern="statements/*.csv"):
     """Every symbol appearing in an option or stock row of the statements.
 
@@ -413,7 +449,10 @@ def statement_symbols(pattern="statements/*.csv"):
 def main():
     args = sys.argv[1:]
     refresh = "--refresh" in args
-    want = [a for a in args if not a.startswith("-")] or statement_symbols()
+    named = [a for a in args if not a.startswith("-")]
+    # A bare run refreshes the market references too, so the ladder and the
+    # regime classifier never run against a cache the statements extended past.
+    want = named or (statement_symbols() + list(INDEX_SYMBOLS))
     print(f"symbols: {len(want)}  cache: {CACHE_DIR}/"
           f"{'  (forced refresh)' if refresh else ''}")
     got, missing = {}, []

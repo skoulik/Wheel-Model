@@ -291,3 +291,90 @@ monthly data in a rising market manufactures the regime that tests it. The same
 holds for P7's concavity. Those two wait on the world rather than on the
 procedure — and the table exists so that when the world does turn, what was
 believed beforehand is already written down.
+
+
+## Appendix C, 2026-09-07: the regime classifier was measuring the operator
+
+**New data has been examined**, and the amendment below was prompted by what it
+showed, which is stated here rather than dressed up: the reclassification in the
+table was seen *before* this appendix was written, not after. Adding a rule
+after watching it flip a label is a weaker act than fixing it in advance would
+have been, and nothing in what follows should be read as though the rule had
+been chosen blind. What it is instead: a bias in the existing rule, found, named
+and reported, with both rules kept and neither discarded.
+
+**The bias.** Appendix B item 3 classifies a tranche from *the traded universe's
+equal-weighted return over that tranche, exposure-matched*. Two things are wrong
+with that as a description of the market the book faced.
+
+  * **The universe is selected.** It is the hundred names the operator judged
+    wheel-grade — a quality-dividend basket. Regressed daily over the corpus to
+    date, it is a dividend-aristocrat basket to two decimal places: **beta 0.951
+    on NOBL with R² 0.888**, against 0.571 / 0.471 on SPY, and its realised
+    volatility is **14.6%** against NOBL's 14.4% and SPY's 17.5%. A rotation
+    into or out of that style therefore reads on this rule as a market move.
+  * **Exposure-matching puts the book inside its own classifier.** Weighting
+    days by the wheel's inventory market value asks what these names did *on the
+    days we were long*. That is the right question for attribution and the wrong
+    one for a regime: the quantity meant to describe the world the book faced is
+    then partly the book's own timing. The same basket over the full corpus
+    reads **−1.61% total unmatched against +12.87%/yr exposure-matched**.
+
+**What changes: a rule is added, and none is withdrawn.**
+
+6. **The market rule.** Each tranche is also classified from the **S&P 500's
+   plain price return over the tranche's calendar window**, annualised simple,
+   on Appendix B's unchanged thresholds — rally > +8%/yr, flat, drawdown <
+   −8%/yr. It is exogenous to the operator entirely, and it is the rule for
+   **P8** ("the selection edge shrinks when drawdowns stop mean-reverting") and
+   for the regime caveat §15 owes the reader, both of which are claims about the
+   world rather than about the book.
+7. **The book rule stands unchanged** and remains the rule for **P7**, whose
+   drivers — the mark loss B and the surrendered upside C — are mechanically set
+   by what the *held* names did, not by what the index did. Classifying P7 by an
+   index would weaken the prediction it was written for.
+8. **Both labels are recorded on every row, and the pair is the label.** Where
+   the two disagree, that disagreement is the finding and is reported as one.
+9. **Tranche labels are recorded and never scored**, which Appendix B item 5
+   already implies and this makes explicit. At three weeks a ±8%/yr band is
+   about ±0.5% of actual movement, and the classification is correspondingly
+   fragile: over one tranche below, three market references disagree outright.
+   The accumulated-window row is the one that carries meaning.
+10. **The classifier now has a script**, `code/market_regime.py`, which derives
+    the tranche windows from the statement files rather than having them typed
+    in, and runs in the refresh command list. Appendix B said the label was
+    "computed mechanically as part of the refresh"; until now it was
+    reconstructed by hand each month.
+
+**The restatement, which procedure item 3 requires.** One rule applied to every
+window on today's corpus, windows contiguous — each running from the previous
+tranche's last statement date to its own, so the corpus is tiled with no gaps:
+
+| window | days | S&P 500 | market rule | universe, matched | book rule |
+|---|---|---|---|---|---|
+| `USD` 2025-02-07 .. 2026-05-02 | 449 | +18.86% (+15.3%/yr) | rally | +7.58% (+6.2%/yr) | **flat** |
+| `USD1` 2026-05-02 .. 2026-07-09 | 68 | +4.31% (+23.2%/yr) | rally | +1.95% (+10.5%/yr) | rally |
+| `USD2` 2026-07-09 .. 2026-07-30 | 21 | **−1.33% (−23.2%/yr)** | **drawdown** | +3.14% (+54.6%/yr) | rally |
+| `USD3` 2026-07-30 .. 2026-09-01 | 33 | +2.71% (+30.0%/yr) | rally | +3.35% (+37.1%/yr) | rally |
+| **all to date** 2025-02-07 .. 2026-09-01 | 571 | +25.64% (+16.4%/yr) | **rally** | +18.83% (+12.0%/yr) | **rally** |
+
+These book-rule figures do **not** reproduce the tranche record's rows and are
+not meant to: each row there was computed on the corpus available that month,
+over a hand-typed window, and its first row is a whole-window figure where the
+rest are tranche-only. The table above is one rule applied to every window on
+one corpus, which is the thing the rows could not be.
+
+**What moved.** `USD2` — three weeks the record labels a rally on +19.50%/yr of
+universe return — was a **−1.33% month for the S&P 500**. The operator's basket
+outran the index and the old rule read that outperformance as the market rising.
+That is the bias above, arriving as a concrete flipped label rather than as an
+argument. The first window flips the other way, to flat on the book rule.
+
+**What did not move, and it is the more important half.** The accumulated window
+is a **rally on both rules** — +16.4%/yr on the S&P, +12.0%/yr on the universe.
+So §15's regime caveat is untouched: everything the live account has measured,
+it measured in a rising market, and the overlay's −5.61% is still not an
+unconditional estimate. **P8 and P7's concavity remain unscored and still wait
+on a regime rather than on a tranche.** One down month inside a sixteen-month
+rally is not the drawdown they were written for, and a reader of the table above
+who concludes otherwise has read a −1.33% move annualised into a headline.

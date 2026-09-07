@@ -43,6 +43,15 @@ Two benchmarks are reported, and the gap between them is the point:
     between the two excesses is the contribution of *which names, when* --
     TODO #14's "attractive price" lever, measured without fitting anything.
 
+Beneath the universe sit two market references, walked over the same days at
+the same exposure, which turn that second comparison into a four-rung ladder:
+market (SPY), style (NOBL - SPY), universe tilt (universe - NOBL), entry
+timing (wheel - universe). The reason for the middle rung is that the traded
+universe is itself a *chosen* basket -- quality dividend names -- and it
+regresses on NOBL at beta 0.95, R^2 0.89 against 0.57 / 0.47 on SPY. Charging
+the whole universe-to-S&P gap to the operator would credit them with a style
+that is buyable for 35 basis points. See `universe_benchmark`.
+
 Capital is Track B capital of eq:capital: inventory at market value plus margin
 on the live puts. The margin convention is the open question of TODO #6, so the
 report gives capital with and without it.
@@ -305,8 +314,9 @@ def capital_path(completed, open_lots, positions, live, universe, px,
     return rows
 
 
-def universe_benchmark(px, universe, completed, open_lots, start, end):
-    """Exposure-matched selection benchmark.
+def universe_benchmark(px, universe, completed, open_lots, start, end,
+                       indices=None):
+    """Exposure-matched selection benchmark, and the market references beside it.
 
     A buy-at-the-start, hold-to-the-end index return is not comparable with the
     wheel's equity P&L: the wheel's exposure is time-varying, its lots are held
@@ -323,6 +333,20 @@ def universe_benchmark(px, universe, completed, open_lots, start, end):
 
     The difference is the contribution of *which names, when* -- selection and
     entry timing -- with the size and duration of the exposure held fixed.
+
+    **Why the universe is not the bottom rung.** The traded universe is itself
+    chosen: it is the names the operator judged wheel-grade, a quality-dividend
+    basket, and charging its whole gap to a market index against the operator
+    credits them with a style anyone can buy. Each reference in `indices` is
+    therefore walked through the same loop, on the same days, at the same
+    exposure, which makes the rungs exactly additive:
+
+        wheel = SPY + (NOBL - SPY) + (universe - NOBL) + (wheel - universe)
+                market   style        universe tilt      entry timing
+
+    Passing `indices=None` reproduces the two-rung version byte for byte: the
+    references ride along inside the existing guards and change no day the
+    universe leg counts.
     """
     # Trading days: the union of every series' days, restricted to the window.
     days = sorted({d for ser in px.values() for d in ser.days
@@ -330,9 +354,12 @@ def universe_benchmark(px, universe, completed, open_lots, start, end):
     lots = [(l["sym"], l["in_day"], l["out_day"], l["qty"]) for l in completed]
     lots += [(l["sym"], l["in_day"], None, l["qty"]) for l in open_lots]
 
+    indices = indices or {}
     bench_pnl = wheel_pnl = 0.0
     exposure_days = 0.0
     gap_by_name = defaultdict(float)
+    idx_pnl = {s: 0.0 for s in indices}
+    idx_missing = {s: 0 for s in indices}
     for prev, day in zip(days, days[1:]):
         held = [(s, q) for s, d0, d1, q in lots
                 if d0 <= prev and (d1 is None or prev < d1)]
@@ -371,8 +398,17 @@ def universe_benchmark(px, universe, completed, open_lots, start, end):
         exposure_days += mv_prev
         for sym, mv, pnl in contrib:
             gap_by_name[sym] += pnl - mv * r_uni
+        # Adjusted, for the same reason the universe leg is: NOBL split 2:1 on
+        # 2026-05-28, inside the window, and an as-traded return across it is
+        # a 100% daily move.
+        for s, ser in indices.items():
+            a, b = ser.adj_on_or_before(prev), ser.adj_on_or_before(day)
+            if a and b:
+                idx_pnl[s] += mv_prev * (b / a - 1)
+            else:
+                idx_missing[s] += 1
     return (bench_pnl, wheel_pnl, exposure_days / max(len(days) - 1, 1),
-            dict(gap_by_name))
+            dict(gap_by_name), idx_pnl, idx_missing)
 
 
 def main():
@@ -495,15 +531,51 @@ def main():
           f"{excess/avg_capB/years:+11.2%}"
           f"   <- the option overlay's edge")
 
-    bench_pnl, wheel_eq, avg_exposure, sel_by_name = universe_benchmark(
-        px, universe, completed, open_lots, start, end)
+    idx_px = prices.load_indices()
+    bench_pnl, wheel_eq, avg_exposure, sel_by_name, idx_pnl, idx_missing = \
+        universe_benchmark(px, universe, completed, open_lots, start, end,
+                           indices=idx_px)
+
+    def rate(pnl):
+        return pnl / avg_exposure / years
+
     print("\n=== selection: the same dollars, on the same days ===")
     print(f"  wheel's own inventory earned   ${wheel_eq:12,.0f}"
-          f"   ({wheel_eq/avg_exposure/years:+.2%} on ${avg_exposure:,.0f})")
+          f"   ({rate(wheel_eq):+.2%} on ${avg_exposure:,.0f})")
+    for s in ("SPY", "NOBL", "RSP"):
+        if s in idx_pnl:
+            note = {"SPY": "the S&P 500",
+                    "NOBL": "dividend aristocrats, equal weight",
+                    "RSP": "equal-weight S&P -- diagnostic, not a rung"}[s]
+            print(f"  same dollars in {s:5s}          ${idx_pnl[s]:12,.0f}"
+                  f"   ({rate(idx_pnl[s]):+.2%}, {note})")
     print(f"  same dollars in the universe   ${bench_pnl:12,.0f}"
-          f"   ({bench_pnl/avg_exposure/years:+.2%}, equal weight)")
+          f"   ({rate(bench_pnl):+.2%}, equal weight)")
+    if any(idx_missing.values()):
+        print(f"      days with no index price: "
+              f"{ {s: n for s, n in idx_missing.items() if n} }")
+
+    # The ladder. Each rung is a difference of two legs walked over the same
+    # days at the same exposure, so they sum to the wheel's own equity exactly
+    # -- and the sum is asserted below rather than trusted.
+    if "SPY" in idx_pnl and "NOBL" in idx_pnl:
+        mkt, style = idx_pnl["SPY"], idx_pnl["NOBL"] - idx_pnl["SPY"]
+        tilt, timing = bench_pnl - idx_pnl["NOBL"], wheel_eq - bench_pnl
+        assert abs(mkt + style + tilt + timing - wheel_eq) < 1.0
+        print("\n  the ladder, exposure-matched and additive:")
+        print(f"    market        (SPY)          ${mkt:12,.0f}"
+              f"   {rate(mkt):+9.2%}   <- what an index fund got")
+        print(f"    style         (NOBL - SPY)   ${style:12,.0f}"
+              f"   {rate(style):+9.2%}   <- being a dividend basket")
+        print(f"    universe tilt (uni  - NOBL)  ${tilt:12,.0f}"
+              f"   {rate(tilt):+9.2%}   <- which aristocrats")
+        print(f"    entry timing  (wheel - uni)  ${timing:12,.0f}"
+              f"   {rate(timing):+9.2%}   <- and when")
+        print(f"    {'-'*44}")
+        print(f"    wheel's own inventory        ${wheel_eq:12,.0f}"
+              f"   {rate(wheel_eq):+9.2%}")
     print(f"  selection contribution         ${wheel_eq - bench_pnl:12,.0f}"
-          f"   ({(wheel_eq-bench_pnl)/avg_exposure/years:+.2%})"
+          f"   ({rate(wheel_eq-bench_pnl):+.2%})"
           f"   <- which names, when")
     print(f"  (reconciliation: the daily walk gives ${wheel_eq:,.0f} against "
           f"D's ${D_price:,.0f}, a {abs(wheel_eq-D_price)/abs(D_price):.1%} "
