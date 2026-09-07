@@ -571,19 +571,23 @@ are drafted rather than be discovered afterwards.
   rather than figures measured once outside the harness — and they were re-derived through the
   fixed harness (INF-6) and reproduce the table above exactly, so the numbers in this bullet are
   confirmed rather than merely inherited.
-- **The live book's width** (was #24, figures restated 2026-07-27). The account sells puts
-  across **95 names while holding inventory in 34**, so put margin is **$43.4k = 31% of Track B
-  capital** against the single-name model's 1.6%. Premium is generated across a far wider book
+- **The live book's width** (was #24, figures restated 2026-07-27, re-measured 2026-09-07). The
+  account sells puts across **99 names while holding inventory in 34**, so put margin is
+  **$43.0k = 29.5% of Track B capital** against the single-name model's 1.6%. The share fell from
+  31% because Track B capital rose on the inventory mark, not because the book narrowed — the
+  inventory-name count has been 34 across three refreshes while the put book widened.
+  Premium is generated across a far wider book
   than the inventory it creates. This is the structural difference that most damages
   comparability: **any direct comparison of Track A yields between model and live account is
   meaningless without it**, which makes it §12's business and a caveat §14 must reference.
-- **One σ across 96 names is the wrong instrument, and it biases the depth and holding-time
-  comparisons in a known direction** (added 2026-08-21). `model_vs_live.py` fits a single pooled
-  σ and a single pooled drift and compares them with a book of **96 names**. The book does not
-  hold those names evenly: **σ is 29.8% at the median put write and 34.6% inventory-weighted**,
+- **One σ across 100 names is the wrong instrument, and it biases the depth and holding-time
+  comparisons in a known direction** (added 2026-08-21, figures at the fourth tranche).
+  `model_vs_live.py` fits a single pooled
+  σ and a single pooled drift and compares them with a book of **100 names**. The book does not
+  hold those names evenly: **σ is 29.8% at the median put write and 35.1% inventory-weighted**,
   because high σ means low ν means longer stays, so inventory self-sorts onto the volatile names.
   Five points of σ moves σ²/2 by 1.5 points — over half of ν at these drifts. The pooled drift has
-  the matching defect in the other parameter: **+39.7% is the realised drift of held names, and
+  the matching defect in the other parameter: **+51.8% is the realised drift of held names, and
   the names that rallied are exactly the ones that were called away**, so feeding it back asks the
   residual book to recover at a rate only the departed lots achieved. Both errors run the same
   way, and it is the direction actually observed — a pooled fit under-predicts survival and
@@ -607,13 +611,17 @@ are drafted rather than be discovered afterwards.
   **The live inventory sits astride §10's first boundary, and which side it falls on depends on
   which drift is used** (added 2026-08-21). At the article's μ = 7% and δ = 2.5% that boundary is
   σ below **30%** ([eq:count-criterion](#eq:count-criterion)), and the book's
-  inventory-weighted σ is **34.6%** — past it, ν negative, and
+  inventory-weighted σ is **35.1%** — past it, ν negative, and
   [eq:trapped](#eq:trapped) predicting a positive permanently-trapped fraction.
   At the window's realised drift the same names are comfortably inside it. So the drift ambiguity
-  IV-1 already flags for the census — model mean depth 0.157 at the article's μ against 0.097 at
+  IV-1 already flags for the census — model mean depth 0.165 at the article's μ against 0.085 at
   the realised one — decides something qualitatively larger for holding time: **whether the
   model's answer for the deep live lots is "slow" or "never"**, which is a regime change and not a
-  shift in a number. This is a second reason the aggregation has to be per name: 34.6% is itself a
+  shift in a number. Every tranche so far has widened that fork rather than closing it: the
+  inventory-weighted σ has moved *away* from the boundary (34.6% → 35.1%) while the realised drift
+  has climbed (+39.7% → +51.8%), so both readings have hardened at once and the choice between
+  them matters more, not less, than when this was written.
+  This is a second reason the aggregation has to be per name: 35.1% is itself a
   pooled figure, and a real book will straddle the boundary with some names each side, which no
   single σ can represent. Compute the trapped fraction from [eq:trapped](#eq:trapped)
   per name rather than estimating it — the closed form runs about 8% low and inherits β's problem,
@@ -817,28 +825,37 @@ implied-volatility level is restored and nothing else here is waiting on a measu
 **IV-1. Write §14, verification** (`{#sec:verification}`, was #21). The spine tested against
 live data, not only simulation.
 
-- **Entry law:** 69.9 assignments expected, 72 finished below the strike, 71 assigned, over 956
-  contracts — an aggregate error of −1.5%.
-- **Depth census:** mean depth 0.157 model against 0.148 live over 4,204 lot-days. The model
-  fits at the article's **μ = 7% far better than at the window's realised drift** (0.157 against
-  0.097) — that deserves its own paragraph, since it is a statement about which parameter the
-  census is actually sensitive to.
-- **q(x):** 27.6% of calls expected exercised against 19.6% realised, monotone in depth.
+- **Entry law:** 66.4 assignments expected, 72 finished below the strike, 71 assigned, over 1,011
+  contracts — an aggregate error of −6.5%. (Figures at the fourth tranche, 2026-09-07; the error
+  widened from −1.5% because the tranche wrote 55 new put contracts and had none assigned.)
+- **Depth census:** mean depth 0.165 model against 0.149 live over 4,620 lot-days. The model
+  fits at the article's **μ = 7% far better than at the window's realised drift** (0.165 against
+  0.085) — that deserves its own paragraph, since it is a statement about which parameter the
+  census is actually sensitive to. The gap widens with every tranche, because the realised drift
+  keeps rising (+39.7% → +51.8%) while the article's μ does not.
+- **q(x):** 30.5% of calls expected exercised against 21.6% realised, monotone in depth.
 - **Survival:** the model exits lots faster than observed at every horizon, and the comparison
   is Kaplan–Meier, so **this is not censoring** (was #9). Show the compounding of the
   per-period gap.
 
   **Do not present this as a test of the spine until III-1's last bullet is settled** (added
   2026-08-21). The gap is real — KM handles the censoring — but its cause is not established, and
-  the leading candidate is that the comparison pools one σ and one drift across 96 names when the
+  the leading candidate is that the comparison pools one σ and one drift across 100 names when the
   model is a single-name model. A pooled fit is predicted to under-predict survival, which is what
   is observed, so a §14 drafted before §12 would report an aggregation artifact as a failure of
   the model. Two related figures belong with this caveat and not in a bin-level claim: the mean is
-  separately **not measurable at all** on this window (40 exits, 15 open, and the KM curve is flat
-  at 15.8% from 180 d on because everything remaining is censored), so the model's 2.1-year mean
+  separately **not measurable at all** on this window (47 exits, 8 open, and the KM curve is flat
+  at 12.9% from 180 d on because everything remaining is censored), so the model's 2.1-year mean
   is neither confirmed nor refuted here; and the live median of **56 d** coincides with the
-  article's 8-week median while the model run at the account's own measured parameters gives about
-  31 d, which is two errors cancelling and must not be quoted as agreement.
+  article's 8-week median while the model run at the account's own measured parameters gives a
+  much shorter figure, which is two errors cancelling and must not be quoted as agreement.
+
+  **The "about 31 d" this bullet used to carry is withdrawn rather than restated** (2026-09-07).
+  It had no script behind it and the parameters it was computed at have since moved twice — the
+  fourth tranche took the pooled σ to 35.1% and the realised drift to +51.8%, and the model's mean
+  holding time at those parameters fell 0.21 y → 0.16 y (77 d → 59 d, E[J] 4.79 → 3.68), which is
+  the mean and not the median. Re-measure the model median at the account's parameters before
+  quoting any figure here; do not copy the old digit.
 - **Above-strike lot-time — text carried over from §07** (moved here 2026-08-26). §07 had the
   live figure as its closing paragraph and no longer does; the subsection now ends on the grid tax
   and hands to the survival curve. What was cut, for §14 to use or rewrite:
@@ -868,17 +885,20 @@ live data, not only simulation.
   the collateral.
 - **Claim only the aggregates.** The restatement withdrew two bin-level results: T1's
   calibration curve is sensitive to whether entry is priced at the session open or close (top
-  bucket 27.0% predicted against 8.1% realised at the open, 26.1% against 27.0% at the close —
-  the operator sells into intraday weakness that partly reverts, so the truth is between), and
-  q(x)'s two deepest bins now hold 70 and 20 contracts. No bucket-level claim should be
-  reintroduced.
+  bucket 26.7% predicted against 7.8% realised at the open — the operator sells into intraday
+  weakness that partly reverts, so the truth is between), and q(x)'s two deepest bins now hold 76
+  and 27 contracts. No bucket-level claim should be reintroduced. The close-priced comparand
+  (26.1% against 27.0% as of the second tranche) has not been re-measured since; re-run it rather
+  than quoting it.
 - **The calendar/session mismatch, found 2026-07-28 and deliberately not fixed.** Every τ in the
   live tests is in *calendar* years while every σ is annualised over **252 sessions**, so a put
   written Monday at the open for Friday's close — five sessions — is priced with four days of
   diffusion. The units are wrong and the understatement is large: σ·√τ is short by a factor
   √((5/252)/(4/365)) = **1.35** at the median put. **And the wrong convention is the one that
   fits.** At the window's drift, pricing each put on its own session count predicts **88.7**
-  assignments against the **71** that occurred; the calendar reading predicts **69.9**. So either
+  assignments against the **71** that occurred; the calendar reading predicts **66.4** (it read
+  69.9 when the 88.7 was measured, and the session figure has not been re-run since — re-measure
+  both together before quoting the pair). So either
   the operator's entries partly revert — which is T1's own bucket finding, the opening print
   overstating moneyness on puts written nearest the money — or session-annualised realised
   volatility overstates the volatility relevant to a five-session option, or both. Resolve it
@@ -893,10 +913,10 @@ live data, not only simulation.
   `iv_panel.session_tenor()` is the consumer to copy. **Take the convention rather than re-deciding
   it** — the count is inclusive of the trade's own session, which `iv_panel.report_clock` shows is
   the nearest of the candidate conventions to variance-true (an entry-day open→close move carries
-  **0.65** of a close-to-close session, so a k-session option is worth k − 1 + 0.65) and the
+  **0.66** of a close-to-close session, so a k-session option is worth k − 1 + 0.66) and the
   conservative one. Note this does *not* by itself resolve the bullet: T1's problem is that the
   wrong convention is the one that fits, and putting the tenor right will move the prediction from
-  69.9 toward 88.7 against the 71 that occurred. Fixing the units and explaining the fit are two
+  66.4 toward 88.7 against the 71 that occurred. Fixing the units and explaining the fit are two
   jobs, and IV-5 only supplies the first.
 - **Three measurement traps**, worth a paragraph because all three were fallen into: reading
   depth on the day before exit discards nearly every exit; sampling lots on a synthetic τ_c grid
@@ -910,7 +930,9 @@ live data, not only simulation.
   category error.* What a window of length H measures is the **in-window** residence — a lot
   assigned in month 12 of a 15-month record contributes three months and is still open. II-30
   gives the model-side comparand, W(H) = E[I over [0,H]]/λ, and at the running example's parameters
-  it reads **13.5 weeks at H = 1.25 y** against E[W] = 2.10 years, a factor of **eight**. So the
+  it reads **13.5 weeks at H = 1.25 y** against E[W] = 2.10 years, a factor of **eight**. (The live
+  window is now H = 1.30 y and lengthens with every tranche, so recompute W(H) at the window's own
+  length rather than reusing the 1.25 y figure.) So the
   quantity to put beside a live mean holding time is W(H) at the live window's own length and the
   live parameters, computed the same way — not 2.10, and not the median either. This bites nothing
   today only because no bullet above quotes a live mean holding time; it bites the moment §14
@@ -923,12 +945,12 @@ live data, not only simulation.
   the statements (positions against transactions), so a disagreement is a **data** fault, not a
   model result. That is Little's own advertised use: Lovejoy's report in the same paper is that
   "Little's Law provides a reality check" on hospital data that "do not add up". Cheap to add
-  beside the 4,204 lot-days already measured, and it belongs with the two internal checks above
+  beside the 4,620 lot-days already measured, and it belongs with the two internal checks above
   rather than in the model comparison, because it can only ever pass or reveal a bug.
 - **What a career-length record cannot test** — owed to §02 (I-4) and not yet written anywhere.
   The natural material is already in Part II: equilibrium is approached over ~90 years and the
   mean holding time is 2.1 years against an 8-week median, so the stationary results are
-  structurally untestable by any operator, and the 15-month window resolves 40 of 55 lots. State
+  structurally untestable by any operator, and the 16-month window resolves 47 of 55 lots. State
   which predictions the data *can* discriminate and which it provably cannot.
 
   **The method for this bullet is Broadie, Chernov & Johannes (2009) [P]** (harvest H7, folded in
@@ -953,41 +975,67 @@ live data, not only simulation.
 **IV-2. Write §15, the live account** (`{#sec:live}`, was #20). The ledger and its verdict.
 **Lead with the ledger gap, not the return.**
 
-- **The ledger:** Track A on cost basis **+38.36%/yr** against Track B **+24.34%**; same-names
-  buy-and-hold +28.71%; option-overlay excess **−4.37%/yr**; selection **+29.63%/yr**,
-  exposure-matched.
+- **The ledger:** Track A on cost basis **+36.96%/yr** against Track B **+32.11%**; same-names
+  buy-and-hold +37.71%; option-overlay excess **−5.61%/yr**; selection **+38.71%/yr**,
+  exposure-matched. (Fourth tranche, 2026-09-07; the path of all four is in
+  [`drafts/tranche-record.md`](drafts/tranche-record.md) and is itself worth a sentence here —
+  Track A has barely moved across three refreshes (+38.11%, +38.36%, +36.96%) while Track B has
+  climbed twelve points (+19.73%, +24.34%, +32.11%),
+  which is the ledger gap this section leads with, drawn from the account's own history.)
 - **This section owes the reader the intervals, and it is the only section that does.** Parts I
   and II assert three times — in `02-introduction`, `04-strategy` and `09-returns` — that the
   overlay "earned nothing distinguishable from zero", with no number anywhere behind it. That is
   deliberate, the statistics belong here, but it means §15 must actually deliver them or the
   claim is unsupported across the whole article. Required: the point estimate, the 90%
-  resampling interval **−18.1% to +6.9% clustered by name** (quote the clustered one; −24.0% to
-  +13.4% by lot is the looser alternative), P(excess < 0) = 69%, and the sample it rests on.
-  `live_ledger.py --bootstrap` produces all of it.
+  resampling interval **−18.7% to +5.1% clustered by name** (quote the clustered one; −24.4% to
+  +11.7% by lot is the looser alternative), P(excess < 0) = 77%, and the sample it rests on
+  (n = 100 names, 202 lots). `live_ledger.py --bootstrap` produces all of it.
+
+  **The interval has not narrowed with four tranches, and that is the point** (2026-09-07). It
+  ran −19.8%..+7.6%, then −18.1%..+6.9%, then −18.7%..+5.1%: twenty-seven points, twenty-five,
+  twenty-four. Sixteen months of a real book bought three points of precision. Say that with the
+  numbers rather than asserting the record is short. **And note what did move**: P(excess < 0)
+  went 69% → 77% while the interval still comfortably contains zero, which is the honest shape of
+  the result — the sign is leaning and is not established.
 
   **Present the width as a property of the object, not of the sample** (harvest H7, folded in
-  2026-08-01). A twenty-five-point interval over fourteen months reads as an apology for a short
+  2026-08-01). A twenty-four-point interval over sixteen months reads as an apology for a short
   record; Broadie–Chernov–Johannes make it the *expected* consequence of a known property of
   option returns, which eighteen years does not fix. IV-1 carries the citation and the fuller
   statement — use it here rather than restating it.
 - **The UNH lot is the worked example**, deliberately kept out of Part II so it lands here:
   assigned at 260, a four-week call written at the same 260 basis for $18.10, called away at 260
   with the stock at 393.85 — collected $1,810, surrendered $13,385. It is also, on its own, the
-  difference between a negative and a positive overlay excess (−4.37% → +1.99%) **and** 39% of
+  difference between a negative and a positive overlay excess (−5.61% → +0.20%) **and** 27% of
   the selection gap. The same position carries both verdicts, and that is the point rather than
   a caveat: a lot that runs far enough to dominate selection is a lot whose call gave the run
-  away. **Do not present it as an outlier to be set aside.** UNH, ELV and MSFT all show negative
-  excess and positive selection together.
-- **The by-leg decomposition**, which is where the restatement bites: the **put leg keeps 25.2%
-  of premium, the call leg −28.9%**, frictions −$7,107. The old near-symmetry between the legs
+  away. **Do not present it as an outlier to be set aside.** UNH, ELV, ACN and MSFT all show
+  negative excess and positive selection together — ACN joined the list on the fourth tranche,
+  when it was called away at 148 into a rally, which is the same story a second time and is worth
+  using as the confirmation that UNH is a mechanism rather than an accident.
+- **The by-leg decomposition**, which is where the restatement bites: the **put leg keeps 28.4%
+  of premium, the call leg −47.6%**, frictions −$4,874. The old near-symmetry between the legs
   was cheap calls on falling names; on the universe the strategy actually claims, the call leg
-  gives back nearly a third of its own premium. Removing those names did not create the effect, it
-  stopped hiding it.
+  gives back **nearly half again** its own premium. Removing those names did not create the
+  effect, it stopped hiding it.
+
+  **The fourth tranche is the cleanest demonstration of the mechanism the article has** (added
+  2026-09-07, and worth building the section's argument around). Seven lots were called away in a
+  month the universe rose 4.24%, and the call leg went from −28.9% to −47.6% in that single
+  tranche while the put leg *improved* (25.2% → 28.4%). C rose $42.3k → $50.7k on a call premium
+  that rose only $32.8k → $34.4k. That is not a statistical wobble: it is the covered call's
+  defining trade arriving in the ledger, a whole month of it at once, and it is the reason the
+  section's verdict must be conditional on the regime rather than stated flat.
 - **Selection, reported not modelled** (was #22 and #14). The pre-registered rule
   (`drafts/2026-07-27-selection-rule-preregistration.md`) is fitted: rules 4 and 6 (fallen
-  angels, oversold) confirmed at z ≈ −10 with a permutation check agreeing; rule 5 (avoid
+  angels, oversold) confirmed at z ≈ −10 to −13 with a permutation check agreeing; rule 5 (avoid
   falling knives) **rejected outright** in both its simple and its interaction form — its
-  partial rescue was withdrawn on the restated choice set. **Name what modelling it would
+  partial rescue was withdrawn on the restated choice set, and on the fourth tranche the last prop
+  of that rescue, `slope_r2`, crossed from indistinguishable from zero (−0.101, z = −1.8) to
+  **significantly the wrong sign** (−0.132, z = −2.4). The operator prefers falls that are *less*
+  linear, which is rules 4 and 6 saying the same thing a third way: a dislocation, not a trend.
+  This is refitting, not re-specifying, and it is a pre-registered rule moving further against
+  itself on new data — report it as such. **Name what modelling it would
   commit to:** under GBM, entry timing cannot generate return by construction, so treating
   selection as profitable is a claim of mean reversion and must be argued as one. 20 lots in one
   bull market cannot support it. If it is ever modelled, the minimal form is a state-dependent
@@ -998,8 +1046,8 @@ live data, not only simulation.
   implied-minus-historical volatility and trading straddles produces large, robust cross-sectional
   returns. That is an **options** signal: it says the *contracts* on some names are mispriced.
   Rules 4 and 6 (fallen angels, oversold) are **stock-selection** signals — a claim about the
-  shares — and the account's own ledger agrees, since the overlay earned −4.37% while the
-  selection earned +29.63%. Cite it to make that distinction sharp, which is the opposite of using
+  shares — and the account's own ledger agrees, since the overlay earned −5.61% while the
+  selection earned +38.71%. Cite it to make that distinction sharp, which is the opposite of using
   it as support; the honest reading is that the published edge lives in the leg this account did
   *not* profit from.
 - **The cadence calibration** (was #7). τ_p = T is a good approximation because the dominant put
@@ -1009,6 +1057,14 @@ live data, not only simulation.
   10.4 at p\* = 20%, modal gap exactly 7 days (40% of gaps). Both rates are the discrepancy
   catalogue's and have no script behind them (INF-2); the lot count under the second moved
   56 → 55 on 2026-07-28, so re-measure before quoting rather than copying the digits.
+
+  **Both digits are now known stale and must not be copied** (2026-09-07). Three tranches have
+  landed since they were measured and neither rate has a script to re-run: the window has gone
+  1.23 y → 1.30 y, the menu 96 → 100 names, and put contracts 956 → 1,011 while assigned lots
+  stayed at 55, so **1.41 lots per name-year is mechanically too high now** and 18.1 puts per
+  name-year is measured over the wrong window. INF-2 (give them a script) is the blocker on this
+  bullet and should be done before §15 drafts, not after — this is the one place in Part IV where
+  a figure would otherwise be carried forward by hand across four refreshes.
   [The entry section](#sec:entry) now defers the arrival gap to here, deliberately without
   digits, so this is the only place they appear. When they are re-measured, **check the identity
   that closes the gap**: puts per name-year × the per-put assignment rate should reproduce lots
@@ -1023,9 +1079,11 @@ live data, not only simulation.
   column that is not monotone; quote it with that qualifier or not at all.
 
   **The level is restored, and it is less than half what this bullet used to carry** (IV-5 closed
-  2026-08-05). The put leg runs **+4.5 points** over subsequently realised volatility and the call
-  leg **+2.4**, against +10.7 and +7.0 as previously measured — so about six of the old ten points
-  was the calendar/session mismatch, as D2 estimated.
+  2026-08-05). The put leg runs **+4.4 points** over subsequently realised volatility and the call
+  leg **+2.3**, against +10.7 and +7.0 as previously measured — so about six of the old ten points
+  was the calendar/session mismatch, as D2 estimated. The level is stable across tranches (+4.5 →
+  +4.4 puts, +2.2 → +2.3 calls), which is worth one sentence: this is the one live quantity in
+  Part IV that has not moved with the market.
 
   **Do not write "roughly double the call leg's" in any form.** IV-5 found the leg-level ratio is
   not a well-defined quantity: the legs occupy disjoint moneyness ranges by construction, and the
@@ -1033,20 +1091,27 @@ live data, not only simulation.
   What §15 should report instead is what the cross-tab shows, which is a cleaner finding than the
   one it replaces: **the spread is a function of distance from the money and barely of leg.**
   Near-money contracts on both legs sit within a fraction of a point of realised volatility (puts
-  −5..−2% read −0.1% over 257 contracts, ATM calls −0.1% over 45), and the spread widens outward
-  on both — puts +6.0% at 5–10% below spot and +13.2% beyond, calls +1.8% / +3.1% / +5.4%. §09:162
+  −5..−2% read +0.2% over 267 contracts, ATM calls −0.9% over 46), and the spread widens outward
+  on both — puts +6.0% at 5–10% below spot and +12.5% beyond, calls +1.8% / +2.7% / +5.7%. §09:162
   already says this in prose; §15 is where the numbers go.
 
   **And it is the direct evidence for §09:156's existing caveat**, which was argued rather than
   measured: that the spread easiest to measure is the one on far-out-of-the-money puts, "and that
   one is quoted precisely because those puts are not as far out of the money as they look". The
   panel now shows exactly that shape. Worth landing the connection explicitly.
-- **The regime caveat, which bounds everything above:** the universe returned +9.96%/yr over the
-  window and the held names +39.59%/yr, and **a covered-call overlay must lag in a strong
+- **The regime caveat, which bounds everything above:** the universe returned +12.87%/yr over the
+  window and the held names +51.58%/yr, and **a covered-call overlay must lag in a strong
   up-market**. That is mechanical, not evidence. Neither the overlay nor the selection result is
   an unconditional estimate.
+
+  **All four tranches are labelled rally, and the rally is accelerating** — the tranche-only
+  universe return reads +8.96%, +19.50%, +55.25%/yr across the record. The caveat is therefore not
+  a hedge the section adds at the end; it is the single most important qualification on the
+  headline number, and the record in `drafts/tranche-record.md` is the evidence for it. §15 should
+  quote the three tranche returns, because a reader who sees them cannot mistake −5.61% for an
+  unconditional verdict on covered calls.
 - Reference III-1's book-width caveat rather than restating it: Track A yields are not
-  comparable between a 95-name put book and a single-name model.
+  comparable between a 99-name put book and a single-name model.
 
 - **Where the operator sits on the dial — moved here from §05 on 2026-08-07, verbatim.**
   It was written as a §05 subsection and it derailed that section's spine: the flow reader
@@ -1069,13 +1134,13 @@ live data, not only simulation.
   income, and moves the strategy's advantage over simply owning the stock by less than a tenth
   of a percentage point." That stated §09's result where §05 had no machinery for it.
 
-  > Two regimes are two settings of one dial, and it is fair to ask which of them describes practice. The account behind this article answers that, though not at first glance. Over fifteen months, 956 of its put contracts can be priced against the market on the day they were written, and 71 of those were assigned — **7.4%**, apparently more cautious than either regime on offer.
+  > Two regimes are two settings of one dial, and it is fair to ask which of them describes practice. The account behind this article answers that, though not at first glance. Over sixteen months, 1,011 of its put contracts can be priced against the market on the day they were written, and 71 of those were assigned — **7.0%**, apparently more cautious than either regime on offer.
   >
-  > That number is not comparable, for two reasons that push it the same way. The first is the drift: the window was a bull market, its held names running at roughly +40% a year against the +4.5% assumed here, and a stock that is climbing finishes below the same strike less often. The second is that **a week is not seven days of market**. The account's dominant put is written Monday at the open and expires Friday at the close — five trading sessions, the weekend contributing nothing but a date. That is also exactly what this article's weekly tenor is worth: 1/52 of a year is 4.85 of the 252 sessions a year contains. The two clocks agree; it is only raw calendar arithmetic, which reads that put as four days rather than five sessions, that makes them look different.
+  > That number is not comparable, for two reasons that push it the same way. The first is the drift: the window was a bull market, its held names running at roughly +50% a year against the +4.5% assumed here, and a stock that is climbing finishes below the same strike less often. The second is that **a week is not seven days of market**. The account's dominant put is written Monday at the open and expires Friday at the close — five trading sessions, the weekend contributing nothing but a date. That is also exactly what this article's weekly tenor is worth: 1/52 of a year is 4.85 of the 252 sessions a year contains. The two clocks agree; it is only raw calendar arithmetic, which reads that put as four days rather than five sessions, that makes them look different.
   >
-  > Correct for the drift, then, and put the operator's *own* strikes on the article's week — the same distance out of the money, on the same names, at their own volatilities. The assignment probability they were actually choosing comes to **10.8%**. That is the Conservative regime, to within a point.
+  > Correct for the drift, then, and put the operator's *own* strikes on the article's week — the same distance out of the money, on the same names, at their own volatilities. The assignment probability they were actually choosing comes to **10.6%**. That is the Conservative regime, to within a point.
   >
-  > A second reading confirms it without any of that machinery. The names this operator trades carry volatility near 30%, not the running example's 20%, and the median put was written **5.5% out of the money**. At 30% volatility over one week, a one-in-ten strike sits **5.1%** out. Same dial, different strike — which is [eq:kstar](#eq:kstar) doing precisely the job it exists for: the operator picks a frequency, and volatility decides how far away that puts the strike.
+  > A second reading confirms it without any of that machinery. The names this operator trades carry volatility near 30%, not the running example's 20%, and the median put was written **5.6% out of the money**. At 30% volatility over one week, a one-in-ten strike sits **5.1%** out. Same dial, different strike — which is [eq:kstar](#eq:kstar) doing precisely the job it exists for: the operator picks a frequency, and volatility decides how far away that puts the strike.
   >
   > So the two regimes bracket practice from above, and Conservative is where a real book sits. Standard leads the worked examples anyway, and the reason is worth being explicit about rather than leaving as inertia. The market of the running example is a **stylized** one — 20% volatility, a 7% total return, a 5% risk-free rate — and p\* = 20% is the round, conventional number that belongs beside them; it is also the calibration practitioners quote to each other. Calibrating the dial alone, while the volatility and the drift stayed round numbers, would suggest more calibration than there is. Little rests on the choice in any case, and [the returns section](#sec:returns) prices exactly how little: halving the dial halves the inventory, the capital and the income, and moves the strategy's advantage over simply owning the stock by less than a tenth of a percentage point — nearly all of which turns out to be an accounting artifact rather than economics.
   >
@@ -1295,7 +1360,7 @@ sense.** §8(1) describes the case where L is cheap to observe and W is expensiv
 manufacturing settings it is much easier to count the work in process than it is to measure
 production intervals … thus we may want to apply L = λW to estimate W using L, **even though the
 statistical precision would be better using W**". That is the live account exactly: inventory
-comes off the positions file continuously (4,204 lot-days), holding times need lots to have
+comes off the positions file continuously (4,620 lot-days), holding times need lots to have
 finished. **But the difficulty he then raises is one this article has already quantified.** The
 observed WIP includes items that will never become good product, so "what we want to observe … is
 only the WIP that will eventually be good, but this eventually good WIP is not directly
@@ -1326,7 +1391,7 @@ live paragraph was cut to IV-1's queue — the claim is now §14's to make or qu
 belongs with the sections that will make it). It is Part II's closing moral applied to an
 attribution rather than to a figure.
 
-The measurement is that **18.7% of the time the live account's lots spent in inventory was spent above
+The measurement is that **20.1% of the time the live account's lots spent in inventory was spent above
 their own call strikes**, and §07 read the whole of it as the call-grid tax: "shares that had already
 recovered past the price they would be sold at, **sitting there only because the call had not
 expired yet**. That is the grid, in the flesh." The measurement is sound. The clause in bold is an
@@ -1337,8 +1402,8 @@ reason to write it — and the model has no room for the state, since every lot 
 every period by construction.
 
 **Nothing in the code can currently tell the two apart.** `analyze_statement.py` has no
-call-coverage column; the crude arithmetic available (209 call positions at 18 d median tenor
-against 4,204 lot-days) suggests coverage is high but not complete, and crude arithmetic is exactly
+call-coverage column; the crude arithmetic available (219 call positions at 18 d median tenor
+against 4,620 lot-days) suggests coverage is high but not complete, and crude arithmetic is exactly
 what Part II's closing note says not to trust. The work is one column — per lot-day, was a call open — and
 then three things follow from it:
 
@@ -1380,8 +1445,9 @@ P7's blind was partly opened on 2026-08-01 — the extended-window excess was se
 B was drafted — and the scoring appendix says so.
 
 **What P8 and P7's concavity are waiting for is a regime, not a tranche.** No quantity of monthly
-data in a rising market tests "the selection edge shrinks when dips stop recovering". Both rows
-of the record so far are labelled rally. That is the limitation the record exists to outlast.
+data in a rising market tests "the selection edge shrinks when dips stop recovering". All three
+rows of the record so far are labelled rally, and the tranche-only universe return has *risen*
+each time (+8.96%, +19.50%, +55.25%/yr). That is the limitation the record exists to outlast.
 
 **One thing to know before scoring.** Appendix A's restated P11 baseline of 56 d cannot be
 reproduced by today's code: the same pre-tranche corpus now gives a Kaplan–Meier median of
@@ -1389,7 +1455,9 @@ reproduced by today's code: the same pre-tranche corpus now gives a Kaplan–Mei
 removed a phantom TSCO lot (56 → 55 lots, `8d6b592`) and the exclusion of EMLC and 9988
 (`6aaf681`) are the candidates. Score P11 against a baseline re-measured with the code of the
 day, and say so. (With tranche 3 the figure reads 56 d again — two different corpora agreeing by
-coincidence, not the prediction landing.)
+coincidence, not the prediction landing. Tranche 4 reads 56 d a third time, and that one *is*
+worth something: it held across a tranche that resolved seven lots, so it is no longer the same
+censored curve reappearing.)
 
 ## Infrastructure and assembly
 
