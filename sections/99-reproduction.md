@@ -140,6 +140,8 @@ Backs [eq:depth-def](#eq:depth-def), [eq:depth-walk](#eq:depth-walk), [eq:nu](#e
 
 Backs [eq:siegmund](#eq:siegmund), [eq:wald](#eq:wald), [eq:wald-holding](#eq:wald-holding), [eq:survival](#eq:survival), [eq:survival-step](#eq:survival-step), [eq:holding](#eq:holding), [eq:holding-siegmund](#eq:holding-siegmund).
 
+Draws [fig:survival-curve](#fig:survival-curve): `python code/examples/holding_time.py --figure`.
+
 | command | the article's figures |
 |---|---|
 | `python code/examples/holding_time.py` | tax = 0.0323, ratio = 2.09, x0 = 0.0155, b = 0.279, overshoot = 0.667, theta = 0.035, far = 0.591, near = 0.722, tax_charged = 0.0370, ratio_charged = 2.39, entry_share = 29.5%, q_Ex0 = 0.403, naive = 2.48, columns = 0.60  0.46  0.38  0.27  0.18  0.12  0.07  0.04  0.02, haz = 0.4045703714065245  0.23371403503061106  0.06816428029473243, cc_age = 159.5934  0.0105  0.0000, over_measured = 0.666, closed_mean = 0.30, closed_median = 2, depth_cols = 0.05  0.08  0.09  0.14  0.21  0.31  0.48  0.66  0.90, median = 2, EW = 2.10, EW_siegmund = 1.91, EW_far = 1.93, EW_near = 2.22, prem = 0.0372, exitcost = 0.0358 |

@@ -19,7 +19,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from examples._harness import (Case, need_occupation, need_stationary,      # noqa: E402
+from examples._harness import (Case, Figure, need_occupation, need_stationary,  # noqa: E402
                                resolve, run_cli)
 import model                                                  # noqa: E402
 
@@ -29,7 +29,8 @@ EQ = ["eq:siegmund", "eq:wald", "eq:wald-holding", "eq:survival",
       "eq:survival-step",
       "eq:holding", "eq:holding-siegmund"]
 
-# The columns section 07 tabulates, in years.  Quoted in weeks up to half a
+# The ages section 07 quotes readings at, in years; fig:survival-curve draws the
+# whole curve.  Quoted in weeks up to half a
 # year and in years after that; they land on exact call periods only when the
 # call grid divides them, which is why the printed labels are recomputed.
 COLUMNS = [4 / 52, 8 / 52, 12 / 52, 24 / 52, 1.0, 2.0, 5.0, 10.0, 20.0]
@@ -202,6 +203,75 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         "prem": near["E[prem]"],
         "exitcost": near["E[exitcost]"],
     }
+
+
+def _draw_survival(fig, ax, cfg=None, measure="P", ctx=None, **kw):
+    """fig:survival-curve -- survival and survivors' mean depth, by age.
+
+    Off the near grid, where the quoted readings come from; the mean marked on
+    the left is the extrapolated E[W], as eq:holding quotes it.  Age runs on a
+    log axis so that four weeks and twenty years share a page, read at each
+    call date from the first to thirty years.
+    """
+    import figures
+    cfg = cfg if cfg is not None else model.Config()
+    near = resolve(ctx, need_occupation(cfg, measure))
+    full = resolve(ctx, need_stationary(cfg, measure))
+    ew = model.economics(cfg, measure, full)["E[T]"]
+    med = model.median_periods(near)
+    last = min(len(near["surv"]), int(30.0 / cfg.tau_c) + 1)
+    js = range(1, last)
+    ages = [j * cfg.tau_c for j in js]
+    surv = [near["surv"][j] for j in js]
+    depth = [100.0 * near["depth"][j] for j in js]
+
+    fig.delaxes(ax)
+    fig.set_size_inches(figures.WIDTH_IN, 2.7)
+    left, right = fig.subplots(1, 2)
+    # Evenly spaced on the log axis; the marked points carry 8 weeks and 2 years.
+    ticks = [4 / 52, 0.25, 1, 5, 20]
+    labels = ["4 wk", "3 mo", "1 y", "5 y", "20 y"]
+    for a in (left, right):
+        a.set_xscale("log")
+        a.set_xlim(ages[0] * 0.9, 30.0)
+        a.set_xticks(ticks, labels)
+        a.minorticks_off()
+        a.set_xlabel("age of the lot")
+
+    left.plot(ages, surv, color=figures.SERIES[0], zorder=2)
+    left.set_ylim(0.0, 0.7)
+    left.set_title("chance the lot is still held", color=figures.INK,
+                   fontsize=9, loc="left")
+    if med is not None:
+        t_med = med * cfg.tau_c
+        s_med = near["surv"][med]
+        left.plot([t_med], [s_med], "o", color=figures.SERIES[0], markersize=5,
+                  markeredgecolor=figures.GROUND, markeredgewidth=1.2, zorder=3)
+        left.annotate(f"median: {t_med * 52:.0f} weeks", (t_med, s_med),
+                      xytext=(7, 2), textcoords="offset points",
+                      color=figures.INK, fontsize=8)
+    figures.reference_line(left, x=ew)
+    left.annotate(f"mean: {ew:.1f} years", (ew, 0.62), xytext=(4, 0),
+                  textcoords="offset points", color=figures.MUTED, fontsize=8)
+
+    right.plot(ages, depth, color=figures.SERIES[0], zorder=2)
+    right.set_ylim(0.0, max(depth) * 1.12)
+    right.set_title("mean depth of those still held, %", color=figures.INK,
+                    fontsize=9, loc="left")
+    for years in (2.0, 20.0):
+        j = round(years / cfg.tau_c)
+        if j < last:
+            v = 100.0 * near["depth"][j]
+            right.plot([j * cfg.tau_c], [v], "o", color=figures.SERIES[0],
+                       markersize=5, markeredgecolor=figures.GROUND,
+                       markeredgewidth=1.2, zorder=3)
+            right.annotate(f"{v:.0f}% at {years:.0f} years", (j * cfg.tau_c, v),
+                           xytext=(-8, 6), textcoords="offset points",
+                           color=figures.INK, fontsize=8, ha="right")
+    fig.subplots_adjust(wspace=0.26)
+
+
+FIGURES = [Figure("survival-curve", _draw_survival)]
 
 
 CASES = [
