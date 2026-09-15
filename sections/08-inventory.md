@@ -12,7 +12,7 @@ Lots arrive at a known rate and stay for a known average time. How much stock do
 >
 > So the law asks for almost nothing. [Little's 1961 paper](#ref:little-1961) calls its results "remarkably free of specific assumptions about arrival and service distributions, number of channels, queue discipline" — how items arrive, how long each takes, how many are served at once, in what order they leave — and it needs no independence either. Any boundary serves as "the system", so long as L, λ and W all use the same one, and that is what lets a warehouse of stock be treated as a queue. It is a conservation identity, not a model.
 >
-> [The same paper](#ref:little-1961) does make one requirement — that queue length, waits and arrivals are all strictly stationary — and concedes it is "probably not the weakest requirement possible". The assumption-free forms came later — a sample-path version needing only that the averages exist, and [Little's finite-window form](#ref:little-2011), needing nothing, which this section uses below. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) proves the standard statement.
+> [The same paper](#ref:little-1961) does make one requirement — that queue length, waits and arrivals are all strictly stationary — and concedes it is "probably not the weakest requirement possible". The assumption-free forms came later — [Stidham's](#ref:stidham-1974) sample-path version, needing only that the arrival rate and the average stay exist, and [Little's finite-window form](#ref:little-2011), needing nothing, which this section uses below. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) proves the standard statement.
 
 ## Applying it
 
