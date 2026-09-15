@@ -62,10 +62,9 @@ A lot at depth x is called away at the end of the current call period if the sto
 
 q(x)  =  N( (ν·τ_c − x) / (σ·√τ_c) )    {#eq:qx}
 
-This is the same recovery probability a practitioner would compute for a freshly assigned lot, but written as a *function* rather than a constant. Evaluated for the running example, four-week calls:
+This is the same recovery probability a practitioner would compute for a freshly assigned lot, but written as a *function* rather than a constant. The left panel of figure [fig:depth-exit-premium](#fig:depth-exit-premium) draws it for the running example's four-week calls, beside the call premium the next subsection derives:
 
-    depth x        0.0155     0.03      0.05      0.10      0.15      0.20
-    q(x)            0.404     0.306     0.193     0.039     0.004     0.000
+![Against a lot's depth below its strike, on four-week calls: the chance of leaving at the next call, and the premium that call sells for.](../figures/depth-exit-premium.svg){#fig:depth-exit-premium}
 
 A fresh lot is close to a coin flip: **q ≈ 0.40**, so about two lots in five leave on their first call. Ten log-points down the odds are one in twenty-six, and twenty points down — a stock that has fallen by a fifth since the lot was bought — the call is a formality, worth nothing and virtually certain to expire.
 
@@ -79,12 +78,11 @@ The other thing that depends on depth is what the covered call is worth. A lot a
 
 c_c(x)  =  BlackScholesCall( spot = 1, strike = e^x, tenor = τ_c, σ_IV, r, δ )    {#eq:ccx}
 
-    depth x        0.0155     0.03      0.05      0.10      0.15      0.20
-    c_c(x)         0.0161   0.0110    0.0060    0.0009    0.0001    0.0000
+which is the right panel of figure [fig:depth-exit-premium](#fig:depth-exit-premium).
 
 A fresh lot's four-week call sells for **1.6% of the share price**. Annualized that is better than 20% on the value of the shares — at this depth, and only while the lot is at it. A lot ten points down sells for 0.09%. A lot fifteen points down sells for **one basis point**: nothing.
 
-Put the two tables side by side and the mechanism driving the whole strategy is visible in one sentence. **Depth simultaneously destroys a lot's chance of leaving and its ability to earn while it waits.** The lots that are stuck are exactly the lots that pay nothing for being stuck. Nothing within that pair offsets — the same variable governs both, and governs them in the same direction.
+Read the two panels side by side and the mechanism driving the whole strategy is visible in one sentence. **Depth simultaneously destroys a lot's chance of leaving and its ability to earn while it waits.** The lots that are stuck are exactly the lots that pay nothing for being stuck. Nothing within that pair offsets — the same variable governs both, and governs them in the same direction.
 
 The one thing a deep lot does still collect is its dividend, and it collects it regardless of depth. δ_net accrues on the *market value* of the shares, at the same rate for every lot in the book, because the company pays the same cash on every share it has issued and has no idea what any particular lot cost. For a stuck lot that dividend is the entire return, and it is why [the returns section](#sec:returns) has to take the dividend seriously rather than treating it as a rounding error.
 

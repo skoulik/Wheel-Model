@@ -82,7 +82,7 @@ The mechanism is **length bias**, and it appears wherever a population is sample
 
 > **Detour: length bias.** Sample a hospital's beds on a given day and the patients you find are far sicker than the patients admitted, because a patient staying six months occupies a bed six months' worth while a patient staying a day occupies it for a day. Nothing about admissions has changed; the *sampling* is biased toward the slow. The same effect makes any bus you catch at random busier than the average bus, and makes a random inventory lot far deeper than a random assignment. A census of what is *present* is not a census of what *arrives*.
 
-Fast lots leave quickly and barely register in the census. Slow lots register for exactly as long as they are slow. So the warehouse fills, unavoidably, with the lots that are least able to leave and least able to earn — and by [the depth section](#sec:depth)'s tables, those two properties are the same property.
+Fast lots leave quickly and barely register in the census. Slow lots register for exactly as long as they are slow. So the warehouse fills, unavoidably, with the lots that are least able to leave and least able to earn — and by figure [fig:depth-exit-premium](#fig:depth-exit-premium), those two properties are the same property.
 
 There is a second way to see the same thing, and for a reader who knows any behavioural finance it may be the more memorable one:
 

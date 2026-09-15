@@ -1,6 +1,6 @@
 # How Long a Lot Stays {#sec:holding}
 
-A fresh lot has a 40% chance of leaving on its first call — the exit probability [eq:qx](#eq:qx) read at the typical entry depth of 1.6%, tabulated in [the depth section](#sec:depth). But that is one period's odds at one depth, and neither holds still.
+A fresh lot has a 40% chance of leaving on its first call — the exit probability [eq:qx](#eq:qx) read at the typical entry depth of 1.6%, as figure [fig:depth-exit-premium](#fig:depth-exit-premium) marks it. But that is one period's odds at one depth, and neither holds still.
 
 ## What the question actually is
 

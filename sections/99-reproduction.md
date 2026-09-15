@@ -115,6 +115,8 @@ Backs [eq:wait](#eq:wait).
 
 Backs [eq:qx](#eq:qx), [eq:ccx](#eq:ccx).
 
+Draws [fig:depth-exit-premium](#fig:depth-exit-premium): `python code/examples/depth_tables.py --figure`.
+
 | command | the article's figures |
 |---|---|
 | `python code/examples/depth_tables.py` | depths = 0.0155  0.0300  0.0500  0.1000  0.1500  0.2000, q = 0.403  0.306  0.193  0.039  0.004  0.000, cc = 0.0161  0.0110  0.0060  0.0009  0.0001  0.0000 |
