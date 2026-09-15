@@ -4,11 +4,15 @@ Lots arrive at a known rate and stay for a known average time. How much stock do
 
 ## Detour: Little's law
 
-> Consider any system that things enter, spend time in, and leave: customers in a shop, patients in a hospital, jobs in a queue, stock lots in a wheel. **Little's law** says that the average number of items in the system equals the average arrival rate multiplied by the average time each item spends there. If forty customers an hour enter and each stays half an hour, there are twenty in the shop on average.
+> Take any system that things enter, spend time in, and leave: customers in a shop, patients in a hospital, stock lots in a wheel. Write λ for the rate at which items arrive, W for the average time one spends inside, and L for the average number inside. **Little's law** says
 >
-> What makes the law remarkable is what it does *not* require. Nothing about the arrival pattern, nothing about the order of service — [Little](#ref:little-1961) says of his own diagram that it is drawn for items leaving in the order they arrived, "but this is not required for the proofs" — nothing about whether items are independent, and nothing about the shape of any distribution. It is not even fussy about what counts as "the system": any boundary will do, so long as *number in the system*, *time spent in the system* and *arrival to the system* all mean the same thing by it. That last permission is what lets a warehouse of stock be treated as a queue at all. It is a conservation identity, not a model.
+> L  =  λ · W
 >
-> One qualification, because the freedom just described is not quite the 1961 paper's. [Little's original](#ref:little-1961) assumes rather more than it needs — that the queue length, the waiting times and the arrivals are all strictly stationary — and he says so himself, calling it "probably not the weakest requirement possible". The assumption-free versions came later: a sample-path form that asks only that the averages exist, and [Little's own finite-window form](#ref:little-2011), which asks for nothing whatever and is the one this section actually leans on a few paragraphs below. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) proves the standard statement.
+> Forty customers an hour, each staying half an hour, keep twenty in the shop on average. The reason is bookkeeping: summing the number inside over every moment, and summing every item's stay, count the same item-hours two ways.
+>
+> So the law asks for almost nothing: no arrival pattern, no order of service — [Little](#ref:little-1961) draws his diagram with items leaving in arrival order, "but this is not required for the proofs" — no independence, no distribution shape. Any boundary serves as "the system", so long as L, λ and W all use the same one, and that is what lets a warehouse of stock be treated as a queue. It is a conservation identity, not a model.
+>
+> The 1961 proof did assume more — that queue length, waits and arrivals are all strictly stationary, "probably not the weakest requirement possible" in Little's words. The assumption-free forms came later — a sample-path version needing only that the averages exist, and [Little's finite-window form](#ref:little-2011), needing nothing, which this section uses below. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) proves the standard statement.
 
 ## Applying it
 
@@ -16,7 +20,7 @@ Arrivals are one lot per put assigned, at rate
 
 λ  =  p\* / T  =  0.20 / (1/52)  =  **10.4 lots per year**    {#eq:lambda}
 
-and each stays E[W] = 2.10 years by [eq:holding](#eq:holding). So
+and each stays E[W] = 2.10 years by [eq:holding](#eq:holding). With the mean inventory E[I] as L, the law gives
 
 E[I]  =  λ · E[W]  =  10.4 × 2.10  =  **21.8 lots**    {#eq:little}
 
