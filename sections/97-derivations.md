@@ -44,7 +44,7 @@ the lower end contributing nothing because φ dies away to zero. The minus sign 
 
 ## Why the option formulas look unlike a textbook's {#drv:bs-convention}
 
-[eq:bs-put](#eq:bs-put) and [eq:bs-call](#eq:bs-call) will not match the Black–Scholes formulas in [Hull](#ref:hull) or anywhere else on sight, and a reader who checks them against a textbook should know why before concluding one of them is wrong. Nothing has been approximated; the article is quoting prices in different units.
+[eq:bs-put](#eq:bs-put) and [eq:bs-call](#eq:bs-call) will not match the Black–Scholes formulas in [Hull](#ref:hull) or anywhere else on sight, and a reader who checks them against a textbook should know why before concluding one of them is wrong. The article is quoting prices in different units.
 
 The textbook writes the price of a European put on a dividend-paying stock in **dollars**, as a function of the spot price S₀ and the strike K:
 
@@ -60,7 +60,7 @@ d₁  =  [ −ln k + (r − δ + σ²/2)·τ ] / (σ·√τ)
 
 as the article writes it. The call is the same division applied to the same textbook formula.
 
-**Why this is exact rather than a convenience.** The Black–Scholes price is **homogeneous of degree one** in spot and strike: double both the share price and the strike and every price doubles with them, because the whole problem has simply been restated in units half the size. A quantity with that property loses nothing when it is divided through by one of its two arguments — the remaining ratio carries all the information the pair did. So a strike is fully described by k and a premium by its fraction of spot, and S₀ never has to appear. This is the reason the model can be stated without ever naming a share price or an account size, and why every figure in the article is a percentage.
+**Why nothing is lost in the division.** The Black–Scholes price is **homogeneous of degree one** in spot and strike: double both the share price and the strike and every price doubles with them, because the whole problem has simply been restated in units half the size. A quantity with that property loses nothing when it is divided through by one of its two arguments — the remaining ratio carries all the information the pair did. So a strike is fully described by k and a premium by its fraction of spot, and S₀ never has to appear. This is the reason the model can be stated without ever naming a share price or an account size, and why every figure in the article is a percentage.
 
 ## The strike dial: strike out of probability, and back {#drv:kstar}
 

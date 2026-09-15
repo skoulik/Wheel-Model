@@ -24,7 +24,7 @@ and each stays E[W] = 2.10 years by [eq:holding](#eq:holding). With the mean inv
 
 E[I]  =  λ · E[W]  =  10.4 × 2.10  =  **21.8 lots**    {#eq:little}
 
-Twenty-two lots. The strategy was described at the outset as one that sells puts and occasionally takes assignment; at equilibrium it is a strategy that owns twenty-two lots of stock and sells puts on the side. And it earned that inventory honestly: 10.4 assignments a year, each lingering two years, is twenty-two.
+Twenty-two lots. The strategy was described at the outset as one that sells puts and occasionally takes assignment; at equilibrium it is a strategy that owns twenty-two lots of stock and sells puts on the side.
 
 The wheel needs every freedom the detour listed. Its lots ride one price path, so they are called away in batches when the price recovers, and the fall that assigns a new lot pushes the held ones deeper; they leave in order of depth, not of arrival; and their stays follow nothing tidy — half gone within eight weeks, the mean over two years. The average survives all of it exactly, which is why this identity, rather than any distributional argument, is the load-bearing step of the article.
 
@@ -68,7 +68,7 @@ The slowness also explains a trap in live data. An account three years into this
 
 ## Arrivals, departures, and self-recycling
 
-At equilibrium the two flows must balance: 10.4 lots arrive per year and 10.4 leave. This is the **self-recycling property** — the strategy sheds inventory at exactly the rate it acquires it — and it is exact, not approximate, because it is what equilibrium means.
+At equilibrium the two flows must balance: 10.4 lots arrive per year and 10.4 leave. This is the **self-recycling property** — the strategy sheds inventory at exactly the rate it acquires it — and it holds by definition, since that is what equilibrium means.
 
 Two remarks keep it from being read as more comforting than it is.
 
@@ -98,7 +98,7 @@ For the Standard regime over a thirty-year horizon:
 
 Note where the census sits relative to where q survives. On this call clock a lot needs to be within about ten log-points of its strike to have any realistic chance of leaving — and only the top three rows, a quarter of all held time, are that shallow. The other three quarters is spent in positions that, on any given expiry, are not going anywhere.
 
-The mechanism is not exotic. It is **length bias**, and it appears wherever a population is sampled by time rather than by item:
+The mechanism is **length bias**, and it appears wherever a population is sampled by time rather than by item:
 
 > **Detour: length bias.** Sample a hospital's beds on a given day and the patients you find are far sicker than the patients admitted, because a patient staying six months occupies a bed six months' worth while a patient staying a day occupies it for a day. Nothing about admissions has changed; the *sampling* is biased toward the slow. The same effect makes any bus you catch at random busier than the average bus, and makes a random inventory lot far deeper than a random assignment. A census of what is *present* is not a census of what *arrives*.
 
@@ -116,7 +116,7 @@ One warning before the economics. The census above counts *lots*, and every lot 
 
 That difference is not a detail. It is why [the returns section](#sec:returns) has to be careful about which capital it means, and why [the stability section](#sec:stability) needs a separate boundary for the capital from the one for the lot count.
 
-It is also not a departure from Little's law. Weighting the inventory by something other than one lot per lot is covered by the same identity, in a form that has been available since the 1970s:
+Little's law covers that weighting too, in a form available since the 1970s:
 
 > **Detour: the same law, carrying a weight.** Little's law *counts* what is in the system. Its generalisation, written **H = λG**, *prices* it. Attach to each item any quantity it accumulates while it is in the system — the capital a lot ties up, the premium its call brings in, the dividends it pays — and let G be the total one item accumulates over its whole stay. Then the long-run rate at which the whole system accrues that quantity is **H = λ·G**: the same arrival rate, the same per-item total, whatever the weighting. Taking the weight to be 1 gives back L = λW, and the inventory count is the special case rather than the general rule. The form used here is [Whitt's](#ref:whitt-1991) theorem 6.3, which asks only two things: that arrivals and departures share one long-run rate — which is the self-recycling property above, 10.4 lots in and 10.4 out — and that an item accrues nothing before it arrives or after it leaves. Under those two, the per-item total settles down *exactly when* the system-wide rate does. The result is due to Brumelle and to Heyman and Stidham; Whitt's version is the one to reach for because it covers quantities that arrive in lumps as well as quantities that accrue steadily, and the wheel has both.
 

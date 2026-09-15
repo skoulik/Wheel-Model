@@ -6,7 +6,7 @@ Real accounts have a balance. Eventually one of two things happens — the opera
 
 The change is not a refinement. An unconstrained wheel is a system in which every arrival is served immediately and forever, no matter how many are already inside; a constrained one refuses arrivals when it is full. The first is the classical infinite-server queue that Part II has been describing. The second is a **loss system**, and its arrival rate is no longer something the operator sets. It is something the account's capital decides.
 
-**Everything before this section is the case A = ∞, and this section recovers it exactly.** With unlimited equity, capacity is unlimited, no put is ever refused, nothing is ever borrowed, and every formula in Parts I and II stands unaltered. That is not a reassurance offered in passing — it is the property against which the whole of what follows is checked, and the code's defaults are the unconstrained operator precisely so that the equality has to hold rather than be claimed.
+**Everything before this section is the case A = ∞, and this section recovers it exactly.** With unlimited equity, capacity is unlimited, no put is ever refused, nothing is ever borrowed, and every formula in Parts I and II stands unaltered. It is the property against which the whole of what follows is checked, and the code's defaults are the unconstrained operator precisely so that the equality has to hold rather than be claimed.
 
 ## Detour: margin, and what a margin call is
 
@@ -40,7 +40,7 @@ A book carried on borrowed money has a price below which it is sold out, and the
 
 f\*  =  ( 1 − 1/L ) / ( 1 − γ_s )    {#eq:barrier}
 
-Both boundary cases are the formula telling the truth rather than being patched. f\* ≤ 0 is an unlevered book: it owes nothing, and there is no price at which it is called. f\* ≥ 1 is a position in violation on the day it is opened, and it happens exactly at L ≥ 1/γ_s — the broker's own ceiling, recovered from the barrier rather than assumed alongside it.
+Both boundary cases come out of the formula unaided. f\* ≤ 0 is an unlevered book: it owes nothing, and there is no price at which it is called. f\* ≥ 1 is a position in violation on the day it is opened, and it happens exactly at L ≥ 1/γ_s — the broker's own ceiling, recovered from the barrier rather than assumed alongside it.
 
 The account survives if the price never touches f\* times where it started. Since ln(S_t/S₀) = ν·t + σ·W_t, this is first passage of a drifting random walk to a level a = −ln f\* below its start. Over a horizon H the reflection principle gives
 
@@ -86,9 +86,9 @@ lots. A put whose assignment would breach that is not sold. And now Little's law
 
 λ_eff  =  I_max / E[W]    {#eq:lambda-eff}
 
-Two things about that inversion are borrowed rather than invented, and saying so costs a clause each. Redefining the arrival rate to count only the puts actually sold is not an improvisation on a law built for something else: [Little](#ref:little-1961)'s own paper takes up the case where "arrivals come with rate λ but not all arrivals join the system", states that the law then does not hold as written, and gives two repairs — count only the arrivals that join, or keep the refused ones and give them zero waiting time. The first of those is [eq:lambda-eff](#eq:lambda-eff). And running the law *backwards* — from an inventory to an arrival rate, rather than the usual direction — is the step that is not automatic. [Glynn and Whitt](#ref:glynn-whitt-1989-extensions) proved what it costs: from the time averages alone one gets an inequality rather than an equation, and equality needs an extra condition, the simplest being that the system empties infinitely often. A wheel does — on one name the book is empty about 14% of the time — so the inversion is legitimate here for a stated reason rather than by the symmetry of an equals sign.
+Both steps of that inversion have a source. Counting only the puts actually sold comes from [Little](#ref:little-1961)'s own paper, which takes up the case where "arrivals come with rate λ but not all arrivals join the system", states that the law then does not hold as written, and gives two repairs — count only the arrivals that join, or keep the refused ones and give them zero waiting time. The first of those is [eq:lambda-eff](#eq:lambda-eff). And running the law *backwards* — from an inventory to an arrival rate, rather than the usual direction — is the step that is not automatic. [Glynn and Whitt](#ref:glynn-whitt-1989-extensions) proved what it costs: from the time averages alone one gets an inequality rather than an equation, and equality needs an extra condition, the simplest being that the system empties infinitely often. A wheel does — on one name the book is empty about 14% of the time — so the inversion holds here.
 
-Neither of those underwrites the modelling assumption the equation actually rests on, which is that mean holding time survives the blocking unchanged. That is measured further down and is worth more than a citation would be.
+Neither of those underwrites the modelling assumption the equation actually rests on, which is that mean holding time survives the blocking unchanged. That is measured further down.
 
 That inversion is the most useful thing in this section, and it is worth stating without the algebra around it. **The binding resource is capital, and the thing that consumes capital is holding time.** An account cannot sell more puts than its capital will let it hold assignments for, and how long it holds them is [the holding-time section](#sec:holding)'s 2.10 years. That figure has until now been the article's most *surprising* number; here it becomes its most load-bearing one. Halve the holding time and the same account runs twice the strategy.
 
@@ -108,7 +108,7 @@ The constrained steady state is taken to be the unconstrained one **thinned unif
     income per year                    0.590                0.588    +0.4%
     implied E[W]                       1.395                1.385    +0.7%
 
-Under one percent on everything count-like. Thinning is a good approximation, and the capacity and income figures below rest on solid ground. Where it bends is composition, not count — a subject this section returns to once the machinery it depends on is in place.
+Under one percent on everything count-like. Thinning is a good approximation for the capacity and income figures below. Where it bends is composition, not count — a subject this section returns to once the machinery it depends on is in place.
 
 ## A\*, the equity a wheel actually needs
 
@@ -144,7 +144,7 @@ Two things in that table, pointing opposite ways.
 
 **The good news is real but it is a trade, not an escape.** [The inventory section](#sec:inventory) reported that the unconstrained equilibrium takes ninety years to approach, and called it a limit no participant reaches. A constrained account does reach its equilibrium, because a capacity ceiling truncates exactly the slow deep tail that made the approach take a lifetime — 2.4 years at A = 5, under a year at A = 3. But it reaches it in proportion to how little of the strategy it is running. An operator who wants to be at equilibrium in two years gets there by running a quarter of the wheel. An operator running all of it inherits the ninety years unchanged, and one running 99% of it waits 270.
 
-**The bad news is the top of the table.** An account at the model's own thirty-year capital — 11.59 share prices, which is what [the returns section](#sec:returns) reports the strategy as consuming — runs at **60% throughput**, and takes 18.5 years to find out. Smaller accounts are worse in a way that deserves to be stated rather than softened: at A = 5 the strategy runs at a quarter of its rate, and at A = 1 at a twentieth. These are reachable steady states in which the wheel is barely running. That is a legitimate negative result about the strategy at small scale, and it is not a range of outcomes to be presented optimistically.
+**The bad news is the top of the table.** An account at the model's own thirty-year capital — 11.59 share prices, which is what [the returns section](#sec:returns) reports the strategy as consuming — runs at **60% throughput**, and takes 18.5 years to find out. Smaller accounts are worse: at A = 5 the strategy runs at a quarter of its rate, and at A = 1 at a twentieth. These are reachable steady states in which the wheel is barely running.
 
 ### And every number above is a number about one stock
 
@@ -196,7 +196,7 @@ Simulating four cash policies on the same account, the same paths and the same s
 
 The mechanism is the ranking's own explanation. Retained income repays the debit, so g goes strongly negative and the account de-levers itself. Withdrawn income leaves the interest compounding against a price whose median grows at ν = 2.5% while r_b = 5% — a race the borrower loses, and only the dividend closes any of the gap, which a withdrawn dividend does not.
 
-One honest qualification, because it withdraws an appealing piece of arithmetic. The closed form says the withdraw-everything policy pins g = r_b = 5% exactly, against ν = 2.5%, so the third stability boundary below is crossed by a factor of two. Simulated, the realized g under that policy is **+1.3%, not 5%** — withdrawing the income shrinks the account faster than the interest compounds the debit, and the linearization behind [eq:debit-growth](#eq:debit-growth) is exact only where the drain is proportional to the debit. The boundary is crossed by rather less than the closed form advertises. It is crossed nonetheless, and the ranking of the four policies survives intact. Quote ν > g as the criterion and the table as the evidence; do not quote g = r_b as a measured rate.
+One qualification, because it withdraws an appealing piece of arithmetic. The closed form says the withdraw-everything policy pins g = r_b = 5% exactly, against ν = 2.5%, so the third stability boundary below is crossed by a factor of two. Simulated, the realized g under that policy is **+1.3%, not 5%** — withdrawing the income shrinks the account faster than the interest compounds the debit, and the linearization behind [eq:debit-growth](#eq:debit-growth) is exact only where the drain is proportional to the debit. The boundary is crossed by rather less than the closed form advertises. It is crossed nonetheless, and the ranking of the four policies survives intact. Quote ν > g as the criterion and the table as the evidence; do not quote g = r_b as a measured rate.
 
 **A third stability boundary.** [The stability section](#sec:stability) found two conditions for the wheel to work: lots come back iff ν > 0, and the capital in them comes back iff m > σ². The finite account adds a third in the same currency — the account survives iff **ν > g**, the price's median growth outrunning the debt's — and [the stability section](#sec:stability) is where the three are set beside each other and compared.
 
