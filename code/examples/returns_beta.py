@@ -93,28 +93,28 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
 
 CASES = [
     Case("", {
-        "beta_up": (0.830, 0.005),      # section 09: "0.83 on the way up"
+        "beta_up": (0.828, 0.0005),     # section 09: "0.83", and "0.828" beside Conservative
         "beta_dn": (1.000, 0.001),      # "exactly one on the way down"
         "delta_dn20": (1.069, 0.005),   # "1.07 of its capital after a 20% fall"
-        "delta_flat": (0.934, 0.005),   # "0.93 undisturbed"
-        "delta_up20": (0.609, 0.005),   # "0.61 after a 20% rise"
+        "delta_flat": (0.932, 0.005),   # "0.93 undisturbed"
+        "delta_up20": (0.608, 0.005),   # "0.61 after a 20% rise"
         "put_dn20": (1.000, 0.002),     # the put is the whole of the excess
         "put_up20": (0.000, 0.002),     # and contributes nothing on the way up
     }, note="Standard regime, 30y census"),
     Case("--p-star 0.10", {
-        "beta_up": (0.826, 0.005),      # "the strike dial barely moves it"
+        "beta_up": (0.824, 0.0005),     # "0.828 to 0.824": the strike dial barely moves it
         "beta_dn": (1.000, 0.001),
     }, note="Conservative: the dial barely moves the asymmetry"),
     # n is the lever that does move it, and it is section 07's grid tax again:
     # a call period four times the put period gives the stock four times as
     # long to run away from a strike frozen at the start of it.
     Case("--n 1", {
-        "beta_up": (0.929, 0.005),      # "0.93 when calls run on the put clock"
-        "beta_gap": (0.071, 0.005),
+        "beta_up": (0.927, 0.005),      # "0.93 when calls run on the put clock"
+        "beta_gap": (0.073, 0.005),
     }, note="calls on the put clock"),
     Case("--n 13", {
-        "beta_up": (0.684, 0.005),      # "0.68 at quarterly calls"
-        "beta_gap": (0.316, 0.005),
+        "beta_up": (0.683, 0.005),      # "0.68 at quarterly calls"
+        "beta_gap": (0.317, 0.005),
     }, note="quarterly calls against weekly puts"),
     # Higher volatility REDUCES the asymmetry: lots run deeper, so their frozen
     # calls sit further out of the money and give away less of the recovery.

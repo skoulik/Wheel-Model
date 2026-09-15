@@ -81,18 +81,21 @@ Little's law counts the lots but says nothing about how deep they stand, and by 
 For the Standard regime over a thirty-year horizon:
 
     depth of lot below its strike     share of held time     q at mid-depth
-    0 –  2%                                   8%                  0.442
-    2 –  5%                                   5%                  0.275
-    5 – 10%                                  11%                  0.094
-    10 – 15%                                  7%                  0.013
-    15 – 20%                                  9%                  0.001
-    20 – 30%                                 13%                  0.000
-    30 – 50%                                 18%                  0.000
-    deeper than 50%                          28%                  0.000
+     0 –  5%                                15.1%                 0.339
+     5 – 10%                                 9.4%                 0.094
+    10 – 15%                                 8.6%                 0.013
+    15 – 20%                                 7.7%                 0.001
+    20 – 25%                                 6.9%                 0.000
+    25 – 30%                                 6.1%                 0.000
+    30 – 35%                                 5.5%                 0.000
+    35 – 40%                                 4.9%                 0.000
+    40 – 45%                                 4.3%                 0.000
+    45 – 50%                                 3.8%                 0.000
+    deeper than 50%                         27.6%                 0.000
 
-**Forty-six percent of all inventory time is spent more than 30% below the strike**, where the exit probability is zero to three decimals and the covered call is worth nothing at all. The mean depth of standing inventory is 38%, against 1.6% for a freshly assigned lot. The inventory-weighted average exit probability is **0.066 per four-week period, against 0.404 for a fresh lot** — a factor of six.
+**Forty-six percent of all inventory time is spent more than 30% below the strike**, where the exit probability is zero to three decimals and the covered call is worth nothing at all. The mean depth of standing inventory is 38%, against 1.6% for a freshly assigned lot. The inventory-weighted average exit probability is **0.067 per four-week period, against 0.404 for a fresh lot** — a factor of six.
 
-Note where the census sits relative to where q survives. On this call clock a lot needs to be within about ten log-points of its strike to have any realistic chance of leaving — and only the top three rows, a quarter of all held time, are that shallow. The other three quarters is spent in positions that, on any given expiry, are not going anywhere.
+Note where the census sits relative to where q survives. On this call clock a lot needs to be within about ten log-points of its strike to have any realistic chance of leaving — and only the top two rows, a quarter of all held time, are that shallow. The other three quarters is spent in positions that, on any given expiry, are not going anywhere.
 
 The mechanism is **length bias**, and it appears wherever a population is sampled by time rather than by item:
 
@@ -104,7 +107,7 @@ There is a second way to see the same thing, and for a reader who knows any beha
 
 > **Detour: the disposition effect, performed by contract.** One of the most robust findings about how people actually trade is that they sell their winners and keep their losers — [Shefrin and Statman](#ref:shefrin-statman-1985) named it the **disposition effect**, and [Odean](#ref:odean-1998) confirmed it across thousands of ordinary brokerage accounts, where it is not explained away by rebalancing, transaction costs, taxes or by the sold winners doing worse afterwards. It is generally presented as a mistake, and in a taxable account it is a measurable one. Now notice what the strategy in this article does. Every lot that rises to its strike is sold, automatically. No lot below its strike is ever sold at all. **The wheel is the disposition effect written into a contract, with the discretion removed and the frequency raised to certainty** — and the standing inventory described above is exactly what that produces over time. The analogy is structural and should not be pushed further than that: what makes the disposition effect costly for Odean's investors is largely tax, which this article does not model at all.
 
-Over the full stationary limit the picture is starker still: mean depth 79%, inventory-weighted q of 0.036, and 53% of held time spent more than half a log-unit under water. That is the state the system is heading toward across its 90-year approach.
+Over the full stationary limit the picture is starker still: mean depth 78%, inventory-weighted q of 0.036, and 52% of held time spent more than half a log-unit under water. That is the state the system is heading toward across its 90-year approach.
 
 ## Counting lots is not counting money
 

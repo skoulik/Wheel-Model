@@ -152,8 +152,8 @@ Backs [eq:census](#eq:census).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/inventory_census.py` | shares = 7.9%  5.0%  11.4%  7.0%  9.4%  13.0%  18.5%  27.9%, q_mid = 0.442  0.275  0.094  0.013  0.001  0.000  0.000  0.000, mean_x = 37.9%, mean_q = 0.0655, deep30 = 46.3% |
-| `python code/examples/inventory_census.py --stationary` | mean_x = 79.0%, mean_q = 0.0356, deep50 = 52.8% |
+| `python code/examples/inventory_census.py` | shares = 15.1%  9.4%  8.6%  7.7%  6.9%  6.1%  5.5%  4.9%  4.3%  3.8%  27.6%, q_mid = 0.339  0.094  0.013  0.001  0.000  0.000  0.000  0.000  0.000  0.000  0.000, mean_x = 37.7%, mean_q = 0.0668, deep30 = 46.1%, deep10 = 24.5% |
+| `python code/examples/inventory_census.py --stationary` | mean_x = 78.3%, mean_q = 0.0364, deep50 = 52.5% |
 
 ### `inventory_little.py` {#repro:inventory-little}
 
@@ -171,10 +171,10 @@ Backs figures quoted in the prose of [Returns and Capital](#sec:returns), which 
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_beta.py` | beta_up = 0.830, beta_dn = 1.000, delta_dn20 = 1.069, delta_flat = 0.934, delta_up20 = 0.610, put_dn20 = 1.000, put_up20 = 0.000 |
-| `python code/examples/returns_beta.py --p-star 0.10` | beta_up = 0.826, beta_dn = 1.000 |
-| `python code/examples/returns_beta.py --n 1` | beta_up = 0.929, beta_gap = 0.071 |
-| `python code/examples/returns_beta.py --n 13` | beta_up = 0.684, beta_gap = 0.316 |
+| `python code/examples/returns_beta.py` | beta_up = 0.828, beta_dn = 1.000, delta_dn20 = 1.069, delta_flat = 0.932, delta_up20 = 0.608, put_dn20 = 1.000, put_up20 = 0.000 |
+| `python code/examples/returns_beta.py --p-star 0.10` | beta_up = 0.824, beta_dn = 1.000 |
+| `python code/examples/returns_beta.py --n 1` | beta_up = 0.927, beta_gap = 0.073 |
+| `python code/examples/returns_beta.py --n 13` | beta_up = 0.683, beta_gap = 0.317 |
 | `python code/examples/returns_beta.py --sigma 0.30` | beta_up = 0.870, beta_gap = 0.130 |
 
 ### `returns_capital.py` {#repro:returns-capital}

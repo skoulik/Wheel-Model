@@ -1261,13 +1261,21 @@ def levered_excess(excess, L, spread):
     return excess * L - spread * max(0.0, L - 1.0)
 
 
-def census_weights(C, measure, horizon=None, h=0.02, x_max=8.0,
+def census_weights(C, measure, horizon=None, h=0.01, x_max=8.0,
                    j_max=8000, eps=1e-9):
     """(depths, held-time weights) of standing inventory -- the raw census.
 
     `depth_census` bins this; the risk statistics below integrate against it
     directly, because a beta and a book delta are averages over depth rather
     than histograms of it.  Weights are unnormalised held time.
+
+    h = 0.01, the near grid's, and not coarser.  depth_census assigns each cell
+    to a bin by its centre, and at h = 0.02 the centres sit at 1%, 3%, 5%, ...
+    so a cut at 5% or 15% lands ON a centre and hands whole cells to one side:
+    section 08's census once printed 5% / 11% / 7% / 9% for bins whose
+    converged shares are 7.2 / 9.4 / 8.7 / 7.7, a zig-zag the density does not
+    have.  At h = 0.01 every whole-percent cut is a cell boundary, and the
+    shares agree with h = 0.0025 to a tenth of a point.
     """
     m, s = C.world(measure)
     _, _, _, dens = entry_law(C, measure)
@@ -1289,7 +1297,7 @@ def census_weights(C, measure, horizon=None, h=0.02, x_max=8.0,
     return walk.xs, U
 
 
-def depth_census(C, measure, edges, horizon=None, h=0.02, x_max=8.0,
+def depth_census(C, measure, edges, horizon=None, h=0.01, x_max=8.0,
                  j_max=8000, eps=1e-9):
     """How standing inventory is distributed over depth ([eq:census]).
 
