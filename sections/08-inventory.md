@@ -38,7 +38,7 @@ The wheel starts empty, and filling it is slow — because filling it requires t
 
 E[I(t)]  =  λ · ∫₀^t S(u) du    {#eq:little-finite}
 
-Two things make that exact rather than approximate. The average of a sum is the sum of the averages however dependent its terms, so lots sharing one price path do it no harm. And the weekly assignments can be spread into a steady flow because S(u) is flat within each call period, so counting week by week gives the same total at every call date. As t grows, the integral becomes the whole area under the survival curve, which is E[W] by [eq:holding](#eq:holding), and [eq:little](#eq:little) returns. Two readings of that trajectory matter, and they are different numbers:
+Two things make that exact rather than approximate. The average of a sum is the sum of the averages however dependent its terms, so lots sharing one price path do it no harm. And the weekly assignments can be spread into a steady flow because S(u) is flat within each call period, so counting week by week gives the same total at every call date. As t grows, the integral becomes the whole area under the survival curve, which is E[W] by [eq:holding](#eq:holding), so the formula settles back into the equilibrium law, [eq:little](#eq:little). Two readings of that trajectory matter, and they are different numbers:
 
     horizon H                          5 y     10 y     30 y     equilibrium
     E[I(H)], holdings at H            7.95    10.57    15.42        21.82
@@ -46,17 +46,15 @@ Two things make that exact rather than approximate. The average of a sum is the 
 
 The first row is what the operator is holding when the horizon arrives. The second is the average across the whole period, and it is the one the rest of Part II reports, because a return earned over a window has to be measured against the capital committed *throughout* that window rather than at its end. Every horizon-indexed figure from [the returns section](#sec:returns) onward is an average of the second kind, and the distinction is worth carrying: at thirty years the two differ by a third.
 
-That second row is not a truncated version of Little's law. It *is* Little's law, read over the window — and reading it that way turns the gap between 11.40 and 21.82 from an apology into a figure. Divide the window's average inventory by the arrival rate and what comes back is the time a lot spends inside the window:
+The second row is Little's law read over the window: divide the window's average inventory by the arrival rate, and what comes back is the time a lot spends inside it.
 
     horizon H                        5 y      10 y      30 y
     average inventory over [0, H]   5.41      7.39     11.40
     time a lot spends in-window     0.52 y    0.71 y    1.10 y
 
-**Over a thirty-year window a lot spends 1.10 years inside it, against a full life of 2.10.** The window sees about half of each lot, so it holds about half the equilibrium inventory. Nothing is being approximated: a lot assigned in year 28 is genuinely two years old at most by the time the window closes, and counting it as such is the arithmetic rather than a concession to it.
+**Over a thirty-year window a lot spends 1.10 years inside it, against a full life of 2.10.** A lot assigned in year 28 can spend at most two years in the window, so the window sees about half of each lot and holds about half the equilibrium inventory. [Little's finite-window form](#ref:little-2011) covers exactly this case — a window that starts empty and closes with lots still held.
 
-That the law survives being read this way is [Little's own result](#ref:little-2011), proved for exactly this case — a window that starts empty and ends with the queue still occupied, which is a filling wheel to the letter — and it needs no stationarity at all, which the 1961 version did. It is not an exotic reading either: the same identity is standard in computer performance analysis, where it has been used to measure real systems for decades, and where defining a lot's residence as inventory divided by arrival rate is simply the convention when the system is not empty at the end.
-
-One thing it does not do, and the distinction matters for everything that follows. The window law licenses the *measurement* — it says the 11.40 is exactly right for a thirty-year window — and says nothing whatever about the relation between that and the 21.82. Connecting the two is a separate question about how fast the system fills, which is the next thing this section takes up.
+What the window law does not say is how 11.40 relates to 21.82. That is a question of how fast the system fills, which the rest of this subsection takes up.
 
 Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W]. An operator running this strategy for a full career holds about **seven tenths** of where it is heading, still rising, with no indication from the recent past that it is going to keep rising.
 
