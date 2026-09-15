@@ -252,6 +252,52 @@ L 95.650703 3.6
 " clip-path="url(#p444115d8ec)" style="fill: none; stroke-dasharray: 3.2,2.4; stroke-dashoffset: 0; stroke: #898781; stroke-width: 0.8"/>
    </g>
    <g id="line2d_28">
+    <path d="M 29.806703 62.365089 
+L 32.038703 100.195577 
+L 34.270703 130.229978 
+L 36.502703 150.081015 
+L 38.734703 161.212383 
+L 40.966703 166.564008 
+L 43.198703 168.784246 
+L 45.430703 169.582488 
+L 47.662703 169.831928 
+L 49.894703 169.89982 
+L 52.126703 169.91594 
+L 54.358703 169.919283 
+L 56.590703 169.919889 
+L 58.822703 169.919985 
+L 61.054703 169.919998 
+" clip-path="url(#p444115d8ec)" style="fill: none; stroke-dasharray: 0.9,1.44; stroke-dashoffset: 0; stroke: #2a78d6; stroke-width: 0.9"/>
+   </g>
+   <g id="line2d_29">
+    <path d="M 29.806703 119.074911 
+L 32.038703 114.373381 
+L 34.270703 110.412091 
+L 36.502703 107.292551 
+L 38.734703 105.047537 
+L 40.966703 103.645271 
+L 43.198703 103.001698 
+L 45.430703 102.997837 
+L 47.662703 103.498596 
+L 49.894703 104.369785 
+L 52.126703 105.491021 
+L 54.358703 106.763488 
+L 56.590703 108.112703 
+L 58.822703 109.487314 
+L 61.054703 110.855384 
+" clip-path="url(#p444115d8ec)" style="fill: none; stroke-dasharray: 3.6,1.8; stroke-dashoffset: 0; stroke: #2a78d6; stroke-width: 0.9"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 28.690703 169.92 
+L 28.690703 3.6 
+" style="fill: none; stroke: #c3c2b7; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 28.690703 169.92 
+L 363.490703 169.92 
+" style="fill: none; stroke: #c3c2b7; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="line2d_30">
     <path d="M 29.806703 11.52 
 L 32.038703 44.648957 
 L 34.270703 70.722069 
@@ -291,7 +337,7 @@ L 362.374703 168.12087
 L 362.374703 168.12087 
 " clip-path="url(#p444115d8ec)" style="fill: none; stroke: #2a78d6; stroke-width: 1.5; stroke-linecap: round"/>
    </g>
-   <g id="line2d_29">
+   <g id="line2d_31">
     <path d="M 29.806703 86.004766 
 L 32.038703 102.902414 
 L 34.270703 116.125809 
@@ -318,38 +364,46 @@ L 362.374703 163.15858
 L 362.374703 163.15858 
 " clip-path="url(#p444115d8ec)" style="fill: none; stroke: #eb6834; stroke-width: 1.5; stroke-linecap: round"/>
    </g>
-   <g id="patch_3">
-    <path d="M 28.690703 169.92 
-L 28.690703 3.6 
-" style="fill: none; stroke: #c3c2b7; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
-   </g>
-   <g id="patch_4">
-    <path d="M 28.690703 169.92 
-L 363.490703 169.92 
-" style="fill: none; stroke: #c3c2b7; stroke-width: 0.6; stroke-linejoin: miter; stroke-linecap: square"/>
-   </g>
    <g id="text_16">
-    <text style="font-size: 8px; font-family: 'DejaVu Sans', sans-serif; fill: #898781" transform="translate(98.998703 59.387156)">46% of the 30-year census</text>
-    <text style="font-size: 8px; font-family: 'DejaVu Sans', sans-serif; fill: #898781" transform="translate(98.998703 68.989344)">lies deeper than 30%</text>
+    <text style="font-size: 8px; font-family: 'DejaVu Sans', sans-serif; fill: #898781" transform="translate(98.998703 87.899156)">46% of the 30-year census</text>
+    <text style="font-size: 8px; font-family: 'DejaVu Sans', sans-serif; fill: #898781" transform="translate(98.998703 97.501344)">lies deeper than 30%</text>
    </g>
    <g id="legend_1">
-    <g id="line2d_30">
-     <path d="M 204.549453 14.07875 
-L 212.549453 14.07875 
-L 220.549453 14.07875 
+    <g id="line2d_32">
+     <path d="M 187.318203 14.07875 
+L 195.318203 14.07875 
+L 203.318203 14.07875 
 " style="fill: none; stroke: #2a78d6; stroke-width: 1.5; stroke-linecap: round"/>
     </g>
     <g id="text_17">
-     <text style="font-size: 8px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #52514e" x="226.949453" y="16.87875" transform="rotate(-0 226.949453 16.87875)">averaged over the first 30 years</text>
+     <text style="font-size: 8px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #52514e" x="209.718203" y="16.87875" transform="rotate(-0 209.718203 16.87875)">averaged over the first 30 years</text>
     </g>
-    <g id="line2d_31">
-     <path d="M 204.549453 26.079375 
-L 212.549453 26.079375 
-L 220.549453 26.079375 
-" style="fill: none; stroke: #eb6834; stroke-width: 1.5; stroke-linecap: round"/>
+    <g id="line2d_33">
+     <path d="M 187.318203 26.079375 
+L 195.318203 26.079375 
+L 203.318203 26.079375 
+" style="fill: none; stroke-dasharray: 0.9,1.44; stroke-dashoffset: 0; stroke: #2a78d6; stroke-width: 0.9"/>
     </g>
     <g id="text_18">
-     <text style="font-size: 8px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #52514e" x="226.949453" y="28.879375" transform="rotate(-0 226.949453 28.879375)">the stationary limit</text>
+     <text style="font-size: 8px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #52514e" x="209.718203" y="28.879375" transform="rotate(-0 209.718203 28.879375)">of which, lots in their first call period</text>
+    </g>
+    <g id="line2d_34">
+     <path d="M 187.318203 38.08 
+L 195.318203 38.08 
+L 203.318203 38.08 
+" style="fill: none; stroke-dasharray: 3.6,1.8; stroke-dashoffset: 0; stroke: #2a78d6; stroke-width: 0.9"/>
+    </g>
+    <g id="text_19">
+     <text style="font-size: 8px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #52514e" x="209.718203" y="40.88" transform="rotate(-0 209.718203 40.88)">of which, lots held longer</text>
+    </g>
+    <g id="line2d_35">
+     <path d="M 187.318203 50.080625 
+L 195.318203 50.080625 
+L 203.318203 50.080625 
+" style="fill: none; stroke: #eb6834; stroke-width: 1.5; stroke-linecap: round"/>
+    </g>
+    <g id="text_20">
+     <text style="font-size: 8px; font-family: 'DejaVu Sans', sans-serif; text-anchor: start; fill: #52514e" x="209.718203" y="52.880625" transform="rotate(-0 209.718203 52.880625)">the stationary limit</text>
     </g>
    </g>
   </g>

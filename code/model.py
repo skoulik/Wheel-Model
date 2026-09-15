@@ -1262,12 +1262,21 @@ def levered_excess(excess, L, spread):
 
 
 def census_weights(C, measure, horizon=None, h=0.01, x_max=8.0,
-                   j_max=8000, eps=1e-9):
+                   j_max=8000, eps=1e-9, split=False):
     """(depths, held-time weights) of standing inventory -- the raw census.
 
     `depth_census` bins this; the risk statistics below integrate against it
     directly, because a beta and a book delta are averages over depth rather
     than histograms of it.  Weights are unnormalised held time.
+
+    With `split`, returns (depths, first-period weights, later weights) instead
+    -- the j = 0 term of [eq:census] apart from the rest.  They are two shapes:
+    every lot spends its first call period at its entry depth, a few points
+    under its strike, which is the census's spike; a lot that has faced a call
+    is thinned near the strike, where each call takes a share, so the later
+    part rises away from the strike to a shoulder about one call's move deep
+    before it thins.  Their sum is the census, which reads as a spike, a
+    shoulder and a slope only once the two are seen apart.
 
     h = 0.01, the near grid's, and not coarser.  depth_census assigns each cell
     to a bin by its centre, and at h = 0.02 the centres sit at 1%, 3%, 5%, ...
@@ -1282,6 +1291,7 @@ def census_weights(C, measure, horizon=None, h=0.01, x_max=8.0,
     walk = DepthWalk(m - s**2 / 2, s, C.tau_c, h=h, x_max=x_max)
     u = walk.entry_vector(dens)
     U = _np.zeros(walk.n) if _np is not None else [0.0] * walk.n
+    first = None
     for j in range(j_max):
         wt = 1.0 if horizon is None else \
             max(0.0, horizon - (j + 0.5) * C.tau_c) / horizon
@@ -1291,9 +1301,13 @@ def census_weights(C, measure, horizon=None, h=0.01, x_max=8.0,
             else:
                 for i, ui in enumerate(u):
                     U[i] += ui * wt
+        if j == 0:
+            first = list(U)
         if sum(u) < eps and j >= 40:
             break
         u = walk.step(u)
+    if split:
+        return walk.xs, first, [a - b for a, b in zip(U, first)]
     return walk.xs, U
 
 

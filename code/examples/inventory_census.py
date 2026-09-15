@@ -53,6 +53,8 @@ FIELDS = [
     ("deep10", "share of held time within 10% of the strike", ".1%"),
     ("deep30", "share of held time deeper than 30%", ".1%"),
     ("deep50", "share deeper than half a log-unit", ".1%"),
+    ("first_share", "share of held time in a lot's first call period", ".1%"),
+    ("later_peak", "later periods' densest depth", ".1%"),
 ]
 
 
@@ -89,7 +91,22 @@ def compute(cfg=None, measure="P", horizon=None, edges=DEFAULT_EDGES, ctx=None, 
         "deep10": 1.0 - _deep_share(shares, edges, 0.10),
         "deep30": _deep_share(shares, edges, 0.30),
         "deep50": _deep_share(shares, edges, 0.50),
+        **_components(cfg, measure, horizon),
     }
+
+
+def _components(cfg, measure, horizon):
+    """The census's two parts: a lot's first call period, and every later one.
+
+    The first is the spike of fig:depth-census; the second rises away from the
+    strike to a shoulder before it thins, and where it peaks is the depth the
+    prose calls "a little more than one call's move deeper".
+    """
+    xs, first, later = model.census_weights(cfg, measure, horizon=horizon,
+                                            split=True)
+    total = sum(first) + sum(later)
+    peak = max(range(len(later)), key=lambda i: later[i])
+    return {"first_share": sum(first) / total, "later_peak": xs[peak]}
 
 
 def _per_point(xs, weights):
@@ -109,22 +126,39 @@ def _draw_census(fig, ax, cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
     import figures
     cfg = cfg if cfg is not None else model.Config()
     finite = horizon if horizon is not None else 30.0
-    xs, w_fin = model.census_weights(cfg, measure, horizon=finite)
+    xs, first, later = model.census_weights(cfg, measure, horizon=finite,
+                                            split=True)
+    w_fin = [a + b for a, b in zip(first, later)]
     _, w_st = model.census_weights(cfg, measure, horizon=None)
     pct = [100.0 * x for x in xs]
     keep = [i for i, p in enumerate(pct) if p <= 150.0]
     fin, st = _per_point(xs, w_fin), _per_point(xs, w_st)
+    # The two parts on the finite curve's own scale, so they sum to it.
+    scale = sum(w_fin)
+    part = [[100.0 * w / scale * (0.01 / (xs[1] - xs[0])) for w in ws]
+            for ws in (first, later)]
     deep30 = sum(w for x, w in zip(xs, w_fin) if x >= 0.30) / sum(w_fin)
 
-    ax.plot([pct[i] for i in keep], [fin[i] for i in keep],
-            color=figures.SERIES[0], label=f"averaged over the first {finite:.0f} years")
-    ax.plot([pct[i] for i in keep], [st[i] for i in keep],
-            color=figures.SERIES[1], label="the stationary limit")
+    X = [pct[i] for i in keep]
+    # The parts only where they differ from the whole: past about 15 points
+    # the first-period part is zero and the later part IS the curve, so
+    # drawing them on would add a line along the axis and one under the curve.
+    near = [i for i in keep if pct[i] <= 15.0]
+    ax.plot(X, [fin[i] for i in keep], color=figures.SERIES[0], zorder=3,
+            label=f"averaged over the first {finite:.0f} years")
+    ax.plot([pct[i] for i in near], [part[0][i] for i in near],
+            color=figures.SERIES[0], linewidth=0.9, linestyle=(0, (1, 1.6)),
+            zorder=2, label="of which, lots in their first call period")
+    ax.plot([pct[i] for i in near], [part[1][i] for i in near],
+            color=figures.SERIES[0], linewidth=0.9, linestyle=(0, (4, 2)),
+            zorder=2, label="of which, lots held longer")
+    ax.plot(X, [st[i] for i in keep], color=figures.SERIES[1], zorder=3,
+            label="the stationary limit")
     top = max(fin[i] for i in keep)
     figures.reference_line(ax, x=30.0,
                            label=f"{deep30:.0%} of the {finite:.0f}-year census\n"
                                  "lies deeper than 30%",
-                           where=(31.5, top * 0.62))
+                           where=(31.5, top * 0.44))
     ax.set_xlim(0, 150)
     ax.set_ylim(0, top * 1.05)
     ax.set_xlabel("depth below the lot's own call strike, log-points")
@@ -151,6 +185,9 @@ CASES = [
         "deep30": (0.46, 0.005),        # "Forty-six percent ... more than 30% below"
         "deep50": (0.28, 0.005),        # "28% ... more than 50% below the strike"
         "deep10": (0.245, 0.005),       # "only a quarter of all held time is that shallow"
+        # the two parts drawn dashed under the thirty-year curve
+        "first_share": (0.070, 0.005),
+        "later_peak": (0.07, 0.01),     # "a little more than one call's move deeper" (0.055)
     }, note="Standard regime, thirty-year horizon"),
     Case("--stationary", {
         "mean_x": (0.78, 0.005),        # "mean depth 78%"
