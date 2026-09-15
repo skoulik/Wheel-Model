@@ -38,7 +38,7 @@ The wheel starts empty, and filling it is slow — because filling it requires t
 
 E[I(t)]  =  λ · ∫₀^t S(u) du    {#eq:little-finite}
 
-Two things make that exact rather than approximate. The average of a sum is the sum of the averages however dependent its terms, so lots sharing one price path do it no harm. And the weekly assignments can be spread into a steady flow because S(u) is flat within each call period, so counting week by week gives the same total at every call date. As t grows, the integral becomes the whole area under the survival curve, which is E[W] by [eq:holding](#eq:holding), so the formula settles back into the equilibrium law, [eq:little](#eq:little). Two readings of that trajectory matter, and they are different numbers:
+Averages add however dependent the things averaged are, so lots sharing one price path do the count no harm. And although assignments arrive weekly rather than as a steady flow, S(u) is flat within each call period, so counting week by week gives the same total at every call date. As t grows, the integral becomes the whole area under the survival curve, which is E[W] by [eq:holding](#eq:holding), so the formula settles back into the equilibrium law, [eq:little](#eq:little). Two readings of that trajectory matter, and they are different numbers:
 
     horizon H                          5 y     10 y     30 y     equilibrium
     E[I(H)], holdings at H            7.95    10.57    15.42        21.82
