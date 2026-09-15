@@ -60,9 +60,7 @@ Reaching 90% of the equilibrium level takes **90 years** — the horizon at whic
 
 That 90% is a convention: nine tenths of an asymptote is a threshold chosen by whoever is writing, not a date on which anything happens. An operator with a finite account gets a real threshold instead — the date its ceiling starts refusing puts — and [the constrained section](#sec:constrained) computes it, together with the share of the strategy such an account actually runs.
 
-The stationary answer, the one a queueing textbook would call *the* answer, is therefore a limit no operator reaches in a career. **The operator-relevant numbers are the finite-horizon ones**, and every table in the rest of Part II is indexed by horizon rather than reported at equilibrium.
-
-The slowness also explains a trap in live data. An account three years into this strategy has inventory well below both its own eventual level and its own model-implied level, and every year of experience it accumulates *confirms* the comfortable reading. The strategy looks like it is working, and is, and is also filling up.
+The 21.82 is the answer a queueing textbook would give, and it remains the anchor of everything here. It is where the system is heading — the seven tenths above are seven tenths of it — and two later sections are built on it: [the stability section](#sec:stability) asks when it is finite at all, and [the constrained section](#sec:constrained) sizes an account against it. What it is not is a figure an operator will hold in a career, so **the operator-relevant numbers are the finite-horizon ones**, and every table in the rest of Part II is indexed by horizon rather than reported at equilibrium.
 
 ## Arrivals, departures, and self-recycling
 
