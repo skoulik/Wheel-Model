@@ -38,7 +38,8 @@ dividend-withholding leak, because no strategy beats the risk-free rate under
 the pricing measure. It exercises the entry law, the depth walk, the occupation
 measure, premium pricing and the capital definition simultaneously.
 
-Stdlib only (Python 3.8+).
+Stdlib only (Python 3.8+), with numpy and matplotlib used when installed: numpy
+to speed the walk, matplotlib to redraw the figures and compare them.
 """
 
 import argparse
@@ -1144,6 +1145,14 @@ def main():
     # derivation re-declares the {#eq:} anchor of the formula it derives.
     print("--- Derivation coverage ---")
     FAILURES.extend(R.derivations())
+
+    # Figures: every {#fig:} is drawn by a module and committed, and -- when
+    # matplotlib is installed, the one dependency only figures need -- every
+    # committed SVG matches a fresh draw, so a model change cannot leave a
+    # figure showing the old numbers.
+    print("--- Figures ---")
+    FAILURES.extend(R.figures(mods))
+    FAILURES.extend(R.figure_drift(mods) or [])
 
     print()
     if FAILURES:

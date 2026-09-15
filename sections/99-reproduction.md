@@ -150,14 +150,18 @@ Backs [eq:trapped](#eq:trapped), [eq:trapped-zero](#eq:trapped-zero).
 
 Backs [eq:census](#eq:census).
 
+Draws [fig:depth-census](#fig:depth-census): `python code/examples/inventory_census.py --figure`.
+
 | command | the article's figures |
 |---|---|
-| `python code/examples/inventory_census.py` | shares = 15.1%  9.4%  8.6%  7.7%  6.9%  6.1%  5.5%  4.9%  4.3%  3.8%  27.6%, q_mid = 0.339  0.094  0.013  0.001  0.000  0.000  0.000  0.000  0.000  0.000  0.000, mean_x = 37.7%, mean_q = 0.0668, deep30 = 46.1%, deep10 = 24.5% |
+| `python code/examples/inventory_census.py` | shares = 15.1%  9.4%  8.6%  7.7%  6.9%  6.1%  5.5%  4.9%  4.3%  3.8%  27.6%, q_mid = 0.339  0.094  0.013  0.001  0.000  0.000  0.000  0.000  0.000  0.000  0.000, mean_x = 37.7%, mean_q = 0.0668, deep30 = 46.1%, deep50 = 27.6%, deep10 = 24.5% |
 | `python code/examples/inventory_census.py --stationary` | mean_x = 78.3%, mean_q = 0.0364, deep50 = 52.5% |
 
 ### `inventory_little.py` {#repro:inventory-little}
 
 Backs [eq:lambda](#eq:lambda), [eq:little](#eq:little), [eq:little-finite](#eq:little-finite).
+
+Draws [fig:inventory-approach](#fig:inventory-approach): `python code/examples/inventory_little.py --figure`.
 
 | command | the article's figures |
 |---|---|

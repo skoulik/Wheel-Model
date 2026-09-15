@@ -19,8 +19,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from examples._harness import (Case, need_occupation, need_stationary,      # noqa: E402
-                               resolve, run_cli)
+from examples._harness import (Case, Figure, need_occupation,                # noqa: E402
+                               need_stationary, resolve, run_cli)
 import model                                                  # noqa: E402
 
 TITLE = "The inventory: Little's law"
@@ -82,17 +82,57 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
     }
 
 
+def _draw_approach(fig, ax, cfg=None, measure="P", ctx=None, **kw):
+    """fig:inventory-approach -- holdings and their running average, to 150 y.
+
+    Off the extrapolated walk, not the near grid the 5/10/30-year cases use:
+    a curve that has to reach the equilibrium and cross 90% of it where
+    `approach90` says needs the tail the near grid truncates (it runs 0.1 lot
+    high at thirty years and 0.1 low at 150).
+    """
+    import figures
+    cfg = cfg if cfg is not None else model.Config()
+    full = resolve(ctx, need_stationary(cfg, measure))
+    eq = model.economics(cfg, measure, full)["I"]
+    t90 = model.time_to_fraction(cfg, full, 0.9)
+    ts = [0.5 * i for i in range(0, 301)]
+    held = [model.inventory_at(cfg, measure, full, t) for t in ts]
+    avg_ts = ts[1::2]
+    avg = [model.economics(cfg, measure, full, horizon=t)["I"] for t in avg_ts]
+
+    ax.plot(ts, held, color=figures.SERIES[0], label="held at year t")
+    ax.plot(avg_ts, avg, color=figures.SERIES[1],
+            label="averaged over the first t years")
+    figures.reference_line(ax, y=eq, label=f"equilibrium, {eq:.1f} lots",
+                           where=(2, eq + 0.3))
+    ax.plot([t90], [0.9 * eq], "o", color=figures.SERIES[0], markersize=5,
+            markeredgecolor=figures.GROUND, markeredgewidth=1.2, zorder=3)
+    ax.annotate(f"90% of equilibrium\nafter {t90:.0f} years", (t90, 0.9 * eq),
+                xytext=(8, -26), textcoords="offset points",
+                color=figures.INK, fontsize=8)
+    ax.set_xlim(0, 150)
+    ax.set_ylim(0, eq * 1.12)
+    ax.set_xlabel("years since the first put")
+    ax.set_ylabel("lots")
+    ax.legend(loc="lower right")
+
+
+FIGURES = [Figure("inventory-approach", _draw_approach)]
+
+
 CASES = [
     Case("", {
         "lam": (10.4, 0.05),            # eq:lambda: "0.20 / (1/52) = 10.4 lots per year"
         "EW": (2.10, 0.02),             # eq:holding, carried into eq:little
         "EI_eq": (21.8, 0.1),           # eq:little: "10.4 × 2.10 = 21.8 lots"
-        "at_h": ([7.95, 10.57, 15.42], 0.05),      # eq:little-finite, top row
+        # fig:inventory-approach's two curves read at 5/10/30 years; the prose
+        # quotes "15.4 lots against an average of 11.4" at thirty.
+        "at_h": ([7.95, 10.57, 15.42], 0.05),      # eq:little-finite, upper curve
         # "counting week by week gives the same total at every call date"
         "at_h_counted": ([7.95, 10.57, 15.42], 0.005),
-        "horizons": ([5.41, 7.39, 11.40], 0.05),   # the [0,H] average row
-        # "over a thirty-year window a lot spends 1.10 years inside it,
-        # against a full life of 2.10" -- the window reading of the same law
+        "horizons": ([5.41, 7.39, 11.40], 0.05),   # the [0,H] average, lower curve
+        # "0.52 years over a five-year window, 0.71 over ten, and 1.10 over
+        # thirty, against a full life of 2.10" -- the window reading of the law
         "residence": ([0.52, 0.71, 1.10], 0.005),
         "approach90": (90.0, 3.0),      # "Reaching 90% of the equilibrium level takes 90 years"
     }, note="Standard regime"),

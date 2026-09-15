@@ -1,6 +1,6 @@
-"""Coverage and the reproduction appendix.  Stdlib only.
+"""Coverage and the reproduction appendix.  Stdlib only, bar the figure redraw.
 
-Four things the policy needs to stay true rather than aspirational:
+Five things the policy needs to stay true rather than aspirational:
 
 *   `coverage()` reads every `{#eq:...}` anchor out of `sections/` and checks
     it against the formulas the example modules claim to back.  A formula
@@ -31,8 +31,14 @@ Four things the policy needs to stay true rather than aspirational:
     the appendix is reachable in both directions: prose links in, and the
     backs-line links back out to the formulas.
 
-All four are called from `verify_examples.py`; `python -m examples
---coverage`, `--references`, `--registers` and `--appendix` are the shortcuts.
+*   `figures()` and `figure_drift()` hold the figures to the same standard:
+    every `{#fig:}` is drawn by a module and committed under `figures/`, and a
+    committed SVG must match a fresh draw.  The drift check alone needs
+    matplotlib, and says so rather than failing when it is absent.
+
+All are called from `verify_examples.py`; `python -m examples --coverage`,
+`--references`, `--registers`, `--figures-check` and `--appendix` are the
+shortcuts.
 """
 
 import os
@@ -88,6 +94,15 @@ _EQ_REGISTER = "Current anchors, in reading order within each section: "
 _EQ_GROUP = re.compile(r"\((?:section\s+)?(\d\d)\)")
 _SEC_TOKEN = re.compile(r"sec:[a-z0-9-]+")
 _EQ_TOKEN = re.compile(r"eq:[a-z0-9-]+")
+# The figure register reads like the formula register, groups and order alike.
+_FIG_REGISTER = "Current figure anchors, in reading order within each section: "
+_FIG_TOKEN = re.compile(r"fig:[a-z0-9-]+")
+
+# A figure is an image line carrying its anchor: `![Caption.](../figures/x.svg)
+# {#fig:x}`, on one line.  The file stem, the anchor and the Figure's name are
+# one name, so each can be checked against the other two.
+_FIG = re.compile(r"\{#(fig:[a-z0-9-]+)\}")
+_FIG_IMAGE = re.compile(r"!\[[^\]]*\]\(([^)\s]+)\)\{#(fig:[a-z0-9-]+)\}")
 
 # A citation is a markdown link to a bibliography anchor; the numbers a reader
 # sees are assigned at assembly, so the source never carries one.
@@ -387,22 +402,71 @@ def registered_sections():
     return None if text is None else _SEC_TOKEN.findall(text)
 
 
-def registered_anchors():
+def registered_anchors(marker=_EQ_REGISTER, token=_EQ_TOKEN):
     """The `eq:` register, as [(section number, [anchors as listed]), ...].
 
     Order is preserved twice over -- the groups as the register runs, and the
     anchors within each -- because the register claims to be in reading order
-    and a check that ignored order would certify half of what it claims.
+    and a check that ignored order would certify half of what it claims.  The
+    figure register has the same shape and is read by passing its marker.
     """
-    text = _register_line(_EQ_REGISTER)
+    text = _register_line(marker)
     if text is None:
         return None
     out = []
     for group in text.split(";"):
         number = _EQ_GROUP.search(group)
         out.append((number.group(1) if number else None,
-                    _EQ_TOKEN.findall(group)))
+                    token.findall(group)))
     return out
+
+
+def declared_figures():
+    """Every {#fig:...} the article declares, in reading order, -> file."""
+    out = {}
+    for name in section_files():
+        for anchor in _FIG.findall(_read(name, strip_code=True)):
+            out.setdefault(anchor, name)
+    return out
+
+
+def _grouped_register_gaps(declared, groups, kind):
+    """A grouped register against what the sections declare, order included."""
+    failures = []
+    by_file = {}
+    for anchor, name in declared.items():
+        by_file.setdefault(name, []).append(anchor)
+    by_number = {f[:2]: f for f in section_files()}
+    listed = {}
+    for number, anchors in groups:
+        if number is None:
+            if anchors:
+                failures.append(f"{NOTATION}'s {kind} register has a group "
+                                f"naming no section: {', '.join(anchors)}")
+            continue
+        if number not in by_number:
+            failures.append(f"{NOTATION}'s {kind} register names section "
+                            f"{number}, which has no file")
+            continue
+        listed[by_number[number]] = anchors
+
+    for name in sorted(set(listed) | set(by_file)):
+        want, got = by_file.get(name, []), listed.get(name, [])
+        if want == got:
+            continue
+        missing = [a for a in want if a not in got]
+        stale = [a for a in got if a not in want]
+        if missing:
+            failures.append(f"{name} declares {', '.join(missing)}, which "
+                            f"{NOTATION}'s {kind} register omits")
+        if stale:
+            failures.append(f"{NOTATION}'s {kind} register lists "
+                            f"{', '.join(stale)} under {name}, which does not "
+                            f"declare them")
+        if not missing and not stale:
+            failures.append(f"{name}: register order {', '.join(got)} against "
+                            f"reading order {', '.join(want)}")
+    return failures
 
 
 def registers():
@@ -429,47 +493,106 @@ def registers():
                                 f"from {NOTATION}'s cross-reference register")
 
     declared = declared_anchors()
-    by_file = {}
-    for anchor, name in declared.items():
-        by_file.setdefault(name, []).append(anchor)
-
     groups = registered_anchors()
     if groups is None:
         return failures + [f"{NOTATION} declares no formula register"]
+    failures += _grouped_register_gaps(declared, groups, "formula")
 
-    by_number = {f[:2]: f for f in section_files()}
-    listed = {}
-    for number, anchors in groups:
-        if number is None:
-            if anchors:
-                failures.append(f"{NOTATION}'s formula register has a group "
-                                f"naming no section: {', '.join(anchors)}")
-            continue
-        if number not in by_number:
-            failures.append(f"{NOTATION}'s formula register names section "
-                            f"{number}, which has no file")
-            continue
-        listed[by_number[number]] = anchors
+    # Figures, on the formula register's terms.  An article with no figures
+    # yet may have no register either; one that has figures must list them.
+    figs = declared_figures()
+    fig_groups = registered_anchors(_FIG_REGISTER, _FIG_TOKEN)
+    if fig_groups is None:
+        if figs:
+            failures.append(f"{NOTATION} declares no figure register, but the "
+                            f"sections declare {', '.join(figs)}")
+    else:
+        failures += _grouped_register_gaps(figs, fig_groups, "figure")
 
-    for name in sorted(set(listed) | set(by_file)):
-        want, got = by_file.get(name, []), listed.get(name, [])
-        if want == got:
-            continue
-        missing = [a for a in want if a not in got]
-        stale = [a for a in got if a not in want]
-        if missing:
-            failures.append(f"{name} declares {', '.join(missing)}, which "
-                            f"{NOTATION}'s formula register omits")
-        if stale:
-            failures.append(f"{NOTATION}'s formula register lists "
-                            f"{', '.join(stale)} under {name}, which does not "
-                            f"declare them")
-        if not missing and not stale:
-            failures.append(f"{name}: register order {', '.join(got)} against "
-                            f"reading order {', '.join(want)}")
+    print(f"  {len(declared)} formula, {len(figs)} figure and "
+          f"{len(declared_secs)} section anchors against {NOTATION}'s "
+          f"registers; {len(failures)} gap(s)")
+    return failures
 
-    print(f"  {len(declared)} formula and {len(declared_secs)} section anchors "
-          f"against {NOTATION}'s registers; {len(failures)} gap(s)")
+
+def figures(mods=None):
+    """Figures against the sections and figures/.  Failures.
+
+    Text-level and matplotlib-free, so it always runs: every `{#fig:}` a
+    section declares is drawn by some module and has its committed SVG, the
+    image it shows is that SVG, every Figure a module draws is shown somewhere,
+    and figures/ holds nothing else.  Whether a committed SVG is *current* is
+    `figure_drift`'s question, which needs matplotlib.
+    """
+    import figures as F
+    mods = H.discover() if mods is None else mods
+    drawn = {f"fig:{f.name}": m.__name__.rsplit(".", 1)[-1]
+             for m in mods for f in getattr(m, "FIGURES", [])}
+    declared = declared_figures()
+    failures = []
+    for name in section_files():
+        for path, anchor in _FIG_IMAGE.findall(_read(name, strip_code=True)):
+            want = f"../figures/{anchor[4:]}.svg"
+            if path != want:
+                failures.append(f"{name}: {anchor} shows {path}, not {want}")
+    shown = {a for n in section_files()
+             for _, a in _FIG_IMAGE.findall(_read(n, strip_code=True))}
+    for anchor, name in declared.items():
+        if anchor not in shown:
+            failures.append(f"{name}: {anchor} is not on an image line")
+        if anchor not in drawn:
+            failures.append(f"{name} declares {anchor}, which no example "
+                            f"module draws")
+    for anchor, mod in sorted(drawn.items()):
+        if anchor not in declared:
+            failures.append(f"{mod} draws {anchor}, which no section shows")
+        if not os.path.exists(os.path.join(F.FIGURES_DIR, f"{anchor[4:]}.svg")):
+            failures.append(f"figures/{anchor[4:]}.svg is missing: "
+                            f"python -m examples --figures")
+    if os.path.isdir(F.FIGURES_DIR):
+        for fn in sorted(os.listdir(F.FIGURES_DIR)):
+            if fn.endswith(".svg") and f"fig:{fn[:-4]}" not in drawn:
+                failures.append(f"figures/{fn} is drawn by no module")
+    print(f"  {len(declared)} figures declared, {len(drawn)} drawn; "
+          f"{len(failures)} gap(s)")
+    return failures
+
+
+def figure_drift(mods=None):
+    """Redraw every figure into a scratch directory and compare bytes.
+
+    Failures, or None when matplotlib is not installed -- the skip is reported,
+    not silent.  Output is deterministic (see `figures.py`), so a difference is
+    a figure that has gone stale against the model, or a different matplotlib.
+    """
+    import shutil
+    import tempfile
+    try:
+        import matplotlib                                      # noqa: F401
+    except ImportError:
+        print("  SKIP  matplotlib not installed; committed figures not redrawn")
+        return None
+    import figures as F
+    mods = H.discover() if mods is None else mods
+    mods = [m for m in mods if getattr(m, "FIGURES", None)]
+    ctx = H.solve_all(H.collect_needs(mods))
+    tmp = tempfile.mkdtemp(prefix="wheel-figures-")
+    failures = []
+    try:
+        paths = H.draw_figures(mods, tmp, ctx)
+        for path in paths:
+            fn = os.path.basename(path)
+            committed = os.path.join(F.FIGURES_DIR, fn)
+            if not os.path.exists(committed):
+                continue                      # figures() reports it missing
+            with open(path, "rb") as a, open(committed, "rb") as b:
+                if a.read() != b.read():
+                    failures.append(f"figures/{fn} is stale against the model: "
+                                    f"python -m examples --figures")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    print(f"  {len(paths)} figures redrawn and compared; "
+          f"{len(failures)} stale")
     return failures
 
 
@@ -542,6 +665,10 @@ def appendix(mods=None):
                          f"[{title}](#{sec}), which carry no formula of their "
                          "own." if sec else
                          "Backs figures quoted in prose."), ""]
+            for f in getattr(m, "FIGURES", []):
+                cmd = f"python code/examples/{name}.py {f.flags} --figure"
+                cmd = " ".join(cmd.split())
+                out += [f"Draws [fig:{f.name}](#fig:{f.name}): `{cmd}`.", ""]
             out += ["| command | the article's figures |", "|---|---|"]
             for case in m.CASES:
                 cmd = f"python code/examples/{name}.py {case.flags}".rstrip()

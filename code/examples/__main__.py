@@ -3,6 +3,8 @@
     python -m examples --list        what exists, and what it backs
     python -m examples --check       every case, against the article
     python -m examples --run         every example's CLI output at defaults
+    python -m examples --figures     write the article's figures to figures/
+    python -m examples --figures-check   fail if a committed figure is stale
 
 From `code/`, or anywhere with `code/` on the path.  `verify_examples.py`
 calls the same machinery; this is the shortcut for working on one module.
@@ -32,13 +34,18 @@ def main():
                     help="every #drv: linked in sections/ is a derivations entry")
     ap.add_argument("--appendix", action="store_true",
                     help="print the reproduction appendix as markdown")
+    ap.add_argument("--figures", action="store_true",
+                    help="write the article's figures to figures/ (needs matplotlib)")
+    ap.add_argument("--figures-check", action="store_true",
+                    help="every {#fig:} has a script and a file, and every "
+                         "committed figure matches a fresh draw")
     ap.add_argument("--only", default=None,
                     help="restrict to modules whose name contains this")
     ap.add_argument("--quiet", action="store_true", help="failures only")
     args = ap.parse_args()
     if not (args.list or args.check or args.run or args.coverage
             or args.references or args.registers or args.derivations
-            or args.appendix):
+            or args.appendix or args.figures or args.figures_check):
         args.check = True
 
     mods = H.discover()
@@ -66,6 +73,23 @@ def main():
     if args.appendix:
         from examples import _report
         print(_report.appendix(mods))
+
+    if args.figures:
+        import figures
+        # --only narrows what is drawn; the directory is shared, so nothing
+        # else in it is touched.
+        ctx = H.solve_all(H.collect_needs(mods))
+        for path in H.draw_figures(mods, figures.FIGURES_DIR, ctx):
+            print(f"  wrote {os.path.relpath(path)}")
+
+    if args.figures_check:
+        from examples import _report
+        gaps = _report.figures(mods)
+        drift = _report.figure_drift(mods)
+        gaps += drift or []
+        for g in gaps:
+            print(f"  {g}")
+        return 1 if gaps else 0
 
     if args.coverage:
         from examples import _report

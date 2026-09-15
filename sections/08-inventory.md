@@ -38,25 +38,17 @@ The wheel starts empty, and filling it is slow — because filling it requires t
 
 E[I(t)]  =  λ · ∫₀^t S(u) du    {#eq:little-finite}
 
-Averages add however dependent the things averaged are, so lots sharing one price path do the count no harm. And although assignments arrive weekly rather than as a steady flow, S(u) is flat within each call period, so counting week by week gives the same total at every call date. As t grows, the integral becomes the whole area under the survival curve, which is E[W] by [eq:holding](#eq:holding), so the formula settles back into the equilibrium law, [eq:little](#eq:little). Two readings of that trajectory matter, and they are different numbers:
+Averages add however dependent the things averaged are, so lots sharing one price path do the count no harm. And although assignments arrive weekly rather than as a steady flow, S(u) is flat within each call period, so counting week by week gives the same total at every call date. As t grows, the integral becomes the whole area under the survival curve, which is E[W] by [eq:holding](#eq:holding), so the formula settles back into the equilibrium law, [eq:little](#eq:little). Two readings of that trajectory matter, and figure [fig:inventory-approach](#fig:inventory-approach) draws both:
 
-    horizon H                          5 y     10 y     30 y     equilibrium
-    E[I(H)], holdings at H            7.95    10.57    15.42        21.82
-    average over [0, H]               5.41     7.39    11.40        21.82
+![Lots held at year t, and their average over the first t years, rising toward the equilibrium of 21.8 lots.](../figures/inventory-approach.svg){#fig:inventory-approach}
 
-The first row is what the operator is holding when the horizon arrives. The second is the average across the whole period, and it is the one the rest of Part II reports, because a return earned over a window has to be measured against the capital committed *throughout* that window rather than at its end. Every horizon-indexed figure from [the returns section](#sec:returns) onward is an average of the second kind, and the distinction is worth carrying: at thirty years the two differ by a third.
+The upper curve is what the operator is holding when year t arrives. The lower is the average across the whole period, and it is the one the rest of Part II reports, because a return earned over a window has to be measured against the capital committed *throughout* that window rather than at its end. Every horizon-indexed figure from [the returns section](#sec:returns) onward is an average of the second kind, and the distinction is worth carrying: at thirty years the operator holds 15.4 lots against an average of 11.4, a third more.
 
-The second row is Little's law read over the window: divide the window's average inventory by the arrival rate, and what comes back is the time a lot spends inside it.
+The lower curve is Little's law read over the window: divide the window's average inventory by the arrival rate, and what comes back is the time a lot spends inside it — 0.52 years over a five-year window, 0.71 over ten, and **1.10 over thirty, against a full life of 2.10.** A lot assigned in year 28 can spend at most two years in the window, so the window sees about half of each lot and holds about half the equilibrium inventory. [Little's finite-window form](#ref:little-2011) covers exactly this case — a window that starts empty and closes with lots still held.
 
-    horizon H                        5 y      10 y      30 y
-    average inventory over [0, H]   5.41      7.39     11.40
-    time a lot spends in-window     0.52 y    0.71 y    1.10 y
+What the window law does not say is how 11.4 relates to 21.8. That is a question of how fast the system fills, which the rest of this subsection takes up.
 
-**Over a thirty-year window a lot spends 1.10 years inside it, against a full life of 2.10.** A lot assigned in year 28 can spend at most two years in the window, so the window sees about half of each lot and holds about half the equilibrium inventory. [Little's finite-window form](#ref:little-2011) covers exactly this case — a window that starts empty and closes with lots still held.
-
-What the window law does not say is how 11.40 relates to 21.82. That is a question of how fast the system fills, which the rest of this subsection takes up.
-
-Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W]. An operator running this strategy for a full career holds about **seven tenths** of where it is heading, and the holding is still rising.
+Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W], marked on the upper curve. An operator running this strategy for a full career holds about **seven tenths** of where it is heading, and the holding is still rising.
 
 That 90% is a convention: nine tenths of an asymptote is a threshold chosen by whoever is writing, not a date on which anything happens. An operator with a finite account gets a real threshold instead — the date its ceiling starts refusing puts — and [the constrained section](#sec:constrained) computes it, together with the share of the strategy such an account actually runs.
 
@@ -78,24 +70,13 @@ Little's law counts the lots but says nothing about how deep they stand, and by 
 
 ρ(x)  ∝  Σ_j  P( x_j ∈ dx,  J > j )    {#eq:census}
 
-For the Standard regime over a thirty-year horizon:
+Figure [fig:depth-census](#fig:depth-census) draws it for the Standard regime, as a share of held time per point of depth, averaged over the first thirty years and in the stationary limit:
 
-    depth of lot below its strike     share of held time     q at mid-depth
-     0 –  5%                                15.1%                 0.339
-     5 – 10%                                 9.4%                 0.094
-    10 – 15%                                 8.6%                 0.013
-    15 – 20%                                 7.7%                 0.001
-    20 – 25%                                 6.9%                 0.000
-    25 – 30%                                 6.1%                 0.000
-    30 – 35%                                 5.5%                 0.000
-    35 – 40%                                 4.9%                 0.000
-    40 – 45%                                 4.3%                 0.000
-    45 – 50%                                 3.8%                 0.000
-    deeper than 50%                         27.6%                 0.000
+![The depth census: share of held time per point of depth, averaged over the first thirty years and in the stationary limit.](../figures/depth-census.svg){#fig:depth-census}
 
-**Forty-six percent of all inventory time is spent more than 30% below the strike**, where the exit probability is zero to three decimals and the covered call is worth nothing at all. The mean depth of standing inventory is 38%, against 1.6% for a freshly assigned lot. The inventory-weighted average exit probability is **0.067 per four-week period, against 0.404 for a fresh lot** — a factor of six.
+The shape is one spike and a long slope. Fresh lots crowd the first few points, and most of them leave within a few calls; what stays spreads out and thins only slowly, so that 28% of thirty-year held time lies more than 50% below the strike. **Forty-six percent of it is spent more than 30% below the strike**, where the exit probability is effectively zero and the covered call is worth nothing at all. The mean depth of standing inventory is 38%, against 1.6% for a freshly assigned lot. The inventory-weighted average exit probability is **0.067 per four-week period, against 0.404 for a fresh lot** — a factor of six.
 
-Note where the census sits relative to where q survives. On this call clock a lot needs to be within about ten log-points of its strike to have any realistic chance of leaving — and only the top two rows, a quarter of all held time, are that shallow. The other three quarters is spent in positions that, on any given expiry, are not going anywhere.
+Set the census against the exit probability of [eq:qx](#eq:qx). On this call clock a lot needs to be within about ten log-points of its strike to have any realistic chance of leaving — q is 0.094 at 7.5 points and already 0.013 at 12.5 — and only a quarter of all held time is that shallow. The other three quarters is spent in positions that, on any given expiry, are not going anywhere.
 
 The mechanism is **length bias**, and it appears wherever a population is sampled by time rather than by item:
 
@@ -107,7 +88,7 @@ There is a second way to see the same thing, and for a reader who knows any beha
 
 > **Detour: the disposition effect, performed by contract.** One of the most robust findings about how people actually trade is that they sell their winners and keep their losers — [Shefrin and Statman](#ref:shefrin-statman-1985) named it the **disposition effect**, and [Odean](#ref:odean-1998) confirmed it across thousands of ordinary brokerage accounts, where it is not explained away by rebalancing, transaction costs, taxes or by the sold winners doing worse afterwards. It is generally presented as a mistake, and in a taxable account it is a measurable one. Now notice what the strategy in this article does. Every lot that rises to its strike is sold, automatically. No lot below its strike is ever sold at all. **The wheel is the disposition effect written into a contract, with the discretion removed and the frequency raised to certainty** — and the standing inventory described above is exactly what that produces over time. The analogy is structural and should not be pushed further than that: what makes the disposition effect costly for Odean's investors is largely tax, which this article does not model at all.
 
-Over the full stationary limit the picture is starker still: mean depth 78%, inventory-weighted q of 0.036, and 52% of held time spent more than half a log-unit under water. That is the state the system is heading toward across its 90-year approach.
+The stationary curve in figure [fig:depth-census](#fig:depth-census) is starker still: mean depth 78%, inventory-weighted q of 0.036, and 52% of held time spent more than half a log-unit under water. That is the state the system is heading toward across its 90-year approach.
 
 ## Counting lots is not counting money
 

@@ -21,7 +21,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from examples._harness import Case, need_census, resolve, run_cli   # noqa: E402
+from examples._harness import (Case, Figure, need_census, resolve,   # noqa: E402
+                               run_cli)
 import model                                                  # noqa: E402
 
 TITLE = "The inventory: depth census"
@@ -91,20 +92,65 @@ def compute(cfg=None, measure="P", horizon=None, edges=DEFAULT_EDGES, ctx=None, 
     }
 
 
+def _per_point(xs, weights):
+    """Census weights as percent of held time per point of depth."""
+    h = xs[1] - xs[0]
+    total = sum(weights)
+    return [100.0 * w / total * (0.01 / h) for w in weights]
+
+
+def _draw_census(fig, ax, cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
+    """fig:depth-census -- the census as a density, finite horizon and limit.
+
+    Plotted per point of depth, which is what the old uneven bins hid: a
+    share read off a wider bin is larger without the density being higher.
+    Drawn to 150% below the strike; the stationary census carries on past it.
+    """
+    import figures
+    cfg = cfg if cfg is not None else model.Config()
+    finite = horizon if horizon is not None else 30.0
+    xs, w_fin = model.census_weights(cfg, measure, horizon=finite)
+    _, w_st = model.census_weights(cfg, measure, horizon=None)
+    pct = [100.0 * x for x in xs]
+    keep = [i for i, p in enumerate(pct) if p <= 150.0]
+    fin, st = _per_point(xs, w_fin), _per_point(xs, w_st)
+    deep30 = sum(w for x, w in zip(xs, w_fin) if x >= 0.30) / sum(w_fin)
+
+    ax.plot([pct[i] for i in keep], [fin[i] for i in keep],
+            color=figures.SERIES[0], label=f"averaged over the first {finite:.0f} years")
+    ax.plot([pct[i] for i in keep], [st[i] for i in keep],
+            color=figures.SERIES[1], label="the stationary limit")
+    top = max(fin[i] for i in keep)
+    figures.reference_line(ax, x=30.0,
+                           label=f"{deep30:.0%} of the {finite:.0f}-year census\n"
+                                 "lies deeper than 30%",
+                           where=(31.5, top * 0.62))
+    ax.set_xlim(0, 150)
+    ax.set_ylim(0, top * 1.05)
+    ax.set_xlabel("depth below the lot's own call strike, log-points")
+    ax.set_ylabel("% of held time per point of depth")
+    ax.legend(loc="upper right")
+
+
+FIGURES = [Figure("depth-census", _draw_census)]
+
+
 CASES = [
     Case("", {
-        # section 08 table: shares and q at mid-depth, top row to bottom.  The
-        # shares are quoted to a tenth of a point and checked to 0.06 of one:
-        # the old whole-percent tolerance of 1.2 points was wider than the grid
-        # artifact it should have caught (see census_weights).
+        # fig:depth-census, binned: the shares are the figure's density summed
+        # over five-point bins, checked to 0.06 of a point -- the old
+        # whole-percent tolerance of 1.2 points was wider than the grid
+        # artifact it should have caught (see census_weights).  The prose
+        # quotes the tail bin and two of the q values.
         "shares": ([0.151, 0.094, 0.086, 0.077, 0.069, 0.061,
                     0.055, 0.049, 0.043, 0.038, 0.276], 0.0006),
         "q_mid": ([0.339, 0.094, 0.013, 0.001, 0.000, 0.000,
-                   0.000, 0.000, 0.000, 0.000, 0.000], 0.0005),
+                   0.000, 0.000, 0.000, 0.000, 0.000], 0.0005),  # "0.094 at 7.5 points, 0.013 at 12.5"
         "mean_x": (0.377, 0.005),       # "mean depth of standing inventory is 38%"
         "mean_q": (0.067, 0.0005),      # "0.067 per four-week period"
         "deep30": (0.46, 0.005),        # "Forty-six percent ... more than 30% below"
-        "deep10": (0.245, 0.005),       # "the top two rows, a quarter of all held time"
+        "deep50": (0.28, 0.005),        # "28% ... more than 50% below the strike"
+        "deep10": (0.245, 0.005),       # "only a quarter of all held time is that shallow"
     }, note="Standard regime, thirty-year horizon"),
     Case("--stationary", {
         "mean_x": (0.78, 0.005),        # "mean depth 78%"

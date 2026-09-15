@@ -44,7 +44,7 @@ types, cash policies, regime comparisons.
   renders it. Mirrors how `FIELDS` drives the printed table and the appendix.
 - **Commands.** `python code/examples/<script>.py --figure` writes that script's
   figures; `python -m examples --figures` writes all of them; `python -m examples
-  --figures --check` regenerates into a temporary directory and fails if any committed
+  --figures-check` regenerates into a temporary directory and fails if any committed
   SVG differs. The last runs inside `verify_examples.py`.
 - **Output.** `figures/<name>.svg`, committed.
 - **In the sections.** `![Caption.](../figures/census.svg){#fig:census}` on its own

@@ -25,7 +25,7 @@ simulation of a model cannot refute that model's own assumption.  Section 05
 says so in those words; nothing here should be read as evidence for it.
 
 Seeded, so the appendix row is stable and the assertions are reproducible.
-Stdlib only, like every module here.
+Stdlib only, like every module's computation here.
 """
 
 import os

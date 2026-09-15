@@ -1,4 +1,4 @@
-"""Shared machinery for the worked examples.  Stdlib only.
+"""Shared machinery for the worked examples.  Stdlib only; figures need matplotlib.
 
 An example module is a *presentation layer* over `model.py`: it parses
 arguments, calls model functions, and formats the result.  It must not define
@@ -16,8 +16,12 @@ A module supplies:
     requires() the expensive solves it needs, as a list of Need
     compute()  the numbers, as a dict keyed by FIELDS' keys
     CASES      the article's own invocations, and what it claims they print
+    FIGURES    optional [Figure] -- the article's figures this module draws
 
-and ends with the standard main guard.  Copy an existing module; the two
+and ends with the standard main guard.  A Figure's `draw` presents numbers from
+`model.py` exactly as `compute` does, and matplotlib is imported only when one
+is drawn (`--figure` on the CLI, `python -m examples --figures` for the
+article's set), so nothing else here needs it.  Copy an existing module; the two
 exemplars are `entry_strike.py` (closed form, no solve) and `holding_time.py`
 (hangs off one killed walk).
 
@@ -174,6 +178,20 @@ class Case(NamedTuple):
     note: str = ""
 
 
+class Figure(NamedTuple):
+    """One figure the article shows.
+
+    `name` is the file stem and the anchor: `figures/<name>.svg`, declared in
+    a section as `{#fig:<name>}`.  `draw(fig, ax, ctx=None, **params)` plots
+    onto a styled figure from `figures.new()`, taking the same parameters
+    `compute` takes.  `flags` is the command line the article's copy is drawn
+    at, the same convention as a Case.
+    """
+    name: str
+    draw: object
+    flags: str = ""
+
+
 # ----------------------------------------------------------------------
 # The common command line: every Config field, plus measure and horizon
 # ----------------------------------------------------------------------
@@ -217,6 +235,11 @@ def build_parser(mod):
                     dest="horizon", help="the equilibrium limit instead")
     for flag, kw in getattr(mod, "EXTRA", []):
         ap.add_argument(flag, **kw)
+    if getattr(mod, "FIGURES", None):
+        ap.add_argument("--figure", action="store_true",
+                        help="also draw this script's figures at these "
+                             "parameters, as SVG in the current directory "
+                             "(needs matplotlib)")
     return ap
 
 
@@ -226,7 +249,7 @@ def _params_from_args(args):
     cfg_kw = {f.name: seen[f.name] for f in fields(Config)
               if f.init and f.name not in _SKIP_ARGS}
     extra = {k: v for k, v in seen.items()
-             if k not in cfg_kw and k not in ("measure", "horizon")}
+             if k not in cfg_kw and k not in ("measure", "horizon", "figure")}
     return dict(cfg=Config(**cfg_kw), measure=args.measure,
                 horizon=args.horizon, **extra)
 
@@ -258,10 +281,38 @@ def render(mod, out):
 
 
 def run_cli(mod, argv=None):
-    """The standard main(): parse, compute, print."""
-    params = _params_from_args(build_parser(mod).parse_args(argv))
+    """The standard main(): parse, compute, print -- and draw, if asked."""
+    args = build_parser(mod).parse_args(argv)
+    params = _params_from_args(args)
     print(mod.TITLE)
     print(render(mod, mod.compute(**params)))
+    if getattr(args, "figure", False):
+        # At the reader's own parameters and into their working directory:
+        # never over the article's copies in figures/, which only
+        # `python -m examples --figures` writes.
+        for f in mod.FIGURES:
+            path = draw_figure(f, os.getcwd(), params)
+            print(f"  wrote {os.path.basename(path)}")
+
+
+# ----------------------------------------------------------------------
+# Figures
+# ----------------------------------------------------------------------
+
+def draw_figure(f, outdir, params, ctx=None):
+    """Draw one Figure at `params` into `outdir`; returns the path written."""
+    import figures
+    fig, ax = figures.new()
+    f.draw(fig, ax, ctx=ctx, **params)
+    path = os.path.join(outdir, f"{f.name}.svg")
+    figures.save(fig, path)
+    return path
+
+
+def draw_figures(mods, outdir, ctx=None):
+    """Every module's article figures, at their own flags.  Paths written."""
+    return [draw_figure(f, outdir, params_from(mod, f.flags), ctx)
+            for mod in mods for f in getattr(mod, "FIGURES", [])]
 
 
 # ----------------------------------------------------------------------
@@ -272,8 +323,9 @@ def collect_needs(mods):
     """Every expensive solve every case of every module asks for."""
     needs = []
     for mod in mods:
-        for case in mod.CASES:
-            needs.extend(mod.requires(**params_from(mod, case.flags)))
+        for flags in ([c.flags for c in mod.CASES]
+                      + [f.flags for f in getattr(mod, "FIGURES", [])]):
+            needs.extend(mod.requires(**params_from(mod, flags)))
     return needs
 
 
