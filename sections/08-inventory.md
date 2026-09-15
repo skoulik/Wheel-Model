@@ -26,7 +26,7 @@ E[I]  =  λ · E[W]  =  10.4 × 2.10  =  **21.8 lots**    {#eq:little}
 
 Twenty-two lots. The strategy was described at the outset as one that sells puts and occasionally takes assignment; at equilibrium it is a strategy that owns twenty-two lots of stock and sells puts on the side. And it earned that inventory honestly: 10.4 assignments a year, each lingering two years, is twenty-two.
 
-Note what Little's law let us skip. Nothing here needed the exits to be independent, or the arrival stream to be smooth, or the holding times to follow any particular distribution — all of which are false for a single stock, whose lots ride one price path and are called away in batches. The average is exact regardless. That robustness is why this identity, rather than any distributional argument, is the load-bearing step of the article.
+The wheel needs every freedom the detour listed. Its lots ride one price path, so they are called away in batches when the price recovers, and the fall that assigns a new lot pushes the held ones deeper; they leave in order of depth, not of arrival; and their stays follow nothing tidy — half gone within eight weeks, the mean over two years. The average survives all of it exactly, which is why this identity, rather than any distributional argument, is the load-bearing step of the article.
 
 There is also a way to say the answer with no clock in it at all, and it may be the version worth keeping. Count time in *arrivals* rather than in years, and the law reads: **while you hold one lot, about twenty-two more are assigned.** Same number, nothing for the reader to multiply, and no rate to be quoted per year.
 
@@ -136,10 +136,10 @@ None of this is new, and the person who said so first was Little. His own illust
 
 ## A note on the shape of the distribution
 
-Everything above concerns averages, which is all Little's law provides and all the economics needs. The *distribution* of I on a single stock is another matter: it is not the tidy bell-shaped thing a queueing course would suggest, because lots on one name share one price path — they deepen together and are called away in batches. The realized distribution is heavily skewed, with long empty stretches punctuated by deep pile-ups, and its variance runs several times its mean.
+Everything above concerns averages, which is all Little's law provides and all the economics needs. The *distribution* of I on a single stock is another matter: the shared price path described above makes it nothing like the tidy bell-shaped thing a queueing course would suggest. The realized distribution is heavily skewed, with long empty stretches punctuated by deep pile-ups, and its variance runs several times its mean.
 
 The classical result — that an infinite-server queue settles into a **Poisson** distribution, whose variance equals its mean — needs arrivals and departures to be independent. That is false for one stock and true across many.
 
-There is also a distributional version of Little's law itself, which would seem to be exactly the tool for the job, and it is worth naming the reason it is not. It requires items to leave **in the order they arrived**. The wheel does no such thing: lots leave in order of *depth*, so a lot assigned last week can be called away years before one assigned in a drawdown, which is the whole of [the holding-time section](#sec:holding). That is the precise reason only the mean carries over — and it is a sharper reason than the shared price path, though the shared path is why the law's other condition fails too.
+There is also a distributional version of Little's law itself, which would seem to be exactly the tool for the job, and it is worth naming the reason it is not. It requires items to leave **in the order they arrived**, and the wheel's lots, as noted above, leave in order of depth instead. That is the precise reason only the mean carries over — and it is a sharper reason than the shared price path, though the shared path is why the law's other condition fails too.
 
 So the distributional claims belong to [the portfolio section](#sec:portfolio), where they are earned, rather than here, where they would be assumed. [The verification section](#sec:verification) reports what the single-name distribution actually looks like.
