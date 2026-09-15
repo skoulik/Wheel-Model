@@ -543,7 +543,7 @@ def call_premium(C, x):
 
 
 def early_exercise_threshold(C, days, div=None):
-    """Section 05's caveat table: how far above its strike a lot must sit
+    """Section 05's caveat figure: how far above its strike a lot must sit
     before exercising its call early beats holding it to expiry.
 
     The classic case is the day before the stock goes ex-dividend.

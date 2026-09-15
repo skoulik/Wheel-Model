@@ -79,6 +79,8 @@ Backs [eq:normal](#eq:normal), [eq:phi](#eq:phi).
 
 Backs [eq:lognormal](#eq:lognormal), [eq:bs-put](#eq:bs-put), [eq:bs-call](#eq:bs-call), [eq:iv](#eq:iv), [eq:early-exercise-call](#eq:early-exercise-call), [eq:early-exercise-put](#eq:early-exercise-put).
 
+Draws [fig:early-exercise-call](#fig:early-exercise-call): `python code/examples/entry_pricing.py --figure`.
+
 | command | the article's figures |
 |---|---|
 | `python code/examples/entry_pricing.py` | m = 0.0450, nu_log = 0.0250, mean_factor = 1.000866, median_factor = 1.000481, k = 0.9774, n_md2 = 20.39%, delta_put = 19.6046%, delta_fd = 19.6046%, delta_naive = 19.6140%, ex_div = 0.6250%, ex_thresh = 5.46%  4.14%  2.75%  1.24%  0.23%, px_int = 0.0962%, px_below = 6.79%, px_fall = 8.90%, px_sigma = 3.36, px_prob = 0.0737%, iv_back = 0.200000, iv_err = -7.2e-16, parity = 2.8e-17, screen_check = 0.0e+00 |

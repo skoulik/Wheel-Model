@@ -40,7 +40,7 @@ from math import exp, log, sqrt
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from examples._harness import Case, run_cli                   # noqa: E402
+from examples._harness import Case, Figure, run_cli           # noqa: E402
 import model                                                  # noqa: E402
 
 TITLE = "Entry: the lognormal model and the Black-Scholes formula"
@@ -77,8 +77,9 @@ FIELDS = [
     ("px_prob", "  chance of TOUCHING it inside one tenor", ".4%"),
 ]
 
-# Section 05's caveat table, at the day counts it prints.  28 days is one
-# call period; 3 is the last moment an exercise could still be called early.
+# Section 05's early-exercise threshold, read at five day counts -- the points
+# the prose argues from; fig:early-exercise-call draws the whole curve.  28 days
+# is one call period; 3 is the last moment an exercise could still be early.
 EX_DAYS = [28, 21, 14, 7, 3]
 
 
@@ -168,6 +169,33 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
     }
 
 
+def _draw_early_exercise(fig, ax, cfg=None, **kw):
+    """fig:early-exercise-call -- the call-leg threshold across one call period.
+
+    Days to expiry run down from left to right, so the curve reads in the
+    order a call lives it.  The guide is one call period's typical move,
+    sigma*sqrt(tau_c), which the prose sets the 28-day threshold against.
+    """
+    import figures
+    cfg = cfg if cfg is not None else model.Config()
+    span = cfg.tau_c * 365.0
+    days = [0.25 * i for i in range(1, int(span / 0.25) + 1)]
+    pct = [100.0 * model.early_exercise_threshold(cfg, d) for d in days]
+    move = 100.0 * cfg.sigma * sqrt(cfg.tau_c)
+
+    ax.plot(days, pct, color=figures.SERIES[0])
+    figures.reference_line(ax, y=move,
+                           label=f"one call period's typical move, σ·√τ_c = {move:.1f}%",
+                           where=(span * 0.97, move + 0.12))
+    ax.set_xlim(span, 0.0)
+    ax.set_ylim(0.0, move * 1.2)
+    ax.set_xlabel("days to expiry")
+    ax.set_ylabel("stock above strike, %")
+
+
+FIGURES = [Figure("early-exercise-call", _draw_early_exercise)]
+
+
 # The structural fields -- parity, screen_check, and delta_fd against
 # delta_put -- are asserted in EVERY case, because they are what makes the
 # off-default cases evidence rather than decoration.
@@ -183,8 +211,8 @@ CASES = [
         "delta_fd": (0.196046, 1e-6),    # the derivative agrees to 1e-10
         "delta_naive": (0.196140, 1e-6),  # the shorthand, 0.05% high
         "ex_div": (0.00625, 1e-9),        # 2.5% a year, paid quarterly
-        # Section 05's early-exercise table, which nothing backed until now:
-        # "5.5% 4.1% 2.8% 1.2% 0.2%" at 28, 21, 14, 7 and 3 days.
+        # fig:early-exercise-call read at 28, 21, 14, 7 and 3 days; the prose
+        # quotes "5.5%" at 28 and has it collapse toward nothing by the end.
         "ex_thresh": ([0.0546, 0.0414, 0.0275, 0.0124, 0.0023], 0.0005),
         # And the put leg's, which section 05 quotes against MSG's quarter.
         "px_int": (0.000962, 1e-6),      # r*tau_p: the whole prize, one week
