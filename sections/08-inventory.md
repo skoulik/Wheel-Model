@@ -10,9 +10,9 @@ Lots arrive at a known rate and stay for a known average time. How much stock do
 >
 > Forty customers an hour, each staying half an hour, keep twenty in the shop on average. The reason is bookkeeping: summing the number inside over every moment, and summing every item's stay, count the same item-hours two ways.
 >
-> So the law asks for almost nothing: no arrival pattern, no order of service — [Little](#ref:little-1961) draws his diagram with items leaving in arrival order, "but this is not required for the proofs" — no independence, no distribution shape. Any boundary serves as "the system", so long as L, λ and W all use the same one, and that is what lets a warehouse of stock be treated as a queue. It is a conservation identity, not a model.
+> So the law asks for almost nothing. [Little's 1961 paper](#ref:little-1961) calls its results "remarkably free of specific assumptions about arrival and service distributions, number of channels, queue discipline" — how items arrive, how long each takes, how many are served at once, in what order they leave — and it needs no independence either. Any boundary serves as "the system", so long as L, λ and W all use the same one, and that is what lets a warehouse of stock be treated as a queue. It is a conservation identity, not a model.
 >
-> The 1961 proof did assume more — that queue length, waits and arrivals are all strictly stationary, "probably not the weakest requirement possible" in Little's words. The assumption-free forms came later — a sample-path version needing only that the averages exist, and [Little's finite-window form](#ref:little-2011), needing nothing, which this section uses below. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) proves the standard statement.
+> [The same paper](#ref:little-1961) does make one requirement — that queue length, waits and arrivals are all strictly stationary — and concedes it is "probably not the weakest requirement possible". The assumption-free forms came later — a sample-path version needing only that the averages exist, and [Little's finite-window form](#ref:little-2011), needing nothing, which this section uses below. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) proves the standard statement.
 
 ## Applying it
 
