@@ -60,7 +60,7 @@ Reaching 90% of the equilibrium level takes **90 years** — the horizon at whic
 
 That 90% is a convention: nine tenths of an asymptote is a threshold chosen by whoever is writing, not a date on which anything happens. An operator with a finite account gets a real threshold instead — the date its ceiling starts refusing puts — and [the constrained section](#sec:constrained) computes it, together with the share of the strategy such an account actually runs.
 
-The 21.82 is the answer a queueing textbook would give, and it remains the anchor of everything here. It is where the system is heading — the seven tenths above are seven tenths of it — and two later sections are built on it: [the stability section](#sec:stability) asks when it is finite at all, and [the constrained section](#sec:constrained) sizes an account against it. What it is not is a figure an operator will hold in a career, so **the operator-relevant numbers are the finite-horizon ones**, and every table in the rest of Part II is indexed by horizon rather than reported at equilibrium.
+The 21.82 is *the* answer a queueing textbook would give, and it remains the anchor of everything here. It is where the system is heading — the seven tenths above are seven tenths of it — and two later sections are built on it: [the stability section](#sec:stability) asks when it is finite at all, and [the constrained section](#sec:constrained) sizes an account against it. What it is not is a figure an operator will hold in a career, so **the operator-relevant numbers are the finite-horizon ones**, and every table in the rest of Part II is indexed by horizon rather than reported at equilibrium.
 
 ## Arrivals, departures, and self-recycling
 
@@ -70,11 +70,11 @@ Two remarks keep it from being read as more comforting than it is.
 
 First, during the transient the flows do *not* balance: arrivals run at 10.4 a year while departures lag, and the gap is precisely what accumulates on the balance sheet. At thirty years the system is still absorbing more than it releases.
 
-Second, self-recycling is a statement about *counts*, not about money. Every departing lot exits at exactly the strike it entered at, so the round trip through inventory costs nothing at the price level — the appealing fact practitioners point to. But the lots arriving and the lots departing are not the same lots. Departures come from the shallow end; arrivals join wherever the market happens to be. The count balances while the composition drifts, and composition is where the money is.
+Second, self-recycling is a statement about *counts*, not about money. Every departing lot exits at exactly the strike it entered at, so the round trip through inventory costs nothing at the price level — the appealing fact practitioners point to. But the lots arriving and the lots departing are not the same lots. Departures come from the shallow end: a lot leaves only when the price is back at its own strike, so most of the lots that go never fell far — two in five leave on their very first call. Arrivals come in shallow too, bought just below wherever the market stands that week. Neither flow reaches the deep end, the lots bought at prices the market has long since left. The count balances while the book left standing is weighted toward exactly those lots, and composition is where the money is.
 
 ## What the warehouse is actually made of
 
-That composition is the last piece. Write ρ(x) for the **depth census**: how the standing inventory is distributed across depth — equivalently, how a randomly chosen lot-period of holding is distributed. It is obtained by pushing the entry law forward through the depth walk and accumulating the survivors:
+Little's law counts the lots but says nothing about how deep they stand, and by [the depth section](#sec:depth) depth decides both whether a lot can leave and what its call earns. Write ρ(x) for the **depth census**: how the standing inventory is distributed across depth — equivalently, how a randomly chosen lot-period of holding is distributed. It is obtained by pushing the entry law forward through the depth walk and accumulating the survivors:
 
 ρ(x)  ∝  Σ_j  P( x_j ∈ dx,  J > j )    {#eq:census}
 
