@@ -6,25 +6,11 @@ Among retail and semi-professional option traders there is a popular income stra
 
 Each period there are two outcomes. If the stock stays above the strike, the put expires worthless, you keep the premium, and you sell another put. If the stock falls below the strike, you are *assigned*: you buy the shares at the strike, paying more than they are now worth. How often each outcome occurs is not a matter of luck but of choice — the further below the current price you set the strike, the rarer assignment becomes and the smaller the premium you are paid. A practitioner of the wheel typically sets the strike so that assignment is the exception rather than the rule (a probability around one in five per period is a common calibration, and the one we use in examples); making that trade-off precise is one of the first tasks of the model. The wheel's answer to this is not to sell in a panic but to turn around and sell a *covered call* against the newly acquired shares — the mirror-image obligation: promising to sell the stock at a chosen strike if it recovers there ("covered" because the shares to be delivered are already in hand), again collecting a premium. Should the stock eventually recover and the shares be *called away*, the cycle — the wheel — begins again.
 
-> **Detour: payoff diagrams, and two names for one trade.** The standard picture for an option position is its *payoff diagram*: the horizontal axis is the stock price when the option expires, the vertical axis is the position's profit. Here are the wheel's two building blocks side by side (K is the strike, c the premium collected):
+> **Detour: payoff diagrams, and two names for one trade.** The standard picture for an option position is its *payoff diagram*: the horizontal axis is the stock price when the option expires, the vertical axis is the position's profit. Figure [fig:payoff-diagrams](#fig:payoff-diagrams) puts the wheel's two building blocks side by side (K is the strike, c the premium collected):
 >
-> ```
->      cash-secured put                     covered call
->   (cash + short put at K)          (shares + short call at K)
+> ![Payoff at expiration of a cash-secured put and a covered call written at the same strike K.](../figures/payoff-diagrams.svg){#fig:payoff-diagrams}
 >
->  profit                            profit
->    │                                 │
->  +c┤ ·····┌────────────            +c┤ ·····┌────────────
->    │     /                           │     /
->   0┼────/─┴───────────→             0┼────/─┴───────────→
->    │   /  K                          │   /  K
->    │  /                              │  /
->    │ /                               │ /
->
->          (horizontal axis: stock price at expiration)
-> ```
->
-> Each picture reads the same way: end below the strike and the position loses dollar-for-dollar with the stock, cushioned only by the premium; end anywhere above and the profit is capped at c. The two pictures are identical, and that is the point: **at the same strike, a cash-secured put and a covered call have the same payoff.** Holding cash you have promised to spend at K is the same bet as holding shares you have promised to sell at K — either way, you keep the downside below the strike, give away the upside above it, and are paid a premium for the pair. (The formal version of this statement is *put–call parity*; any derivatives text covers it — [Hull's *Options, Futures, and Other Derivatives*](#ref:hull) is the standard reference.)
+> Each panel reads the same way: end below the strike and the position loses dollar-for-dollar with the stock, cushioned only by the premium; end anywhere above and the profit is capped at c. The two panels are identical, and that is the point: **at the same strike, a cash-secured put and a covered call have the same payoff.** Holding cash you have promised to spend at K is the same bet as holding shares you have promised to sell at K — either way, you keep the downside below the strike, give away the upside above it, and are paid a premium for the pair. (The formal version of this statement is *put–call parity*; any derivatives text covers it — [Hull's *Options, Futures, and Other Derivatives*](#ref:hull) is the standard reference.)
 >
 > This symmetry recasts the wheel: its two phases are one trade in two costumes. Whether waiting to buy (short put, cash in reserve) or waiting to sell (short call, shares in hand), the operator holds the same payoff shape and re-sells the same promise each period; what alternates is only the collateral. The equivalence is about payoffs, not prices — the market does not pay equally for the two legs, because option buyers bid up downside strikes relative to upside ones (the *volatility skew*), making puts typically the richer side to sell. We set the skew aside in this detour.
 

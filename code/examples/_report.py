@@ -229,6 +229,10 @@ def coverage(mods=None, require_citations=True):
             name = m.__name__.rsplit(".", 1)[-1]
             if m.EQ:
                 continue
+            # A figure-only module -- a schematic, computing no model figure --
+            # is reached through its {#fig:} instead, which figures() checks.
+            if not m.CASES and getattr(m, "FIGURES", None):
+                continue
             anchor = repro_anchor(name)
             if anchor not in linked:
                 failures.append(
@@ -659,6 +663,10 @@ def appendix(mods=None):
             if m.EQ:
                 out += ["Backs " + ", ".join(f"[{e}](#{e})" for e in m.EQ)
                         + ".", ""]
+            elif not m.CASES:
+                out += [f"Draws a schematic for [{title}]"
+                        f"(#{getattr(m, 'SECTION', '')}); it computes "
+                        "nothing from the model.", ""]
             else:
                 sec = getattr(m, "SECTION", None)
                 out += [("Backs figures quoted in the prose of "
@@ -669,6 +677,8 @@ def appendix(mods=None):
                 cmd = f"python code/examples/{name}.py {f.flags} --figure"
                 cmd = " ".join(cmd.split())
                 out += [f"Draws [fig:{f.name}](#fig:{f.name}): `{cmd}`.", ""]
+            if not m.CASES:
+                continue
             out += ["| command | the article's figures |", "|---|---|"]
             for case in m.CASES:
                 cmd = f"python code/examples/{name}.py {case.flags}".rstrip()

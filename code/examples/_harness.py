@@ -273,6 +273,8 @@ def _fmt_one(value, spec):
 
 def render(mod, out):
     """The module's result as the CLI prints it, one field per line."""
+    if not mod.FIELDS:                        # a figure-only module prints nothing
+        return "  (nothing to print; pass --figure to draw)"
     width = max(len(label) for _, label, _ in mod.FIELDS)
     lines = []
     for key, label, spec in mod.FIELDS:

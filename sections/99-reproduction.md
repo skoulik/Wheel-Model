@@ -4,6 +4,14 @@ Every number quoted in the text is produced by a script in `code/examples/`, lis
 
 **How to find a figure here.** The entries below are grouped by section and headed by the script that produces them, and each names the formulas it backs. To check a displayed formula, look up its number; figures quoted in prose without a formula of their own are linked from the text at the point they are used.
 
+## Introduction
+
+### `strategy_payoff.py` {#repro:strategy-payoff}
+
+Draws a schematic for [Introduction](#sec:introduction); it computes nothing from the model.
+
+Draws [fig:payoff-diagrams](#fig:payoff-diagrams): `python code/examples/strategy_payoff.py --figure`.
+
 ## The Strategy and Its Accounting
 
 ### `returns_benchmark.py` {#repro:returns-benchmark}
