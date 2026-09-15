@@ -32,13 +32,13 @@ There is also a way to say the answer with no clock in it at all, and it may be 
 
 ## The equilibrium the unconstrained operator will never see
 
-Twenty-two lots is where the system settles. It is not where it will be found.
+Twenty-two lots is where the system settles. It is not where an operator will find it at any point in a trading career.
 
-The wheel starts empty, and filling it is slow — because filling it requires the *tail* of the holding-time distribution to populate, and that tail is measured in decades. Before equilibrium, inventory is the arrival rate against however much of the survival curve has had time to accumulate:
+The wheel starts empty, and filling it is slow — because filling it requires the *tail* of the holding-time distribution to populate, and that tail is measured in decades. Let I(t) be the number of lots held t years after the start, and S(u) the chance that a lot is still held u years after its assignment — the survival sequence of [eq:survival](#eq:survival) read against a lot's age in years, so S(u) = S_j while j·τ_c ≤ u < (j+1)·τ_c. At time t, the lots aged between u and u + du were assigned at rate λ, so there are λ·du of them on average, and a fraction S(u) of those are still held. Adding up every age from zero to t:
 
 E[I(t)]  =  λ · ∫₀^t S(u) du    {#eq:little-finite}
 
-which recovers [eq:little](#eq:little) as t grows, since the whole integral is E[W]. Two readings of that trajectory matter, and they are different numbers:
+Two things make that exact rather than approximate. The average of a sum is the sum of the averages however dependent its terms, so lots sharing one price path do it no harm. And the weekly assignments can be spread into a steady flow because S(u) is flat within each call period, so counting week by week gives the same total at every call date. As t grows, the integral becomes the whole area under the survival curve, which is E[W] by [eq:holding](#eq:holding), and [eq:little](#eq:little) returns. Two readings of that trajectory matter, and they are different numbers:
 
     horizon H                          5 y     10 y     30 y     equilibrium
     E[I(H)], holdings at H            7.95    10.57    15.42        21.82

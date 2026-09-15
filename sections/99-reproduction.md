@@ -161,7 +161,7 @@ Backs [eq:lambda](#eq:lambda), [eq:little](#eq:little), [eq:little-finite](#eq:l
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/inventory_little.py` | lam = 10.4, EW = 2.10, EI_eq = 21.82, at_h = 7.95  10.57  15.42, horizons = 5.41  7.39  11.40, residence = 0.52  0.71  1.10, approach90 = 90 |
+| `python code/examples/inventory_little.py` | lam = 10.4, EW = 2.10, EI_eq = 21.82, at_h = 7.95  10.57  15.42, at_h_counted = 7.95  10.57  15.42, horizons = 5.41  7.39  11.40, residence = 0.52  0.71  1.10, approach90 = 90 |
 
 ## Returns and Capital
 

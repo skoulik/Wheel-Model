@@ -58,7 +58,7 @@ import argparse
 import os
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field, replace
-from math import ceil, exp, log, pi, sqrt
+from math import ceil, exp, floor, log, pi, sqrt
 from statistics import NormalDist
 
 try:                                   # optional accelerator, see module docstring
@@ -1018,6 +1018,29 @@ def inventory_at(C, measure, occ, t):
             break
         total += S * (min(b, t) - a)
     return arrival_rate(C, measure) * total
+
+
+def inventory_counted(C, measure, occ, t):
+    """E[I(t)] counted put by put, as the independent check on inventory_at().
+
+    inventory_at() spreads the assignments into a steady flow at rate lambda.
+    Here each put instead lands in one lump at its own expiry, (k-1)*T + tau_p,
+    with probability p*, and is still held at t with probability S at its age.
+    Section 08 says the two agree exactly at every call date, because S(u) is
+    flat within each call period and the running example's puts tile it: that
+    needs T = tau_p, and at any other cadence the two differ by the smoothing.
+    """
+    _, p_real, _, _ = entry_law(C, measure)
+    surv = occ["surv"]
+    total, k = 0.0, 1
+    while True:
+        age = t - ((k - 1) * C.cadence + C.tau_p)
+        if age < -1e-9:
+            break
+        j = floor(max(age, 0.0) / C.tau_c + 1e-9)
+        total += surv[j] if j < len(surv) else 0.0
+        k += 1
+    return p_real * total
 
 
 def sticky_dividend_yield(C, measure, horizon, iters=40, tol=1e-10):

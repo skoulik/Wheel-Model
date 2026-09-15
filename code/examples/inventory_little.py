@@ -35,6 +35,7 @@ FIELDS = [
     ("EW", "mean holding time E[W] (years)", ".2f"),
     ("EI_eq", "equilibrium E[I] = lambda*E[W] (lots)", ".2f"),
     ("at_h", "E[I(H)], holdings at H", ".2f"),
+    ("at_h_counted", "  the same, counted put by put", ".2f"),
     ("horizons", "  average over [0, H]", ".2f"),
     ("residence", "  W(H) = that over lambda: in-window residence (y)", ".2f"),
     ("hlabels", "  ", ">6s"),
@@ -59,6 +60,11 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         # held *at* H, and the average across [0, H] that a return over the
         # window has to be divided by.  They differ by a third at 30 years.
         "at_h": [model.inventory_at(cfg, measure, near, h) for h in HORIZONS],
+        # The same holdings with each put landing in one lump at its expiry
+        # instead of as a steady flow.  Section 08 says the two agree at every
+        # call date; 5, 10 and 30 years are call dates, so this row must match.
+        "at_h_counted": [model.inventory_counted(cfg, measure, near, h)
+                         for h in HORIZONS],
         "horizons": [model.economics(cfg, measure, near, horizon=h)["I"]
                      for h in HORIZONS],
         # Little's law read over the window rather than over a lot's whole
@@ -82,6 +88,8 @@ CASES = [
         "EW": (2.10, 0.02),             # eq:holding, carried into eq:little
         "EI_eq": (21.8, 0.1),           # eq:little: "10.4 × 2.10 = 21.8 lots"
         "at_h": ([7.95, 10.57, 15.42], 0.05),      # eq:little-finite, top row
+        # "counting week by week gives the same total at every call date"
+        "at_h_counted": ([7.95, 10.57, 15.42], 0.005),
         "horizons": ([5.41, 7.39, 11.40], 0.05),   # the [0,H] average row
         # "over a thirty-year window a lot spends 1.10 years inside it,
         # against a full life of 2.10" -- the window reading of the same law
