@@ -56,7 +56,7 @@ The second row is Little's law read over the window: divide the window's average
 
 What the window law does not say is how 11.40 relates to 21.82. That is a question of how fast the system fills, which the rest of this subsection takes up.
 
-Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W]. An operator running this strategy for a full career holds about **seven tenths** of where it is heading, still rising, with no indication from the recent past that it is going to keep rising.
+Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W]. An operator running this strategy for a full career holds about **seven tenths** of where it is heading, and the holding is still rising.
 
 That 90% is a convention, and an arbitrary one: nine tenths of an asymptote is a threshold chosen by whoever is writing, not a date on which anything happens. An operator with a finite account gets a real threshold instead. A ceiling on how much stock the account can carry truncates exactly the slow deep tail that made the approach take a lifetime, and the date the ceiling starts refusing puts is a fact about the account rather than a choice about reporting. [The constrained section](#sec:constrained) computes it: **0.9 years** for an account of three share prices, 2.4 for five, **18.5** for the 11.59 that the rest of Part II reports this strategy as consuming, 270 for 19.04 — and never for an account of 19.23 or more, where the ceiling never binds at all and the ninety years come back in full.
 
