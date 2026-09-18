@@ -517,6 +517,25 @@ are drafted rather than be discovered afterwards.
   one name — on one name the inventory is nothing like Poisson (Var/Mean ≈ 4.8, P(I = 0) ≈ 14%
   against Poisson's 0.9%). §12 is where that promise is redeemed.
 
+  **§12 carries the figure, and §08 no longer sketches the shape in words** (Sergei,
+  2026-09-18). §08's closing subsection used to assert the distribution — "heavily skewed,
+  with long empty stretches punctuated by deep pile-ups, and its variance runs several times
+  its mean" — which is a blurred quotation of this bullet's own numbers, checked by nothing
+  and stated three sections before the machinery for it exists. A graph there was considered
+  and declined on the same ground: a picture of the single-name histogram would redeem this
+  promise in §08, more persuasively than the prose and on no more machinery, and §08 is
+  analytic throughout while the only source is `wheel_sim.py`'s Monte Carlo. §08 now keeps
+  only what it owns — the mechanism (one price path, so the book empties on recoveries and
+  piles up on falls) and the two failed hypotheses — and hands shape, numbers and picture
+  here together.
+
+  **The figure is cheap once §12 is written.** `wheel_sim.py` already accumulates the full
+  histogram of I as `agg.inv_hist`, and already prints both contrasts against it — `P(I=0)`
+  beside Poisson's e^(−mean), and `Var(I)/Mean(I)` beside 1.00. The figure this bullet wants
+  is that histogram drawn against a Poisson at the same mean. It would be the article's first
+  figure fed by the simulator rather than by `model.py`, so it needs an example module of its
+  own to hold the frozen case and the `FIGURES` entry.
+
   **Do not redeem it with the distributional Little's law.** (Added 2026-08-04; the statement is
   in [`DONE.md`](DONE.md) under II-30, and §08 now names the result and why it does not apply.) There *is* a distributional form — N distributed as Λ(W) — and it looks like exactly
   the tool for this bullet, which is why it is worth naming the reason it is not: it requires

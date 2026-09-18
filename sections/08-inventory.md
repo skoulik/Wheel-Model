@@ -122,7 +122,7 @@ None of this is new, and the person who said so first was Little. His own illust
 
 ## A note on the shape of the distribution
 
-Everything above concerns averages, which is all Little's law provides and all the economics needs. The *distribution* of I on a single stock is another matter: the shared price path described above makes it nothing like the tidy bell-shaped thing a queueing course would suggest. The realized distribution is heavily skewed, with long empty stretches punctuated by deep pile-ups, and its variance runs several times its mean.
+Everything above concerns averages, which is all Little's law provides and all the economics needs. The *distribution* of I on a single stock is another matter, and this section cannot reach it: the two standard routes to one each need a hypothesis the wheel breaks. What the section does have is the mechanism — every lot rides the same price path, so the book empties as the price recovers and piles up as it falls, rather than wobbling independently about its mean.
 
 The classical result — that an infinite-server queue settles into a **Poisson** distribution, whose variance equals its mean — needs arrivals and departures to be independent. That is false for one stock and true across many.
 
