@@ -50,11 +50,11 @@ The lower curve is Little's law read over the window: divide the window's averag
 
 What the window law does not say is how 11.4 relates to 21.8. That is a question of how fast the system fills, which the rest of this subsection takes up.
 
-Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W], marked on the upper curve. An operator running this strategy for a full career holds about **seven tenths** of where it is heading, and the holding is still rising.
+Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W], and marked on the upper curve of figure [fig:inventory-approach](#fig:inventory-approach). An operator running this strategy for a full career holds about **seven tenths** of where it is heading, and the holding is still rising.
 
 That 90% is a convention: nine tenths of an asymptote is a threshold chosen by whoever is writing, not a date on which anything happens. An operator with a finite account gets a real threshold instead — the date its ceiling starts refusing puts — and [the constrained section](#sec:constrained) computes it, together with the share of the strategy such an account actually runs.
 
-The 21.82 is *the* answer a queueing textbook would give, and it remains the anchor of everything here. It is where the system is heading — the seven tenths above are seven tenths of it — and two later sections are built on it: [the stability section](#sec:stability) asks when it is finite at all, and [the constrained section](#sec:constrained) sizes an account against it. What it is not is a figure an operator will hold in a career, so **the operator-relevant numbers are the finite-horizon ones**, and every table in the rest of Part II is indexed by horizon rather than reported at equilibrium.
+The 21.82 is *the* answer a queueing textbook would give, and it remains the anchor of everything here. It is where the system is heading — the seven tenths above are seven tenths of it — and two later sections are built on it: [the stability section](#sec:stability) asks when it is finite at all, and [the constrained section](#sec:constrained) sizes an account against it. What it is not is a figure an operator will hold in a career, so **the operator-relevant numbers are the finite-horizon ones**, and wherever the rest of Part II reports an inventory or a capital figure it is indexed by horizon rather than quoted at equilibrium — in its tables and in its curves alike.
 
 ## Arrivals, departures, and self-recycling
 
