@@ -118,7 +118,7 @@ A lot's state here is its depth, so every weight is a function of x and every to
 
 Two things are worth noticing about those weights. The call premium is not a steady accrual: it, and the upside surrendered when a lot is called away, land in a lump at a call expiry, which is precisely the case [Whitt's](#ref:whitt-1991) theorem covers and the older statements do not. And nothing anywhere requires a lot's earnings and its exit time to be independent — which is fortunate, because here they are as dependent as two quantities can be, the same price path deciding both what a lot earns and when it leaves.
 
-None of this is new, and the person who said so first was Little. His own illustration of a weighting other than one-per-item is the dollar return on the *i*th asset in a portfolio of assets: the application is his, and what this article supplies is the specific holding time and the specific census to put into it.
+None of this is new, and the person who said so first was Little. His own illustration of a weighting other than one-per-item is the dollar return on the *i*th asset in a portfolio of assets: the application is his, and what this article supplies is the specific holding time and the specific census to put into it. Both are now in hand, and that closes the counting: what the inventory *is* has been settled, and every question left about what it earns and what it ties up is one of these integrals against the census. [The returns section](#sec:returns) works through the remaining three weights; [the stability section](#sec:stability) asks when the totals they produce are finite at all.
 
 ## A note on the shape of the distribution
 
