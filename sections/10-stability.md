@@ -141,7 +141,7 @@ One last reason the boundaries are closer than they look. The model treats μ, �
 
 The effect compounds: everything downstream depends on ν, ν is a difference of quantities of similar size, and stress attacks every term in it simultaneously. A configuration calibrated comfortably inside both of the stock's boundaries in calm markets can be outside both in a quarter, and the transition is not gradual — [eq:trapped](#eq:trapped) turns on as soon as ν changes sign. The borrower's boundary goes the same way and for the same reason, since ν is one side of it too: the cash policy that was survivable at 20% volatility need not be at 30%, and nothing about the policy has changed.
 
-## Summary
+## The three failure modes
 
 The wheel has three failure modes. The first two are slow, silent, and are not "losing money on a trade":
 

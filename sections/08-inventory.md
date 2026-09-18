@@ -130,6 +130,8 @@ There is also a distributional version of Little's law itself, which would seem 
 
 So the distributional claims belong to [the portfolio section](#sec:portfolio), where they are earned, rather than here, where they would be assumed. [The verification section](#sec:verification) reports what the single-name distribution actually looks like.
 
+## What this section produced
+
 The section opened by asking how much stock the operator ends up holding, and Little's law answered it in a line. Everything after that line was the work of making the answer usable, and it took three qualifications. Twenty-two lots is where the system is heading rather than where anyone stands: at thirty years the operator holds 15.4 and the window's average is 11.4, and it is the average that a return has to be measured against. The lots are not interchangeable: sampled by time rather than by arrival, the standing book sits 38% below its strikes against 1.6% for a lot just assigned, and most of it is in no position to leave. And a lot is not a unit of money: capital weights those depths exponentially where the count weights them linearly, which is why the identity has to be carried with a weight rather than used as it is usually quoted.
 
 Three things leave this section, then, rather than one — how much is held, what it is made of, and a law that turns any weight on it into a rate. [The returns section](#sec:returns) is where they meet a price.

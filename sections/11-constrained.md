@@ -303,7 +303,7 @@ Under m = r − δ the tail exponent falls from θ = 1.25 to θ = 0.25. Everythi
 
 None of this section was fitted to that. It is the strongest evidence available that the machinery is doing what it claims.
 
-## Summary
+## What the constraint changes
 
 The finite account changes four things and leaves one alone.
 
