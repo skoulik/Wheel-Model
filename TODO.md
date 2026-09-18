@@ -1582,7 +1582,7 @@ printed by `verify_examples.py` on every run; do not record them here. **Two ite
 remain, and both were re-checked on 2026-08-05 and are still live.**
 
 - **Five lower-value formula gaps**, all of them numbers quoted without a displayed formula: the
-  census moments (§08's mean depth 38% and weighted q 0.066), the cost-basis capital of §09
+  census moments (§08's mean depth of 38 log-points and weighted q 0.067), the cost-basis capital of §09
   (18.23, where `eq:capital` gives market value only), the volatility-premium slope ("about 45
   basis points" per point, a finite difference over the sweep), the sticky-dividend fixed point
   (§09:151, described in prose but never displayed), and x\* = ln(1 + ν/δ) (§09, displayed inline

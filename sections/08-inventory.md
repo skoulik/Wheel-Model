@@ -30,7 +30,7 @@ Twenty-two lots. The strategy was described at the outset as one that sells puts
 
 The wheel needs every freedom the **Little's law** detour listed. Its lots ride one price path, so they are called away in batches when the price recovers, and the fall that assigns a new lot pushes the held ones deeper; they leave in order of depth, not of arrival; and their stays follow nothing tidy — half gone within eight weeks, the mean over two years. The average survives all of it exactly, which is why this identity, rather than any distributional argument, is the load-bearing step of the article.
 
-There is also a way to say the answer with no clock in it at all, and it may be the version worth keeping. Count time in *arrivals* rather than in years, and the law reads: **while you hold one lot, about twenty-two more are assigned.** Same number, nothing for the reader to multiply, and no rate to be quoted per year.
+There is also a way to say the answer with no clock in it at all. Count time in *arrivals* rather than in years, and the law reads: **while you hold one lot, about twenty-two more are assigned.** Same number, nothing for the reader to multiply, and no rate to be quoted per year.
 
 ## The equilibrium the unconstrained operator will never see
 
@@ -86,7 +86,7 @@ The mechanism is **length bias**, and it appears wherever a population is sample
 
 Fast lots leave quickly and barely register in the census. Slow lots register for exactly as long as they are slow. So the warehouse fills, unavoidably, with the lots that are least able to leave and least able to earn — and by figure [fig:depth-exit-premium](#fig:depth-exit-premium), those two properties are the same property.
 
-There is a second way to see the same thing, and for a reader who knows any behavioural finance it may be the more memorable one:
+There is a second way to see the same thing, and behavioural finance has a name for it:
 
 > **Detour: the disposition effect, performed by contract.** One of the most robust findings about how people actually trade is that they sell their winners and keep their losers — [Shefrin and Statman](#ref:shefrin-statman-1985) named it the **disposition effect**, and [Odean](#ref:odean-1998) confirmed it across thousands of ordinary brokerage accounts, where it is not explained away by rebalancing, transaction costs, taxes or by the sold winners doing worse afterwards. It is generally presented as a mistake, and in a taxable account it is a measurable one. Now notice what the strategy in this article does. Every lot that rises to its strike is sold, automatically. No lot below its strike is ever sold at all. **The wheel is the disposition effect written into a contract, with the discretion removed and the frequency raised to certainty** — and the standing inventory described above is exactly what that produces over time. The analogy is structural and should not be pushed further than that: what makes the disposition effect costly for Odean's investors is largely tax, which this article does not model at all.
 
