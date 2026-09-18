@@ -1,6 +1,8 @@
 # The Inventory {#sec:inventory}
 
-Lots arrive at a known rate and stay for a known average time. How much stock does the operator end up holding? There is a single formula for this, it requires almost no assumptions, and it is one of the most useful results in applied probability.
+Lots arrive at a known rate and stay for a known average time. How much stock does the operator end up holding? **Little's law** answers it, and asks almost nothing of the strategy in return; the detour on it states the law and says where it comes from.
+
+The section puts the law to work three times: once to **count** the lots standing in inventory, once to read the same count over a **window** of finite length instead of at equilibrium, and once to **weight** each lot by what it accrues rather than counting it as one. All three are the same identity, and each asks something slightly different of it, so the hypotheses are picked up where they are used rather than all at once here.
 
 ## Detour: Little's law
 
@@ -26,7 +28,7 @@ E[I]  =  λ · E[W]  =  10.4 × 2.10  =  **21.8 lots**    {#eq:little}
 
 Twenty-two lots. The strategy was described at the outset as one that sells puts and occasionally takes assignment; at equilibrium it is a strategy that owns twenty-two lots of stock and sells puts on the side.
 
-The wheel needs every freedom the detour listed. Its lots ride one price path, so they are called away in batches when the price recovers, and the fall that assigns a new lot pushes the held ones deeper; they leave in order of depth, not of arrival; and their stays follow nothing tidy — half gone within eight weeks, the mean over two years. The average survives all of it exactly, which is why this identity, rather than any distributional argument, is the load-bearing step of the article.
+The wheel needs every freedom the **Little's law** detour listed. Its lots ride one price path, so they are called away in batches when the price recovers, and the fall that assigns a new lot pushes the held ones deeper; they leave in order of depth, not of arrival; and their stays follow nothing tidy — half gone within eight weeks, the mean over two years. The average survives all of it exactly, which is why this identity, rather than any distributional argument, is the load-bearing step of the article.
 
 There is also a way to say the answer with no clock in it at all, and it may be the version worth keeping. Count time in *arrivals* rather than in years, and the law reads: **while you hold one lot, about twenty-two more are assigned.** Same number, nothing for the reader to multiply, and no rate to be quoted per year.
 
