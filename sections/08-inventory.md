@@ -108,7 +108,7 @@ Little's law covers that weighting too, in a form available since the 1970s, and
 >
 > The law asks two things: that arrivals and departures share one long-run rate, and that an item accrue nothing before it arrives or after it leaves. Under those, the per-item total settles down *exactly when* the system-wide rate does — an equivalence, not an implication. The result is due to Brumelle and to Heyman and Stidham; [Whitt's](#ref:whitt-1991) theorem 6.3 is the version to reach for, because it asks nothing about *how* the quantity accrues, where the older statements want a steady rate.
 
-Both of the law's conditions hold here. Arrivals and departures share one long-run rate — 10.4 lots a year in and 10.4 out, which is the self-recycling property above — and a lot accrues nothing before its put assigns or after its call takes it away, since outside those dates there is no lot. So every quantity the article takes from the inventory is this one identity at a different weight. It is used four times, and only the first is Little's law as it is usually quoted:
+Both of the law's conditions hold here. Arrivals and departures share one long-run rate — 10.4 lots a year in and 10.4 out, which is the self-recycling property above — and a lot accrues nothing before its put assigns or after its call takes it away, since outside those dates there is no lot. So every quantity the article takes from the inventory is this one identity at a different weight — four of them, and only the first is Little's law as it is usually quoted:
 
     weight f                           gives                          quoted in
     1                                  E[I] = 21.8 lots               this section
