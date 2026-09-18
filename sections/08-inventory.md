@@ -88,13 +88,13 @@ The shape is a spike, a shoulder and a long slope, and the thin lines split the 
 
 Set the census against the exit probability of [eq:qx](#eq:qx). On this call clock a lot needs to be within about ten log-points of its strike to have any realistic chance of leaving — q is 0.094 at 7.5 points and already 0.013 at 12.5 — and only a quarter of all held time is that shallow. The other three quarters is spent in positions that, on any given expiry, are not going anywhere.
 
-The mechanism is **length bias**, and it appears wherever a population is sampled by time rather than by item:
+The mechanism is **length bias**, which appears wherever a population is sampled by time rather than by item. The **length bias** detour gives the general case.
 
 > **Detour: length bias.** Sample a hospital's beds on a given day and the patients you find are far sicker than the patients admitted, because a patient staying six months occupies a bed six months' worth while a patient staying a day occupies it for a day. Nothing about admissions has changed; the *sampling* is biased toward the slow. The same effect makes any bus you catch at random busier than the average bus, and makes a random inventory lot far deeper than a random assignment. A census of what is *present* is not a census of what *arrives*.
 
 Fast lots leave quickly and barely register in the census. Slow lots register for exactly as long as they are slow. So the warehouse fills, unavoidably, with the lots that are least able to leave and least able to earn — and by figure [fig:depth-exit-premium](#fig:depth-exit-premium), those two properties are the same property.
 
-There is a second way to see the same thing, and behavioural finance has a name for it:
+There is a second way to see the same thing, and behavioural finance has a name for it — the **disposition effect**, which the detour of that name sets against what this strategy does.
 
 > **Detour: the disposition effect, performed by contract.** One of the most robust findings about how people actually trade is that they sell their winners and keep their losers — [Shefrin and Statman](#ref:shefrin-statman-1985) named it the **disposition effect**, and [Odean](#ref:odean-1998) confirmed it across thousands of ordinary brokerage accounts, where it is not explained away by rebalancing, transaction costs, taxes or by the sold winners doing worse afterwards. It is generally presented as a mistake, and in a taxable account it is a measurable one. Now notice what the strategy in this article does. Every lot that rises to its strike is sold, automatically. No lot below its strike is ever sold at all. **The wheel is the disposition effect written into a contract, with the discretion removed and the frequency raised to certainty** — and the standing inventory described above is exactly what that produces over time. The analogy is structural and should not be pushed further than that: what makes the disposition effect costly for Odean's investors is largely tax, which this article does not model at all.
 
