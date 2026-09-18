@@ -209,6 +209,14 @@ One consequence for anyone who would rather price the American feature than assu
 
 There is also a path-versus-endpoint distinction — the stock may cross a strike mid-period and come back, which a terminal probability never sees. [The holding-time section](#sec:holding) turns that from a caveat into a quantity, because on the call leg the same effect has a name and a measurable size.
 
+## What this section produced
+
+Two numbers and a convention. At p\* = 20% on a weekly cadence a lot arrives about every five weeks, and it arrives about 1.6% below the strike the operator chose — 3.8% below the price at which they chose it. Both come off the dial alone: p\* fixes the strike by [eq:kstar](#eq:kstar), the strike fixes how often assignment happens, and the same dial fixes how far the stock has fallen when it does. There is one control here rather than three, which is why the article turns p\* and nothing else.
+
+The convention is that every probability is computed at a single drift m — μ − δ for what happens, r − δ for what option prices imply — while premiums are computed from neither, being quotes. [The notation section](#sec:notation) states it for the whole article; this is where it had to be settled, because the assignment probability is the first quantity whose value depends on which of the two worlds is being asked.
+
+What the next section changes is that the depth stops standing still. x₀ is where a lot starts, not where it stays: the stock keeps moving and the strike it is measured against does not, so the distance between them is a quantity with a life of its own. [The depth section](#sec:depth) makes it the state variable of the whole model.
+
 [^eq-normal]: The figures for [eq:normal](#eq:normal) are computed on this section's own log return, and four of them are checks rather than readings: the density integrated over the whole line must come to one, the same density weighted by y must integrate back to μ_Y, the probability below the strike must agree whether it is integrated directly or standardized and read off N, and N must invert N⁻¹.
 
 [^eq-wait]: The simulated columns behind [eq:wait](#eq:wait) walk the price path and re-strike a put each period, so they check [eq:kstar](#eq:kstar) end to end rather than re-drawing the distribution the formula already describes. They do not test the independence assumed above, which no simulation of this model could.

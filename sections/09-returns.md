@@ -294,6 +294,14 @@ The last two rows agree to a third of a basis point at every horizon, which is f
 
 That leaves the real result, which is the invariance. The choice of strike moves everything the operator experiences — how often they are assigned, how much capital they need, how large the book grows, how busy the account is — and moves the expected return not at all. It is the tidiest illustration in the article of what the model is for: the dial the operator actually turns is a dial over their own experience of the strategy, not over its returns.
 
+## What this section produced
+
+The section set out to price the strategy and found that at fair option prices there is nothing to price: the wheel is economically the stock. Its whole edge is the volatility risk premium, and the conversion is that **every point of overpricing is worth about 45 basis points of excess return, against a break-even of zero** — no hurdle to clear before the strategy is worth running, and no return available from the machinery itself. The third of a share price a year that Track A reports is the equity risk premium relabelled, plus the operator's own capital returned in instalments.
+
+Three qualifications, none of them small. Identical expected return is not identical risk: the book changes character as prices fall, because every frozen call slides further out of the money as the stock drops away from it. Leverage buys none of the missing return, the spread at which borrowing turns neutral being **1.60%** — the strategy's own excess return rather than a number that resembles it, so that ordinary retail financing straddles the break-even. And the strike dial moves everything the operator lives through while moving what they earn not at all.
+
+One question goes unasked here, and it is the one that decides whether any of these numbers exist. Every figure above is an expectation, and an expectation is a number only while the integral behind it converges — which for this strategy it does not always do. [The stability section](#sec:stability) asks when it does.
+
 
 
 
