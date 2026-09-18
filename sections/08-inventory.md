@@ -96,19 +96,27 @@ One warning before the economics. The census above counts *lots*, and every lot 
 
 That difference is not a detail. It is why [the returns section](#sec:returns) has to be careful about which capital it means, and why [the stability section](#sec:stability) needs a separate boundary for the capital from the one for the lot count.
 
-Little's law covers that weighting too, in a form available since the 1970s:
+Little's law covers that weighting too, in a form available since the 1970s, and the **H = λG** detour states it. Attach a **weight f** to each lot — anything it accrues while it is held — and the law gives the rate at which the whole book accrues that quantity as λ times the total one lot accumulates over its stay.
 
-> **Detour: the same law, carrying a weight.** Little's law *counts* what is in the system. Its generalisation, written **H = λG**, *prices* it. Attach to each item any quantity it accumulates while it is in the system — the capital a lot ties up, the premium its call brings in, the dividends it pays — and let G be the total one item accumulates over its whole stay. Then the long-run rate at which the whole system accrues that quantity is **H = λ·G**: the same arrival rate, the same per-item total, whatever the weighting. Taking the weight to be 1 gives back L = λW, and the inventory count is the special case rather than the general rule. The form used here is [Whitt's](#ref:whitt-1991) theorem 6.3, which asks only two things: that arrivals and departures share one long-run rate — which is the self-recycling property above, 10.4 lots in and 10.4 out — and that an item accrues nothing before it arrives or after it leaves. Under those two, the per-item total settles down *exactly when* the system-wide rate does. The result is due to Brumelle and to Heyman and Stidham; Whitt's version is the one to reach for because it covers quantities that arrive in lumps as well as quantities that accrue steadily, and the wheel has both.
+> **Detour: the same law, carrying a weight.** Little's law *counts* what is in the system, and counting turns out to be a special case of something more general. Give each item a **weight f**: the amount it accrues, per unit of time, of whatever quantity is being tracked — money, shelf space, anything that piles up while the item is present. The weight may depend on the item's state and change during its stay. One item's total over its whole stay is then the accumulation of f across that stay, and the law concerns two averages of it: **G**, that per-item total averaged across items, and **H**, the long-run rate at which the system as a whole accrues the quantity. They stand in the same relation as the count and the stay,
+>
+> G  =  E[ ∫₀^W f du ],    H  =  λ · G    {#eq:h-lambda-g}
+>
+> with the same arrival rate λ. **W is what G becomes when the quantity being accumulated is time itself**: set f ≡ 1, so that an item accrues one unit for every unit of time it is present, and G is the mean stay E[W], H is the mean number present, and H = λG reads L = λW. The count is one weighting among others rather than the general rule.
+>
+> The law asks two things: that arrivals and departures share one long-run rate, and that an item accrue nothing before it arrives or after it leaves. Under those, the per-item total settles down *exactly when* the system-wide rate does — an equivalence, not an implication. The result is due to Brumelle and to Heyman and Stidham; [Whitt's](#ref:whitt-1991) theorem 6.3 is the version to reach for, because it asks nothing about *how* the quantity accrues, where the older statements want a steady rate.
 
-The article leans on that four times, and only the first is Little's law as it is usually quoted:
+Both of the law's conditions hold here. Arrivals and departures share one long-run rate — 10.4 lots a year in and 10.4 out, which is the self-recycling property above — and a lot accrues nothing before its put assigns or after its call takes it away, since outside those dates there is no lot. So every quantity the article takes from the inventory is this one identity at a different weight. It is used four times, and only the first is Little's law as it is usually quoted:
 
-    weighting                          gives                          quoted in
+    weight f                           gives                          quoted in
     1                                  E[I] = 21.8 lots               this section
     e^x                                the capital tied up            the returns section
     the call premium at depth x        call income                    the returns section
     the dividend on market value       dividend income                the returns section
 
-Every one is an integral of some function against the depth census, and every one is the same theorem with a different weight — which is why the census, once built, does not have to be rebuilt for each question. Two things are worth noticing about the conditions. The premium and the surrendered upside are not steady accruals at all: they land in a lump at a call expiry. That is precisely the case Whitt's version covers and the older statement does not. And nothing anywhere requires a lot's earnings and its exit time to be independent — which is fortunate, because here they are as dependent as two quantities can be, the same price path deciding both what a lot earns and when it leaves.
+A lot's state here is its depth, so every weight is a function of x and every total is an integral of that function against the depth census — which is why the census, once built, does not have to be rebuilt for each question.
+
+Two things are worth noticing about those weights. The call premium is not a steady accrual: it, and the upside surrendered when a lot is called away, land in a lump at a call expiry, which is precisely the case [Whitt's](#ref:whitt-1991) theorem covers and the older statements do not. And nothing anywhere requires a lot's earnings and its exit time to be independent — which is fortunate, because here they are as dependent as two quantities can be, the same price path deciding both what a lot earns and when it leaves.
 
 None of this is new, and the person who said so first was Little. His own illustration of a weighting other than one-per-item is the dollar return on the *i*th asset in a portfolio of assets: the application is his, and what this article supplies is the specific holding time and the specific census to put into it.
 
