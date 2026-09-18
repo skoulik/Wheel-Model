@@ -49,7 +49,7 @@ This file is the single source of truth for every symbol used in the article. Wh
 
 | Symbol | Meaning |
 |---|---|
-| x | **Depth** of a lot: x = ln(K_c/S) ([eq:depth-def](#eq:depth-def)), how far its frozen call strike sits above the current price. The state variable of the whole model |
+| x | **Depth** of a lot: x = ln(K_c/S) ([eq:depth-def](#eq:depth-def)), how far its frozen call strike sits above the current price. The state variable of the whole model. **Quoted in prose as log-points, never as a bare percentage**, because the two part company as depth grows — 30 log-points is a price 26% down and 78 is 54% down, and [the entry section](#sec:entry) promises the reader the conversion where a price is the more natural thing to say |
 | x₀ | Depth at the moment of assignment ([eq:x0-def](#eq:x0-def)), distributed by [eq:x0-law](#eq:x0-law) |
 | ν | Drift of the depth process, ν = m − σ²/2 — the rate at which depth is worked off ([eq:nu](#eq:nu)) |
 | q(x) | Probability that a lot at depth x is called away at the end of the current call period ([eq:qx](#eq:qx)) |

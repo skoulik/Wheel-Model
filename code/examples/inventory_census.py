@@ -180,19 +180,19 @@ CASES = [
                     0.055, 0.049, 0.043, 0.038, 0.276], 0.0006),
         "q_mid": ([0.339, 0.094, 0.013, 0.001, 0.000, 0.000,
                    0.000, 0.000, 0.000, 0.000, 0.000], 0.0005),  # "0.094 at 7.5 points, 0.013 at 12.5"
-        "mean_x": (0.377, 0.005),       # "mean depth of standing inventory is 38%"
+        "mean_x": (0.377, 0.005),       # "mean depth of standing inventory is 38 log-points"
         "mean_q": (0.067, 0.0005),      # "0.067 per four-week period"
-        "deep30": (0.46, 0.005),        # "Forty-six percent ... more than 30% below"
-        "deep50": (0.28, 0.005),        # "28% ... more than 50% below the strike"
+        "deep30": (0.46, 0.005),        # "Forty-six percent ... more than 30 log-points below"
+        "deep50": (0.28, 0.005),        # "28% ... more than 50 log-points below the strike"
         "deep10": (0.245, 0.005),       # "only a quarter of all held time is that shallow"
         # the two parts drawn dashed under the thirty-year curve
         "first_share": (0.070, 0.005),
         "later_peak": (0.07, 0.01),     # "a little more than one call's move deeper" (0.055)
     }, note="Standard regime, thirty-year horizon"),
     Case("--stationary", {
-        "mean_x": (0.78, 0.005),        # "mean depth 78%"
+        "mean_x": (0.78, 0.005),        # "mean depth 78 log-points"
         "mean_q": (0.036, 0.0005),      # "inventory-weighted q of 0.036"
-        "deep50": (0.52, 0.005),        # "52% of held time spent more than half a log-unit"
+        "deep50": (0.52, 0.005),        # "52% ... more than 50 log-points under water"
     }, note="the stationary limit the system heads toward"),
 ]
 
