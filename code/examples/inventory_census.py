@@ -50,9 +50,9 @@ FIELDS = [
     ("q_mid", "  q at mid-depth", ".3f"),
     ("mean_x", "inventory-weighted mean depth", ".1%"),
     ("mean_q", "inventory-weighted exit probability", ".4f"),
-    ("deep10", "share of held time within 10% of the strike", ".1%"),
-    ("deep30", "share of held time deeper than 30%", ".1%"),
-    ("deep50", "share deeper than half a log-unit", ".1%"),
+    ("deep10", "share of held time within 10 log-points of the strike", ".1%"),
+    ("deep30", "share of held time deeper than 30 log-points", ".1%"),
+    ("deep50", "share of held time deeper than 50 log-points", ".1%"),
     ("first_share", "share of held time in a lot's first call period", ".1%"),
     ("later_peak", "later periods' densest depth", ".1%"),
 ]
@@ -157,7 +157,7 @@ def _draw_census(fig, ax, cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
     top = max(fin[i] for i in keep)
     figures.reference_line(ax, x=30.0,
                            label=f"{deep30:.0%} of the {finite:.0f}-year census\n"
-                                 "lies deeper than 30%",
+                                 "lies deeper than 30 log-points",
                            where=(31.5, top * 0.44))
     ax.set_xlim(0, 150)
     ax.set_ylim(0, top * 1.05)
