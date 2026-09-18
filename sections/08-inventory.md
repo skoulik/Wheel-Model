@@ -100,7 +100,7 @@ Little's law covers that weighting too, in a form available since the 1970s, and
 
 > **Detour: the same law, carrying a weight.** Little's law *counts* what is in the system, and counting turns out to be a special case of something more general. Give each item a **weight f**: the amount it accrues, per unit of time, of whatever quantity is being tracked — money, shelf space, anything that piles up while the item is present. The weight may depend on the item's state and change during its stay. One item's total over its whole stay is then the accumulation of f across that stay, and the law concerns two averages of it: **G**, that per-item total averaged across items, and **H**, the long-run rate at which the system as a whole accrues the quantity. They stand in the same relation as the count and the stay,
 >
-> G  =  E[ ∫₀^W f du ],    H  =  λ · G    {#eq:h-lambda-g}
+> G  =  E[ ∫₀^W f du ],    H  =  λ · G
 >
 > with the same arrival rate λ. **W is what G becomes when the quantity being accumulated is time itself**: set f ≡ 1, so that an item accrues one unit for every unit of time it is present, and G is the mean stay E[W], H is the mean number present, and H = λG reads L = λW. The count is one weighting among others rather than the general rule.
 >
