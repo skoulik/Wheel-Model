@@ -70,9 +70,17 @@ Second, self-recycling is a statement about *counts*, not about money. Every dep
 
 Little's law counts the lots but says nothing about how deep they stand, and by [the depth section](#sec:depth) depth decides both whether a lot can leave and what its call earns. Write ρ(x) for the **depth census**: how the standing inventory is distributed across depth — equivalently, how a randomly chosen lot-period of holding is distributed. It is obtained by pushing the entry law forward through the depth walk and accumulating the survivors:
 
-ρ(x)  ∝  Σ_j  P( x_j ∈ dx,  J > j )    {#eq:census}
+ρ(x)  ∝  Σ_{j≥0}  f_j(x)    {#eq:census}
 
-Figure [fig:depth-census](#fig:depth-census) draws it for the Standard regime, as a share of held time per point of depth, averaged over the first thirty years and in the stationary limit:
+where f_j is the depth density among the lots still held after j call periods — the sub-density of [eq:survival-step](#eq:survival-step), which integrates to S_j rather than to one, so that a period in which few lots survive contributes little.
+
+That is the census at equilibrium, and it weights every call period alike. An operator with a finite history cannot: a lot's twentieth call period can only be observed if the window is long enough to contain it, and the deep periods are exactly the late ones. Over a window of H years each term is therefore weighted by the share of the window in which it can appear at all,
+
+ρ(x; H)  ∝  Σ_{j≥0}  w_j · f_j(x),   w_j  =  max( 0,  H − (j+½)·τ_c ) / H    {#eq:census-finite}
+
+which is one for the first periods, falls away linearly, and is zero for any period beginning after the window closes. **The census figures below are ρ(x; 30)** wherever the stationary limit is not named — for the same reason [eq:little](#eq:little)'s 21.8 lots gave way to the horizon-indexed numbers above.
+
+Figure [fig:depth-census](#fig:depth-census) draws both for the Standard regime, as a share of held time per point of depth:
 
 ![The depth census: share of held time per point of depth, averaged over the first thirty years and in the stationary limit.](../figures/depth-census.svg){#fig:depth-census}
 

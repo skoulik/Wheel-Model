@@ -4,7 +4,7 @@
     python code/examples/inventory_census.py --stationary
     python code/examples/inventory_census.py --edges 0,0.1,0.3,inf
 
-Backs eq:census in section 08.  Length bias: inventory is sampled by time, not
+Backs eq:census and eq:census-finite in section 08.  Length bias: inventory is sampled by time, not
 by arrival, so a random held lot is far deeper than a random assignment.  The
 census pushes the entry law forward through the depth walk and accumulates the
 survivors ([eq:census]); its own grid lives in `depth_census`, so this declares
@@ -27,7 +27,7 @@ import model                                                  # noqa: E402
 
 TITLE = "The inventory: depth census"
 SECTION = "sec:inventory"
-EQ = ["eq:census"]
+EQ = ["eq:census", "eq:census-finite"]
 
 # The section's bins: equal five-point steps to 50%, then the open tail.  Equal
 # widths so that a share reads as a density -- the earlier 2/3/5/5/5/10/20-point
