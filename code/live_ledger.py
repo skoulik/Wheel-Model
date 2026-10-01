@@ -184,6 +184,7 @@ def option_cash(positions, live, universe, end, px):
         if p["how"] == "closed":
             bought_back -= p["qty"] * p["close_px"] * 100
     live_prem = live_mark = 0.0
+    mark_by_leg = defaultdict(float)
     unmarked = []
     for o in live:
         if o["sym"] not in universe:
@@ -202,9 +203,10 @@ def option_cash(positions, live, universe, end, px):
         val = (bs_put(k / s, tau, sigma, RF) * s if o["right"] == "P"
                else bs_call(s / k, 1.0, tau, sigma, RF) * k)
         live_mark -= o["qty"] * val * 100     # short: a liability
+        mark_by_leg[o["right"]] -= o["qty"] * val * 100
     return dict(received=received, live_prem=live_prem, commissions=commissions,
                 bought_back=bought_back, live_mark=live_mark, by_leg=dict(by_leg),
-                unmarked=unmarked,
+                mark_by_leg=dict(mark_by_leg), unmarked=unmarked,
                 total=received + live_prem + commissions + bought_back + live_mark)
 
 
@@ -487,22 +489,31 @@ def main():
     # the mark loss if it is assigned; a call's is its premium less the upside
     # surrendered if it is exercised. Everything else is friction. This is the
     # live version of the article's claim that each leg is very nearly a wash.
+    # A contract still open has its premium in its leg, so its mark -- what it
+    # would cost to close -- goes in the same leg. Left in frictions, it let
+    # every freshly written contract count as premium kept in full.
     put_prem = A["by_leg"].get("P", 0.0)
     call_prem = A["by_leg"].get("C", 0.0)
-    friction = A["commissions"] + A["bought_back"] + A["live_mark"]
+    put_mark = A["mark_by_leg"].get("P", 0.0)
+    call_mark = A["mark_by_leg"].get("C", 0.0)
+    put_leg = put_prem + put_mark - B
+    call_leg = call_prem + call_mark - C
+    friction = A["commissions"] + A["bought_back"]
     print("\n=== where the excess comes from, by leg ===")
     print(f"  put premium                    ${put_prem:12,.0f}")
+    print(f"  less mark on open puts         ${put_mark:12,.0f}")
     print(f"  less mark loss at acquisition  ${-B:12,.0f}")
     print(f"  {'-'*48}")
-    print(f"  PUT LEG                        ${put_prem - B:12,.0f}"
-          f"   ({(put_prem-B)/put_prem:+.1%} of premium kept)")
+    print(f"  PUT LEG                        ${put_leg:12,.0f}"
+          f"   ({put_leg/put_prem:+.1%} of premium kept)")
     print(f"  call premium                   ${call_prem:12,.0f}")
+    print(f"  less mark on open calls        ${call_mark:12,.0f}")
     print(f"  less upside surrendered        ${-C:12,.0f}")
     print(f"  {'-'*48}")
-    print(f"  CALL LEG                       ${call_prem - C:12,.0f}"
-          f"   ({(call_prem-C)/call_prem:+.1%} of premium kept)")
-    print(f"  frictions (comm, buy-backs,    ${friction:12,.0f}")
-    print(f"    marks on open contracts)")
+    print(f"  CALL LEG                       ${call_leg:12,.0f}"
+          f"   ({call_leg/call_prem:+.1%} of premium kept)")
+    print(f"  frictions (commissions,        ${friction:12,.0f}")
+    print(f"    buy-backs)")
     print(f"  {'='*48}")
     print(f"  EXCESS = A - B - C             ${excess:12,.0f}")
     print("\n=== the two ledgers ===")
