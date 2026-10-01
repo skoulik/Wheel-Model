@@ -122,7 +122,7 @@ SYMBOL_ALIASES = {
 
 # Known-dead: no history obtainable, for a reason we understand. Recorded so a
 # failed fetch is a deliberate omission rather than a silent hole, and so these
-# do not re-attempt on every run. Between them they carry $83 of the $60,059 of
+# do not re-attempt on every run. Between them they carry about 0.1% of
 # in-universe premium, so nothing here is material.
 KNOWN_MISSING = {
     "FGEN": "FibroGen — 1:25 reverse split then delisted",

@@ -603,7 +603,7 @@ are drafted rather than be discovered afterwards.
   confirmed rather than merely inherited.
 - **The live book's width** (was #24, figures restated 2026-07-27, re-measured 2026-09-07). The
   account sells puts across **99 names while holding inventory in 34**, so put margin is
-  **$43.0k = 29.5% of Track B capital** against the single-name model's 1.6%. The share fell from
+  **29.5% of Track B capital** against the single-name model's 1.6%. The share fell from
   31% because Track B capital rose on the inventory mark, not because the book narrowed — the
   inventory-name count has been 34 across three refreshes while the put book widened.
   Premium is generated across a far wider book
@@ -1060,9 +1060,9 @@ live data, not only simulation.
   option returns, which eighteen years does not fix. IV-1 carries the citation and the fuller
   statement — use it here rather than restating it.
 - **The UNH lot is the worked example**, deliberately kept out of Part II so it lands here:
-  assigned at 260, a four-week call written at the same 260 basis for $18.10, called away at 260
-  with the stock at 393.85 — collected $1,810, surrendered $13,385. It is also, on its own, the
-  difference between a negative and a positive overlay excess (−5.61% → +0.20%) **and** 27% of
+  assigned at 260, a four-week call written at the same 260 basis for 18.10 a share, called away at
+  260 with the stock at 393.85 — collected 18.10 a share, surrendered 133.85, over seven times as
+  much. It is also, on its own, the difference between a negative and a positive overlay excess (−5.61% → +0.20%) **and** 27% of
   the selection gap. The same position carries both verdicts, and that is the point rather than
   a caveat: a lot that runs far enough to dominate selection is a lot whose call gave the run
   away. **Do not present it as an outlier to be set aside.** UNH, ELV, ACN and MSFT all show
@@ -1070,7 +1070,7 @@ live data, not only simulation.
   when it was called away at 148 into a rally, which is the same story a second time and is worth
   using as the confirmation that UNH is a mechanism rather than an accident.
 - **The by-leg decomposition**, which is where the restatement bites: the **put leg keeps 28.4%
-  of premium, the call leg −47.6%**, frictions −$4,874. The old near-symmetry between the legs
+  of premium, the call leg −47.6%**, frictions 6.8% of all premium. The old near-symmetry between the legs
   was cheap calls on falling names; on the universe the strategy actually claims, the call leg
   gives back **nearly half again** its own premium. Removing those names did not create the
   effect, it stopped hiding it.
@@ -1078,8 +1078,8 @@ live data, not only simulation.
   **The fourth tranche is the cleanest demonstration of the mechanism the article has** (added
   2026-09-07, and worth building the section's argument around). Seven lots were called away in a
   month the universe rose 4.24%, and the call leg went from −28.9% to −47.6% in that single
-  tranche while the put leg *improved* (25.2% → 28.4%). C rose $42.3k → $50.7k on a call premium
-  that rose only $32.8k → $34.4k. That is not a statistical wobble: it is the covered call's
+  tranche while the put leg *improved* (25.2% → 28.4%). C rose by a fifth on a call premium that
+  rose by a twentieth. That is not a statistical wobble: it is the covered call's
   defining trade arriving in the ledger, a whole month of it at once, and it is the reason the
   section's verdict must be conditional on the regime rather than stated flat.
 - **Selection, reported not modelled** (was #22 and #14). The pre-registered rule

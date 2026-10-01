@@ -110,11 +110,11 @@ positions that are negative on the overlay and positive on selection at once.
 
 **What moved the third row, since it moved more than the second.** Seven lots were called away in
 a 4.24% month and none were replaced, so inventory fell from fifteen open lots to eight. Every
-call-away books its surrendered upside into C, which rose $42.3k → $50.7k against a call premium
-that rose only $32.8k → $34.4k: the call leg went from giving back 28.9% of its own premium to
-giving back **47.6%**. In dollars the call leg moved the excess by **−$6,870**, which is more than
-the whole of its −$3,072 net move; the put leg (+$1,565, 25.2% → 28.4% of premium kept) and lower
-frictions (+$2,233) gave $3,798 of it back. Track A *fell* while Track B
+call-away books its surrendered upside into C, which rose by a fifth against a call premium that
+rose by a twentieth: the call leg went from giving back 28.9% of its own premium to giving back
+**47.6%**. The call leg alone moved the excess **2.2 times** as far as the excess moved in total;
+the put leg (25.2% → 28.4% of premium kept) and lower frictions gave 55% of that back. Track A
+*fell* while Track B
 rose by eight points, which is the ledger gap this record exists to show — a brokerage statement
 sees a quiet month of premium, the economic ledger sees a book cashing in its unrealised gains at
 strikes fixed months earlier.
@@ -178,7 +178,7 @@ corrected for, because the universe is defined by what was traded and revising i
 be choosing a basket.
 
 The put book's width moved with it: puts are now sold across **99 names while inventory sits in
-34**, and put margin is **$43.0k = 29.5% of Track B capital** against the single-name model's 1.6%.
+34**, and put margin is **29.5% of Track B capital** against the single-name model's 1.6%.
 That is III-1's book-width caveat at the new corpus; the ratio fell from 31% because Track B
 capital rose on the inventory mark, not because the book narrowed.
 

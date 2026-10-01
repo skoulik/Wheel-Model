@@ -9,6 +9,9 @@ This is the first measurement of the live account in **Track B**. Everything
 before it — the 2026-07-10 observations draft, all of TODO items #7–#14 — was
 computed from a cash ledger, which can only produce Track A on a cost basis.
 
+> **Redacted, 2026-10-01.** Dollar amounts removed, because the repository is public; the
+> originals are in git history.
+
 > **Restated 2026-07-27 (second revision), after two definition changes.** Every
 > figure in this file moved. The universe is now an explicit list of names the
 > strategy claims to trade (`EXCLUDED_LIST` in `analyze_statement.py`), replacing
@@ -83,12 +86,12 @@ flatters it further, with an option overlay that gave part of it back.
 `live_ledger.py --bootstrap` ranks each name by its footprint in *both*
 decompositions at once:
 
-    name       excess    w/o it  selection    w/o it
-    UNH    $  -11,019    +2.08% $   13,961   +12.35%
-    ELV    $   -3,352    -2.68% $    7,898   +17.85%
-    MSFT   $   -3,652    -2.50% $    5,354   +20.15%
-    INTU   $     -957    -4.17% $   -5,229   +29.75%
-    ZTS    $      176    -4.88% $   -4,642   +29.21%
+    name    excess    w/o it   selection    w/o it
+    UNH        −      +2.08%       +       +12.35%
+    ELV        −      -2.68%       +       +17.85%
+    MSFT       −      -2.50%       +       +20.15%
+    INTU       −      -4.17%       −       +29.75%
+    ZTS        +      -4.88%       −       +29.21%
 
 UNH alone is 51% of the selection gap and, on its own, the difference between a
 negative and a positive overlay. The first three rows share a sign pattern:
@@ -112,36 +115,36 @@ exists to fix.
 
 **The clearest single illustration.** UNH was assigned at 260 on 2026-03-27.
 Three days later the operator wrote a four-week call at the same 260 basis for
-$18.10 — the frozen-strike policy the model assumes. UNH then ran from 277 to
-393.85 by the 2026-05-15 expiry and was called away at 260. Collected $1,810;
-surrendered $13,385. The covered call capped precisely the recovery that would
+18.10 a share — the frozen-strike policy the model assumes. UNH then ran from 277 to
+393.85 by the 2026-05-15 expiry and was called away at 260. Collected 18.10 a
+share; surrendered 133.85. The covered call capped precisely the recovery that would
 have repaid the lot, which is the model's central mechanism arriving in the most
 expensive available form.
 
 ## What the universe change did, name by name
 
-Fourteen lots left the measurement. Their equity P&L over the window:
+Fourteen lots left the measurement. The sign of their equity P&L over the window:
 
-    STRF   5 lots   -$9,976     the wheeled preferred, already out of scope
-    KWEB   2 lots   -$2,294     China ETF
-    KVUE   2 lots     +$810
-    DQ     1 lot      +$678
-    RIVN   1 lot      +$238
-    AMLP   1 lot      +$190
-    BEKE   1 lot      -$370
-    ALT    1 lot      -$315
+    STRF   5 lots   loss, the largest by far   the wheeled preferred, already out of scope
+    KWEB   2 lots   loss, the second largest   China ETF
+    KVUE   2 lots   gain
+    DQ     1 lot    gain
+    RIVN   1 lot    gain
+    AMLP   1 lot    gain
+    BEKE   1 lot    loss
+    ALT    1 lot    loss
 
 The jump in measured selection is almost entirely **STRF and KWEB**, which are
 excluded on a structural criterion — a preferred and an index fund are not the
 lognormal single-stock walk the model is built on — decided before the question
 of how they performed arose. The speculative single names contributed *positive*
-P&L totalling ~+$1.9k, so removing them slightly *lowers* measured selection. The
+P&L in total, so removing them slightly *lowers* measured selection. The
 redefinition is not self-flattering; STRF was simply suppressing the number
-before, and it was −$6,880 of the old +$17,179 gap.
+before, by 40% of the old gap.
 
-**The overlay went the other way.** The excluded names contributed exactly
-**+$2,921** to the old excess: $8,369 of call premium against only $1,395 of
-surrendered upside — cheap calls written on names that kept falling. Strip them
+**The overlay went the other way.** The excluded names contributed
+**positively** to the old excess: their surrendered upside was only a sixth of their
+call premium — cheap calls written on names that kept falling. Strip them
 and the covered-call leg's result gets substantially worse (below). The universe
 cleanup made the overlay look worse and selection look better, which is the
 pattern to expect when the names removed were ones that fell.
@@ -181,14 +184,11 @@ model does not.
 
 ### (i) Options sold dear — the put leg keeps a fifth, the call leg loses a third
 
-    put premium                    $33,721                       (was $36,225)
-    less mark loss at acquisition  -26,768                       (was -32,306)
-    PUT LEG                        $ 6,953     20.6% of premium kept  (was 10.8%)
-    call premium                   $29,074                       (was $37,443)
-    less upside surrendered        -38,643                       (was -40,038)
-    CALL LEG                       $-9,569    -32.9% of premium kept  (was -6.9%)
-    frictions                      $-5,054     commissions, buy-backs, open marks
-    EXCESS                         $-7,670                       (was -$4,749)
+    mark loss at acquisition       79.4% of put premium     (was 89.2%)
+    PUT LEG                        20.6% of premium kept    (was 10.8%)
+    upside surrendered            132.9% of call premium    (was 106.9%)
+    CALL LEG                      -32.9% of premium kept    (was -6.9%)
+    frictions                       8.0% of all premium     commissions, buy-backs, open marks
 
 This is the largest qualitative change in the restatement, and it goes the
 article's way. Under the old universe both legs were very nearly a wash. On the
@@ -196,14 +196,14 @@ names the strategy actually claims, they are not symmetric at all: **the put leg
 keeps a fifth of its premium and the call leg gives back a third of its own.**
 
 The reason is the previous section's arithmetic. The excluded names were falling
-names, and a call written on a falling name expires worthless — $8,369 of call
-premium against $1,395 of surrendered upside. That flattered the call leg by
+names, and a call written on a falling name expires worthless — their surrendered
+upside was a sixth of their call premium. That flattered the call leg by
 enough to disguise what the covered call does on a name that recovers, which is
 exactly the mechanism [the returns section](#sec:returns) is about. Removing them
 does not create the effect; it stops hiding it.
 
-Frictions are not negligible: $653 of commissions, $745 of buy-backs, and $3,656
-of mark on the 68 contracts still open at the window's end.
+Frictions are not negligible: commissions 1.0% of all premium, buy-backs 1.2%, and
+5.8% of mark on the 68 contracts still open at the window's end.
 
 Decomposed into volatility risk premium versus skew in Appendix 2.
 
@@ -231,7 +231,7 @@ against a weekly cadence's 52, and acquires **1.41 lots per wheeled name-year**
 
 | # | difference | measured |
 |---|---|---|
-| X1 | the put book is *wide*: puts on 95 names, put margin $43.4k = **31% of capital** against the single-name model's 1.6% | yes |
+| X1 | the put book is *wide*: puts on 95 names, put margin **31% of capital** against the single-name model's 1.6% | yes |
 | X2 | deep lots are often left uncovered: 29 calls struck below the *top* layer's basis | yes |
 | X3 | K_c policy: 116 at basis / 23 above / 29 below (of 168 matched) — frozen-K_c holds **69%** of the time (was ~80%) | yes |
 | X4 | impairment: **no observations.** ALT and BEKE were the only two, and both are now out of universe | none |

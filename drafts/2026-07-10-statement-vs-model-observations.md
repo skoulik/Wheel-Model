@@ -8,6 +8,9 @@
 > re-derived from `code/analyze_statement.py`, which now shifts dates to their event
 > date, rather than quoted from here.
 
+> **Redacted, 2026-10-01.** Dollar amounts removed, because the repository is public; the
+> originals are in git history.
+
 Source: statements/USD.csv + statements/USD1.csv (private, gitignored) — Interactive
 Brokers cash-flow statements covering 2025-05 through 2026-07-10. Parser and
 aggregate reports: code/analyze_statement.py. Parsed: 1,123 closed option positions
@@ -141,7 +144,7 @@ structural gap.
 
 ## 9. The "fundamentally sound" assumption fails in the field — and has an absorbing state
 
-The junk universe is a graveyard: covered calls at $1–$3 strikes grinding out exits
+The junk universe is a graveyard: covered calls at strikes of 1 to 3 grinding out exits
 from collapsed legacy positions, bankruptcy remnants (FibroGen contra rights,
 Walgreens tender odd lots, reverse-split fragments). Once a stock collapses
 permanently, its lot exits the wheel mathematics entirely: q = 0 forever, premium
@@ -152,8 +155,7 @@ disclaimer — real portfolios demonstrably accumulate these.
 
 ## 10. Encouraging confirmations
 
-- Call premium now contributes 90% as much gross income as put premium ($28.5k vs
-  $31.6k) — and the ratio ROSE from 0.62 to 0.90 as inventory accumulated over the
+- Call premium now contributes 90% as much gross income as put premium — and the ratio ROSE from 0.62 to 0.90 as inventory accumulated over the
   extra months, consistent with the model's call-income term scaling with I*.
 - Median monthly-put premium 0.72% of strike vs. the model's Black–Scholes 0.5% at
   k = 0.95 — right ballpark, gap consistent with IV > RV plus skew (TODO #4).
@@ -171,14 +173,14 @@ withholding tax, fees) over 2025-02 .. 2026-07. Matching receipts to the
 reconstructed wheel position on the payment date (caveat: entitlement fixes on the
 earlier record date, so lots that turned over in between can be mis-bucketed):
 
-  * Wheel inventory collected **$7,104 gross — 11.8% of the $60.1k gross option
-    premium**. But $4,750 of that is a single name, STRF; ex-STRF the ordinary
-    equity names contributed ~$2,350 ≈ **3.9% of premium** — real, second-order.
-    (Another $6,254 landed on legacy shares of quality names held from before the
-    window, and $6,023 on non-wheel holdings; both excluded from wheel economics.)
+  * Wheel inventory collected dividends worth **11.8% of gross option premium**.
+    But two thirds of that is a single name, STRF; ex-STRF the ordinary equity
+    names contributed **3.9% of premium** — real, second-order. (Legacy shares of
+    quality names held from before the window, and non-wheel holdings, each received
+    nearly as much again; both excluded from wheel economics.)
   * **Carry concentrates on the aging tail.** Dividends accrue per unit holding
     time, so the trapped/metastable lots of finding #4 collect disproportionately:
-    HRL (315d open) 5 receipts, ADP $510, and NVO, PYPL, ZTS, TRI, DPZ all paid
+    HRL (315d open) 5 receipts, ADP the largest single payer, and NVO, PYPL, ZTS, TRI, DPZ all paid
     while stuck. The patience policy of findings #4/#5 is partly carry-financed:
     a trapped lot's annual cost is opportunity + impairment hazard MINUS net
     dividend yield, which for a 2–4.5% payer meaningfully softens the trap and for
@@ -186,7 +188,7 @@ earlier record date, so lots that turned over in between can be mis-bucketed):
     dividend payers, the option value of waiting comes with positive carry, so the
     observed reluctance to strike down is more rational than it first looks.
   * **STRF is a remarkable outlier, not a category to model**: a fixed-coupon
-    preferred ($2.50/quarter, ~9%/yr on the ~110 basis) deliberately wheeled. Its
+    preferred (2.50 a quarter, ~9%/yr on the ~110 basis) deliberately wheeled. Its
     five aged lots (230–325d) are the draft's biggest "trapped" block, yet they
     out-earn most fast-lane equity lots while waiting — bond-like securities break
     the "trapped = dead capital" reading. Out of scope for the model (the article
@@ -202,7 +204,7 @@ earlier record date, so lots that turned over in between can be mis-bucketed):
     lends out the inventory. Gross-equivalent economically, different tax
     mechanics, and it flags an unmodeled side-channel: wheel inventory earns
     securities-lending income precisely on the hard-to-borrow names. Even the junk
-    graveyard drips: $2.1k of PIL, mostly the collapsed REIT MPW — finding #9's
+    graveyard drips payments in lieu, mostly the collapsed REIT MPW — finding #9's
     absorbing state has q = 0 but not always yield = 0.
   * What the cash statement CANNOT test: the dividend-capture early-exercise
     channel (TODO #2c/#5) — payment dates, not ex-dates, are recorded, so
