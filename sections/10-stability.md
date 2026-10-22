@@ -7,7 +7,7 @@ Both of those are properties of the stock. An operator who borrows to hold the w
 
 ## The first boundary: do lots come back?
 
-By [the holding-time section](#para:holding-first-passage-question), a lot leaves when its depth walk first reaches zero. A walk drifting downward gets there eventually with certainty; a walk drifting upward may never get there at all. The condition is simply that the drift points the right way:
+By [the holding-time section](#para:holding-first-passage-question), a lot leaves when its depth walk first stands at or below zero on a day a call expires. A walk drifting downward gets there eventually with certainty; a walk drifting upward may never get there at all. The condition is simply that the drift points the right way:
 
 **ν  =  μ − δ − σ²/2  >  0**    {#eq:count-criterion}
 
