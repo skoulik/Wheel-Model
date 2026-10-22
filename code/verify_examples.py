@@ -1160,6 +1160,14 @@ def main():
     print("--- Reproduction appendix ---")
     FAILURES.extend(R.appendix_drift(mods, ctx))
 
+    # Prose that rests on another part of the article: every signed claim, and
+    # what it rests on, must read as it did when someone last read the two
+    # together.  Section 02's "four years" outlived the cadence change by weeks
+    # because nothing but prose carried it.
+    print("--- Signed claims ---")
+    from examples import _claims
+    FAILURES.extend(_claims.check())
+
     print()
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} check(s) FAILED: {FAILURES}")

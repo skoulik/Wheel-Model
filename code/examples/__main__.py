@@ -6,6 +6,8 @@
     python -m examples --figures     write the article's figures to figures/
     python -m examples --figures-check   fail if a committed figure is stale
     python -m examples --appendix-check  fail if the committed appendix is stale
+    python -m examples --claims      fail if a signed claim has been reworded
+    python -m examples --sign CITING TARGET   sign one claim, after reading both
 
 From `code/`, or anywhere with `code/` on the path.  `verify_examples.py`
 calls the same machinery; this is the shortcut for working on one module.
@@ -42,10 +44,31 @@ def main():
     ap.add_argument("--figures-check", action="store_true",
                     help="every {#fig:} has a script and a file, and every "
                          "committed figure matches a fresh draw")
+    ap.add_argument("--claims", action="store_true",
+                    help="fail if a signed claim, or what it rests on, has been "
+                         "reworded since it was signed")
+    ap.add_argument("--sign", nargs=2, metavar=("CITING", "TARGET"),
+                    help="sign one claim: CITING (a section file, or a para: "
+                         "anchor) rests on TARGET (an anchor)")
+    ap.add_argument("--unsign", nargs=2, metavar=("CITING", "TARGET"),
+                    help="drop one claim's signature")
     ap.add_argument("--only", default=None,
                     help="restrict to modules whose name contains this")
     ap.add_argument("--quiet", action="store_true", help="failures only")
     args = ap.parse_args()
+
+    # Claims concern the prose alone, so they need no example modules.
+    if args.claims or args.sign or args.unsign:
+        from examples import _claims
+        if args.sign:
+            _claims.sign(*args.sign)
+        if args.unsign:
+            _claims.unsign(*args.unsign)
+        gaps = _claims.check() if args.claims else []
+        for g in gaps:
+            print(f"  {g}")
+        return 1 if gaps else 0
+
     if not (args.list or args.check or args.run or args.coverage
             or args.references or args.registers or args.derivations
             or args.appendix or args.appendix_check or args.figures
