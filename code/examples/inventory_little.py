@@ -29,6 +29,8 @@ EQ = ["eq:lambda", "eq:little", "eq:little-finite"]
 
 # The horizons section 08 tabulates against equilibrium, in years.
 HORIZONS = [5.0, 10.0, 30.0]
+# The years at which section 08 reads the departure rate off a cold start.
+DEPARTURES_AT = [1.0, 5.0, 30.0]
 
 FIELDS = [
     ("lam", "arrival rate lambda = p*/T (lots/year)", ".1f"),
@@ -40,6 +42,10 @@ FIELDS = [
     ("residence", "  W(H) = that over lambda: in-window residence (y)", ".2f"),
     ("hlabels", "  ", ">6s"),
     ("approach90", "years to reach 90% of equilibrium", ".0f"),
+    ("departures", "departure rate lambda*(1 - S(t)) at year t", ".2f"),
+    ("dlabels", "  ", ">6s"),
+    ("still_held", "S(30 y): share of lots staying beyond thirty years", ".4f"),
+    ("late_share", "  their share of the equilibrium inventory", ".2f"),
 ]
 
 
@@ -79,6 +85,21 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
                       / eq["lambda"] for h in HORIZONS],
         "hlabels": [f"{h:.0f} y" for h in HORIZONS],
         "approach90": model.time_to_fraction(cfg, full, 0.9),
+        # Why the stock builds up: holdings grow at lambda*S(t), so departures
+        # run at lambda*(1 - S(t)) and close on arrivals only as fast as the
+        # survival curve dies.  Off the near grid, like the trajectory above.
+        "departures": [model.departure_rate(cfg, measure, near, t)
+                       for t in DEPARTURES_AT],
+        "dlabels": [f"{t:.0f} y" for t in DEPARTURES_AT],
+        "still_held": 1 - model.departure_rate(cfg, measure, near, 30.0)
+                      / eq["lambda"],
+        # At equilibrium the lots older than thirty years are exactly the ones
+        # whose stay exceeds thirty, and they hold lambda * integral_30^inf
+        # S(u) du -- the equilibrium less what a cold start holds at thirty.
+        # The same two numbers as the "seven tenths" of section 08, so the
+        # same mix of walks: equilibrium extrapolated, thirty years near.
+        "late_share": 1 - model.inventory_at(cfg, measure, near, 30.0)
+                      / eq["I"],
     }
 
 
@@ -135,6 +156,14 @@ CASES = [
         # thirty, against a full life of 2.10" -- the window reading of the law
         "residence": ([0.52, 0.71, 1.10], 0.005),
         "approach90": (90.0, 3.0),      # "Reaching 90% of the equilibrium level takes 90 years"
+        # "departures reach 8.5 lots a year by the end of the first year, 9.7
+        # by the fifth and 10.25 by the thirtieth"
+        "departures": ([8.54, 9.72, 10.25], 0.01),
+        # "within 1.4% of arrivals ... one lot in seventy"
+        "still_held": (0.0144, 0.0003),
+        # "they carry the three tenths of the equilibrium the operator does
+        # not yet hold"
+        "late_share": (0.29, 0.01),
     }, note="Standard regime"),
 ]
 

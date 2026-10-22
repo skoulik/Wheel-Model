@@ -1020,6 +1020,22 @@ def inventory_at(C, measure, occ, t):
     return arrival_rate(C, measure) * total
 
 
+def departure_rate(C, measure, occ, t):
+    """lambda * (1 - S(t)): the rate lots leave at year t of a cold start.
+
+    The derivative of inventory_at() is lambda*S(t), arrivals less this, so
+    the two flows balance only as S(t) dies away: by year t only a lot whose
+    stay is shorter than t can have left.  S is read on inventory_at()'s
+    convention, S_j for j*tau_c <= t < (j+1)*tau_c, so a t on a call date
+    takes the period that call opens.  Past the walk's last period S is
+    unknown rather than zero, so that is refused.
+    """
+    j = int(t / C.tau_c + 1e-9)          # 31 call dates in reads 30.999999...
+    if j >= len(occ["surv"]):
+        raise ValueError(f"t = {t} is past the walk's {len(occ['surv'])} periods")
+    return arrival_rate(C, measure) * (1.0 - occ["surv"][j])
+
+
 def inventory_counted(C, measure, occ, t):
     """E[I(t)] counted put by put, as the independent check on inventory_at().
 

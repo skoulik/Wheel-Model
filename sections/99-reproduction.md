@@ -179,7 +179,7 @@ Draws [fig:inventory-approach](#fig:inventory-approach): `python code/examples/i
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/inventory_little.py` | lam = 10.4, EW = 2.10, EI_eq = 21.82, at_h = 7.95  10.57  15.42, at_h_counted = 7.95  10.57  15.42, horizons = 5.41  7.39  11.40, residence = 0.52  0.71  1.10, approach90 = 90 |
+| `python code/examples/inventory_little.py` | lam = 10.4, EW = 2.10, EI_eq = 21.82, at_h = 7.95  10.57  15.42, at_h_counted = 7.95  10.57  15.42, horizons = 5.41  7.39  11.40, residence = 0.52  0.71  1.10, approach90 = 90, departures = 8.54  9.72  10.25, still_held = 0.0144, late_share = 0.29 |
 
 ## Returns and Capital
 
