@@ -44,12 +44,14 @@ Averages add however dependent the things averaged are, so lots sharing one pric
 
 ![Lots held at year t, and their average over the first t years, rising toward the equilibrium of 21.8 lots.](../figures/inventory-approach.svg){#fig:inventory-approach}
 
+<a id="para:inventory-window-average"></a>
 The upper curve is what the operator is holding when year t arrives. The lower is the average across the whole period, and it is the one the rest of Part II reports, because a return earned over a window has to be measured against the capital committed *throughout* that window rather than at its end. Every horizon-indexed figure from [the returns section](#sec:returns) onward is an average of the second kind, and the distinction is worth carrying: at thirty years the operator holds 15.4 lots against an average of 11.4, a third more.
 
 The lower curve is Little's law read over the window: divide the window's average inventory by the arrival rate, and what comes back is the time a lot spends inside it — 0.52 years over a five-year window, 0.71 over ten, and **1.10 over thirty, against a full life of 2.10.** A lot assigned in year 28 can spend at most two years in the window, so the window sees about half of each lot and holds about half the equilibrium inventory. [Little's finite-window form](#ref:little-2011) covers exactly this case — a window that starts empty and closes with lots still held.
 
 What the window law does not say is how 11.4 relates to 21.8. That is a question of how fast the system fills, which the rest of this subsection takes up.
 
+<a id="para:inventory-ninety-years"></a>
 Reaching 90% of the equilibrium level takes **90 years** — the horizon at which the integral in [eq:little-finite](#eq:little-finite) reaches nine tenths of E[W], and marked on the upper curve of figure [fig:inventory-approach](#fig:inventory-approach). An operator running this strategy for a full career holds about **seven tenths** of where it is heading, and the holding is still rising.
 
 That 90% is a convention: nine tenths of an asymptote is a threshold chosen by whoever is writing, not a date on which anything happens. An operator with a finite account gets a real threshold instead — the date its ceiling starts refusing puts — and [the constrained section](#sec:constrained) computes it, together with the share of the strategy such an account actually runs.
@@ -64,10 +66,12 @@ Two remarks keep it from being read as more comforting than it is.
 
 First, during the transient the flows do *not* balance, and [eq:little-finite](#eq:little-finite) says by how much. Holdings at year t grow at rate λ·S(t), so departures run at λ·(1 − S(t)). Only a lot whose stay is shorter than the strategy's age can have left yet; every lot whose stay is longer is, by construction, still inside. For the first four weeks nothing leaves at all, because no lot has met a call. After that the gap closes fast and then very slowly, at the pace of the survival curve: departures reach 8.5 lots a year by the end of the first year, 9.7 by the fifth and 10.25 by the thirtieth. At thirty years they are within 1.4% of arrivals, and the system is still absorbing more than it releases. That 1.4% is one lot in seventy, the lots that will stay for decades, and between them they carry the three tenths of the equilibrium the operator does not yet hold.
 
+<a id="para:counts-not-money"></a>
 Second, self-recycling is a statement about *counts*, not about money. Every departing lot exits at exactly the strike it entered at, so the round trip through inventory costs nothing at the price level — the appealing fact practitioners point to. But the lots arriving and the lots departing are not the same lots. Departures come from the shallow end: a lot leaves only when the price is back at its own strike, so most of the lots that go never fell far — two in five leave on their very first call. Arrivals come in shallow too, bought just below wherever the market stands that week. Neither flow reaches the deep end, the lots bought at prices the market has long since left. The count balances while the book left standing is weighted toward exactly those lots, and composition is where the money is.
 
 ## What the warehouse is actually made of
 
+<a id="para:census-depth-decides"></a>
 Little's law counts the lots but says nothing about how deep they stand, and by [the depth section](#sec:depth) depth decides both whether a lot can leave and what its call earns. Write ρ(x) for the **depth census**: how the standing inventory is distributed across depth — equivalently, how a randomly chosen lot-period of holding is distributed. It is obtained by pushing the entry law forward through the depth walk and accumulating the survivors:
 
 ρ(x)  ∝  Σ_{j≥0}  f_j(x)    {#eq:census}
@@ -90,8 +94,10 @@ Set the census against the exit probability of [eq:qx](#eq:qx). On this call clo
 
 The mechanism is **length bias**, which appears wherever a population is sampled by time rather than by item. The **length bias** detour gives the general case.
 
+> <a id="para:length-bias"></a>
 > **Detour: length bias.** Sample a hospital's beds on a given day and the patients you find are far sicker than the patients admitted, because a patient staying six months occupies a bed six months' worth while a patient staying a day occupies it for a day. Nothing about admissions has changed; the *sampling* is biased toward the slow. The same effect makes any bus you catch at random busier than the average bus, and makes a random inventory lot far deeper than a random assignment. A census of what is *present* is not a census of what *arrives*.
 
+<a id="para:warehouse-fills-with-slow-lots"></a>
 Fast lots leave quickly and barely register in the census. Slow lots register for exactly as long as they are slow. So the warehouse fills, unavoidably, with the lots that are least able to leave and least able to earn — and by figure [fig:depth-exit-premium](#fig:depth-exit-premium), those two properties are the same property.
 
 There is a second way to see the same thing, and behavioural finance has a name for it — the **disposition effect**, which the detour of that name sets against what this strategy does.

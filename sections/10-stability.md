@@ -2,11 +2,12 @@
 
 The wheel never stops selling puts. Lots arrive whatever else is happening, and they leave only when the market comes back to fetch them. So the question that decides whether the strategy is operable at all is whether the warehouse stays finite — and it turns out there are two separate ways for the answer to be no, with two different boundaries, and the stricter one is not the one people worry about.
 
+<a id="para:boundaries-belong-to-the-stock"></a>
 Both of those are properties of the stock. An operator who borrows to hold the warehouse acquires a third that is a property of themselves, and it is the only one of the three that is fast.
 
 ## The first boundary: do lots come back?
 
-By [the holding-time section](#sec:holding), a lot leaves when its depth walk first reaches zero. A walk drifting downward gets there eventually with certainty; a walk drifting upward may never get there at all. The condition is simply that the drift points the right way:
+By [the holding-time section](#para:holding-first-passage-question), a lot leaves when its depth walk first reaches zero. A walk drifting downward gets there eventually with certainty; a walk drifting upward may never get there at all. The condition is simply that the drift points the right way:
 
 **ν  =  μ − δ − σ²/2  >  0**    {#eq:count-criterion}
 
@@ -16,7 +17,7 @@ Rearranged, this is a statement about volatility: the wheel needs **μ − δ > 
 
 ## The second boundary: does the capital come back?
 
-Counting lots is not counting money, as [the inventory section](#sec:inventory) warned. A lot's cost basis, measured against today's price, is e^x — exponential in depth. So even where the *number* of trapped lots is finite, the capital they represent need not be.
+Counting lots is not counting money, as [the inventory section](#para:counts-not-money) warned. A lot's cost basis, measured against today's price, is e^x — exponential in depth. So even where the *number* of trapped lots is finite, the capital they represent need not be.
 
 Follow one surviving lot for a call period. Its depth moves by −ν·τ_c + σ·√τ_c·Z, so its basis-to-price ratio is multiplied by e^(−ν·τ_c + σ·√τ_c·Z), whose expectation is
 
@@ -91,7 +92,7 @@ One caution about the arithmetic, which the same section carries in full. The cl
 
 ## What the option market thinks
 
-Now run both of the stock's own tests under the market's pricing drift, m = r − δ = 2.5%, which by [the entry section](#sec:entry) is a full reading of the model rather than a different model:
+Now run both of the stock's own tests under the market's pricing drift, m = r − δ = 2.5%, which by [the entry section](#para:one-drift-two-readings) is a full reading of the model rather than a different model:
 
 | | real world (m = 4.5%) | the market's prices (m = 2.5%) |
 |---|---|---|

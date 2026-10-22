@@ -12,6 +12,7 @@ The change is not a refinement. An unconstrained wheel is a system in which ever
 
 > A broker will lend against shares held in an account. How much depends on the account type, and the rule is written as a fraction: the operator must keep their own money in the account equal to at least **γ_s** of what the shares are worth at market. Shares paid for in full are γ_s = 1 — every dollar is the operator's. A standard margin account is γ_s = 0.50, a portfolio-margin account 0.25, and the most aggressive arrangements available go to about 0.15.
 >
+> <a id="para:margin-call-permission"></a>
 > The fraction is not a loan the operator draws down deliberately. It is a *permission*, continuously re-evaluated against the market price. Buy ten share prices' worth of stock with five share prices of your own money at γ_s = 0.25 and the broker is content: the debit is five, your equity is five, and the requirement is 2.5. Now let the price fall by a third. The position is worth 6.67, the debit is still five — it does not move when the price does — so your equity is 1.67 against a requirement of exactly 1.67, and the broker sells the entire book at whatever the market pays that morning. That is a **margin call**, or more precisely a forced liquidation, since at retail scale the call and the sale are often the same event. Note how little of the fall it took: a third, on a position only twice the operator's own money.
 >
 > Two features of this matter for everything below. It is *not* a loss the operator chooses to realize: the position is closed by someone else, at the worst possible moment, and a subsequent recovery is of no use because the shares are gone. And it depends on the price path rather than the price at any horizon — the account is destroyed by the *lowest* point the market visits, not by where it ends up. That is what makes survival a first-passage problem, of exactly the kind [the holding-time section](#sec:holding) already met from the other side.
@@ -127,6 +128,7 @@ and this is the sharpest single result of the reframe:
 
 Read the two columns against each other. A portfolio-margin operator, told they may hold four times their equity, would size the account at 5.46 share prices to run a strategy that demands 21.82 lots. They need **19.23** — a factor of 3.5. At the most aggressive margin available the same gap is **5.8×**, and it widens with every increase in the permission, which is the opposite of what the permission is for.
 
+<a id="para:capacity-from-equity"></a>
 And the whole of that permission, correctly risked, buys a **12% discount** on the equity required. Not four times more strategy per dollar; twelve percent less capital. **Capacity comes from equity, and leverage is nearly irrelevant to it.** Nineteen share prices of the operator's own money, to run one weekly put on one name.
 
 ### Below A\*, and how slowly it bites
@@ -142,9 +144,9 @@ The interesting part is how long the account takes to notice. **T_sat**, the tim
 
 Two things in that table, pointing opposite ways.
 
-**The good news is real but it is a trade, not an escape.** [The inventory section](#sec:inventory) reported that the unconstrained equilibrium takes ninety years to approach, and called it a limit no participant reaches. A constrained account does reach its equilibrium, because a capacity ceiling truncates exactly the slow deep tail that made the approach take a lifetime — 2.4 years at A = 5, under a year at A = 3. But it reaches it in proportion to how little of the strategy it is running. An operator who wants to be at equilibrium in two years gets there by running a quarter of the wheel. An operator running all of it inherits the ninety years unchanged, and one running 99% of it waits 270.
+**The good news is real but it is a trade, not an escape.** [The inventory section](#para:inventory-ninety-years) reported that the unconstrained equilibrium takes ninety years to approach, and called it a limit no participant reaches. A constrained account does reach its equilibrium, because a capacity ceiling truncates exactly the slow deep tail that made the approach take a lifetime — 2.4 years at A = 5, under a year at A = 3. But it reaches it in proportion to how little of the strategy it is running. An operator who wants to be at equilibrium in two years gets there by running a quarter of the wheel. An operator running all of it inherits the ninety years unchanged, and one running 99% of it waits 270.
 
-**The bad news is the top of the table.** An account at the model's own thirty-year capital — 11.59 share prices, which is what [the returns section](#sec:returns) reports the strategy as consuming — runs at **60% throughput**, and takes 18.5 years to find out. Smaller accounts are worse: at A = 5 the strategy runs at a quarter of its rate, and at A = 1 at a twentieth. These are reachable steady states in which the wheel is barely running.
+**The bad news is the top of the table.** An account at the model's own thirty-year capital — 11.59 share prices, which is what [the returns section](#para:capital-market-value) reports the strategy as consuming — runs at **60% throughput**, and takes 18.5 years to find out. Smaller accounts are worse: at A = 5 the strategy runs at a quarter of its rate, and at A = 1 at a twentieth. These are reachable steady states in which the wheel is barely running.
 
 ### And every number above is a number about one stock
 
@@ -198,6 +200,7 @@ The mechanism is the ranking's own explanation. Retained income repays the debit
 
 One qualification, because it withdraws an appealing piece of arithmetic. The closed form says the withdraw-everything policy pins g = r_b = 5% exactly, against ν = 2.5%, so the third stability boundary below is crossed by a factor of two. Simulated, the realized g under that policy is **+1.3%, not 5%** — withdrawing the income shrinks the account faster than the interest compounds the debit, and the linearization behind [eq:debit-growth](#eq:debit-growth) is exact only where the drain is proportional to the debit. The boundary is crossed by rather less than the closed form advertises. It is crossed nonetheless, and the ranking of the four policies survives intact. Quote ν > g as the criterion and the table as the evidence; do not quote g = r_b as a measured rate.
 
+<a id="para:third-boundary"></a>
 **A third stability boundary.** [The stability section](#sec:stability) found two conditions for the wheel to work: lots come back iff ν > 0, and the capital in them comes back iff m > σ². The finite account adds a third in the same currency — the account survives iff **ν > g**, the price's median growth outrunning the debt's — and [the stability section](#sec:stability) is where the three are set beside each other and compared.
 
 It belongs beside the other two rather than above them, for a reason worth naming: it is the only one of the three that does not bind an unlevered account at all. An operator who borrows nothing is exempt. It is also the only one of the three the operator can *move*, since g is a cash policy and the other two are properties of the stock.
@@ -282,7 +285,7 @@ Blocking does not remove arrivals at random; it removes them when the account is
 
 **A blocked book is 5.3% deeper**, with the deepest bin's share up 3.8 points.
 
-Two reasons the intuition failed, and both are already on the page. Blocking removes the *newest* arrivals — and a new lot is a shallow lot, entering 1.6% below its strike by [the entry section](#sec:entry)'s law. Refusing arrivals therefore strips the shallow end of the census, not the deep end. And the drawdown story was backwards too, by the previous subsection: a near-unlevered account's capacity in lots *rises* as the price falls, so blocking is if anything rarer during a drawdown, not more common.
+Two reasons the intuition failed, and both are already on the page. Blocking removes the *newest* arrivals — and a new lot is a shallow lot, entering 1.6% below its strike by [the entry section](#para:entry-depth-figures)'s law. Refusing arrivals therefore strips the shallow end of the census, not the deep end. And the drawdown story was backwards too, by the previous subsection: a near-unlevered account's capacity in lots *rises* as the price falls, so blocking is if anything rarer during a drawdown, not more common.
 
 The effect is a saturated-regime statement and should be quoted as one: averaged over the whole run, fill-up years included, the same comparison reads −1% and the distortion washes out. But its direction matters, because it points the wrong way for the operator. The composition error of uniform thinning makes the constrained book slightly deeper — slightly slower, slightly less able to earn on its calls — than the count-based figures above assume.
 

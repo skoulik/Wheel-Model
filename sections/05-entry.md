@@ -79,6 +79,7 @@ A price model needs a **drift**: the average rate at which the price climbs. Two
 - The **real-world** drift is what the stock is actually expected to do: total return μ, less the dividend yield δ, which is paid out of the price rather than added to it. So m = μ − δ.
 - The **risk-neutral** drift is what option *prices* behave as if the stock will do: the risk-free rate r, less δ again. So m = r − δ. It is not a forecast, and nobody claims the stock will only return r; it is the drift replication forces, as the detour above showed, and it is what lets a formula built out of option prices be read straight off the market.
 
+<a id="para:one-drift-two-readings"></a>
 This article computes everything in terms of a single drift m, and reports two readings of the same chain of formulas: **m = μ − δ**, what actually happens, and **m = r − δ**, what the market's prices imply. Neither is ever mixed into the other. The real-world reading leads, because that is the world the operator lives in; the market's reading appears alongside wherever the two disagree, and [the stability section](#sec:stability) is where that disagreement matters most.
 
 A probability in this article is **computed**: the model produces it from a drift and the stock's own volatility σ. A premium is not — it is **observed**, read off the market and taken as given. It too is quoted as a volatility, but a different one: the **implied volatility** σ_IV of a premium is the value at which [eq:bs-put](#eq:bs-put) returns it,
@@ -173,10 +174,12 @@ S_τ / S₀  =  k\* · e^(−x₀)    {#eq:fall-split}
 
 Take expectations of that — of e^(−x₀) — and [eq:d-mean](#eq:d-mean) is what comes out; [the derivation](#drv:d-mean) is three lines, and turns on a single Gaussian integral that recurs throughout the article. The drift comes back with the first factor and only with it — k\* is where it was hiding, and d includes that step where x₀ does not. Under the market's drift the figures are 3.8% and 4.7% as well, differing in the fourth decimal, because the strike is the only thing that moves between the two worlds and over one week it barely moves.
 
+<a id="para:entry-shallower-than-intuition"></a>
 One thing about E[x₀] deserves emphasis: it is **much smaller than intuition suggests**. A weekly put assigned is not a disaster in progress; it is a lot bought about 1.6% under a strike the operator chose on purpose. Whether 1.6% is easy or hard to work off is the question the rest of Part II answers — and the answer is not the comfortable one, because it turns out to have almost nothing to do with the 1.6%.
 
 One limit on all of this. A lognormal has no room for big jumps: it is a model of continuous drift and diffusion, so the depth it derives describes the assignment that *drifts* below the strike, not the one that gaps below it on an earnings miss or a profit warning. An operator sizing for the worst case should not take E[d | assignment] as the worst case. [The live-account section](#sec:live) measures how much of the average that tail carries.
 
+<a id="para:entry-depth-figures"></a>
 So, how deep? About **1.6% below the strike the operator chose** (a log depth, 1.5% as a price) and **3.8% below S₀, the price at which they chose it** — one event, measured against a strike the drift places and against an S₀ it does not. Both are multiples of one period's move σ·√τ_p: the first exactly, scaled by a factor the dial alone sets, and the second with a small correction for the drift, which reaches it through the strike. Turning the dial down to Conservative makes the first number *smaller* and the second *larger* — 1.3% and 4.7% — because a strike further out of the money is a longer fall to reach and a shallower overshoot once reached. All four describe the ordinary assignment, not the worst one.
 
 ## A caveat on exercise style

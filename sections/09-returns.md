@@ -4,7 +4,7 @@ Now the question the whole model was built to answer. All quantities below are p
 
 ## What comes in
 
-Take the Standard regime at a thirty-year horizon, which by [the inventory section](#sec:inventory) means 11.40 lots held on average. Cash arrives from three places:
+Take the Standard regime at a thirty-year horizon, which by [the inventory section](#para:inventory-window-average) means 11.40 lots held on average. Cash arrives from three places:
 
     put premiums      0.1591 per year     one put a week, at 0.31% each
     call premiums     0.3706 per year     11.40 lots, each selling a call every four weeks
@@ -22,6 +22,7 @@ Two different quantities can be called "the capital", and choosing between them 
 
 **Cost basis.** The operator paid k per share for 11.40 lots. Summed, and expressed against today's price, that comes to **18.23**. This is the number a spreadsheet of purchases produces, and it is what practitioners usually mean by "capital deployed".
 
+<a id="para:capital-market-value"></a>
 **Market value.** Those same shares can be sold today for what the market pays: 11.40 share prices, plus margin on the live put, for a total of **11.59**.
 
 The gap between them — 6.6 share prices — is the accumulated paper loss on the standing inventory, which is large precisely because the census in [the inventory section](#sec:inventory) is dominated by deep lots.
@@ -44,6 +45,7 @@ L_acq  =  λ · ( E[ e^(x₀) ] − 1 )  =  **0.1632** per year    {#eq:mark-los
 
 the expectation being taken over the entry law of [eq:x0-law](#eq:x0-law).
 
+<a id="para:discount-priced"></a>
 **This is the answer to the slogan [the introduction](#sec:introduction) declined to argue with.** *Assignment just means buying a good company at a discount* — and the number above is what the discount actually costs, booked at the moment it is taken rather than deferred into a cost basis nobody marks. A sixth of a share price a year, on this book, is not a rounding on the way to owning something cheaply; it is comparable to the entire put premium the strategy collects. [Israelov and Nielsen](#ref:israelov-nielsen-2014) dispatch the same slogan directly and reach the same place: the discount is real, and it is exactly paid for. The strike was chosen; the price was not.
 
 **The upside surrendered at call-away.** When a lot is called away, the shares are delivered at the strike while the market is *above* the strike — that is precisely why the call was exercised. The operator hands over something worth more than what they receive. Track A sees an exit at the same price as the entry and books nothing. A lot leaving at depth x ≤ 0 delivers a share worth 1 for a strike of e^x, so it gives up 1 − e^x, and summing over every period in which a lot might leave,
@@ -99,6 +101,7 @@ Buying and holding the same stock earns μ − r − w·δ = **+1.63%** over the
 | buy and hold, equity-adjusted | +1.60% |
 | **difference** | **+0.01%** |
 
+<a id="para:identical-to-owning-the-stock"></a>
 **At fair option prices the wheel is economically identical to owning the stock.** One basis point is not a result; it is the model's numerical noise floor. The footnote below identifies a real correction worth about nine more — and nine basis points is not a result either, which is the sense in which the difference is zero.
 
 > **A footnote on the collateral, which Track C overcharges.** Track C charges r against everything in Track B, and Track B includes the γ_p·k of margin standing behind the live put. But that margin is a *hold* on the account, not a payment: the cash behind it sits at the broker earning approximately r, which is the whole point of calling the trade a cash-secured put. The model credits it nothing while charging it r, so it overcharges by r·γ_p·k a year — **17 basis points of capital at five years, 13 at ten, 8 at thirty**, the share falling as inventory grows around a margin requirement that does not. The correction lifts the wheel and not the benchmark, whose cash side already earns r by construction, so the difference in the table above becomes about **+0.09 points** instead of the +0.01 shown — and **+0.20** at five years, where the same fixed margin is a larger share of a smaller book. That is still nothing that moves a verdict — half a point of implied volatility is worth more than the entire correction — which is why it is recorded here rather than built into the ledger. Two further remarks. An operator who actually posts the full strike in cash rather than margin has the same overcharge about **four and a half times** larger, because the collateral is k rather than γ_p·k. And this is arithmetic, not a measurement: the overcharge is r·γ_p·k over the capital of [eq:capital](#eq:capital), so it needs no estimate and carries no uncertainty. It should not be confused with the small residual left over by the no-arbitrage identity in [the verification section](#sec:verification), which is a separate quantity of a similar size and the opposite sign.
@@ -245,7 +248,7 @@ The reconciliation is the axis named just above. Take the two indices' own premi
 
 Yield is **mildly negative for the wheel, monotonically** — but the interesting part is where the damage falls. The return declines by 90 basis points across the sweep, most of which is simply the withholding tax on a larger dividend stream; measured against a buy-and-hold benchmark that suffers the same tax, the gap is essentially zero throughout — never more than two basis points, at any yield. What yield really does is **double the inventory and nearly triple the cost-basis capital**. A high-yield name does not make the wheel much less profitable per unit of capital; it makes the wheel need far more capital, and take far longer to release it.
 
-The δ = 6% row deserves its flag: ν has gone negative there, which by [the holding-time section](#sec:holding) means a fixed fraction of lots never come back at all. Its thirty-year figures are a snapshot of a system that does not converge. [The stability section](#sec:stability) takes that up.
+The δ = 6% row deserves its flag: ν has gone negative there, which by [the holding-time section](#para:when-lots-never-leave) means a fixed fraction of lots never come back at all. Its thirty-year figures are a snapshot of a system that does not converge. [The stability section](#sec:stability) takes that up.
 
 (One convention note, since the conclusion depends on it. Total return is held fixed as yield varies — dividends are treated as a *route* for return, not extra return. Assume instead that a 2.5% yielder returns 2.5% more in total than a non-payer, and the sign flips. The equal-total-return assumption is the neutral one.)
 
@@ -262,6 +265,7 @@ The δ = 6% row deserves its flag: ν has gone negative there, which by [the hol
     change from constant δ    −0.01pp   −0.01pp   −0.04pp
     gap vs buy-and-hold       +0.03pp   +0.01pp   +0.01pp
 
+<a id="para:sticky-dividend-four-bp"></a>
 **Four basis points at thirty years, and negative.** The extra carry is real and it is outweighed, by the same two mechanisms the sweep above already identified: a higher yield drags harder on the price, so the book deepens (inventory rises 3.4%, cost-basis capital 5.1%), and a larger share of the total return arrives in the one form that is taxed on the way in.
 
 One warning about that inflation factor, since it is the kind of number a reader might reach for. It corrects a δ defined as the payout over the *trend* price — the yield at y = 0. A δ read off observed dividend yields is not that number: it is already an average taken over whatever deviations the period contained, so the inflation is inside it already. **Applied to a measured yield the factor corrects a number that was never wrong**, and it double-counts by precisely the quantity computed here.

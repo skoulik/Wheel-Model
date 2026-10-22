@@ -1,2 +1,29 @@
 # Written by python -m examples --sign and --unsign; do not edit by hand.
 # citing	target	citing fingerprint	target fingerprint	signed
+02-introduction.md	para:discount-priced	6afb3ba9009e	77eb4fe43b7b	2026-10-22
+06-depth-process.md	para:holding-median	7c027d671c70	d2bd4a7c3949	2026-10-22
+06-depth-process.md	para:sticky-dividend-four-bp	7c027d671c70	7d302c530ed3	2026-10-22
+09-returns.md	para:inventory-window-average	7627936d39d1	8b50aa38722d	2026-10-22
+09-returns.md	para:when-lots-never-leave	62cedcd1c48a	7b2aafc3b676	2026-10-22
+10-stability.md	para:counts-not-money	ef05de08895f	4b1fb56c770c	2026-10-22
+10-stability.md	para:holding-first-passage-question	36073f7a1435	c6a36153b58f	2026-10-22
+10-stability.md	para:one-drift-two-readings	bbe19a9d34b5	e81d1f58d2fa	2026-10-22
+11-constrained.md	para:capital-market-value	34d2bc619001	4c01a2e028da	2026-10-22
+11-constrained.md	para:entry-depth-figures	81d5bf4ac46a	07482679e48a	2026-10-22
+11-constrained.md	para:inventory-ninety-years	87959478eef4	f462e4f88dda	2026-10-22
+para:answers-entry	eq:x0-mean	b231b797af89	8faeaf09b38b	2026-10-22
+para:answers-entry	para:entry-shallower-than-intuition	b231b797af89	74911bc3e543	2026-10-22
+para:answers-finite-account	para:capacity-from-equity	d2d2ca13b464	1c88a5a88caf	2026-10-22
+para:answers-finite-account	para:margin-call-permission	d2d2ca13b464	a8e8db8e7cd9	2026-10-22
+para:answers-holding	eq:holding	3ad2c1c271c8	2950ea42eb9a	2026-10-22
+para:answers-holding	para:holding-ten-weeks-against-two-years	3ad2c1c271c8	63bc60b97995	2026-10-22
+para:answers-inventory	para:length-bias	19f47f70cfd0	07f84c0b3829	2026-10-22
+para:answers-inventory	para:warehouse-fills-with-slow-lots	19f47f70cfd0	fbc5dbbb9f6e	2026-10-22
+para:answers-returns	para:identical-to-owning-the-stock	e115c7d840fc	a84ffabde19f	2026-10-22
+para:answers-stability	eq:capital-criterion	31411e21fcce	a45f9ef6aeab	2026-10-22
+para:answers-stability	eq:count-criterion	31411e21fcce	c2a862f053c9	2026-10-22
+para:answers-stability	para:boundaries-belong-to-the-stock	31411e21fcce	746e9c4ad1af	2026-10-22
+para:census-depth-decides	eq:ccx	fe22490c311f	76ff0012f035	2026-10-22
+para:census-depth-decides	eq:qx	fe22490c311f	b2abf143930b	2026-10-22
+para:third-boundary	eq:capital-criterion	c57a36832411	a45f9ef6aeab	2026-10-22
+para:third-boundary	eq:count-criterion	c57a36832411	c2a862f053c9	2026-10-22

@@ -6,6 +6,7 @@ A fresh lot has a 40% chance of leaving on its first call — the exit probabili
 
 A lot that fails to exit has, by that very fact, usually drifted *deeper* — and at greater depth its next coin is worse. The periods themselves are independent; what changes is who is still playing. The survivors are not a random sample of the original lots; they are the ones selected for exactly the property that keeps them from leaving. Both halves of that are in [the survival curve](#eq:survival) below: the exit rate falls with every period a lot stays — **0.40** on the first call, **0.23** on the second, **0.07** by the eighth — because the lots still standing are steadily deeper. That is what separates this from [the geometric waiting time](#sec:entry): those trials are memoryless, and these are not.
 
+<a id="para:holding-first-passage-question"></a>
 So the question "how long does a lot stay?" is not a question about a coin at all. It is a question about a wandering path: **when does the depth walk of [eq:depth-walk](#eq:depth-walk) first stand at or below zero on a day a call expires?** That is one of the classical questions of probability.
 
 > **Detour: first-passage time.** Given a random walk, the **first-passage time** is the number of steps until it first reaches a specified level. It is a much subtler quantity than it looks. Even for a walk with a favourable drift, the first-passage time has a **heavy tail**: most paths arrive quickly, but a minority wander the wrong way and take enormously longer, and those rare paths dominate the average. The result is a distribution whose mean sits far above its median — the mean is not "the typical outcome" and using it as one is a standard way to be badly surprised. If the drift is unfavourable, the walk may never arrive at all, and the mean is infinite. [Ross's *Introduction to Probability Models*](#ref:ross-probability-models) treats first passage for random walks and Brownian motion.
@@ -78,6 +79,7 @@ The mean follows from the left panel's curve with no new machinery. J counts the
 
 E[W]  =  τ_c · E[J]  =  τ_c · Σ_j S_j  =  **2.10 years**    {#eq:holding}
 
+<a id="para:holding-median"></a>
 against a **median of eight weeks** — the call date where survival first drops below a half, and both are marked on the left panel. The distribution is exactly as advertised: most lots are handled quickly, a minority never really are, and the mean belongs to the minority. One lot in fifteen is still held after five years; one in twenty-five after ten; one in forty-six after twenty.
 
 Nothing in the model was set up to produce this. There are no separate populations, no mixture of "good" and "bad" lots, no regime switch. A single random walk with a single drift, sampled every four weeks, generates a fast lane, a slow middle, and a tail measured in decades — because that is what first-passage times *are*.
@@ -104,6 +106,7 @@ Two things are worth carrying out of this subsection. The 2.10 is not merely com
 
 ## When lots never leave
 
+<a id="para:when-lots-never-leave"></a>
 Everything above assumed ν > 0, and that assumption was doing more work than it looks. A favourable drift pulls the depth walk toward zero, so every lot leaves eventually and the only question is when. Reverse it — ν ≤ 0, which arrives through σ rather than through anything the operator chooses, since ν = m − σ²/2 — and the walk is pushed away from its own exit. Lots still leave, by luck rather than by drift, but some wander deeper and never return.
 
 The size of that group is classical, and the shape of the answer follows from a single observation. Write p(h) for the chance that a walk drifting away from a barrier at distance h ever reaches it anyway. To cover 2h it must first cover h, and from there it faces the same problem over again from the same distance — so p(2h) = p(h)², and a function turning addition of distance into multiplication of probability is an exponential. Only the rate in the exponent is left, and one more observation fixes it. Whether the walk ever gets there depends on nothing except where it stands now, so that chance cannot drift up or down on its own as the walk moves: averaging p across one short step must give back the value it started from. Take the step to be Gaussian, mean |ν|·dt away from the barrier and variance σ²·dt, and write p(h) = e^{−c·h}. Then p(h) = E[p(h + step)] reduces to E[e^{−c·step}] = 1, and for a Gaussian that expectation is exp(−c·|ν|·dt + c²σ²·dt/2). Drift and variance pull opposite ways in that exponent and cancel at exactly one rate, c = 2|ν|/σ², so p(h) = exp(−2|ν|·h/σ²). Here h is the hole from before, x₀ deepened by the same grid tax, so averaging over the entry law and taking the complement gives
@@ -126,6 +129,7 @@ This is the first appearance of something the model will keep saying in differen
 
 ## What this section changed
 
+<a id="para:holding-ten-weeks-against-two-years"></a>
 Repeating a fresh lot's 40% odds period after period would have said 2.5 periods — ten weeks. The correct answer is a median of eight weeks and a mean of two years, and the gap between them is not a technicality: capital is committed for the *mean*, not the median. Every lot that leaves quickly frees its capital quickly; the operator's balance sheet is dominated by the ones that don't.
 
 Those two facts are worse together than apart. The mean is the number that commits the capital, and it is the one a book cannot show its owner until the lots carrying it have closed — which is to say, not while the decision is still live.
