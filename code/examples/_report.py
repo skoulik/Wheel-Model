@@ -29,7 +29,9 @@ Five things the policy needs to stay true rather than aspirational:
     their assertions because a table that disagrees with its own printed
     command is worse than no table.  Each module gets an anchored heading, so
     the appendix is reachable in both directions: prose links in, and the
-    backs-line links back out to the formulas.
+    backs-line links back out to the formulas.  `appendix_drift()` compares a
+    fresh one with the committed file, because generating it is a step a
+    commit can skip: it went stale twice in September and nothing noticed.
 
 *   `figures()` and `figure_drift()` hold the figures to the same standard:
     every `{#fig:}` is drawn by a module and committed under `figures/`, and a
@@ -37,8 +39,8 @@ Five things the policy needs to stay true rather than aspirational:
     matplotlib, and says so rather than failing when it is absent.
 
 All are called from `verify_examples.py`; `python -m examples --coverage`,
-`--references`, `--registers`, `--figures-check` and `--appendix` are the
-shortcuts.
+`--references`, `--registers`, `--figures-check`, `--appendix` and
+`--appendix-check` are the shortcuts.
 """
 
 import os
@@ -600,7 +602,30 @@ def figure_drift(mods=None):
     return failures
 
 
-def appendix(mods=None):
+def appendix_drift(mods=None, ctx=None):
+    """The committed appendix against a fresh one.  Failures.
+
+    Compared line by line with line endings ignored: the file is CRLF, and
+    whether it stays so is the line-endings check's business, not this one's.
+    `ctx` lets `verify_examples.py` pass the solve it has already done.
+    """
+    path = os.path.join(SECTIONS, APPENDIX)
+    with open(path, encoding="utf-8") as fh:
+        committed = fh.read().splitlines()
+    fresh = (appendix(mods, ctx) + "\n").splitlines()
+    stale = [i + 1 for i, (a, b) in enumerate(zip(committed, fresh)) if a != b]
+    if len(committed) != len(fresh):
+        stale.append(min(len(committed), len(fresh)) + 1)
+    print(f"  {len(fresh)} lines generated and compared; "
+          f"{len(stale)} differ")
+    if not stale:
+        return []
+    shown = ", ".join(str(n) for n in stale[:8]) + (" ..." if len(stale) > 8 else "")
+    return [f"{APPENDIX} is stale against the model at line(s) {shown}: "
+            f"python -m examples --appendix, written with the file's CRLF endings"]
+
+
+def appendix(mods=None, ctx=None):
     """The reproduction appendix, as markdown.
 
     Every figure is what the printed command prints: the case is run, and the
@@ -621,7 +646,8 @@ def appendix(mods=None):
     """
     mods = H.discover() if mods is None else mods
     # The same solve --check does, and the reason this generator is not instant.
-    ctx = H.solve_all(H.collect_needs(mods))
+    if ctx is None:
+        ctx = H.solve_all(H.collect_needs(mods))
     anchors = declared_anchors()
     # A module's home is the file defining the first formula it backs.  Modules
     # that back no *displayed* formula -- a section's prose figures, like the

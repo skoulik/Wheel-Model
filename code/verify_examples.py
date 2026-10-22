@@ -1154,6 +1154,12 @@ def main():
     FAILURES.extend(R.figures(mods))
     FAILURES.extend(R.figure_drift(mods) or [])
 
+    # The reproduction appendix, on the figures' terms: generated, so a fresh
+    # one must match the committed file.  Twice in September a change moved
+    # what a command prints and the file was not regenerated.
+    print("--- Reproduction appendix ---")
+    FAILURES.extend(R.appendix_drift(mods, ctx))
+
     print()
     if FAILURES:
         raise SystemExit(f"{len(FAILURES)} check(s) FAILED: {FAILURES}")
