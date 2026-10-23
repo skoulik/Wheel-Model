@@ -231,7 +231,7 @@ Draws [fig:hidden-terms](#fig:hidden-terms): `python code/examples/returns_ledge
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_ledger.py` | appreciation = 0.5128, acq_loss = 0.1632, call_away_loss = 0.3559, net = -0.0063, lift = +0.2279, drag = -0.2480, second_order = +0.0089, hidden_gap = +0.0049, balance = 31.1, econ_pnl = 0.7655, econ_excess = 1.60%, table_lots = 5.41  7.39  11.40, table_mv = 5.61  7.59  11.59, table_cost = 6.70  9.83  18.23, table_excess = 1.60%  1.60%  1.60%, table_cash = 4.11%  1.81%  -0.77% |
+| `python code/examples/returns_ledger.py` | appreciation = 0.5128, acq_loss = 0.1632, call_away_loss = 0.3559, giveaway_per_exit = 3.58%, net = -0.0063, lift = +0.2279, drag = -0.2480, second_order = +0.0089, hidden_gap = +0.0049, balance = 31.1, econ_pnl = 0.7655, econ_excess = 1.60%, table_lots = 5.41  7.39  11.40, table_mv = 5.61  7.59  11.59, table_cost = 6.70  9.83  18.23, table_excess = 1.60%  1.60%  1.60%, table_cash = 4.11%  1.81%  -0.77% |
 | `python code/examples/returns_ledger.py --horizon 5` | net = -0.2404, cost_ratio = 1.99, lift = +0.1082, drag = -0.3612, second_order = +0.0079, hidden_gap = +0.0047, cash_mv = 5.88% |
 | `python code/examples/returns_ledger.py --horizon 10` | net = -0.1688, lift = +0.1478, drag = -0.3298, second_order = +0.0084, hidden_gap = +0.0048 |
 | `python code/examples/returns_ledger.py --horizon 50` | net = 0.0829, lift = +0.2699, drag = -0.2005, second_order = +0.0091, hidden_gap = +0.0045 |

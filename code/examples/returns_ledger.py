@@ -61,6 +61,7 @@ FIELDS = [
     ("appreciation", "appreciation of held shares  (+)", ".4f"),
     ("acq_loss", "mark loss at acquisition      (-)", ".4f"),
     ("call_away_loss", "upside surrendered at call-away (-)", ".4f"),
+    ("giveaway_per_exit", "  given up by each lot called away", ".2%"),
     ("net", "  net of the three", ".4f"),
     ("cost_ratio", "  the two costs as a multiple of the gain", ".2f"),
     # What drives that net (model.hidden_terms), and the horizon it is zero at.
@@ -209,6 +210,9 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
         "appreciation": apprec,
         "acq_loss": e["acq_loss"],
         "call_away_loss": e["call_away_loss"],
+        # E[1 - e^(x_J)] over the lots that do leave: a property of one lot's
+        # life, so off the whole walk rather than the horizon's window.
+        "giveaway_per_exit": occ["E[exitcost]"] / occ["P[exit]"],
         "net": apprec - e["acq_loss"] - e["call_away_loss"],
         "cost_ratio": (e["acq_loss"] + e["call_away_loss"]) / apprec,
         "lift": hidden["lift"],
@@ -243,6 +247,8 @@ CASES = [
         "appreciation": (0.5128, 0.0020),   # "for 11.40 lots ... is 0.5128 a year"
         "acq_loss": (0.1632, 0.0010),       # "mark loss ... comes to 0.1632"
         "call_away_loss": (0.3559, 0.0020),  # "upside surrendered ... 0.3559"
+        "giveaway_per_exit": (0.036, 0.0005),  # "3.6% of a share price for each
+                                               #   lot called away"
         "net": (-0.0063, 0.0015),           # the ledger's "net -0.0063"
         # The decomposition table's 30 y column, and the horizon the figure marks.
         "lift": (0.23, 0.005),              # "lift ... +0.23"
