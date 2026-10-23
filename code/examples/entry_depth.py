@@ -143,6 +143,9 @@ CASES = [
                                         #   sits above it, one-sided tail
         "x0_pct": (0.0153, 0.0005),     # "a log depth, 1.5% as a price"
         "drop": (0.038, 0.001),         # eq:d-mean, "giving 3.8% for Standard"
+        "basis": (1.0157, 0.0005),      # section 09: on the day of assignment the
+                                        #   strike is above the market "by 1.6% on
+                                        #   average", E[K/S'] - 1
         "factor": (0.98472021, 1e-8),   # eq:fall-split's second factor, to
         "split_gap": (0.0, 1e-14),      #   eight decimals because the Q case
         "area": (1.0, 1e-9),            #   below repeats the value exactly

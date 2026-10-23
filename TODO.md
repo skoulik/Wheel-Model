@@ -32,7 +32,7 @@ remainder is almost entirely §03's.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar one numerical item, II-32** —
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar two items, II-32 and II-33** —
 thirty of its items are in `DONE.md`, the last thirteen having landed on 2026-08-04 and
 2026-08-05;
 **Part III and Part IV are unwritten**, and between
@@ -41,7 +41,7 @@ them they are still the bulk of what is left besides those stubs and the assembl
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; one open item, II-32, the near grid's entry, which moves two-decimal figures and no conclusion. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; two open items: II-32, the near grid's entry, which moves two-decimal figures and no conclusion, and II-33, a citation to check against the paper. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -484,7 +484,8 @@ One item was opened here after that and is no longer in this part. **II-31**, op
 against §07's reading of the live account's above-strike lot-time, moved to **IV-10** on
 2026-08-26: §07's live paragraph was cut, the text parked under IV-1, and the claim is now §14's
 to make or qualify, so the constraint belongs with the section that will carry it. Nothing else
-reopened Part II until II-32, which is numerical and moves no conclusion.
+reopened Part II until the §09 review of 2026-10-23 opened II-32, which is numerical and moves no
+conclusion, and II-33, a citation to check.
 
 **II-32. The near grid's entry law is a cell too coarse, and Part II's two-decimal figures carry
 it.** (Opened 2026-10-23, from the §09 review.) Every finite-horizon figure in Part II comes off the
@@ -508,6 +509,17 @@ the closed-form entry law while the walk uses the grid's. **To decide:** refine 
 grid near zero, or the walk started from the closed-form moments) or Richardson-extrapolate the
 finite-horizon figures as `stationary()` already does; then every two-decimal Part II figure off the
 near grid moves, with its checks, the appendix and the figures.
+
+**II-33. What Israelov and Nielsen's Myth 8 actually argues.** (Opened 2026-10-23, from the §09
+review.) §09's paragraph on the slogan (`para:discount-priced`) was recast that day on Sergei's
+point: the discount against the price on the day the put is sold is genuine, and what the slogan
+leaves out is that assignment comes only after the market has fallen through the strike, so the
+shares are bought above the price of the day. The old text said [Israelov and
+Nielsen](#ref:israelov-nielsen-2014) "reach the same place: the discount is real, and it is exactly
+paid for"; with the framing changed, that paraphrase was dropped and the citation kept bare ("take
+the same slogan apart directly"), because the paper was not to hand to check it. **To do:** open the
+PDF at Myth 8, and if their argument is the above-market purchase, say so in §09 in their terms; if
+it is something else, say what, and decide whether the citation still belongs on this paragraph.
 
 ## Part III — Many assets
 

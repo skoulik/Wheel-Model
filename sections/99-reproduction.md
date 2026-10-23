@@ -59,7 +59,7 @@ Backs [eq:x0-def](#eq:x0-def), [eq:x0-law](#eq:x0-law), [eq:x0-mean](#eq:x0-mean
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/entry_depth.py` | x0 = 0.0155, x0_closed = 0.0155, x0_gap = -8.7e-18, x0_med = 0.0122, x0_pct = 1.53%, drop = 3.75%, factor = 0.98472021, split_gap = -1.1e-16, area = 1.000000000 |
+| `python code/examples/entry_depth.py` | x0 = 0.0155, x0_closed = 0.0155, x0_gap = -8.7e-18, x0_med = 0.0122, x0_pct = 1.53%, drop = 3.75%, basis = 1.0157, factor = 0.98472021, split_gap = -1.1e-16, area = 1.000000000 |
 | `python code/examples/entry_depth.py --measure Q` | x0 = 0.0155, x0_gap = 1.6e-17, drop = 3.79%, factor = 0.98472021, split_gap = -1.1e-16, area = 1.000000000 |
 | `python code/examples/entry_depth.py --p-star 0.10` | x0 = 0.0131, x0_closed = 0.0131, x0_gap = -1.2e-17, drop = 4.70%, factor = 0.98701906, split_gap = 1.1e-16, area = 1.000000000 |
 | `python code/examples/entry_depth.py --p-star 0.10 --measure Q` | x0 = 0.0131, x0_gap = -3.3e-17, drop = 4.74%, factor = 0.98701906, split_gap = 1.1e-16, area = 1.000000000 |
