@@ -1,6 +1,6 @@
 # Returns and Capital {#sec:returns}
 
-Now the question the whole model was built to answer. All quantities below are per unit of the current share price, so "capital of 11.59" means eleven and a half times what one share costs today, and an income of 0.77 means three quarters of a share price per year.
+What does the wheel earn, and on how much money? All quantities below are per unit of the current share price, so "capital of 11.59" means eleven and a half times what one share costs today, and an income of 0.77 means three quarters of a share price per year.
 
 ## What comes in
 
