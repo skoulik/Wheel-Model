@@ -8,7 +8,7 @@ Take the Standard regime at a thirty-year horizon, which by [the inventory secti
 
     put premiums      0.1591 per year     one put a week, at 0.31% each
     call premiums     0.3706 per year     11.40 lots, each selling a call every four weeks
-    dividends         0.2422 per year     δ_net on the market value of 11.40 lots
+    dividends         0.2422 per year     δ_net on 11.40 lots at today's price
     ------------------------------------
     Track A income    0.7718 per year    {#eq:income}
 
