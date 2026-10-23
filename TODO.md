@@ -52,11 +52,11 @@ disk: "write §11, the portfolio section" was an instruction to overwrite a fini
 *file* renames are still deferred to when Part III drafts — `15-outlook.md` becomes
 `16-outlook.md` then — and nothing breaks in the meantime because anchors are name-based.
 
-Six section files link to anchors in the missing files (recounted 2026-08-05, after II-18 added
-two): `sec:verification` from 00, 07, 08 and 09; `sec:live` from 00, 04, 05 and 09;
-`sec:portfolio` from 00, 08 and 09. Those cross-references are broken until Parts III and IV land,
-and that is the assembly-time deadline. `sec:correlation` is referenced only from §00's own anchor
-registry, so it is still promised by nothing but the list.
+Links into the missing files are registered as **promises** in `sections/claims.tsv`, so
+`python -m examples --claims` counts them rather than this paragraph, and each falls due — fails the
+check, to be read against the section — the day its anchor appears. Those cross-references are
+broken until Parts III and IV land, and that is the assembly-time deadline. `sec:correlation` has no link yet; §02's portfolio
+item promises it in words, registered through that item's anchor.
 
 The two missing Part IV sections are **writing tasks, not modelling ones**: everything they report
 is already measured, in `drafts/2026-07-27-discrepancy-catalogue.md` and the five scripts behind

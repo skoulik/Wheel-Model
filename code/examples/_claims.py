@@ -35,6 +35,15 @@ most links are pointers, and pointers are not signed.
 
 A fingerprint covers the words only: blind to wrapping, emphasis, anchors, and
 where a link points, so retargeting a link is not a rewording.
+
+**Promises.** A claim on a section section 00 registers but nobody has written
+yet cannot be fingerprinted, and it is exactly the claim most likely to be
+wrong once the section exists.  Signing one records it as *pending*.  Every
+prose link into an unwritten section must be registered so -- an unregistered
+one fails, so none slips in -- and the day the section declares its anchor
+every pending row on it fails, to be read against what the section says and
+signed against a precise target in it.  Any other link must land on a declared
+anchor.
 """
 
 import datetime
@@ -55,7 +64,8 @@ _HEADER = ("# Written by python -m examples --sign and --unsign; "
 _PANDOC = re.compile(r"\{#([a-z]+:[a-z0-9-]+)\}")
 _HTML_ID = re.compile(r'<a id="([^"]*)"></a>')
 _PARA = re.compile(r"para:[a-z0-9-]+")
-_PARA_LINK = re.compile(r"\]\(#(para:[^)\s]*)\)")
+_LINK = re.compile(r"\]\(#([a-z]+:[^)\s]*)\)")
+PENDING = "pending"
 _HEADING = re.compile(r"^(#{1,6})\s")
 _LIST_ITEM = re.compile(r"^\s*(?:[-*+]|\d+\.)\s")
 _QUOTE = re.compile(r"^\s*>\s?")
@@ -156,6 +166,28 @@ def declared():
     return out, problems
 
 
+def unwritten():
+    """Sections section 00 registers whose file does not exist yet."""
+    written = set(R.section_heads()) | set(_PANDOC.findall(R._read(R.APPENDIX)))
+    return [s for s in (R.registered_sections() or []) if s not in written]
+
+
+def _links(name):
+    """The anchors a section file links, code spans aside."""
+    return _LINK.findall(R._read(name, strip_code=True))
+
+
+def _promise_ok(citing, target, anchors):
+    """Raise ValueError unless the citing side of a promise still stands."""
+    if citing.startswith("para:"):
+        if citing not in anchors:
+            raise ValueError(f"{citing} is declared nowhere")
+    elif citing not in R.section_files():
+        raise ValueError(f"{citing} is not a section file")
+    elif target not in _links(citing):
+        raise ValueError(f"{citing} no longer links #{target}")
+
+
 def wording(text):
     """What a fingerprint covers: the words, as a reader would read them."""
     text = _HTML_ID.sub("", text)
@@ -218,25 +250,36 @@ def _write_claims(rows):
 
 
 def sign(citing, target):
-    """Sign one claim, replacing any earlier signature of the same pair."""
+    """Sign one claim, replacing any earlier signature of the same pair.
+
+    A target section 00 registers but nobody has written yet is recorded as a
+    promise, pending until the section exists.
+    """
     citing = os.path.basename(citing)
     anchors, problems = declared()
     if problems:
         raise SystemExit("fix the paragraph anchors first:\n  " + "\n  ".join(problems))
+    today = datetime.date.today().isoformat()
     try:
-        row = (citing, target,
-               fingerprint(_citing_text(citing, target, anchors)),
-               fingerprint(_target_text(target, anchors)),
-               datetime.date.today().isoformat())
+        if target in unwritten():
+            _promise_ok(citing, target, anchors)
+            row = (citing, target, PENDING, PENDING, today)
+        else:
+            row = (citing, target,
+                   fingerprint(_citing_text(citing, target, anchors)),
+                   fingerprint(_target_text(target, anchors)), today)
     except ValueError as e:
         raise SystemExit(f"not signed: {e}")
     rows = [r for r in read_claims() if r[:2] != (citing, target)]
     _write_claims(rows + [row])
-    print(f"  signed: {citing} rests on {target}")
+    if row[2] == PENDING:
+        print(f"  registered: {citing} promises {target}, pending until it is written")
+    else:
+        print(f"  signed: {citing} rests on {target}")
 
 
 def unsign(citing, target):
-    """Drop one claim's signature."""
+    """Drop one claim's signature, or one promise."""
     citing = os.path.basename(citing)
     rows = read_claims()
     kept = [r for r in rows if r[:2] != (citing, target)]
@@ -247,11 +290,12 @@ def unsign(citing, target):
 
 
 def check():
-    """Every signed claim against the text as it stands now.  Failures."""
+    """Every signed claim and promise against the text as it stands.  Failures."""
     anchors, failures = declared()
     rows = read_claims()
-    seen = set()
-    stale = 0
+    waiting = unwritten()
+    appendix = set(_PANDOC.findall(R._read(R.APPENDIX)))
+    seen, stale, pending = set(), 0, {}
     for row in rows:
         if len(row) != 5:
             failures.append(f"claims.tsv: malformed row {row}")
@@ -261,6 +305,23 @@ def check():
             failures.append(f"claims.tsv signs {citing} on {target} twice")
         seen.add((citing, target))
         resign = f"python -m examples --sign {citing} {target}"
+        if citing_fp == PENDING:
+            if target in anchors:
+                failures.append(f"{target} has been written, so the promise {citing} "
+                                f"made on it is due: read the claim against what "
+                                f"the section says, sign it against a precise "
+                                f"target there, then --unsign {citing} {target}")
+            elif target not in waiting:
+                failures.append(f"promise of {citing} on {target}: section 00 no "
+                                f"longer registers it; --unsign {citing} {target}")
+            else:
+                try:
+                    _promise_ok(citing, target, anchors)
+                    pending[target] = pending.get(target, 0) + 1
+                except ValueError as e:
+                    failures.append(f"promise of {citing} on {target}: {e}; "
+                                    f"--unsign {citing} {target}")
+            continue
         try:
             now_citing = fingerprint(_citing_text(citing, target, anchors))
             now_target = fingerprint(_target_text(target, anchors))
@@ -278,12 +339,24 @@ def check():
                             f"{'have' if len(moved) > 1 else 'has'} been reworded "
                             f"since it was signed on {signed}; reread the two "
                             f"together, then {resign}")
-    # A link to a paragraph anchor is a link like any other, and must land.
+    # Every link lands: on a declared anchor, on the generated appendix, or on
+    # an unwritten section the linking file has registered a promise to.
+    promised = {r[:2] for r in rows if len(r) == 5 and r[2] == PENDING}
     for name in R.section_files():
-        for anchor in _PARA_LINK.findall(R._read(name, strip_code=True)):
-            if anchor not in anchors:
+        for anchor in sorted(set(_links(name))):
+            if anchor in anchors or anchor in appendix:
+                continue
+            if anchor not in waiting:
                 failures.append(f"{name} links #{anchor}, which is declared nowhere")
+            elif (name, anchor) not in promised:
+                failures.append(f"{name} links #{anchor}, which is not written yet; "
+                                f"register the promise: "
+                                f"python -m examples --sign {name} {anchor}")
     paras = sum(1 for a in anchors if a.startswith("para:"))
-    print(f"  {len(rows)} signed claims, {paras} paragraph anchors; "
-          f"{stale} reworded since signing; {len(failures) - stale} other gap(s)")
+    npend = sum(pending.values())
+    print(f"  {len(rows) - npend} signed claims, {paras} paragraph anchors; "
+          f"{npend} promises pending on unwritten sections"
+          + (f" ({', '.join(f'{k} {v}' for k, v in sorted(pending.items()))})"
+             if pending else "")
+          + f"; {stale} reworded since signing; {len(failures) - stale} other gap(s)")
     return failures

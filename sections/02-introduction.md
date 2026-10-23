@@ -30,8 +30,8 @@ The model has one state variable. A lot's **depth** — the gap between the call
 4. <a id="para:answers-returns"></a>**The return, fully accounted.** The cash a wheel throws off is not a return. Once inventory is marked to market and the surrendered upside charged for, at fair option prices the wheel is economically **indistinguishable from simply owning the stock**.
 5. <a id="para:answers-stability"></a>**Two stability boundaries, not one**: one decides whether lots come back at all, a stricter one whether the capital in them does. Both belong to the stock, not to the strategy.
 6. <a id="para:answers-finite-account"></a>**The finite account**, where the article's one unbounded assumption comes off. A real balance caps the strategy: capacity comes from equity, not from the broker's permission — and a levered account can be liquidated at a price the operator does not control.
-7. **Portfolios**, where diversification is shown to leave the expected return and expected capital *completely unchanged* while removing only the noise around them — and where correlations rising toward one in a crisis is not a tail scenario but the mechanism the strategy is most exposed to.
-8. **A comparison against fifteen months of a real wheel account**, marked to market rather than read off its cash statement. The spine survives it link by link; several standard parameter conventions do not, and what the account says about its own success is uncomfortable.
+7. <a id="para:answers-portfolios"></a>**Portfolios**, where diversification is shown to leave the expected return and expected capital *completely unchanged* while removing only the noise around them — and where correlations rising toward one in a crisis is not a tail scenario but the mechanism the strategy is most exposed to.
+8. <a id="para:answers-live-account"></a>**A comparison against fifteen months of a real wheel account**, marked to market rather than read off its cash statement. The spine survives it link by link; several standard parameter conventions do not, and what the account says about its own success is uncomfortable.
 
 ## How to read this article
 

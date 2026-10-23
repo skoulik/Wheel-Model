@@ -1,10 +1,21 @@
 # Written by python -m examples --sign and --unsign; do not edit by hand.
 # citing	target	citing fingerprint	target fingerprint	signed
+00-notation.md	sec:live	pending	pending	2026-10-23
+00-notation.md	sec:verification	pending	pending	2026-10-23
 02-introduction.md	para:discount-priced	6afb3ba9009e	77eb4fe43b7b	2026-10-22
+04-strategy.md	sec:live	pending	pending	2026-10-23
+04-strategy.md	sec:portfolio	pending	pending	2026-10-23
+05-entry.md	sec:live	pending	pending	2026-10-23
 06-depth-process.md	para:holding-median	7c027d671c70	d2bd4a7c3949	2026-10-22
 06-depth-process.md	para:sticky-dividend-four-bp	7c027d671c70	7d302c530ed3	2026-10-22
+07-holding-time.md	sec:verification	pending	pending	2026-10-23
+08-inventory.md	sec:portfolio	pending	pending	2026-10-23
+08-inventory.md	sec:verification	pending	pending	2026-10-23
 09-returns.md	para:inventory-window-average	7627936d39d1	8b50aa38722d	2026-10-22
 09-returns.md	para:when-lots-never-leave	62cedcd1c48a	7b2aafc3b676	2026-10-22
+09-returns.md	sec:live	pending	pending	2026-10-23
+09-returns.md	sec:portfolio	pending	pending	2026-10-23
+09-returns.md	sec:verification	pending	pending	2026-10-23
 10-stability.md	para:counts-not-money	ef05de08895f	4b1fb56c770c	2026-10-22
 10-stability.md	para:holding-first-passage-question	05fa16bd5b24	c6a36153b58f	2026-10-22
 10-stability.md	para:one-drift-two-readings	bbe19a9d34b5	e81d1f58d2fa	2026-10-22
@@ -19,6 +30,9 @@ para:answers-holding	eq:holding	3ad2c1c271c8	2950ea42eb9a	2026-10-22
 para:answers-holding	para:holding-ten-weeks-against-two-years	3ad2c1c271c8	63bc60b97995	2026-10-22
 para:answers-inventory	para:length-bias	19f47f70cfd0	07f84c0b3829	2026-10-22
 para:answers-inventory	para:warehouse-fills-with-slow-lots	19f47f70cfd0	fbc5dbbb9f6e	2026-10-22
+para:answers-live-account	sec:live	pending	pending	2026-10-23
+para:answers-portfolios	sec:correlation	pending	pending	2026-10-23
+para:answers-portfolios	sec:portfolio	pending	pending	2026-10-23
 para:answers-returns	para:identical-to-owning-the-stock	e115c7d840fc	a84ffabde19f	2026-10-22
 para:answers-stability	eq:capital-criterion	31411e21fcce	a45f9ef6aeab	2026-10-22
 para:answers-stability	eq:count-criterion	31411e21fcce	c2a862f053c9	2026-10-22
