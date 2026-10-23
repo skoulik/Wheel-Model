@@ -227,9 +227,14 @@ Backs [eq:income](#eq:income).
 
 Backs [eq:mark-loss](#eq:mark-loss), [eq:giveaway](#eq:giveaway), [eq:econ-pnl](#eq:econ-pnl), [eq:excess](#eq:excess).
 
+Draws [fig:hidden-terms](#fig:hidden-terms): `python code/examples/returns_ledger.py --figure`.
+
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_ledger.py` | appreciation = 0.5128, acq_loss = 0.1632, call_away_loss = 0.3559, net = -0.0063, econ_pnl = 0.7655, econ_excess = 1.60%, table_lots = 5.41  7.39  11.40, table_mv = 5.61  7.59  11.59, table_cost = 6.70  9.83  18.23, table_excess = 1.60%  1.60%  1.60%, table_cash = 4.11%  1.81%  -0.77% |
+| `python code/examples/returns_ledger.py` | appreciation = 0.5128, acq_loss = 0.1632, call_away_loss = 0.3559, net = -0.0063, lift = +0.2279, drag = -0.2480, second_order = +0.0089, hidden_gap = +0.0049, balance = 31.1, econ_pnl = 0.7655, econ_excess = 1.60%, table_lots = 5.41  7.39  11.40, table_mv = 5.61  7.59  11.59, table_cost = 6.70  9.83  18.23, table_excess = 1.60%  1.60%  1.60%, table_cash = 4.11%  1.81%  -0.77% |
+| `python code/examples/returns_ledger.py --horizon 5` | net = -0.2404, cost_ratio = 1.99, lift = +0.1082, drag = -0.3612, second_order = +0.0079, hidden_gap = +0.0047, cash_mv = 5.88% |
+| `python code/examples/returns_ledger.py --horizon 10` | net = -0.1688, lift = +0.1478, drag = -0.3298, second_order = +0.0084, hidden_gap = +0.0048 |
+| `python code/examples/returns_ledger.py --horizon 50` | net = 0.0829, lift = +0.2699, drag = -0.2005, second_order = +0.0091, hidden_gap = +0.0045 |
 | `python code/examples/returns_ledger.py --p-star 0.10` | econ_excess = 1.49%, table_lots = 2.63  3.58  5.50, table_mv = 2.82  3.77  5.70, table_cost = 3.35  4.86  8.90, table_excess = 1.37%  1.43%  1.49%, table_cash = 3.76%  1.62%  -0.83% |
 | `python code/examples/returns_ledger.py --sticky` | sticky_F = 1.020  1.039  1.113, sticky_delta_eff = 2.55%  2.60%  2.78%, sticky_excess = 1.59%  1.58%  1.56%, sticky_change = -0.01%  -0.01%  -0.04%, sticky_gap = 0.03%  0.01%  0.01%, sticky_inv_rise = 3.4%, sticky_capital_rise = 5.1% |
 | `python code/examples/returns_ledger.py --trap` | trap_xstar = 0.693, trap_below = 50.0%, trap_beyond = 16.7% |

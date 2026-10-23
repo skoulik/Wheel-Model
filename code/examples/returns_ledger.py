@@ -7,9 +7,13 @@
 Backs eq:econ-pnl and eq:excess in section 09 -- the article's headline.
 Track A's cash is not a return: it misses the appreciation of held shares (a
 gain), the mark loss booked when a lot is bought above market, and the upside
-surrendered when a lot is called away below market.  The three very nearly
-cancel -- that near-cancellation is what near-fair option pricing means -- so
-the honest economic return is Track A's cash against *market-value* capital.
+surrendered when a lot is called away below market.  The three nearly cancel
+at thirty years and at no other horizon, and option prices play no part in
+it: the net is a lift of sigma^2/2 on the lots held against the drag of the
+book still standing, which balance at 31 years (`model.hidden_terms`).  So
+Track A's cash against market-value capital is not the economic return --
+at five years it reads 5.9% over r against 1.60% -- and fig:hidden-terms
+draws the three against the horizon.
 
 The two-ledger table is fixed at 5/10/30 years, as section 09 tabulates it,
 independent of --horizon (which drives the single-horizon breakdown above the
@@ -29,8 +33,8 @@ from math import exp
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from examples._harness import (Case, need_census, need_occupation,          # noqa: E402
-                               resolve, run_cli)
+from examples._harness import (Case, Figure, need_census,               # noqa: E402
+                               need_occupation, resolve, run_cli)
 import model                                                  # noqa: E402
 
 TITLE = "Returns: the economic ledger and true excess"
@@ -57,7 +61,15 @@ FIELDS = [
     ("appreciation", "appreciation of held shares  (+)", ".4f"),
     ("acq_loss", "mark loss at acquisition      (-)", ".4f"),
     ("call_away_loss", "upside surrendered at call-away (-)", ".4f"),
-    ("net", "  net of the three (they cancel)", ".4f"),
+    ("net", "  net of the three", ".4f"),
+    ("cost_ratio", "  the two costs as a multiple of the gain", ".2f"),
+    # What drives that net (model.hidden_terms), and the horizon it is zero at.
+    ("lift", "    lift: sigma^2/2 on the lots held", "+.4f"),
+    ("drag", "    drag: depth of lots still held", "+.4f"),
+    ("second_order", "    entry and exit, second order", "+.4f"),
+    ("hidden_gap", "    left over: the near grid's own error", "+.4f"),
+    ("balance", "  horizon at which the three net to zero, years", ".1f"),
+    ("cash_mv", "Track A cash on market value, over r", ".2%"),
     ("econ_pnl", "economic P&L  E[Pi]", ".4f"),
     ("econ_excess", "TRUE EXCESS RETURN", ".2%"),
     # The two ledgers side by side, at 5/10/30y (eq:excess).
@@ -89,6 +101,57 @@ def _trap_edges(cfg, measure):
     return (0.0, model.sticky_dividend_trap(cfg, measure), float("inf"))
 
 
+def _balance(cfg, measure, occ):
+    """Where the three hidden terms net to zero, or None if they never do.
+
+    At a reader's own parameters the net need not change sign inside the
+    window searched -- a book that never grows past its costs -- and that is
+    an answer to print, not an error.
+    """
+    try:
+        return model.hidden_terms_balance(cfg, measure, occ)
+    except ValueError:
+        return None
+
+
+def _draw_hidden(fig, ax, cfg=None, measure="P", ctx=None, **kw):
+    """fig:hidden-terms -- the gain Track A misses against its two costs.
+
+    Each averaged over the first t years, to a hundred, on the near grid the
+    5/10/30-year cases use, so the curves pass through the ledger's quoted
+    figures and cross where `balance` says.
+    """
+    import figures
+    cfg = cfg if cfg is not None else model.Config()
+    occ = resolve(ctx, need_occupation(cfg, measure))
+    ts = [0.5 * i for i in range(1, 201)]
+    es = [model.economics(cfg, measure, occ, horizon=t) for t in ts]
+    gain = [e["appreciation"] for e in es]
+    mark = [e["acq_loss"] for e in es]
+    costs = [e["acq_loss"] + e["call_away_loss"] for e in es]
+    t0 = model.hidden_terms_balance(cfg, measure, occ)
+    y0 = model.economics(cfg, measure, occ, horizon=t0)["appreciation"]
+
+    ax.plot(ts, gain, color=figures.SERIES[0],
+            label="appreciation of held shares")
+    ax.plot(ts, costs, color=figures.SERIES[1],
+            label="mark loss + upside surrendered")
+    ax.plot(ts, mark, color=figures.SERIES[1], linewidth=0.8,
+            linestyle=(0, (1, 2)), label="of which mark loss")
+    ax.plot([t0], [y0], "o", color=figures.INK, markersize=4.5,
+            markeredgecolor=figures.GROUND, markeredgewidth=1.0, zorder=3)
+    ax.annotate(f"equal at {t0:.0f} years", (t0, y0), xytext=(6, -16),
+                textcoords="offset points", color=figures.INK, fontsize=8)
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 0.8)
+    ax.set_xlabel("years since the first put")
+    ax.set_ylabel("per year, in share prices")
+    ax.legend(loc="upper left")
+
+
+FIGURES = [Figure("hidden-terms", _draw_hidden)]
+
+
 def requires(cfg, measure="P", horizon=30.0, trap=False, **kw):
     needs = [need_occupation(cfg, measure)]
     if trap:
@@ -104,6 +167,7 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
     e = model.economics(cfg, measure, occ, horizon=horizon)
     # Appreciation is E[I]*m; no dedicated economics() field (see docstring).
     apprec = e["appreciation"]
+    hidden = model.hidden_terms(cfg, measure, occ, horizon=horizon)
     table = [model.economics(cfg, measure, occ, horizon=H) for H in HORIZONS]
 
     # The sticky-dividend correction is a row of the dividend sweep at a larger,
@@ -146,6 +210,13 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
         "acq_loss": e["acq_loss"],
         "call_away_loss": e["call_away_loss"],
         "net": apprec - e["acq_loss"] - e["call_away_loss"],
+        "cost_ratio": (e["acq_loss"] + e["call_away_loss"]) / apprec,
+        "lift": hidden["lift"],
+        "drag": hidden["drag"],
+        "second_order": hidden["second_order"],
+        "hidden_gap": hidden["gap"],
+        "balance": _balance(cfg, measure, occ),
+        "cash_mv": (e["income"] - cfg.r * e["mv_capital"]) / e["mv_capital"],
         "econ_pnl": e["econ_pnl"],
         "econ_excess": e["econ_excess"],
         "h_labels": [f"{H:.0f} y" for H in HORIZONS],
@@ -172,7 +243,13 @@ CASES = [
         "appreciation": (0.5128, 0.0020),   # "for 11.40 lots ... is 0.5128 a year"
         "acq_loss": (0.1632, 0.0010),       # "mark loss ... comes to 0.1632"
         "call_away_loss": (0.3559, 0.0020),  # "upside surrendered ... 0.3559"
-        "net": (-0.0063, 0.0015),           # "net -0.0063 ... They cancel"
+        "net": (-0.0063, 0.0015),           # the ledger's "net -0.0063"
+        # The decomposition table's 30 y column, and the horizon the figure marks.
+        "lift": (0.23, 0.005),              # "lift ... +0.23"
+        "drag": (-0.25, 0.005),             # "drag ... -0.25"
+        "second_order": (0.01, 0.005),      # "entry and exit, second order +0.01"
+        "hidden_gap": (0.0, 0.006),         # the rows add to the net, within the grid
+        "balance": (31.1, 0.1),             # "a little past thirty years"; "equal at 31"
         "econ_pnl": (0.7655, 0.0020),       # eq:excess: E[Pi] = 0.7655
         "econ_excess": (0.0160, 0.0005),    # eq:excess: "+1.60% per year"
         # The two-ledger table (5/10/30y): true excess is flat, cash is not.
@@ -182,6 +259,32 @@ CASES = [
         "table_excess": ([0.0160, 0.0160, 0.0160], 0.0005),  # "flat ... to three decimals"
         "table_cash": ([0.0411, 0.0181, -0.0077], 0.0005),
     }, note="Standard regime"),
+    # The decomposition table's other columns.  At five years the costs are
+    # twice the gain, and Track A's cash on market value is the number an
+    # operator would take for the economic return: 5.9% over r, against 1.60%.
+    Case("--horizon 5", {
+        "net": (-0.24, 0.005),              # "the net is -0.24 a year"
+        "cost_ratio": (2.0, 0.05),          # "the costs are twice the gain"
+        "lift": (0.11, 0.005),
+        "drag": (-0.36, 0.005),
+        "second_order": (0.01, 0.005),
+        "hidden_gap": (0.0, 0.006),
+        "cash_mv": (0.059, 0.0005),         # "would report an excess return of +5.9%"
+    }, note="Standard regime, five years"),
+    Case("--horizon 10", {
+        "net": (-0.17, 0.005),
+        "lift": (0.15, 0.005),
+        "drag": (-0.33, 0.005),
+        "second_order": (0.01, 0.005),
+        "hidden_gap": (0.0, 0.006),
+    }, note="Standard regime, ten years"),
+    Case("--horizon 50", {
+        "net": (0.08, 0.005),               # "by fifty the gain is ahead"
+        "lift": (0.27, 0.005),
+        "drag": (-0.20, 0.005),
+        "second_order": (0.01, 0.005),
+        "hidden_gap": (0.0, 0.006),
+    }, note="Standard regime, fifty years"),
     Case("--p-star 0.10", {
         "econ_excess": (0.0149, 0.0005),    # Conservative: "true excess +1.49%"
         "table_lots": ([None, None, 5.50], 0.05),   # "lots held 5.50"

@@ -32,8 +32,8 @@ remainder is almost entirely §03's.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed** —
-all thirty of its items are in `DONE.md`, the last thirteen having landed on 2026-08-04 and
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar one numerical item, II-32** —
+thirty of its items are in `DONE.md`, the last thirteen having landed on 2026-08-04 and
 2026-08-05;
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
@@ -41,7 +41,7 @@ them they are still the bulk of what is left besides those stubs and the assembl
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written and closed** — no open items. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; one open item, II-32, the near grid's entry, which moves two-decimal figures and no conclusion. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -483,8 +483,31 @@ wrote it.*
 One item was opened here after that and is no longer in this part. **II-31**, opened 2026-08-21
 against §07's reading of the live account's above-strike lot-time, moved to **IV-10** on
 2026-08-26: §07's live paragraph was cut, the text parked under IV-1, and the claim is now §14's
-to make or qualify, so the constraint belongs with the section that will carry it. Part II is
-closed and nothing else has reopened it.
+to make or qualify, so the constraint belongs with the section that will carry it. Nothing else
+reopened Part II until II-32, which is numerical and moves no conclusion.
+
+**II-32. The near grid's entry law is a cell too coarse, and Part II's two-decimal figures carry
+it.** (Opened 2026-10-23, from the §09 review.) Every finite-horizon figure in Part II comes off the
+near grid, h = 0.01, and the entry law it starts from sits on cells as wide as the typical entry
+depth: the grid puts E[x₀] at 1.58% where the closed form says 1.55%. A slightly deeper entry holds
+lots slightly longer, and it shows wherever two decimals are quoted:
+
+    cell width h                 0.01       0.005      0.0025
+    grid E[x₀]                   1.579%     1.556%     1.550%
+    lots held at 30 y            15.42      15.35      15.33
+    window average, 30 y         11.40      11.34      11.33
+    net of the hidden terms      −0.0063    −0.0094    −0.0102
+    true excess return           +1.604%    +1.604%    +1.604%
+
+The 15.42 is the near grid reading 0.7% above the extrapolated walk's 15.32 at thirty years, an
+open question until now; halving h twice closes it, so the two are one finding. **The headline does
+not move** — true excess agrees to a thousandth of a point at all three widths — but §08 and §09
+quote 11.40, 18.23, 0.5128 and −0.0063 off this grid, and `model.hidden_terms` reports the same
+error as a gap of 0.005 between the net and its three parts, 0.003 of it because the mark loss uses
+the closed-form entry law while the walk uses the grid's. **To decide:** refine the entry (a finer
+grid near zero, or the walk started from the closed-form moments) or Richardson-extrapolate the
+finite-horizon figures as `stationary()` already does; then every two-decimal Part II figure off the
+near grid moves, with its checks, the appendix and the figures.
 
 ## Part III — Many assets
 

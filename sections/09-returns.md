@@ -60,7 +60,7 @@ where the indicator picks out only the periods the lot actually exits in. That i
 
 Against those, one real gain is also invisible to Track A: the **appreciation of shares held**, which is simply the inventory drifting at the price's own rate, E[I]·m — for 11.40 lots at m = 4.5%, **0.5128** a year.
 
-Add all three and something striking happens:
+Add all three, at the thirty-year horizon the section has used so far:
 
     appreciation of held shares    +0.5128
     mark loss at acquisition       −0.1632
@@ -68,7 +68,24 @@ Add all three and something striking happens:
     -------------------------------------
     net                            −0.0063
 
-**They cancel** — to within about one percent of the largest of them. The gain that Track A ignores is almost exactly consumed by the two costs Track A ignores. That is not a coincidence — it is what near-fair option pricing means — and it has a convenient consequence: the economic return is Track A's cash income, measured against *market-value* capital.
+The gain Track A ignores and the two costs it ignores very nearly cancel. That is a property of the horizon, not of the strategy, and figure [fig:hidden-terms](#fig:hidden-terms) shows it. The two costs arrive at almost their full rate within a few years — every lot takes its mark loss the day it is assigned, and the fast lots are called away within weeks — while the gain accrues on whatever is held, and so grows only as the book does. At five years the costs are twice the gain and the net is −0.24 a year; the curves meet a little past thirty years; by fifty the gain is ahead.
+
+![What Track A does not see: the appreciation of held shares against the mark loss and the upside surrendered, each averaged over the first t years.](../figures/hidden-terms.svg){#fig:hidden-terms}
+
+Why they meet at all is clearest one lot at a time. In dollars, a lot that has come and gone nets to exactly nothing across the three: it was bought at its strike and delivered at the same strike, so whatever the share gained while it was held is precisely the mark loss recovered plus the upside handed over. A lot still held nets to minus its shortfall against its strike: the mark loss is booked, and the call-away that would square it has not happened. The ledger, though, is not kept in dollars. It measures each year's flows against that year's share price, which is what lets a return be read as a rate, and in those units the net is the balance of two forces:
+
+- **Drag: the lots still held.** The book standing at the end of the window sits below its strikes, and that shortfall, spread over the window's years, is charged against it. Over a short window it is large; over a long one it thins, even though the book keeps growing.
+- **Lift: σ²/2 on every lot held.** Appreciation is booked at the share's average return, m = 4.5% a year, while the depth that decides how far below its strike a lot sits moves with the price's median, which [eq:nu](#eq:nu) puts two points lower, at ν = 2.5%. The difference accrues on every lot for every year it is held, so it grows with the book.
+
+By horizon, in share prices a year:
+
+    horizon                              5 y      10 y      30 y      50 y
+    lift: σ²/2 on the lots held        +0.11     +0.15     +0.23     +0.27
+    drag: depth of lots still held     −0.36     −0.33     −0.25     −0.20
+    entry and exit, second order       +0.01     +0.01     +0.01     +0.01
+    net                                −0.24     −0.17     −0.01     +0.08
+
+The last row is what separates a log-point from a percentage at the two ends of a lot's life: small, and the same at every horizon. The two forces balance once, a little past thirty years. So the cash ledger and the economic one agree only there: at five years Track A's income, measured against market-value capital, would report an excess return of +5.9%, against an economic +1.60%. The economic profit has to be assembled in full:
 
 E[Π]  =  Track A income  +  E[I]·m  −  L_acq  −  L_call    {#eq:econ-pnl}
 

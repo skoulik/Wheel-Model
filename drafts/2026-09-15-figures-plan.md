@@ -72,6 +72,7 @@ Converted in the section-by-section review as it reaches each one, starting with
 | §05 | early-exercise threshold at five days-to-expiry | threshold against days to expiry |
 | §09 | σ_IV sweep | excess return and gap against σ_IV |
 | §09 | book exposure at five price shocks | exposure against shock |
+| §09 | the hidden-terms ledger, at 30 y only (added 2026-10-23) | the gain and the two costs against horizon to 100 y, their balance at 31 y marked |
 | §10 | crash-then-flatline path | lots, market and cost-basis capital against time |
 | §10 | share of the strategy run against σ | throughput and A\* against σ, boundaries marked |
 | §11 | P(sold out) at six horizons | liquidation probability against horizon |

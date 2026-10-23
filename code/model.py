@@ -809,7 +809,7 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
     return {
         "nu": nu, "m": m, "sigma": s, "steps": len(surv),
         "surv": surv, "prem": prem, "basis": basis, "exitcost": exitcost,
-        "depth": depth, "E[overshoot]": Eover,
+        "exitdepth": exitdepth, "depth": depth, "E[overshoot]": Eover,
         "E[J]": EJ, "E[prem]": Eprem, "E[basis]": Ebasis,
         "E[exitcost]": Ecost, "P[exit]": Eexits,
         "ratio": (r_s, r_p, r_b), "escaped": escaped,
@@ -998,6 +998,82 @@ def economics(C, measure, occ, horizon=None):
         "appreciation": inventory * m_price,
         "excess": (income - C.r * capital) / capital,
     }
+
+
+def hidden_terms(C, measure, occ, horizon=None):
+    """What drives the net of the three terms Track A cannot see.
+
+    The net is economics()'s appreciation less its mark loss and call-away
+    giveaway.  In dollars a lot that has come and gone nets to exactly zero
+    across the three -- bought at K, delivered at K, so what the share gained
+    while held is the mark loss recovered plus the upside handed over -- and a
+    lot still held nets to S - K, minus its shortfall against its strike.  The
+    ledger is kept per unit of the price at each flow, though, and there the
+    net splits into signed contributions:
+
+        lift          +sigma^2/2 * E[I]: appreciation accrues at the mean m,
+                      the depth that sets the shortfall moves at nu
+        drag          -(log depth of the book standing at the horizon)/H
+        second_order  what separates a log-point from a percentage at the two
+                      ends of a lot's life: lambda*(E[x0] - (E[e^x0] - 1)) at
+                      entry, lambda * sum_j E[(e^X - 1 - X) 1{X<=0}] at exit
+
+    `gap` is the net less the three.  It is not zero, and it is not a further
+    term: it is the near grid's own error, mostly its entry law, whose cells of
+    width h put E[x0] at 1.58% where the closed form says 1.55% while the mark
+    loss uses the closed form (0.003 of the 0.005 at h = 0.01; it shrinks with
+    h -- see TODO II-32).  It grows where the walk loses mass above x_max, which
+    the drag cannot see: under the pricing drift at x_max = 4 it reaches -0.036
+    by a hundred years and returns to 0.005 at x_max = 8.  Stationary
+    (horizon=None) the drag vanishes, since a finite standing book spread over
+    an unbounded window is nothing.
+    """
+    _, _, mean_x0, _ = entry_law(C, measure)
+    lam = arrival_rate(C, measure)
+    e = economics(C, measure, occ, horizon=horizon)
+    nu, s, tc = occ["nu"], occ["sigma"], C.tau_c
+    surv, depth = occ["surv"], occ["depth"]
+    second = (lam * (mean_x0 - (entry_basis_ratio(C, measure) - 1.0))
+              + lam * sum((-c - d) * (1.0 if horizon is None
+                                      else max(0.0, horizon - (j + 1) * tc)
+                                      / horizon)
+                          for j, (c, d) in enumerate(zip(occ["exitcost"],
+                                                         occ["exitdepth"]))))
+    drag = 0.0
+    if horizon is not None:
+        # Lots of age a in period j at the horizon stand at depth x_j less the
+        # drift since that period opened, f = a - j*tau_c: integrate f over the
+        # period, the last one only up to the horizon.
+        n, rem = int(horizon // tc), horizon % tc
+        for j in range(min(n + 1, len(surv))):
+            span = tc if j < n else rem
+            if span <= 0 or surv[j] <= 0:
+                continue
+            drag += surv[j] * (depth[j] * span - nu * span * span / 2)
+        drag = -lam * drag / horizon
+    net = e["appreciation"] - e["acq_loss"] - e["call_away_loss"]
+    lift = s * s / 2 * e["I"]
+    return {"net": net, "lift": lift, "drag": drag, "second_order": second,
+            "gap": net - (lift + drag + second)}
+
+
+def hidden_terms_balance(C, measure, occ, lo=1.0, hi=200.0, tol=1e-6):
+    """The horizon at which the three hidden terms net to zero.
+
+    The net is negative over a short window, where the costs arrive at once
+    and the book is small, and positive over a long one; bisection on
+    economics() between `lo` and `hi`, which must bracket the sign change.
+    """
+    def net(H):
+        e = economics(C, measure, occ, horizon=H)
+        return e["appreciation"] - e["acq_loss"] - e["call_away_loss"]
+
+    if net(lo) >= 0 or net(hi) <= 0:
+        raise ValueError("the hidden terms do not change sign on [lo, hi]")
+    while hi - lo > tol:
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if net(mid) < 0 else (lo, mid)
+    return (lo + hi) / 2
 
 
 def inventory_at(C, measure, occ, t):
