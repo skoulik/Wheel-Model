@@ -201,7 +201,7 @@ Backs [eq:capital](#eq:capital).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_capital.py` | inv = 11.40, mv_capital = 11.59, capital = 18.23, gap = 6.64 |
+| `python code/examples/returns_capital.py` | inv = 11.40, mv_capital = 11.59, capital = 18.23, lots_basis = 18.04, basis_per_lot = 1.58, gap = 6.64, gap_per_lot = 0.58, deep_gap = 72.6% |
 | `python code/examples/returns_capital.py --p-star 0.10` | inv = 5.50, mv_capital = 5.70, capital = 8.90 |
 | `python code/examples/returns_capital.py --tau-p 0.0384615385` | inv = 8.02, mv_capital = 8.21 |
 | `python code/examples/returns_capital.py --tau-p 0.0833333333` | inv = 5.42, mv_capital = 5.61 |

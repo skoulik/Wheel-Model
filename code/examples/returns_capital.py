@@ -14,6 +14,7 @@ Horizon-weighted (both capitals grow with the standing inventory), so it
 hangs off the near-grid killed walk; see `holding_time.py`.
 """
 
+import math
 import os
 import sys
 
@@ -30,12 +31,33 @@ FIELDS = [
     ("inv", "E[I], lots held (at market)", ".2f"),
     ("mv_capital", "capital, MARKET VALUE (the return denominator)", ".2f"),
     ("capital", "capital, COST BASIS (a spreadsheet of purchases)", ".2f"),
+    ("lots_basis", "  of which the lots' bases", ".2f"),
+    ("basis_per_lot", "  a lot's basis on average, in today's share prices", ".2f"),
     ("gap", "  gap (cost basis - market value)", ".2f"),
+    ("gap_per_lot", "  gap per lot", ".2f"),
+    ("deep_gap", "  share of the gap in lots deeper than 50 log-points", ".1%"),
 ]
+
+# Where the section draws the line between deep lots and the rest: the same 50
+# log-points as section 08's deep-share row, so the two shares are of one set.
+DEEP = 0.50
 
 
 def requires(cfg, measure="P", horizon=30.0, **kw):
     return [need_occupation(cfg, measure)]
+
+
+def _deep_gap_share(cfg, measure, horizon, e):
+    """The share of the gap carried by lots deeper than DEEP.
+
+    A lot at depth x has basis e^x * (1 - c_p/k) of today's price against a
+    market value of 1, so its share of the gap is that difference, weighted by
+    held time in the census.
+    """
+    xs, w = model.census_weights(cfg, measure, horizon=horizon)
+    f = 1 - e["c_p"] / e["k"]
+    loss = [wi * (math.exp(x) * f - 1) for x, wi in zip(xs, w)]
+    return sum(l for x, l in zip(xs, loss) if x >= DEEP) / sum(loss)
 
 
 def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
@@ -43,12 +65,18 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
     occ = resolve(ctx, need_occupation(cfg, measure))
     e = model.economics(cfg, measure, occ, horizon=horizon)
     # E[Capital] = gamma_p*k + E[I]: the put margin plus inventory at market
-    # (mv_capital), against the accumulated cost basis (capital).
+    # (mv_capital), against the accumulated cost basis (capital).  The margin
+    # is in both, so the gap is the lots' alone.
+    lots_basis = e["capital"] - cfg.gamma_p * e["k"]
     return {
         "inv": e["I"],
         "mv_capital": e["mv_capital"],
         "capital": e["capital"],
+        "lots_basis": lots_basis,
+        "basis_per_lot": lots_basis / e["I"],
         "gap": e["capital"] - e["mv_capital"],
+        "gap_per_lot": (e["capital"] - e["mv_capital"]) / e["I"],
+        "deep_gap": _deep_gap_share(cfg, measure, horizon, e),
     }
 
 
@@ -56,8 +84,12 @@ CASES = [
     Case("", {
         "inv": (11.40, 0.05),           # section 09: "11.40 lots held"
         "mv_capital": (11.59, 0.05),    # eq:capital: "a total of 11.59"
-        "capital": (18.23, 0.06),       # "expressed against today's price ... 18.23"
-        "gap": (6.6, 0.1),              # "The gap between them -- 6.6 share prices"
+        "capital": (18.23, 0.06),       # "the margin ... brings the total to 18.23"
+        "lots_basis": (18.04, 0.06),    # "the bases come to 18.04"
+        "basis_per_lot": (1.58, 0.005),  # "1.58 share prices a lot on average"
+        "gap": (6.6, 0.1),              # "the gap between them -- 6.6 share prices"
+        "gap_per_lot": (0.58, 0.005),   # "or 0.58 a lot"
+        "deep_gap": (0.73, 0.005),      # "account for 73% of the gap"
     }, note="Standard regime, 30y"),
     Case("--p-star 0.10", {
         "inv": (5.50, 0.05),            # Conservative: "lots held 5.50"

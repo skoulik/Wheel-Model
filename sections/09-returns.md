@@ -20,12 +20,12 @@ The number is also, on its own, meaningless. It says nothing until we ask what h
 
 Two different quantities can be called "the capital", and choosing between them decides the answer.
 
-**Cost basis.** The operator paid k per share for 11.40 lots. Summed, and expressed against today's price, that comes to **18.23**. This is the number a spreadsheet of purchases produces, and it is what practitioners usually mean by "capital deployed".
+**Cost basis.** Each lot cost its strike, less the premium of the put that delivered it. That strike is the lot's frozen call strike K_c, and against today's price it is K_c/S = e^x by [eq:depth-def](#eq:depth-def): a lot at depth x cost e^x of today's share prices. Summed over the 11.40 lots, the bases come to 18.04 — 1.58 share prices a lot on average — and the margin on the live put brings the total to **18.23**. This is the number a spreadsheet of purchases produces, and it is what practitioners usually mean by "capital deployed".
 
 <a id="para:capital-market-value"></a>
-**Market value.** Those same shares can be sold today for what the market pays: 11.40 share prices, plus margin on the live put, for a total of **11.59**.
+**Market value.** Those same shares would sell today for what the market pays, which is one share price a lot whatever the lot cost: 11.40 share prices. The same margin on the live put brings the total to **11.59**.
 
-The gap between them — 6.6 share prices — is the accumulated paper loss on the standing inventory, which is large precisely because the census in [the inventory section](#sec:inventory) is dominated by deep lots.
+The margin is in both totals, so the gap between them — 6.6 share prices, or 0.58 a lot — belongs to the lots alone: it is the accumulated paper loss on the standing inventory. It is large because a lot's cost grows exponentially with its depth, which hands the deep lots most of it: those more than 50 log-points down are 28% of the book by [the inventory section](#para:census-thirty-years)'s census, and account for 73% of the gap.
 
 The right choice for measuring *return* is market value, and the reason is worth stating carefully because the other choice is so tempting. Capital committed means capital that could otherwise be doing something else. A share bought at 100 and now worth 60 does not commit 100 to the strategy; it commits 60, because 60 is what selling it would release. The other 40 is gone — it is a loss that has already happened, not an ongoing commitment. Charging opportunity cost on it counts the same loss twice: once when the price fell, and again every year afterwards.
 
