@@ -89,7 +89,11 @@ The last row is what separates a log-point from a percentage at the two ends of 
 
 E[Π]  =  Track A income  +  E[I]·m  −  L_acq  −  L_call    {#eq:econ-pnl}
 
+At thirty years that is Track A's 0.7718 less the 0.0063 above: 0.7655 a year. What remains is the comparison [the strategy section](#eq:excess-return) set up: charge the capital of [eq:capital](#eq:capital) the risk-free rate it could have earned elsewhere — Track C — and divide what is left by that capital.
+
 **True excess return  =  ( E[Π] − r · E[Capital] ) / E[Capital]  =  (0.7655 − 0.05 × 11.591) / 11.591  =  +1.60% per year**    {#eq:excess}
+
+The wheel earns 1.60 points a year more than the risk-free rate on the capital it ties up. That is one horizon's figure; the next subsection sets it beside the other horizons, and beside what an operator's own records would show.
 
 ## The two ledgers, side by side
 
