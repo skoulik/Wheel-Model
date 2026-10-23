@@ -31,7 +31,11 @@ The right choice for measuring *return* is market value, and the reason is worth
 
 This is also what [the strategy section](#sec:strategy) promised — Track B was defined as capital at market prices — and it is the definition that survives the consistency test in [the verification section](#sec:verification), which the cost-basis version fails.
 
+In symbols, the capital a return is measured against has two terms: γ_p·k, the margin standing behind the one live put — the broker's fraction γ_p of its strike k — and E[I], the inventory at one share price a lot:
+
 E[Capital]  =  γ_p·k  +  E[I]    {#eq:capital}
+
+At thirty years that is the 11.59 above, and it is the denominator of every return in this section. The next subsection turns to the numerator.
 
 ## What Track A leaves out
 
