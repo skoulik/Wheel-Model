@@ -39,9 +39,9 @@ At thirty years that is the 11.59 above, and it is the denominator of every retu
 
 ## What Track A leaves out
 
-Cash accounting is internally consistent but it is not a return, because two real economic events pass through it without leaving a trace.
+Track A, the cash ledger of [the strategy section](#para:track-a), books premiums and dividends as income and treats buying and selling a lot as swapping cash for shares at the strike, so neither assignment nor call-away registers as a gain or a loss. It is what a brokerage statement shows, and its 0.77 is the obvious candidate for the numerator. A strategy built from short options is exactly where such a number should not be taken on trust. [Goetzmann and colleagues](#ref:goetzmann-et-al-2007) show that the standard summary statistics of investment performance can be *manufactured* by option-writing overlays of this kind — that a strategy can be built to score well on them without earning anything — and characterize the measures that cannot be gamed this way. A cash yield is cruder than any of those statistics, since it does not mark the position to market at all.
 
-That objection has a formal counterpart. [Goetzmann and colleagues](#ref:goetzmann-et-al-2007) show that the standard summary statistics of investment performance can be *manufactured* by exactly this kind of option-writing overlay — that a strategy can be built to score well on them without earning anything — and characterize the measures that cannot be gamed this way. So a cash yield reported for a strategy whose whole shape is short options is not merely an incomplete number; it is the number most vulnerable to being engineered.
+Cash accounting is internally consistent, but it is not a return, because two real economic events pass through it without leaving a trace.
 
 **The mark loss at acquisition.** A lot is bought at the strike while the market offers less. That difference is a loss the moment it happens. Track A calls it "acquisition at the operator's chosen basis" and books nothing. Each arrival pays K for something worth S′, so per unit of the price it was paid against the loss is e^(x₀) − 1, and at λ arrivals a year
 
