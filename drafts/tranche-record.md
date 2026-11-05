@@ -43,6 +43,13 @@ tranche) and the book rule (the traded universe, exposure-matched), per the pre-
 Appendix C. Then append one row to each table, and carry every moved figure into the sections and
 into TODO IV-1/IV-2.
 
+Two things a row's difference cannot tell you. **An entry-law move is not the tranche's own**:
+every put is priced at the whole window's drift, so a tranche that moves the drift re-prices
+every contract already counted, and only matching contracts across the two corpora separates the
+new contracts' expectation from the re-pricing (2026-11-05 note under the spine). And **a figure
+that reproduces is not thereby right**: the misdated price cache reproduced perfectly at every
+ingest before this one. A Saturday among the cached dates is the check for that one.
+
 ## What arrived
 
 | as-of | statements through | new lots done | lots done / open | universe over the tranche | regime |
@@ -51,6 +58,7 @@ into TODO IV-1/IV-2.
 | 2026-07-24 | 2026-07-30 (`USD2`) | 4, no assignments | 40 / 15 | +19.50%/yr | rally |
 | 2026-08-21 | 2026-09-01 (`USD3`) | 7, no assignments | 47 / 8 | +55.25%/yr | rally |
 | 2026-10-01 | 2026-09-29 (`USD4`) | 1, nine assignments | 48 / 16 | −86.8%/yr | drawdown; market rule flat |
+| 2026-11-05 | 2026-10-31 (`USD5`) | 1, one assignment | 49 / 16 | +95.9%/yr | rally; market rule drawdown |
 
 The regime rule is Appendix B's item 3, applied mechanically: the traded universe's
 equal-weighted return over the tranche alone, exposure-matched exactly as `live_ledger`'s
@@ -128,6 +136,36 @@ rather than either label. Nothing is scored here — a one-month drawdown is a t
 item 9 says is recorded and never scored — and a single month at −6.65% is not the sustained
 drawdown P8 was written for.
 
+### 2026-11-05: September in reverse
+
+The sixth tranche is the fifth turned inside out, and `USD2` again: a drawdown for the S&P 500 and
+a rally for the traded universe. The aristocrats took back September's fall and more (NOBL
++8.30%) while the index slipped. All figures are on corrected price dates (see the 2026-11-05
+restatement below); the earlier rows' corrected values are there too.
+
+| window | days | S&P 500 | market rule | universe, matched | book rule |
+|---|---|---|---|---|---|
+| `USD` 2025-02-07 .. 2026-05-02 | 449 | +19.95% (+16.2%/yr) | rally | +9.78% (+8.0%/yr) | flat |
+| `USD1` 2026-05-02 .. 2026-07-09 | 68 | +4.31% (+23.2%/yr) | rally | +1.72% (+9.3%/yr) | rally |
+| `USD2` 2026-07-09 .. 2026-07-30 | 21 | −1.33% (−23.2%/yr) | drawdown | +2.73% (+47.5%/yr) | rally |
+| `USD3` 2026-07-30 .. 2026-09-01 | 33 | +2.71% (+30.0%/yr) | rally | +3.12% (+34.5%/yr) | rally |
+| `USD4` 2026-09-01 .. 2026-09-29 | 28 | +0.32% (+4.1%/yr) | flat | −6.83% (−89.0%/yr) | drawdown |
+| `USD5` 2026-09-29 .. 2026-10-31 | 32 | **−1.11% (−12.7%/yr)** | **drawdown** | **+8.40% (+95.9%/yr)** | **rally** |
+| **all to date** | 631 | +25.79% (+14.9%/yr) | rally | +26.75% (+15.5%/yr) | **rally** |
+
+The earlier windows' book-rule figures move by up to 0.89 points against the corrected 10-01
+table, because the universe grew to 107 names (see the universe note below). No label changes,
+but one comes close: the `USD` window's book rule reads +7.96%/yr, a hair under the +8% rally
+line. It is recorded and never scored, so nothing turns on it.
+
+**The accumulated window's book rule returns from flat to rally**, +4.5%/yr (corrected) to
++15.5%/yr — the same mechanism as September's fall, run the other way: October's average
+exposure was nearly two and a half times the window's, so its gain carries that much weight.
+The market rule stays rally at +14.9%/yr, and **the two rules agree on the accumulated row
+again**. Appendix C item 8 made September's disagreement the finding; what October adds is that
+the book rule's accumulated label has now changed twice in two months on single months of
+exposure-weighted movement, which says how much weight it can bear at freeze. Nothing is scored.
+
 ## The ledger
 
 | as-of | Track A, cost basis | Track B, economic | same-names B&H | overlay excess | 90% CI, clustered | selection |
@@ -136,6 +174,7 @@ drawdown P8 was written for.
 | 2026-07-24 | +38.36% | +24.34% | +28.71% | −4.37% | −18.1% .. +6.9% | +29.63% |
 | 2026-08-21 | +36.96% | +32.11% | +37.71% | −5.61% | −18.7% .. +5.1% | +38.71% |
 | 2026-10-01 | +37.36% | +25.69% | +29.65% | −3.96% | −16.0% .. +6.1% | +34.69% |
+| 2026-11-05 | +36.69% | +31.09% | +38.49% | −7.40% | −19.8% .. +2.9% | +36.15% |
 
 P(excess < 0) reads 69% on the first two rows and **77%** on the third. UNH remains the single
 largest position in both decompositions; on the second row it is 39% of the selection gap and, on
@@ -188,8 +227,30 @@ The third row's account above survives at a smaller scale: on the restated split
 went −40.7% → −53.4% and moved the excess 1.6 times as far as the excess moved in total, with the
 put leg giving back 38% of that and frictions nothing.
 
-**2026-11-05.** Every figure in this section up to here was measured on misdated prices, and
-flatters the overlay by 2.2 to 2.8 points; the corrected rows are in the 2026-11-05 section below.
+**2026-11-05.** Every figure in this section up to here, bar the 2026-11-05 row, was measured on
+misdated prices and flatters the overlay by 2.2 to 2.8 points; the corrected rows are in the
+2026-11-05 section below. The 2026-11-05 row and everything after this note are on corrected
+dates, and comparisons with the fourth row are with its corrected values.
+
+P(excess < 0) reads **86%** on the fifth row, and the interval's upper end, +2.9%, is the nearest
+zero has come; on corrected prices the five intervals are thirty, twenty-seven, twenty-six,
+twenty-four and twenty-three points wide. UNH is 25% of the selection gap and nearly all of the
+shortfall (−7.40% → −2.06% without it). INTU, called away this month, rises to second in both
+decompositions, and the positions negative on the overlay and positive on selection at once are
+UNH, INTU, ELV, MSFT and ACN.
+
+**What moved the fifth row: the third row again, with most of its call-aways still to come.** The
+traded universe rose 8.40% while the S&P 500 fell; one lot was called away and one assigned. The
+one exit — INTU at 282.5, on a stock that closed at 325.15 — raised C by a twelfth. The rest of
+the rally sits in the calls still open: sixteen lots carry calls written before it, and their mark,
+what it would cost to buy them back, rose from 12% of call premium to 26%. The call leg went from
+−42.8% to −53.1% and moved the excess 1.6 times as far as the excess moved in total, from −6.17%
+to −7.40%; the put leg, its new premium written with only KMB assigned against it, went from
++14.8% to +20.0% and gave back 38% of that. Track A fell seven tenths of a point while Track B rose
+five and a half: the statement sees an ordinary month of premium, the economic ledger sees held
+names rising through the strikes that cap them. The open-call mark is upside surrendered but not
+yet booked as C — most of it becomes C at call-away if prices hold, and it vanishes only if they
+fall back.
 
 ## The spine
 
@@ -199,6 +260,7 @@ flatters the overlay by 2.2 to 2.8 points; the corrected rows are in the 2026-11
 | 2026-07-24 | 69.9 / 71 | 956 | 0.157 / 0.148 | 27.6% / 19.6% | 56 d | 18.7% |
 | 2026-08-21 | 66.4 / 71 | 1011 | 0.165 / 0.149 | 30.5% / 21.6% | 56 d | 20.1% |
 | 2026-10-01 | 74.9 / 80 | 1042 | 0.168 / 0.152 | 28.3% / 21.3% | 57 d | 19.2% |
+| 2026-11-05 | 70.0 / 81 | 1111 | 0.166 / 0.156 | 31.4% / 20.8% | 63 d | 19.2% |
 
 Mean depth is at the article's μ = 7%; at the window's realised drift the model reads 0.097
 against the same 0.148 on the second row, and 0.085 against 0.149 on the third — the realised
@@ -236,8 +298,32 @@ and **0.084** at the realised drift, where that row and its note carry 0.165 and
 to `7758fac` (2026-09-15), the fix for the census grid artifact; every other figure in the row
 reproduces. The fourth row is on the fixed grid.
 
-**2026-11-05.** Every row above, and every note, was measured on misdated prices; the corrected
-rows are in the 2026-11-05 section below. The entry law moves most.
+**2026-11-05.** Every row above bar the 2026-11-05 row, and every note before this one, was
+measured on misdated prices; the corrected rows are in the 2026-11-05 section below. The entry
+law moves most.
+
+**2026-11-05: the entry-law notes on the third and fourth rows read a difference of totals.** Both
+attribute their row's move to the tranche's own contracts — "55 new put contracts … none of them
+was assigned", "expected 8.5 of the 31 new put contracts". But every contract is priced at the
+drift measured over the whole window, so a tranche that moves the drift re-prices the thousand
+contracts already counted, and the difference between two rows' totals mixes the two. Matched
+contract by contract: the third row's 55 new contracts expected 2.3 assignments and got none,
+while the drift's rise took the rest from 69.9 to 64.0 — so the error's widening was the drift,
+and the 55 contracts narrowed it; the fourth row's 31 expected **2.6**, not 8.5, and got 9, while
+the drift's fall took the rest from 66.4 to 72.2. The tranche figures, 2.3 and 2.6, are the same
+on corrected prices; the drift's share is not.
+
+On the fifth row, all on corrected prices, the entry law reads 70.0 predicted against 81 assigned,
+−13.6%. The tranche's own 69 contracts expected 4.9 and got 1, in a month the traded universe
+rose 8.40%, while the drift's rise (+43.4% → +51.7%) took the rest from 69.3 to 65.1. Priced at
+today's drift, **the last three tranches' 155 contracts expect 9.6 assignments and got 10**: the
+whole shortfall sits on the 956 contracts counted by the second row (60.3 against 71). The model's
+mean depth at the realised drift (μ = 54.2%) is 0.078 against a live 0.156, from 0.094 against
+0.153 at the fourth row's corrected 45.9% — the gap widening again as the drift rose. Live
+survival stays above the model's at every horizon. The KM median moves 57 d → 63 d as September's
+nine assignments aged a month, and the curve sits flat at 14.0% from 180 d with 16 lots censored.
+The model's mean holding time at the account's measured parameters is 0.17 y (64 d, E[J] 3.18),
+from a corrected 0.19 y (69 d, E[J] 4.33) — a model output, not a measurement.
 
 ## The selection fit
 
@@ -249,6 +335,7 @@ pre-registered coefficient, so it is recorded here rather than left to be notice
 | 2026-07-24 | −0.726 (z −11.6) | −0.486 (z −10.2) | −0.332 (z −5.3) | −0.101 (z −1.8) | 0.097 | 57 wk, 672 sales, menu 96 |
 | 2026-08-21 | −0.778 (z −12.7) | −0.483 (z −10.4) | −0.328 (z −5.2) | −0.132 (z −2.4) | 0.100 | 61 wk, 697 sales, menu 100 |
 | 2026-10-01 | −0.825 (z −13.8) | −0.489 (z −10.6) | −0.319 (z −5.2) | −0.148 (z −2.8) | 0.105 | 65 wk, 730 sales, menu 103 |
+| 2026-11-05 | −0.866 (z −14.9) | −0.485 (z −10.6) | −0.316 (z −5.3) | −0.152 (z −2.9) | 0.109 | 68 wk, 761 sales, menu 107 |
 
 Rules 4 and 6 are unmoved and stay confirmed. **Rule 5's rejection hardened**: `slope_r2` was the
 last prop of the withdrawn "prefer the ones that have started to come back" reading, which needed
@@ -261,6 +348,22 @@ re-specified. The secondary set's `off52w` likewise stays insignificant (−0.04
 
 The fourth row moves the same way and further: rules 4 and 6 firmer (z −13.8 and −10.6), and
 `slope_r2` further to the wrong sign at z = −2.8. `off52w` is now −0.009 (z −0.1).
+
+The fifth row again: rule 4 firmer (z −14.9), rule 6 where it was, and `slope_r2` to z = −2.9.
+`off52w` is −0.004 (z −0.0). The date fix does not move this fit at all — every row reproduces to
+the third decimal on corrected prices — so the table needs no restatement.
+
+## A note on the universe, 2026-11-05
+
+The traded universe grew **103 → 107 names**: BX and KKR, last tranche's mentioned-only names,
+now carry closed contracts, and APO and DKS are new. NTR and OZK, one option row each, and FGEN and
+TRI.TN, corporate actions, are still mentioned without reaching an analysis. The earlier windows'
+book-rule figures move by up to 0.89 points against the corrected 10-01 table with it, and no
+label changes.
+
+Puts are now sold across **106 names while inventory sits in 37**, and put margin is **27.6% of
+Track B capital**, falling again on the inventory mark rather than a narrower book. Counted from
+`live_ledger.py`'s own parse as before, which reproduces the 102 and 37 on the fourth row's corpus.
 
 ## A note on the universe, third tranche
 
@@ -295,9 +398,9 @@ open, and from the first Sunday of October to the first Sunday of April that mom
 midnight in Adelaide — so every bar in that half of the year was filed under the next day:
 Saturday rows, no Mondays, Thanksgiving and Christmas 2025 each a day late. Any price looked up by
 date in those months was the previous session's; April to September was right. Fixed in
-`prices._trading_day()`, cache version 3. A fresh fetch through the old code reproduces every row
-of each table above to the digit, so what follows is the date fix alone. The rows stay as they
-are; each is restated here on its own corpus.
+`prices._trading_day()`, cache version 3. A fresh fetch through the old code reproduces the first
+four rows of each table above to the digit, so what follows is the date fix alone. Those rows
+stay as they are; each is restated here on its own corpus.
 
 | as-of | same-names B&H | overlay excess | 90% CI, clustered | P(excess < 0) | selection | put leg kept | call leg kept |
 |---|---|---|---|---|---|---|---|
@@ -381,25 +484,30 @@ These sentences in the written sections quote the live account either in words r
 or in digits that do not look like live figures, so a grep for a moved number will not find them.
 Check each by hand at every refresh; this list is kept current rather than appended to.
 
-- **§09, the put leg.** "the mark loss taken at assignment consumed about **three quarters**", and
-  then "the **quarter** that survives on the put leg" — B / put premium and the put leg's kept
-  share, 74.7% and +23.3% at the fifth tranche. It read seven tenths and three tenths at the fourth
-  (71.6%, and +28.4% on the old split); it moves a point or two each tranche.
-- **§09, the call leg.** "which finished behind by about **two fifths** of the premium it
-  collected" — the call leg's kept share, −39.7% on the split restated 2026-10-01. The fastest
-  mover: a call-away month moves it several points (−40.7% → −53.4% → −39.7% over the last three
-  rows). It used to compare C with premium directly ("nearly half again more"), which stopped
-  being the leg's result once the marks on open calls joined the leg.
-- **§09, the skew.** "about **six** points on puts 5–10% below spot against about **three** on calls
-  the same distance above" — `iv_panel.py`'s cross-tab, +6.2% / +2.7% at the fifth tranche.
-- **§09, the window.** "within the precision **seventeen** months can support" — the ledger's
-  window in months, 1.40 y at the fifth tranche.
-- **§09, the tenor.** "weekly puts near **28%** implied against roughly **33%** on its four-week
-  calls" — `iv_panel.py`'s session-clock IV for puts ≤ 1 wk and calls ~monthly, 28.2% / 33.4%.
+- **§09, the put leg.** "the mark loss taken at assignment consumed about **four fifths**", and
+  then "the **fifth** that survives on the put leg" — B / put premium and the put leg's kept
+  share, 79.2% and +20.0% at the sixth tranche, on corrected prices. It read three quarters and a
+  quarter at the fifth on misdated ones (74.7%, +23.3%); the date fix alone moves it by eight or
+  nine points, and a tranche by a point or a few.
+- **§09, the call leg.** "which finished behind by about **half** of the premium it collected" —
+  the call leg's kept share, −53.1% at the sixth tranche. The fastest mover: a month of call-aways,
+  or of rally against open calls, moves it ten points (corrected, −42.8% → −53.1% over the last
+  two rows).
+- **§09, the skew.** "about **five** points on puts 5–10% below spot against **under one** on calls
+  the same distance above", and "at matched distance it still runs **three to five** points above
+  the call leg's" — `iv_panel.py`'s cross-tab, all-tenor column: puts +5.2% at 5–10% and +8.9%
+  beyond, calls +0.6% and +5.9%, at the sixth tranche. The calls cell at 5–10% holds 42 contracts
+  and moved two points on two new ones in October, so this sentence is the noisiest on the list;
+  at the corrected fifth tranche it read +5.0% against +2.6%, which is where the old "roughly
+  twice" came from.
+- **§09, the window.** "within the precision **eighteen** months can support" — the ledger's
+  window in months, 1.48 y at the sixth tranche.
+- **§09, the tenor.** "weekly puts near **29%** implied against roughly **33%** on its four-week
+  calls" — `iv_panel.py`'s session-clock IV for puts ≤ 1 wk and calls ~monthly, 29.3% / 33.0%.
 - **§04, the aristocrat footnote.** The index's yield and volatility against the S&P 500's, from
-  `market_regime.py` — 2.15% at 14.3% against 0.99% at 17.3% at the fifth tranche.
+  `market_regime.py` — 1.98% at 14.3% against 1.00% at 17.0% at the sixth tranche.
 
 And one figure in **§16 (outlook)** cannot be checked at all: "only about **twenty** puts per name
 reach the market in a year rather than fifty-two" is the discrepancy catalogue's 18.1, which has no
-script behind it (INF-2) and is measured over a window four tranches out of date. It is left
+script behind it (INF-2) and is measured over a window five tranches out of date. It is left
 standing only because there is nothing to replace it with; give it a script before the freeze.
