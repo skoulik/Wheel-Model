@@ -952,29 +952,34 @@ live data, not only simulation.
   both regimes at every horizon — a per-lot term, not a capital-proportional one. Either
   identify it or state the residual as numerical tolerance and say so; do not attribute it to
   the collateral.
-- **Claim only the aggregates.** The restatement withdrew two bin-level results: T1's
-  calibration curve is sensitive to whether entry is priced at the session open or close (top
-  bucket 26.7% predicted against 7.8% realised at the open — the operator sells into intraday
-  weakness that partly reverts, so the truth is between), and q(x)'s two deepest bins now hold 76
-  and 27 contracts. No bucket-level claim should be reintroduced. The close-priced comparand
-  (26.1% against 27.0% as of the second tranche) has not been re-measured since; re-run it rather
-  than quoting it.
+- **Claim only the aggregates.** q(x)'s two deepest bins hold 76 and 27 contracts, and T1's
+  buckets are no firmer, so no bucket-level claim should be reintroduced.
+
+  **The top bucket's famous miss was the misdated price cache** (2026-11-05, see the record's
+  restatement). It read 26.7% predicted against 7.8% realised at the open, and this bullet used to
+  explain it as the operator selling into intraday weakness that partly reverts. On corrected dates
+  the fifth tranche's bucket reads 26.1% against 21.7%. Do not reuse the reversion story: whether
+  any reversion remains is not established either way, and the close-priced comparand that
+  supported it was measured on the same misdated cache.
 - **The calendar/session mismatch, found 2026-07-28 and deliberately not fixed.** Every τ in the
   live tests is in *calendar* years while every σ is annualised over **252 sessions**, so a put
   written Monday at the open for Friday's close — five sessions — is priced with four days of
   diffusion. The units are wrong and the understatement is large: σ·√τ is short by a factor
-  √((5/252)/(4/365)) = **1.35** at the median put. **And the wrong convention is the one that
-  fits.** At the window's drift, pricing each put on its own session count predicted **88.7**
-  assignments against the **71** that had occurred when it was measured, where the calendar reading
-  predicted 69.9; the calendar reading now predicts **74.9** against **80**, and the session figure
-  has not been re-run since — re-measure both together before quoting the pair. So either
-  the operator's entries partly revert — which is T1's own bucket finding, the opening print
-  overstating moneyness on puts written nearest the money — or session-annualised realised
-  volatility overstates the volatility relevant to a five-session option, or both. Resolve it
-  before claiming T1 as a clean pass, and note that the aggregate agreement currently rests on
-  a cancellation rather than on each side being right. Nothing was changed in the code; the
-  decision and its evidence are in `model_vs_live.py`'s T1 docstring. Note the article itself is
-  unaffected: its τ_p = 1/52 is 4.85 sessions, so its own week is already a trading week.
+  √((5/252)/(4/365)) = **1.35** at the median put. **And neither convention fits.** Measured
+  together on corrected price dates (2026-11-05), at the window's drift, the fifth tranche's puts
+  predict **95.9** assignments on the inclusive session count and **69.3** on the calendar count,
+  against the **80** that occurred — a fifth over and a seventh under. This bullet used to say the
+  wrong convention was the one that fits; that was the misdated cache, which put the calendar
+  reading within 6% (74.9). The 88.7 it quoted for the session count does not reproduce at
+  today's count even on that cache (94.2 on the corpus it was measured on). So the truth sits
+  between the two clocks, and the candidates are the ones this bullet always named — the
+  operator's entries partly reverting, or session-annualised realised volatility overstating the
+  volatility relevant to a five-session option — less the bucket evidence for the first, which
+  the date fix withdrew (previous bullet). Resolve it before claiming T1 as a pass, and note that
+  T1's aggregate error is now near P1's ±15% edge on either clock. Nothing was changed in the
+  code; the decision and its evidence are in `model_vs_live.py`'s T1 docstring. Note the article
+  itself is unaffected: its τ_p = 1/52 is 4.85 sessions, so its own week is already a trading
+  week.
 
   **The machinery to fix it now exists, and the convention is settled** (IV-5, 2026-08-05). The
   same bug was live in `iv_panel.py` and was repaired there: `prices.Series.sessions_between()`
@@ -983,15 +988,17 @@ live data, not only simulation.
   it** — the count is inclusive of the trade's own session, which `iv_panel.report_clock` shows is
   the nearest of the candidate conventions to variance-true (an entry-day open→close move carries
   **0.66** of a close-to-close session, so a k-session option is worth k − 1 + 0.66) and the
-  conservative one. Note this does *not* by itself resolve the bullet: T1's problem is that the
-  wrong convention is the one that fits, and putting the tenor right will move the prediction well
-  above the calendar reading's 74.9, against the 80 that occurred. Fixing the units and explaining the fit are two
-  jobs, and IV-5 only supplies the first.
-- **Three measurement traps**, worth a paragraph because all three were fallen into: reading
+  conservative one. Note this does *not* by itself resolve the bullet: putting the tenor right
+  moves the prediction from one side of the assignments that occurred to the other, so fixing the
+  units and explaining the miss are two jobs, and IV-5 only supplies the first.
+- **Four measurement traps**, worth a paragraph because all four were fallen into: reading
   depth on the day before exit discards nearly every exit; sampling lots on a synthetic τ_c grid
-  scores periods at tenors never traded; and pricing an entry at the day's close when the
-  operator writes in the first hour builds a look-ahead into every measured entry depth.
-- **A fourth trap, and a free check, both from the finite-window law** (added 2026-08-04 from
+  scores periods at tenors never traded; pricing an entry at the day's close when the
+  operator writes in the first hour builds a look-ahead into every measured entry depth; and
+  dating a price by the machine's own calendar filed half of every year's bars a day late, which
+  marked every assignment and call-away at the previous session's close — a selection on the last
+  day's move that flattered the overlay by over two points (2026-11-05).
+- **A fifth trap, and a free check, both from the finite-window law** (added 2026-08-04 from
   [Little (2011)](#ref:little-2011) §2.2, via **II-30**, closed 2026-08-04 — §08 now carries the
   window reading and `inventory_little.py` prints W(H)).
 
@@ -1104,8 +1111,10 @@ live data, not only simulation.
 - **The UNH lot is the worked example**, deliberately kept out of Part II so it lands here:
   assigned at 260, a four-week call written at the same 260 basis for 18.10 a share, called away at
   260 with the stock at 393.85 — collected 18.10 a share, surrendered 133.85, over seven times as
-  much. It is also, on its own, the difference between a negative and a positive overlay excess
-  (−3.96% → +1.43%) **and** 28% of the selection gap. The same position carries both verdicts, and that is the point rather than
+  much. It is also, on its own, nearly all of the overlay's shortfall (−6.17% → −0.31% without
+  it, fifth tranche on corrected prices) **and** 28% of the selection gap. Do not write that it is
+  the difference between a negative and a positive excess: every record row said so, and on
+  corrected prices it never was (2026-11-05). The same position carries both verdicts, and that is the point rather than
   a caveat: a lot that runs far enough to dominate selection is a lot whose call gave the run
   away. **Do not present it as an outlier to be set aside.** UNH, ELV, MSFT, ACN and INTU all
   show negative excess and positive selection together — ACN joined the list on the fourth

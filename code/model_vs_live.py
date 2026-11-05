@@ -120,8 +120,8 @@ def test_entry_law(positions, px, universe, sigma_by_sym, drift,
 
     The same rows also answer a second question -- **the revealed strike dial**.
     The raw assignment rate is not comparable with the article's p\\*, for two
-    reasons that push the same way. The window drifted at +40% rather than the
-    article's +4.5%; and `tau` above is in *calendar* years while `sigma` is
+    reasons that push the same way. The window drifted many times faster than
+    the article's +4.5%; and `tau` above is in *calendar* years while `sigma` is
     annualised over 252 sessions, so the dominant put -- written Monday at the
     open, expiring Friday at the close, five sessions -- is priced here as four
     days. Re-pricing the operator's own moneyness at `art_tau` and `art_drift`
@@ -130,11 +130,14 @@ def test_entry_law(positions, px, universe, sigma_by_sym, drift,
     article's week is a change of clock only on paper.
 
     The calendar/session mismatch is left as it is rather than corrected, and
-    that is a decision, not an oversight: pricing every put on its own session
-    count predicts 88.7 assignments against the 71 that occurred, where the
-    calendar reading predicts 69.9. The convention that is wrong on units fits
-    the data, and why is TODO IV-1's business -- see the note there before
-    changing anything here. See also [the entry section](#sec:entry).
+    that is a decision, not an oversight: neither clock fits. Priced on the
+    inclusive session count `iv_panel.session_tenor` uses, the puts overshoot
+    the assignments that occurred by about a fifth; on the calendar count they
+    fall short by about a seventh (2026-11-05, on the corrected price dates --
+    the earlier reading that the calendar count fits was the misdated cache,
+    see drafts/tranche-record.md). Which to use, and why the truth sits between,
+    is TODO IV-1's business -- see the note there before changing anything
+    here. See also [the entry section](#sec:entry).
     """
     rows = []
     for p in positions:

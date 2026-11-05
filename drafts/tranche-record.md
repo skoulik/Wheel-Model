@@ -188,6 +188,9 @@ The third row's account above survives at a smaller scale: on the restated split
 went −40.7% → −53.4% and moved the excess 1.6 times as far as the excess moved in total, with the
 put leg giving back 38% of that and frictions nothing.
 
+**2026-11-05.** Every figure in this section up to here was measured on misdated prices, and
+flatters the overlay by 2.2 to 2.8 points; the corrected rows are in the 2026-11-05 section below.
+
 ## The spine
 
 | as-of | entry law, predicted / assigned | contracts | mean depth, model / live | q(x), model / realised | KM median | lot-days above strike |
@@ -232,6 +235,9 @@ against 49 d, with the discrepancy stated.
 and **0.084** at the realised drift, where that row and its note carry 0.165 and 0.085. Bisected
 to `7758fac` (2026-09-15), the fix for the census grid artifact; every other figure in the row
 reproduces. The fourth row is on the fixed grid.
+
+**2026-11-05.** Every row above, and every note, was measured on misdated prices; the corrected
+rows are in the 2026-11-05 section below. The entry law moves most.
 
 ## The selection fit
 
@@ -281,6 +287,93 @@ each, written on the statement's last day. The earlier windows' book-rule figure
 Puts are now sold across **102 names while inventory sits in 37**, and put margin is **29.2% of
 Track B capital**. No script prints the two name counts; they were counted from
 `live_ledger.py`'s own parse, which reproduces the third tranche's 99 and 34.
+
+## 2026-11-05: every row restates, because half of every year's prices were a day late
+
+`prices.py` dated each Yahoo bar by the machine's own calendar. Yahoo stamps a daily bar at the US
+open, and from the first Sunday of October to the first Sunday of April that moment falls after
+midnight in Adelaide — so every bar in that half of the year was filed under the next day:
+Saturday rows, no Mondays, Thanksgiving and Christmas 2025 each a day late. Any price looked up by
+date in those months was the previous session's; April to September was right. Fixed in
+`prices._trading_day()`, cache version 3. A fresh fetch through the old code reproduces every row
+of each table above to the digit, so what follows is the date fix alone. The rows stay as they
+are; each is restated here on its own corpus.
+
+| as-of | same-names B&H | overlay excess | 90% CI, clustered | P(excess < 0) | selection | put leg kept | call leg kept |
+|---|---|---|---|---|---|---|---|
+| 2026-07-02 | +24.50% → +27.32% | −4.77% → −7.61% | → −23.9% .. +5.7% | 69% → 79% | +25.39% → +28.55% | +18.8% → +9.0% | −43.3% → −47.6% |
+| 2026-07-24 | +28.71% → +31.32% | −4.37% → −7.01% | → −21.9% .. +5.2% | 69% → 79% | +29.63% → +32.50% | +20.1% → +10.9% | −40.7% → −44.6% |
+| 2026-08-21 | +37.71% → +40.10% | −5.61% → −7.99% | → −22.1% .. +3.5% | 77% → 84% | +38.71% → +41.32% | +24.4% → +15.6% | −53.4% → −57.0% |
+| 2026-10-01 | +29.65% → +31.86% | −3.96% → −6.17% | → −19.2% .. +4.6% | 70% → 79% | +34.69% → +37.12% | +23.3% → +14.8% | −39.7% → −42.8% |
+
+Track A does not move on any row, being cash, and Track B moves by at most 0.03 points.
+
+| as-of | entry law, predicted / assigned | mean depth, model / live | q(x), model / realised | lot-days above strike |
+|---|---|---|---|---|
+| 2026-07-02 | 71.5 → 65.5 / 71 | 0.150 / 0.146 | 26.3% → 27.5% / 19.6% | 19.4% → 19.5% |
+| 2026-07-24 | 69.9 → 64.2 / 71 | 0.156 / 0.148 → 0.149 | 27.6% → 28.7% / 19.6% | 18.7% → 18.8% |
+| 2026-08-21 | 66.4 → 61.1 / 71 | 0.164 / 0.149 → 0.150 | 30.5% → 31.6% / 21.6% | 20.1% → 20.2% |
+| 2026-10-01 | 74.9 → 69.3 / 80 | 0.168 / 0.152 → 0.153 | 28.3% → 29.3% / 21.3% | 19.2% → 19.3% |
+
+Contracts, the KM medians and the realised exercise rates do not move. The first two rows' model
+mean depth reads 0.150 and 0.156 where they carry 0.151 and 0.157 even before the fix: that is
+`7758fac`'s grid fix again, the one bisected for the third row below, confirmed by running
+`7758fac~1` and `7758fac` on both corpora.
+
+**The overlay was flattered by 2.2 to 2.8 points on every row, and the reason is a selection on
+the last day.** A put is assigned because the stock closed below its strike on expiry Friday; the
+misdated cache marked the new lot at Thursday's close, which on such a day sits above Friday's,
+so the mark loss B was understated. A call is exercised because the stock closed above the strike,
+where Thursday's close sits below Friday's, so the upside surrendered C was understated too. Both
+prices enter the shares' own return with the opposite sign, which is why same-names buy-and-hold
+rises by what the overlay loses and Track B stays put. B is now 80–89% of put premium on the four
+rows, against 72–79% as recorded. **The verdict survives with a firmer lean**: every interval still
+contains zero, and P(excess < 0) reads 79–84% where it read 69–77%.
+
+**The entry law loses five or six expected assignments on every row**, and the aggregate error
+becomes −7.7%, −9.6%, −13.9% and −13.4% where it read +0.7%, −1.5%, −6.5% and −6.4%: inside P1's
+±15%, and near its edge. Two things moved it together, which no run here separates: every entry in
+those months is now priced at its own session's open rather than the previous session's, and the
+measured drift the contracts are priced at rose with the corrected shares (+43.4% against +40.3%
+on the fourth row). "Finished below the strike" now equals "assigned" on every row; the
+one-contract gap between them was the bug.
+
+**Two findings that rested on the misdated cache are withdrawn.**
+
+- *The top probability bucket's miscalibration.* Appendix A of the pre-registration narrowed P1 to
+  the aggregate because the bucket above 20% predicted 27.4% and realised 8.0% at the open, against
+  25.9% and 24.3% at the close, and TODO IV-1 read that as the operator selling into intraday
+  weakness that partly reverts. On corrected dates it predicts 26.2% and realises 20.3% at the open
+  on the first row, and 26.1% against 21.7% on the fourth: most of the gap was the misdated prices.
+  P1 stays an aggregate test as written; whether any reversion remains is not established either
+  way.
+- *"The wrong clock is the one that fits."* Priced on the inclusive session count `iv_panel` uses,
+  the fourth row's puts predict 95.9 assignments against 80, and on the calendar count 69.3: one
+  overshoots by a fifth and the other falls short by a seventh, so neither fits. The 88.7 that
+  `model_vs_live`'s T1 docstring and TODO quoted does not reproduce at today's count even on the
+  misdated cache (94.2 on the second row's corpus), so it was a different count.
+- *UNH as the sign of the overlay.* The ledger notes above, and Appendix A, say UNH alone is the
+  difference between a negative and a positive excess. On corrected prices the excess without it
+  is −0.13%, −0.09%, −1.67% and −0.31% on the four rows: UNH is nearly all of the shortfall, never
+  the sign. It is still the largest position in both decompositions, at 47%, 38%, 27% and 28% of
+  the selection gap.
+
+**The ledger's reconciliation residual**, printed as a residual "from entry/exit day alignment"
+and 0.5–1.0% on the four rows, is 0.0% on every corrected row: it was this bug.
+The acquisition gap's mean/median ratio, P5's statistic, reads 2.4× on the first row where it read
+1.8×, a heavier jump tail than recorded.
+
+**Unchanged:** the selection fit, to the third decimal on every row. The IV panel moves by about a
+point; the prose list below quotes corrected figures from the sixth row on. In the regime tables only the `USD`
+window and the accumulated row move, and no label changes. On the 2026-10-01 table the market rule's `USD` window reads +19.95% (+16.2%/yr) for
++18.86%, and the accumulated window +27.20% (+16.6%/yr) for +26.04%; the book rule's `USD` window
+reads +8.89% (+7.2%/yr, still flat) for +7.56%, and the accumulated window +7.45% (+4.5%/yr, still
+flat) for +6.60%.
+
+**Scoring.** Appendix A's baselines and every figure on the rows above were measured on the
+misdated cache. At freeze the predictions are scored against the corrected figures — the first
+rows of the two tables here for the baselines — as P11 is already scored against the 49 d that
+reproduces rather than the 56 d printed.
 
 ## Section prose that moves with the ledger
 

@@ -71,7 +71,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 CACHE_DIR = os.path.join("data", "prices")
 CHART_URL = ("https://query1.finance.yahoo.com/v8/finance/chart/{sym}"
@@ -112,7 +112,11 @@ STALE_AFTER_DAYS = 4
 #   1: rows are [day, close]
 #   2: rows are [day, close, open]  -- the open is needed to price an entry at
 #      the moment it was actually made, see Series.open().
-CACHE_VERSION = 2
+#   3: the same rows, dated by the US trading day rather than the machine's
+#      local one -- see _trading_day(). A version-2 entry written on a machine
+#      at UTC+9:30 or further east has misdated rows for part of every year
+#      (in Adelaide, October to April), so it is refetched rather than reused.
+CACHE_VERSION = 3
 
 # Symbols the statement knows under a name Yahoo does not. Renames and ticker
 # changes, not aliases of convenience.
@@ -293,6 +297,22 @@ def _cache_path(sym):
     return os.path.join(CACHE_DIR, f"{sym}.json")
 
 
+def _trading_day(ts):
+    """The US trading day a Yahoo timestamp belongs to, as an ISO date.
+
+    Yahoo stamps a daily bar -- and a dividend or split event -- at that day's
+    US open, 13:30 UTC under EDT and 14:30 under EST, which is the same date
+    in UTC. It is *not* always the same date in the machine's local zone:
+    `date.fromtimestamp()` converts there, and from UTC+9:30 eastward the open
+    falls after local midnight for part of the year. In Adelaide that put
+    every bar from October to April on the following calendar day -- Saturday
+    rows, no Mondays, Christmas on the 26th -- and so every price looked up by
+    date in that half-year was the previous session's (cache version 3 fixes
+    it; the restatement is in drafts/tranche-record.md, 2026-11-05).
+    """
+    return datetime.fromtimestamp(int(ts), timezone.utc).date().isoformat()
+
+
 def fetch(sym, start=HISTORY_START, end=None, pause=0.25):
     """Download one symbol. Returns the parsed payload or raises."""
     end = end or (date.today() + timedelta(days=1))
@@ -310,12 +330,11 @@ def fetch(sym, start=HISTORY_START, end=None, pause=0.25):
     closes = quote["close"]
     opens = quote.get("open") or [None] * len(closes)
     events = res.get("events", {})
-    rows = [[date.fromtimestamp(t).isoformat(), c, o]
+    rows = [[_trading_day(t), c, o]
             for t, c, o in zip(ts, closes, opens) if c is not None]
-    splits = [[date.fromtimestamp(int(e["date"])).isoformat(),
-               e["numerator"] / e["denominator"]]
+    splits = [[_trading_day(e["date"]), e["numerator"] / e["denominator"]]
               for e in events.get("splits", {}).values()]
-    divs = [[date.fromtimestamp(int(e["date"])).isoformat(), e["amount"]]
+    divs = [[_trading_day(e["date"]), e["amount"]]
             for e in events.get("dividends", {}).values()]
     return {"symbol": sym, "version": CACHE_VERSION,
             "fetched": date.today().isoformat(),
