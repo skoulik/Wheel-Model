@@ -11,7 +11,8 @@ A module supplies:
     TITLE      one line: what it computes
     SECTION    the section anchor it serves, e.g. "sec:holding"
     EQ         the equation anchors it backs, e.g. ["eq:holding"]
-    FIELDS     [(key, label, format)] -- what the CLI prints, in order
+    FIELDS     [(key, label, format)] -- what the CLI prints, in order; format
+               is a format spec, or "resid" for a residual (see _fmt_one)
     EXTRA      optional [(flag, kwargs)] -- knobs beyond Config/measure/horizon
     requires() the expensive solves it needs, as a list of Need
     compute()  the numbers, as a dict keyed by FIELDS' keys
@@ -263,12 +264,29 @@ def params_from(mod, flags=""):
 # Output
 # ----------------------------------------------------------------------
 
+# A residual -- an identity checked numerically, whose right answer is zero --
+# prints below this floor as "< 1e-12" rather than as its digits.  Those digits
+# are round-off, and round-off differs between machines, so printing them made
+# the reproduction appendix fail its own check on any machine but the one that
+# generated it (1.6e-17 on one, 2.3e-17 on another).  The floor sits three
+# orders above the largest residual the article's cases produce, ~2e-15, and
+# far below anything that would mean an identity had actually failed.
+RESID_FLOOR = 1e-12
+
+
+def _fmt_scalar(v, spec):
+    if spec == "resid":
+        return f"< {RESID_FLOOR:.0e}" if abs(v) < RESID_FLOOR else format(v, ".1e")
+    return format(v, spec)
+
+
 def _fmt_one(value, spec):
+    """One field as the CLI prints it.  `spec` is a format spec, or "resid"."""
     if value is None:
         return "--"
     if isinstance(value, (list, tuple)):
-        return "  ".join(format(v, spec) for v in value)
-    return format(value, spec)
+        return "  ".join(_fmt_scalar(v, spec) for v in value)
+    return _fmt_scalar(value, spec)
 
 
 def render(mod, out):
@@ -334,6 +352,7 @@ def collect_needs(mods):
 def check_case(mod, case, ctx=None):
     """Run one case.  Returns [(label, got, want, tol, ok)], one per claim."""
     out = mod.compute(ctx=ctx, **params_from(mod, case.flags))
+    printed = {k for k, _, _ in mod.FIELDS}
     rows = []
 
     def one(label, got, want, tol):
@@ -341,6 +360,11 @@ def check_case(mod, case, ctx=None):
         rows.append((label, got, want, tol, ok))
 
     for key, (want, tol) in case.expect.items():
+        # A claim the command never prints is one the reader cannot check by
+        # running it, and the appendix would show it at full precision.
+        if key not in printed:
+            rows.append((f"{key} (asserted, but FIELDS does not print it)",
+                         None, want, tol, False))
         got = out[key]
         if isinstance(want, (list, tuple)):
             if len(got) != len(want):

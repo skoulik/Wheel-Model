@@ -54,6 +54,7 @@ FIELDS = [
     ("naive", "  the naive 1/q answer, in periods", ".2f"),
     ("columns", "survival curve, at the columns below", ".2f"),
     ("depth_cols", "  mean depth of those still held, same columns", ".2f"),
+    ("haz", "  chance a lot still held leaves at call 1 / 2 / 8", ".3f"),
     ("cc_age", "  call premium at entry / 1 y / 2 y, in bp", ".4f"),
     ("closed_mean", "mean life of lots closing inside 2 y, in years", ".2f"),
     ("closed_median", "  their median, in call periods", "d"),
