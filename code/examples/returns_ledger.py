@@ -70,6 +70,7 @@ FIELDS = [
     ("second_order", "    entry and exit, second order", "+.4f"),
     ("hidden_gap", "    left over: the near grid's own error", "+.4f"),
     ("balance", "  horizon at which the three net to zero, years", ".1f"),
+    ("income", "Track A income", ".4f"),
     ("cash_mv", "Track A cash on market value, over r", ".2%"),
     ("econ_pnl", "economic P&L  E[Pi]", ".4f"),
     ("econ_excess", "TRUE EXCESS RETURN", ".2%"),
@@ -220,6 +221,7 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
         "second_order": hidden["second_order"],
         "hidden_gap": hidden["gap"],
         "balance": _balance(cfg, measure, occ),
+        "income": e["income"],
         "cash_mv": (e["income"] - cfg.r * e["mv_capital"]) / e["mv_capital"],
         "econ_pnl": e["econ_pnl"],
         "econ_excess": e["econ_excess"],
@@ -275,7 +277,9 @@ CASES = [
         "drag": (-0.36, 0.005),
         "second_order": (0.01, 0.005),
         "hidden_gap": (0.0, 0.006),
-        "cash_mv": (0.059, 0.0005),         # "would report an excess return of +5.9%"
+        "income": (0.61, 0.005),            # "0.24 a year off Track A's 0.61"
+        "cash_mv": (0.059, 0.0005),         # "would report +5.9%"
+        "econ_excess": (0.0160, 0.0005),    # "at five years it comes out at 1.60% again"
     }, note="Standard regime, five years"),
     Case("--horizon 10", {
         "net": (-0.17, 0.005),
@@ -291,6 +295,10 @@ CASES = [
         "second_order": (0.01, 0.005),
         "hidden_gap": (0.0, 0.006),
     }, note="Standard regime, fifty years"),
+    # The economic figure is not a thirty-year one: "and at a hundred at 1.61%".
+    Case("--horizon 100", {
+        "econ_excess": (0.0161, 0.0005),
+    }, note="Standard regime, a hundred years"),
     Case("--p-star 0.10", {
         "econ_excess": (0.0149, 0.0005),    # Conservative: "true excess +1.49%"
         "table_lots": ([None, None, 5.50], 0.05),   # "lots held 5.50"

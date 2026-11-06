@@ -85,7 +85,7 @@ By horizon, in share prices a year:
     entry and exit, second order       +0.01     +0.01     +0.01     +0.01
     net                                −0.24     −0.17     −0.01     +0.08
 
-The last row is what separates a log-point from a percentage at the two ends of a lot's life: small, and the same at every horizon. The two forces balance once, a little past thirty years. So the cash ledger and the economic one agree only there: at five years Track A's income, measured against market-value capital, would report an excess return of +5.9%, against an economic +1.60%. The economic profit has to be assembled in full:
+The last row is what separates a log-point from a percentage at the two ends of a lot's life: small, and the same at every horizon. The two forces balance once, a little past thirty years. So the cash ledger and the economic one agree only there, and the economic profit has to be assembled in full:
 
 E[Π]  =  Track A income  +  E[I]·m  −  L_acq  −  L_call    {#eq:econ-pnl}
 
@@ -93,7 +93,7 @@ At thirty years that is Track A's 0.7718 less the 0.0063 above: 0.7655 a year. W
 
 **True excess return  =  ( E[Π] − r · E[Capital] ) / E[Capital]  =  (0.7655 − 0.05 × 11.591) / 11.591  =  +1.60% per year**    {#eq:excess}
 
-The wheel earns 1.60 points a year more than the risk-free rate on the capital it ties up. That is one horizon's figure; the next subsection sets it beside the other horizons, and beside what an operator's own records would show.
+The wheel earns 1.60 points a year more than the risk-free rate on the capital it ties up, and that is not a thirty-year figure. Worked the same way at five years it comes out at 1.60% again, and at a hundred at 1.61%, even though the parts differ a lot between those horizons. At five years the three hidden terms take 0.24 a year off Track A's 0.61, and Track A's cash measured against market-value capital would report +5.9%. The horizon changes Track A's reading, which meets the economic figure only near thirty years, but not the economic figure itself. The next subsection sets the horizons side by side, together with what an operator's own records would show.
 
 ## The two ledgers, side by side
 
