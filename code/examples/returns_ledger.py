@@ -351,7 +351,7 @@ CASES = [
         "table_lots": ([5.41, 7.39, 11.40], 0.05),
         "table_mv": ([5.61, 7.59, 11.59], 0.05),
         "table_cost": ([6.70, 9.83, 18.23], 0.06),
-        "table_excess": ([0.0123, 0.0131, 0.0140], 0.0005),  # "1.31% at ten"
+        "table_excess": ([0.0123, 0.0131, 0.0140], 0.0005),  # "Standard's from 1.23% to 1.40%"
         "table_cash": ([0.0411, 0.0181, -0.0077], 0.0005),
         "table_cash_mv": ([0.0588, 0.0382, 0.0166], 0.0005),
         # The cash-on-cost paragraph at thirty years: the numerator has come
@@ -388,7 +388,7 @@ CASES = [
         "table_lots": ([2.63, 3.58, 5.50], 0.05),   # "lots held 5.50"
         "table_mv": ([2.82, 3.77, 5.70], 0.05),     # "capital (market) 5.70"
         "table_cost": ([3.35, 4.86, 8.90], 0.06),   # "capital (cost) 8.90"
-        "table_excess": ([0.0101, 0.0114, 0.0128], 0.0005),  # "climbs from 1.37% to 1.49%"
+        "table_excess": ([0.0101, 0.0114, 0.0128], 0.0005),  # "Conservative's from 1.01% to 1.28%"
         "table_cash": ([0.0376, 0.0162, -0.0083], 0.0005),  # "cash-on-cost -0.83%"
         "table_cash_mv": ([0.0541, 0.0353, 0.0152], 0.0005),
     }, note="Conservative regime"),
