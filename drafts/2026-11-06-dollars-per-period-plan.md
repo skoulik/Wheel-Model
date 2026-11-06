@@ -105,7 +105,7 @@ regenerated, the affected figures redrawn and the claims re-signed after rereadi
    now says the return rises with the horizon and why.
 4. **§09, "The two ledgers, side by side".** The economic rows of both regimes, fig:two-ledgers
    and its meeting point, the paragraph after the table and the subsection's close.
-5. **§09, "The benchmark that matters"** — open question 2 — then the per-lot accounts, the
+5. **§09, "The benchmark that matters"**, capital-share first (decision 2), then the per-lot accounts, the
    "third of a share price" sentence, the collateral footnote, and the Israelov–Nielsen
    paragraph once II-33's PDF check is done.
 6. **§09, the rest:** leverage (its break-even is the excess), the volatility-premium conversion
@@ -125,12 +125,22 @@ regenerated, the affected figures redrawn and the claims re-signed after rereadi
    `hidden_terms_balance`'s lift/drag/second-order split go with it; the balance horizon itself
    stays, as the point where cash on market value meets the economic return.
 
+2. **The benchmark leads with the capital-share comparison and mentions the delta-scaled one**
+   (Sergei, 2026-11-06). The capital-share comparison answers the operator's own question: run the
+   wheel, or put the same money in the stock? The delta-scaled one explains the answer. First
+   estimates, Standard regime, wheel minus the benchmark:
+
+   | benchmark | 5 y | 30 y | collateral credited at r, 5 y / 30 y |
+   |---|---|---|---|
+   | the same capital in the stock | −0.34 | −0.20 | −0.16 / −0.11 |
+   | the stock scaled to the book's delta | −0.19 | −0.12 | −0.02 / −0.03 |
+
+   Per unit of the exposure it carries the wheel earns what the stock does, less the withheld
+   dividend on the shares whose exposure the calls have sold. The options are fairly priced; the
+   shortfall against the stock is the exposure the calls give away (Israelov and Nielsen's point,
+   once II-33 has checked their words).
+
 ## Open questions
 
-2. **What the benchmark compares against.** In dollars the wheel equals the stock scaled by its
-   delta (gap about zero) and trails the stock scaled by its capital in shares (gap about −0.2
-   points). Lead with which? Lean: both, in that order: the wheel *is* a stock position the size
-   of its delta, and holding the same capital in the stock instead earns about 0.2 points more —
-   the price of the capped upside.
 3. **When.** Do steps 1–4 now, since they rewrite text already reviewed, and resume the review at
    the benchmark on the new numbers? Lean: yes.
