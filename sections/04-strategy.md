@@ -58,7 +58,7 @@ The number that ultimately matters is the **true excess return**:
 
 (economic profit − Track C) / Track B, annualized    {#eq:excess-return}
 
-where the economic profit is Track A's cash *plus* the two things cash accounting cannot see — the shares' change in value, and the mark loss taken at the moment of assignment. [The returns section](#sec:returns) assembles it precisely.
+where the economic profit is Track A's cash *plus* the three things cash accounting cannot see: the shares' change in value, the mark loss taken at the moment of assignment, and the upside surrendered when a lot is called away. Every flow is measured against the money tied up when the period it belongs to began — a call's payout against the price the call was sold at, not the price on the day it is exercised — because that is how any investment's return is measured: what it made over a period, against what was invested at the start of it. [The returns section](#sec:returns) assembles it precisely.
 
 Keeping the tracks separate is a discipline enforced on every formula in this article, because the most natural-looking formula for this strategy's return mixes the income of one track with the capital of another, and the resulting number is both far too flattering in the early years and far too damning later.
 
