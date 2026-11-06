@@ -74,6 +74,7 @@ FIELDS = [
     ("appreciation", "appreciation of held shares  (+)", ".4f"),
     ("acq_loss", "mark loss at acquisition      (-)", ".4f"),
     ("call_away_loss", "upside surrendered at call-away (-)", ".4f"),
+    ("overpay", "  strike over the market at assignment, per unit of the sale", ".2%"),
     ("giveaway_per_exit", "  given up by each lot called away", ".2%"),
     ("net", "  net of the three", ".4f"),
     ("cost_ratio", "  the two costs as a multiple of the gain", ".2f"),
@@ -296,6 +297,9 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
         "call_away_loss": e["call_away_loss"],
         # E[1 - e^(x_J)] over the lots that do leave: a property of one lot's
         # life, so off the whole walk rather than the horizon's window.
+        # (K - S')/S per assignment: the strike above the market on the day,
+        # against the price the put was sold at.
+        "overpay": model.entry_mark_loss(cfg, measure),
         "giveaway_per_exit": occ["E[exitcost]"] / occ["P[exit]"],
         "net": apprec - e["acq_loss"] - e["call_away_loss"],
         "cost_ratio": (e["acq_loss"] + e["call_away_loss"]) / apprec,
@@ -332,21 +336,22 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
 CASES = [
     Case("", {
         "appreciation": (0.5128, 0.0020),   # "for 11.40 lots ... is 0.5128 a year"
-        "acq_loss": (0.1553, 0.0010),       # "mark loss ... comes to 0.1632"
-        "call_away_loss": (0.3875, 0.0020),  # "upside surrendered ... 0.3559"
-        "giveaway_per_exit": (0.039, 0.0005),  # "3.6% of a share price for each
+        "acq_loss": (0.1553, 0.0010),       # eq:mark-loss: "0.1553 per year"
+        "call_away_loss": (0.3875, 0.0020),  # eq:giveaway: "0.3875 per year"
+        "overpay": (0.015, 0.0005),         # "by 1.5% of the price the put was sold at"
+        "giveaway_per_exit": (0.039, 0.0005),  # "3.9% of a share price for each
                                                #   lot called away"
-        "net": (-0.0300, 0.0015),           # the ledger's "net -0.0063"
+        "net": (-0.0300, 0.0015),           # the ledger's "net -0.0300"
         # The decomposition table's 30 y column, and the horizon the figure marks.
-        "balance": (35.8, 0.1),             # "a little past thirty years"; "equal at 31"
-        "econ_pnl": (0.7418, 0.0020),       # eq:excess: E[Pi] = 0.7655
-        "econ_excess": (0.0140, 0.0005),    # eq:excess: "+1.60% per year"
+        "balance": (35.8, 0.1),             # "meet at about thirty-six years"; "equal at 36"
+        "econ_pnl": (0.7418, 0.0020),       # eq:excess: E[Pi] = 0.7418
+        "econ_excess": (0.0140, 0.0005),    # eq:excess: "+1.40% per year"
         # The two-ledger table's Standard rows (5/10/30y): true excess rising,
         # cash falling through zero.
         "table_lots": ([5.41, 7.39, 11.40], 0.05),
         "table_mv": ([5.61, 7.59, 11.59], 0.05),
         "table_cost": ([6.70, 9.83, 18.23], 0.06),
-        "table_excess": ([0.0123, 0.0131, 0.0140], 0.0005),  # "flat ... to three decimals"
+        "table_excess": ([0.0123, 0.0131, 0.0140], 0.0005),  # "1.31% at ten"
         "table_cash": ([0.0411, 0.0181, -0.0077], 0.0005),
         "table_cash_mv": ([0.0588, 0.0382, 0.0166], 0.0005),
         # The cash-on-cost paragraph at thirty years: the numerator has come
@@ -359,12 +364,12 @@ CASES = [
     # twice the gain, and Track A's cash on market value is the number an
     # operator would take for the economic return: 5.9% over r, against 1.23%.
     Case("--horizon 5", {
-        "net": (-0.26, 0.005),              # "the net is -0.24 a year"
+        "net": (-0.26, 0.005),              # "the net is -0.26 a year"
         "cost_ratio": (2.1, 0.05),          # "the costs are twice the gain"
-        "income": (0.61, 0.005),            # "0.24 a year off Track A's 0.61"
+        "income": (0.61, 0.005),            # "take 0.26 a year off its 0.61"
         "cash_mv": (0.059, 0.0005),         # "would report +5.9%"
         "basis_gap": (0.018, 0.0005),       # "cost basis takes back only 1.8 points"
-        "econ_excess": (0.0123, 0.0005),    # "at five years it comes out at 1.60% again"
+        "econ_excess": (0.0123, 0.0005),    # "1.23% at five years"
     }, note="Standard regime, five years"),
     Case("--horizon 10", {
         "net": (-0.19, 0.005),
@@ -372,7 +377,7 @@ CASES = [
     Case("--horizon 50", {
         "net": (0.06, 0.005),               # "by fifty the gain is ahead"
     }, note="Standard regime, fifty years"),
-    # The economic figure is not a thirty-year one: "and at a hundred at 1.61%".
+    # "1.46% at a hundred": the economic figure rises with the horizon.
     Case("--horizon 100", {
         "econ_excess": (0.0146, 0.0005),
     }, note="Standard regime, a hundred years"),
