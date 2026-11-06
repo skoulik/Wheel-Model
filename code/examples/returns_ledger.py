@@ -21,7 +21,12 @@ table); section 09 shows it for both regimes, the Conservative rows from
 --p-star 0.10, and its equity row comes from returns_leverage.py.  True excess
 barely moves with the horizon -- flat at 1.60% in the Standard regime, which
 is particular to p* = 20%, and 1.37% to 1.49% in the Conservative one --
-while cash on cost basis falls through zero in both.
+while cash on cost basis falls through zero in both, at 20.5 years in the
+Standard regime.  Cash on market value sits between the two and splits the
+cash line's error: at five years nearly all numerator (5.9% against 1.60%,
+cost basis taking back 1.8 points), at thirty all denominator (1.66% against
+1.60%, cost basis at 1.57 times market value).  fig:two-ledgers draws the
+three returns against the horizon.
 
 Horizon-weighted; hangs off the near-grid killed walk (see `holding_time.py`).
 Note: the appreciation term is E[I]*m -- the section writes it as exactly that
@@ -75,6 +80,11 @@ FIELDS = [
     ("balance", "  horizon at which the three net to zero, years", ".1f"),
     ("income", "Track A income", ".4f"),
     ("cash_mv", "Track A cash on market value, over r", ".2%"),
+    # What cost basis does to that reading, and when it turns it negative.
+    ("basis_gap", "  less cash on cost basis: the denominator's part", "+.2%"),
+    ("basis_ratio", "  cost basis as a multiple of market value", ".2f"),
+    ("cash_cost_zero", "  horizon at which cash on cost crosses zero, years",
+     ".1f"),
     ("econ_pnl", "economic P&L  E[Pi]", ".4f"),
     ("econ_excess", "TRUE EXCESS RETURN", ".2%"),
     # The two ledgers side by side, at 5/10/30y (eq:excess).
@@ -85,6 +95,7 @@ FIELDS = [
     # Flat across horizons at the running example, which is particular to
     # p* = 20%: the Conservative regime's climbs from 1.37% to 1.49%.
     ("table_excess", "  true excess return", ".2%"),
+    ("table_cash_mv", "  cash income on market value", ".2%"),
     ("table_cash", "  cash income on cost basis", ".2%"),
     # "What if the dividend never falls?" (only under --sticky), at 5/10/30 years.
     ("sticky_F", "  sticky-dividend inflation factor", ".3f"),
@@ -154,7 +165,76 @@ def _draw_hidden(fig, ax, cfg=None, measure="P", ctx=None, **kw):
     ax.legend(loc="upper left")
 
 
-FIGURES = [Figure("hidden-terms", _draw_hidden)]
+def _cash_cost_zero(cfg, measure, occ, lo=1.0, hi=200.0, tol=1e-6):
+    """The horizon at which cash on cost basis falls through zero, or None.
+
+    Bisection on economics()'s cash-on-cost excess, which starts positive and
+    falls as the book deepens.  At a reader's own parameters it need not
+    cross inside [lo, hi], and that is an answer to print, not an error.
+    """
+    def cash(H):
+        return model.economics(cfg, measure, occ, horizon=H)["excess"]
+
+    if cash(lo) <= 0 or cash(hi) >= 0:
+        return None
+    while hi - lo > tol:
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if cash(mid) > 0 else (lo, mid)
+    return (lo + hi) / 2
+
+
+def _draw_two_ledgers(fig, ax, cfg=None, measure="P", ctx=None, **kw):
+    """fig:two-ledgers -- the two-ledger table's three returns against horizon.
+
+    Each averaged over the first t years, on the near grid the table uses, so
+    the curves pass through its 5/10/30-year figures.  Colour is the
+    numerator (economic or Track A cash), the dotted line the cost-basis
+    denominator.  Two points are marked: cash on market value meeting the
+    economic return, which is where the hidden terms net to zero
+    (`hidden_terms_balance`, the point fig:hidden-terms marks), and cash on
+    cost basis falling through zero.  Drawn from two years: before that the
+    cash lines run off the top of any scale that shows the rest.
+    """
+    import figures
+    from matplotlib.ticker import PercentFormatter
+    cfg = cfg if cfg is not None else model.Config()
+    occ = resolve(ctx, need_occupation(cfg, measure))
+    ts = [2.0 + 0.5 * i for i in range(117)]           # 2 to 60 years
+    es = [model.economics(cfg, measure, occ, horizon=t) for t in ts]
+    econ = [e["econ_excess"] for e in es]
+    cash_mv = [(e["income"] - cfg.r * e["mv_capital"]) / e["mv_capital"]
+               for e in es]
+    cash_cost = [e["excess"] for e in es]
+
+    figures.reference_line(ax, y=0.0, label="the risk-free rate",
+                           where=(41, 0.002))
+    ax.plot(ts, econ, color=figures.SERIES[0], label="true excess return")
+    ax.plot(ts, cash_mv, color=figures.SERIES[1],
+            label="cash income on market value")
+    ax.plot(ts, cash_cost, color=figures.SERIES[1], linestyle=(0, (1, 1.5)),
+            label="cash income on cost basis")
+
+    t_meet = model.hidden_terms_balance(cfg, measure, occ)
+    y_meet = model.economics(cfg, measure, occ, horizon=t_meet)["econ_excess"]
+    t_zero = _cash_cost_zero(cfg, measure, occ)
+    for t, y, text, off in ((t_meet, y_meet, f"equal at {t_meet:.0f} years",
+                             (6, 6)),
+                            (t_zero, 0.0, f"zero at {t_zero:.1f} years",
+                             (-64, -14))):
+        ax.plot([t], [y], "o", color=figures.INK, markersize=4.5,
+                markeredgecolor=figures.GROUND, markeredgewidth=1.0, zorder=3)
+        ax.annotate(text, (t, y), xytext=off, textcoords="offset points",
+                    color=figures.INK, fontsize=8)
+    ax.set_xlim(0, 60)
+    ax.set_ylim(-0.03, 0.10)
+    ax.yaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
+    ax.set_xlabel("years since the first put")
+    ax.set_ylabel("over the risk-free rate, a year")
+    ax.legend(loc="upper right")
+
+
+FIGURES = [Figure("hidden-terms", _draw_hidden),
+           Figure("two-ledgers", _draw_two_ledgers)]
 
 
 def requires(cfg, measure="P", horizon=30.0, trap=False, **kw):
@@ -226,6 +306,10 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
         "balance": _balance(cfg, measure, occ),
         "income": e["income"],
         "cash_mv": (e["income"] - cfg.r * e["mv_capital"]) / e["mv_capital"],
+        "basis_gap": ((e["income"] - cfg.r * e["mv_capital"]) / e["mv_capital"]
+                      - e["excess"]),
+        "basis_ratio": e["capital"] / e["mv_capital"],
+        "cash_cost_zero": _cash_cost_zero(cfg, measure, occ),
         "econ_pnl": e["econ_pnl"],
         "econ_excess": e["econ_excess"],
         "h_labels": [f"{H:.0f} y" for H in HORIZONS],
@@ -233,6 +317,8 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
         "table_mv": [t["mv_capital"] for t in table],
         "table_cost": [t["capital"] for t in table],
         "table_excess": [t["econ_excess"] for t in table],
+        "table_cash_mv": [(t["income"] - cfg.r * t["mv_capital"]) / t["mv_capital"]
+                          for t in table],
         "table_cash": [t["excess"] for t in table],
         "sticky_F": sticky_F,
         "sticky_delta_eff": sticky_delta_eff,
@@ -270,6 +356,12 @@ CASES = [
         "table_cost": ([6.70, 9.83, 18.23], 0.06),
         "table_excess": ([0.0160, 0.0160, 0.0160], 0.0005),  # "flat ... to three decimals"
         "table_cash": ([0.0411, 0.0181, -0.0077], 0.0005),
+        "table_cash_mv": ([0.0588, 0.0382, 0.0166], 0.0005),
+        # The cash-on-cost paragraph at thirty years: the numerator has come
+        # right and the error is all denominator; and the line's zero.
+        "cash_mv": (0.0166, 0.0005),        # "cash on market value reads 1.7%"
+        "basis_ratio": (1.57, 0.005),       # "1.57 times market value"
+        "cash_cost_zero": (20.5, 0.05),     # "around year twenty"; "zero at 20.5"
     }, note="Standard regime"),
     # The decomposition table's other columns.  At five years the costs are
     # twice the gain, and Track A's cash on market value is the number an
@@ -283,6 +375,7 @@ CASES = [
         "hidden_gap": (0.0, 0.006),
         "income": (0.61, 0.005),            # "0.24 a year off Track A's 0.61"
         "cash_mv": (0.059, 0.0005),         # "would report +5.9%"
+        "basis_gap": (0.018, 0.0005),       # "cost basis takes back only 1.8 points"
         "econ_excess": (0.0160, 0.0005),    # "at five years it comes out at 1.60% again"
     }, note="Standard regime, five years"),
     Case("--horizon 10", {
@@ -312,6 +405,7 @@ CASES = [
         "table_cost": ([3.35, 4.86, 8.90], 0.06),   # "capital (cost) 8.90"
         "table_excess": ([0.0137, 0.0143, 0.0149], 0.0005),  # "climbs from 1.37% to 1.49%"
         "table_cash": ([0.0376, 0.0162, -0.0083], 0.0005),  # "cash-on-cost -0.83%"
+        "table_cash_mv": ([0.0541, 0.0353, 0.0152], 0.0005),
     }, note="Conservative regime"),
     # "What if the dividend never falls?" -- the sticky-dividend fixed point.  The
     # extra carry is real and outweighed: four basis points at thirty years, and
