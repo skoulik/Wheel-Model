@@ -20,7 +20,7 @@ Backs [eq:excess-return](#eq:excess-return).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_benchmark.py` | wheel = 1.40%, equity_frac = 98.3%, buy_hold = 1.625%, buy_hold_adj = 1.60%, difference = -0.20% |
+| `python code/examples/returns_benchmark.py` | wheel = 1.40%, equity_frac = 98.3%, buy_hold = 1.625%, buy_hold_adj = 1.60%, difference = -0.20%, delta_frac = 93.2%, buy_hold_delta = 1.52%, difference_delta = -0.12% |
 | `python code/examples/returns_benchmark.py --p-star 0.10` | wheel = 1.28%, buy_hold_adj = 1.57%, difference = -0.29% |
 | `python code/examples/returns_benchmark.py --iv-spread 0.005` | wheel = 1.62%, difference = 0.03% |
 | `python code/examples/returns_benchmark.py --iv-spread 0.010` | wheel = 1.85%, difference = 0.25% |
@@ -34,9 +34,9 @@ Backs [eq:excess-return](#eq:excess-return).
 | `python code/examples/returns_benchmark.py --delta 0.01` | wheel = 1.58%, difference = -0.24% |
 | `python code/examples/returns_benchmark.py --delta 0.04` | wheel = 1.22%, difference = -0.16% |
 | `python code/examples/returns_benchmark.py --delta 0.06` | wheel = 0.96%, difference = -0.13% |
-| `python code/examples/returns_benchmark.py --horizon 5 --collateral` | difference = -0.33%, overcharge = 0.17%, gap_corrected = -0.16% |
-| `python code/examples/returns_benchmark.py --horizon 10 --collateral` | difference = -0.28%, overcharge = 0.13%, gap_corrected = -0.15% |
-| `python code/examples/returns_benchmark.py --collateral` | difference = -0.20%, overcharge = 0.08%, gap_corrected = -0.11%, cash_secured = 4.68 |
+| `python code/examples/returns_benchmark.py --horizon 5 --collateral` | wheel = 1.23%, equity_frac = 96.5%, buy_hold_adj = 1.57%, difference = -0.33%, delta_frac = 87.5%, buy_hold_delta = 1.42%, difference_delta = -0.19%, overcharge = 0.17%, gap_corrected = -0.16%, delta_corrected = -0.01% |
+| `python code/examples/returns_benchmark.py --horizon 10 --collateral` | wheel = 1.31%, buy_hold_adj = 1.58%, difference = -0.28%, buy_hold_delta = 1.47%, difference_delta = -0.16%, overcharge = 0.13%, gap_corrected = -0.15%, delta_corrected = -0.03% |
+| `python code/examples/returns_benchmark.py --collateral` | difference = -0.20%, overcharge = 0.08%, gap_corrected = -0.11%, delta_corrected = -0.03%, cash_secured = 4.68 |
 | `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 5 --collateral` | difference = -0.50%, gap_corrected = -0.16% |
 | `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 10 --collateral` | difference = -0.41%, gap_corrected = -0.15% |
 | `python code/examples/returns_benchmark.py --p-star 0.10 --collateral` | difference = -0.29%, overcharge = 0.17%, gap_corrected = -0.12% |

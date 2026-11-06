@@ -313,7 +313,7 @@ CASES = [
         "EW_far": (1.93, 0.02),
         "EW_near": (2.22, 0.02),
         "prem": (0.0372, 0.001),        # section 09: "a lot collects 3.72% ... in call premiums"
-        "exitcost": (0.0390, 0.001),    # section 09: "and surrenders 3.58% in upside at call-away"
+        "exitcost": (0.0390, 0.001),    # section 09: "and surrenders 3.90% in upside at call-away"
     }, note="Standard regime"),
     Case("--measure Q", {
         "EW": (9.0, 1.0),               # "E[W] ~ 9 years" -- a round figure on
