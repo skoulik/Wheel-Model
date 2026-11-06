@@ -44,12 +44,16 @@ EQ = ["eq:levered-excess"]
 # The account types of section 11's own table, in the same order.
 LADDER = (1.00, 0.50, 0.25, 0.15)
 
+# The horizons of section 09's two-ledger table, whose equity row this backs.
+TABLE_HORIZONS = (5.0, 10.0, 30.0)
+
 EXTRA = [("--eps", dict(type=float, default=0.10,
                         help="survival tolerance the leverage is capped at"))]
 
 FIELDS = [
     ("equity_req", "equity required, gamma_p*k + gamma_s*E[I]", ".2f"),
     ("equity_frac", "  as a share of capital at market", ".1%"),
+    ("table_equity", "  at 5/10/30 years, the two-ledger table's row", ".2f"),
     ("L_ceiling", "L the broker's minimum equity implies", ".2f"),
     ("dd_ceiling", "  the fall that liquidates it, 1 - f*", ".1%"),
     ("p_liq_ceiling", "  P(sold out, ever) at that leverage", ".1%"),
@@ -93,6 +97,9 @@ def compute(cfg=None, measure="P", horizon=30.0, eps=0.10, ctx=None, **kw):
     return {
         "equity_req": req,
         "equity_frac": req / e["mv_capital"],
+        "table_equity": [model.equity_required(
+            cfg, model.economics(cfg, measure, occ, horizon=H))
+            for H in TABLE_HORIZONS],
         "L_ceiling": L_ceiling,
         "dd_ceiling": 1.0 - model.liquidation_barrier(L_ceiling, cfg.gamma_s),
         "p_liq_ceiling": model.liquidation_prob(cfg, measure, L=L_ceiling),
@@ -117,6 +124,7 @@ CASES = [
     Case("--gamma-s 0.25", {
         "equity_req": (3.04, 0.02),         # the capital table's new row, 30y
         "equity_frac": (0.263, 0.005),      # "about a quarter of what is committed"
+        "table_equity": ([1.55, 2.04, 3.04], 0.005),  # the two-ledger table, Standard
         "L_ceiling": (3.81, 0.02),          # section 04's "close to four times"
         "dd_ceiling": (0.017, 0.001),       # "1.7% below today's price"
         "p_liq_ceiling": (0.979, 0.005),    # "97.9%": not a surviving account
@@ -140,6 +148,9 @@ CASES = [
         "net_survivable": (0.0142, 0.0003), # "+1.42% at 3%"
         "net_ladder": ([0.0160, 0.0148, 0.0142, 0.0139], 0.0003),
     }, note="a 3% spread: every levered row below the unlevered one"),
+    Case("--gamma-s 0.25 --p-star 0.10", {
+        "table_equity": ([0.85, 1.09, 1.57], 0.005),  # the two-ledger table, Conservative
+    }, note="the Conservative regime's equity row"),
 ]
 
 

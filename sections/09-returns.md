@@ -97,20 +97,30 @@ The wheel earns 1.60 points a year more than the risk-free rate on the capital i
 
 ## The two ledgers, side by side
 
-| Standard regime | 5 y | 10 y | 30 y |
+Two ledgers have now been built for the same book: the economic one, which marks every lot at today's price, and Track A's cash, which is what a brokerage statement adds up to. The table sets them side by side for both regimes at three horizons, each column an average over the first five, ten or thirty years, as in [the inventory section](#para:inventory-window-average). The top four rows are the book and what it ties up. The lots held are E[I] of [eq:little-finite](#eq:little-finite), averaged over the window. The capital they commit is counted two ways: at market value by [eq:capital](#eq:capital), and at cost basis, where each lot counts at what it cost, e^x of today's price by [eq:depth-def](#eq:depth-def). The equity the account must actually hold is γ_p·k + γ_s·E[I]. The bottom two rows are returns over the risk-free rate: the economic one of [eq:excess](#eq:excess) on market value, and Track A's income of [eq:income](#eq:income) on cost basis.
+
+| | 5 y | 10 y | 30 y |
 |---|---|---|---|
+| *Standard regime, p\* = 20%* | | | |
 | lots held | 5.41 | 7.39 | 11.40 |
 | capital, market value | 5.61 | 7.59 | 11.59 |
 | capital, cost basis | 6.70 | 9.83 | 18.23 |
 | equity required, at portfolio margin | 1.55 | 2.04 | 3.04 |
 | **true excess return** | **+1.60%** | **+1.60%** | **+1.60%** |
 | cash income on cost basis | +4.11% | +1.81% | −0.77% |
+| *Conservative regime, p\* = 10%* | | | |
+| lots held | 2.63 | 3.58 | 5.50 |
+| capital, market value | 2.82 | 3.77 | 5.70 |
+| capital, cost basis | 3.35 | 4.86 | 8.90 |
+| equity required, at portfolio margin | 0.85 | 1.09 | 1.57 |
+| **true excess return** | **+1.37%** | **+1.43%** | **+1.49%** |
+| cash income on cost basis | +3.76% | +1.62% | −0.83% |
 
-The true excess return is flat across horizons to three decimal places, as a genuine risk premium should be: the position earns what it earns, whatever size it has grown to.
+The true excess return barely moves with the horizon in either regime: Standard's holds at 1.60%, and Conservative's climbs from 1.37% to 1.49%. What it should be measured against is the next subsection's question, and why Conservative trails Standard, by less the longer the book runs, is answered under the Conservative regime further down.
 
 The cash-on-cost-basis line does something else entirely, and it is worth understanding because **it is what an operator's own records will show them**. Early on it is spectacular — a strategy apparently earning 4.1% over T-bills. Then it decays, crosses zero somewhere around year twenty, and keeps falling. Nothing in the strategy has changed. What changes is that cost basis keeps inflating relative to market value as deep lots accumulate, so the denominator grows while the numerator does not. An operator watching this happen will conclude the strategy has stopped working. It has not; the measurement was wrong at both ends — too flattering at the start, too damning later.
 
-**The third row is not a rival to the other two.** An operator does not have to *have* 11.59 in order to hold 11.59, because a broker will lend against held shares: at portfolio margin they must keep a quarter of the shares' market value in the account, plus the margin standing behind the live put, which the broker does not lend against either. That is γ_p·k + γ_s·E[I] — **3.04** at thirty years, about a quarter of what is committed, and a steady quarter of it at every horizon. Call it the **equity required**. It is a second ledger line rather than a third measure of capital: it answers "what must be *in* the account?", where the two rows above it answer "what is committed?". A return is not divided by it, because the resulting number is a fact about financing rather than about the strategy — the subsection on leverage below works out what happens to an operator who tries — and [the constrained section](#sec:constrained) is where the question it does answer, how much of the wheel a given balance can run, is worked out. What that leaves for this section is the price of the borrowing itself, taken up further down.
+**The equity row is not a rival to the two capital rows.** An operator does not have to *have* 11.59 in order to hold 11.59, because a broker will lend against held shares: at portfolio margin they must keep a quarter of the shares' market value in the account, plus the margin standing behind the live put, which the broker does not lend against either. That is γ_p·k + γ_s·E[I] — **3.04** at thirty years in the Standard regime, about a quarter of what is committed, and a steady quarter of it at every horizon. Call it the **equity required**. It is a second ledger line rather than a third measure of capital: it answers "what must be *in* the account?", where the two rows above it answer "what is committed?". A return is not divided by it, because the resulting number is a fact about financing rather than about the strategy — the subsection on leverage below works out what happens to an operator who tries — and [the constrained section](#sec:constrained) is where the question it does answer, how much of the wheel a given balance can run, is worked out. What that leaves for this section is the price of the borrowing itself, taken up further down.
 
 > **A pitfall worth naming.** There is a second, popular way to get this wrong. Under the "net cost basis" convention an assigned lot is booked at strike minus premium, so the exit at the strike shows a *capital gain of exactly the put premium* — the premium apparently recovered a second time at the exit door. The recycling image is appealing and the arithmetic is a double count: the premium was already booked as income when it was received. Any of these conventions is fine applied consistently; the failure mode is mixing the income of one with the capital of another, which is exactly what "cash income on cost basis" does.
 
@@ -305,7 +315,7 @@ And there is a depth past which the assumption is self-defeating. Freeze the pay
 
 ## The Conservative regime
 
-Everything above used p\* = 20%. At p\* = 10% — [the entry section](#sec:entry)'s Conservative setting — with strikes 3.5% out of the money rather than 2.3%:
+Everything above, apart from the Conservative rows of the two-ledger table, used p\* = 20%. At p\* = 10% — [the entry section](#sec:entry)'s Conservative setting — with strikes 3.5% out of the money rather than 2.3%:
 
     lots held 5.50 · capital (market) 5.70 · capital (cost) 8.90
     Track A income 0.371/yr · true excess +1.49% · cash-on-cost −0.83%

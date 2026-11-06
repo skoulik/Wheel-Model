@@ -17,8 +17,11 @@ draws the three against the horizon.
 
 The two-ledger table is fixed at 5/10/30 years, as section 09 tabulates it,
 independent of --horizon (which drives the single-horizon breakdown above the
-table).  The point of the table is that true excess is **flat** across
-horizons to three decimal places, while cash-on-cost-basis is not.
+table); section 09 shows it for both regimes, the Conservative rows from
+--p-star 0.10, and its equity row comes from returns_leverage.py.  True excess
+barely moves with the horizon -- flat at 1.60% in the Standard regime, which
+is particular to p* = 20%, and 1.37% to 1.49% in the Conservative one --
+while cash on cost basis falls through zero in both.
 
 Horizon-weighted; hangs off the near-grid killed walk (see `holding_time.py`).
 Note: the appreciation term is E[I]*m -- the section writes it as exactly that
@@ -79,8 +82,8 @@ FIELDS = [
     ("table_lots", "  lots held", ".2f"),
     ("table_mv", "  capital, market value", ".2f"),
     ("table_cost", "  capital, cost basis", ".2f"),
-    # Flat across horizons at the running example -- and not flat once the
-    # capital criterion fails, which is the point rather than a defect.
+    # Flat across horizons at the running example, which is particular to
+    # p* = 20%: the Conservative regime's climbs from 1.37% to 1.49%.
     ("table_excess", "  true excess return", ".2%"),
     ("table_cash", "  cash income on cost basis", ".2%"),
     # "What if the dividend never falls?" (only under --sticky), at 5/10/30 years.
@@ -260,7 +263,8 @@ CASES = [
         "balance": (31.1, 0.1),             # "a little past thirty years"; "equal at 31"
         "econ_pnl": (0.7655, 0.0020),       # eq:excess: E[Pi] = 0.7655
         "econ_excess": (0.0160, 0.0005),    # eq:excess: "+1.60% per year"
-        # The two-ledger table (5/10/30y): true excess is flat, cash is not.
+        # The two-ledger table's Standard rows (5/10/30y): true excess flat,
+        # cash falling through zero.
         "table_lots": ([5.41, 7.39, 11.40], 0.05),
         "table_mv": ([5.61, 7.59, 11.59], 0.05),
         "table_cost": ([6.70, 9.83, 18.23], 0.06),
@@ -301,11 +305,13 @@ CASES = [
     }, note="Standard regime, a hundred years"),
     Case("--p-star 0.10", {
         "econ_excess": (0.0149, 0.0005),    # Conservative: "true excess +1.49%"
-        "table_lots": ([None, None, 5.50], 0.05),   # "lots held 5.50"
-        "table_mv": ([None, None, 5.70], 0.05),     # "capital (market) 5.70"
-        "table_cost": ([None, None, 8.90], 0.06),   # "capital (cost) 8.90"
-        "table_excess": ([None, None, 0.0149], 0.0005),
-        "table_cash": ([None, None, -0.0083], 0.0005),  # "cash-on-cost -0.83%"
+        # The two-ledger table's Conservative rows, which the Conservative
+        # subsection's 30 y line repeats.
+        "table_lots": ([2.63, 3.58, 5.50], 0.05),   # "lots held 5.50"
+        "table_mv": ([2.82, 3.77, 5.70], 0.05),     # "capital (market) 5.70"
+        "table_cost": ([3.35, 4.86, 8.90], 0.06),   # "capital (cost) 8.90"
+        "table_excess": ([0.0137, 0.0143, 0.0149], 0.0005),  # "climbs from 1.37% to 1.49%"
+        "table_cash": ([0.0376, 0.0162, -0.0083], 0.0005),  # "cash-on-cost -0.83%"
     }, note="Conservative regime"),
     # "What if the dividend never falls?" -- the sticky-dividend fixed point.  The
     # extra carry is real and outweighed: four basis points at thirty years, and
