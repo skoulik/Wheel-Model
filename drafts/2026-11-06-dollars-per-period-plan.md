@@ -1,9 +1,8 @@
 # Dollars per period — plan
 
-**Status: draft, 2026-11-06.** The decision is agreed: the article measures return in dollars
-per period. How to carry it through is not yet: the open questions at the end need Sergei's
-calls before any code changes. Committed while still a draft, on his say-so, because a cloud
-session does not keep uncommitted files. Closes TODO II-34 when done.
+**Status: agreed 2026-11-06**, in conversation, before any code: the decision to measure return
+in dollars per period, and the three calls on how to carry it through, under *Decided* below.
+Closes TODO II-34 when done.
 
 ## The decision, and why
 
@@ -111,8 +110,8 @@ regenerated, the affected figures redrawn and the claims re-signed after rereadi
 6. **§09, the rest:** leverage (its break-even is the excess), the volatility-premium conversion
    (~45bp a point), dividends, the Conservative regime, "What this section produced".
 7. **Outside §09:** §11's return-on-equity row and stationary draw; §02's answer on returns;
-   CLAUDE.md's central results and its strongest test; TODO's "Where things stand"; II-34 to
-   `DONE.md`.
+   TODO's "Where things stand"; II-34 to `DONE.md`. (CLAUDE.md's central results and strongest
+   test moved to step 1, which made them false.)
 
 ## Decided
 
@@ -140,7 +139,5 @@ regenerated, the affected figures redrawn and the claims re-signed after rereadi
    shortfall against the stock is the exposure the calls give away (Israelov and Nielsen's point,
    once II-33 has checked their words).
 
-## Open questions
-
-3. **When.** Do steps 1–4 now, since they rewrite text already reviewed, and resume the review at
-   the benchmark on the new numbers? Lean: yes.
+3. **Steps 1–4 now** (Sergei, 2026-11-06), since they rewrite text already reviewed; the review
+   resumes at the benchmark on the new numbers, and steps 5–6 are done as it reaches them.
