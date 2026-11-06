@@ -54,6 +54,7 @@ FIELDS = [
     ("equity_req", "equity required, gamma_p*k + gamma_s*E[I]", ".2f"),
     ("equity_frac", "  as a share of capital at market", ".1%"),
     ("table_equity", "  at 5/10/30 years, the two-ledger table's row", ".2f"),
+    ("table_equity_frac", "  as a share of capital at market, 5/10/30", ".1%"),
     ("L_ceiling", "L the broker's minimum equity implies", ".2f"),
     ("dd_ceiling", "  the fall that liquidates it, 1 - f*", ".1%"),
     ("p_liq_ceiling", "  P(sold out, ever) at that leverage", ".1%"),
@@ -86,6 +87,8 @@ def compute(cfg=None, measure="P", horizon=30.0, eps=0.10, ctx=None, **kw):
     bh = model.buy_hold_excess(cfg, measure) * e["I"] / e["mv_capital"]
 
     req = model.equity_required(cfg, e)
+    table = [model.economics(cfg, measure, occ, horizon=H)
+             for H in TABLE_HORIZONS]
     L_ceiling = e["mv_capital"] / req
     L_max = model.max_leverage(cfg, measure, eps)
 
@@ -97,9 +100,9 @@ def compute(cfg=None, measure="P", horizon=30.0, eps=0.10, ctx=None, **kw):
     return {
         "equity_req": req,
         "equity_frac": req / e["mv_capital"],
-        "table_equity": [model.equity_required(
-            cfg, model.economics(cfg, measure, occ, horizon=H))
-            for H in TABLE_HORIZONS],
+        "table_equity": [model.equity_required(cfg, t) for t in table],
+        "table_equity_frac": [model.equity_required(cfg, t) / t["mv_capital"]
+                              for t in table],
         "L_ceiling": L_ceiling,
         "dd_ceiling": 1.0 - model.liquidation_barrier(L_ceiling, cfg.gamma_s),
         "p_liq_ceiling": model.liquidation_prob(cfg, measure, L=L_ceiling),
@@ -125,6 +128,7 @@ CASES = [
         "equity_req": (3.04, 0.02),         # the capital table's new row, 30y
         "equity_frac": (0.263, 0.005),      # "about a quarter of what is committed"
         "table_equity": ([1.55, 2.04, 3.04], 0.005),  # the two-ledger table, Standard
+        "table_equity_frac": ([None, None, 0.26], 0.005),  # "26% of Standard's at thirty years"
         "L_ceiling": (3.81, 0.02),          # section 04's "close to four times"
         "dd_ceiling": (0.017, 0.001),       # "1.7% below today's price"
         "p_liq_ceiling": (0.979, 0.005),    # "97.9%": not a surviving account
@@ -150,6 +154,9 @@ CASES = [
     }, note="a 3% spread: every levered row below the unlevered one"),
     Case("--gamma-s 0.25 --p-star 0.10", {
         "table_equity": ([0.85, 1.09, 1.57], 0.005),  # the two-ledger table, Conservative
+        # "up to 30% of Conservative's at five": the table's largest share,
+        # the same put margin beside the smallest book.
+        "table_equity_frac": ([0.30, None, None], 0.005),
     }, note="the Conservative regime's equity row"),
 ]
 

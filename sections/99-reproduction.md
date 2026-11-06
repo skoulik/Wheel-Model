@@ -249,10 +249,10 @@ Backs [eq:levered-excess](#eq:levered-excess).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_leverage.py --gamma-s 0.25` | equity_req = 3.04, equity_frac = 26.3%, table_equity = 1.55  2.04  3.04, L_ceiling = 3.81, dd_ceiling = 1.7%, p_liq_ceiling = 97.9%, net_ceiling = +6.11%, L_max = 1.1349, net_survivable = +1.82%, unlevered = +1.60%, neutral_spread = 1.60%, diff_levered = +0.008%, L_ladder = 1.0000  1.0861  1.1349  1.1557, net_ladder = +1.60%  +1.74%  +1.82%  +1.85%, diff_ladder = +0.007%  +0.007%  +0.008%  +0.008% |
+| `python code/examples/returns_leverage.py --gamma-s 0.25` | equity_req = 3.04, equity_frac = 26.3%, table_equity = 1.55  2.04  3.04, table_equity_frac = 27.6%  26.9%  26.3%, L_ceiling = 3.81, dd_ceiling = 1.7%, p_liq_ceiling = 97.9%, net_ceiling = +6.11%, L_max = 1.1349, net_survivable = +1.82%, unlevered = +1.60%, neutral_spread = 1.60%, diff_levered = +0.008%, L_ladder = 1.0000  1.0861  1.1349  1.1557, net_ladder = +1.60%  +1.74%  +1.82%  +1.85%, diff_ladder = +0.007%  +0.007%  +0.008%  +0.008% |
 | `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.015` | net_ceiling = +1.90%, net_survivable = +1.62%, net_ladder = +1.60%  +1.61%  +1.62%  +1.62% |
 | `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.03` | net_ceiling = -2.31%, net_survivable = +1.42%, net_ladder = +1.60%  +1.48%  +1.42%  +1.39% |
-| `python code/examples/returns_leverage.py --gamma-s 0.25 --p-star 0.10` | table_equity = 0.85  1.09  1.57 |
+| `python code/examples/returns_leverage.py --gamma-s 0.25 --p-star 0.10` | table_equity = 0.85  1.09  1.57, table_equity_frac = 30.1%  28.8%  27.5% |
 
 ## Stability: Two Ways to Be Buried, and a Third if You Borrow
 
