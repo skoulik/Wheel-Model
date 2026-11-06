@@ -375,6 +375,23 @@ def expected_drop(C, measure):
     return 1 - exp(m * C.tau_p) * N(-_d1) / N(-_d2)
 
 
+def entry_mark_loss(C, measure):
+    """E[(K - S')/S | assignment]: the mark loss at acquisition, per lot.
+
+    The strike paid less what the shares are worth on the day, measured
+    against the price S the put was sold at -- the capital the period started
+    with, as every flow in the economic ledger is (TODO II-34).  Since
+    S'/S = 1 - d, it is k* - (1 - E[d]), and needs nothing beyond
+    `expected_drop`.  Per put sold it is E[(k - R')^+], an undiscounted
+    Black-Scholes put at the world's own drift.
+
+    `entry_basis_ratio` - 1 is the same loss measured against S' instead,
+    which is larger by the factor S/S'; it is what the ledger booked before
+    2026-11-06.
+    """
+    return strike(C, measure) - 1.0 + expected_drop(C, measure)
+
+
 def screen_prob(C, measure):
     """N(-d2) at the policy's strike, read in the pricing world.
 
@@ -675,18 +692,25 @@ class DepthWalk:
         # truncation error can be reported rather than silently absorbed.
         self.up = [sum(w for d, w in kern if i + d >= self.n)
                    for i in range(self.n)]
-        # Per-cell expected cost of being called away this period: the shares
-        # are delivered at K_c while the market sits at S >= K_c, so the giveaway
-        # is (S - K_c)/S = 1 - e^X for the exit depth X <= 0.
-        # E[(1 - e^X) 1{X<=0}] with X ~ Normal(x - nu*tau_c, sc^2), in closed form.
+        # Per-cell expected cost of being called away this period, in dollars
+        # per period: the shares are delivered at K_c while the market sits at
+        # S_T >= K_c, and the giveaway S_T - K_c is measured against the price
+        # S_w the call was sold at -- the capital the period started with, as
+        # every flow in the economic ledger is (TODO II-34).  With x the depth
+        # at the sale and X = x - ln(S_T/S_w) the depth at expiry, that is
+        # e^x (e^-X - 1) on X <= 0, and with X ~ Normal(x - nu*tau_c, sc^2)
+        #   E[e^x (e^-X - 1) 1{X<=0}]
+        #     = e^x [ e^(-mu_x + sc^2/2) N((sc^2 - mu_x)/sc) - N(-mu_x/sc) ],
+        # which is E[(R - e^x)^+] for the price relative R over one call: an
+        # undiscounted Black-Scholes call at the walk's own drift.
         self.exit_cost = []
         self.exit_prob = []
         self.exit_depth = []
         for x in self.xs:
             mu_x = x - nu * tau_c
             p_exit = N(-mu_x / sc)
-            e_part = exp(mu_x + sc * sc / 2) * N((-mu_x - sc * sc) / sc)
-            self.exit_cost.append(p_exit - e_part)
+            e_part = exp(-mu_x + sc * sc / 2) * N((sc * sc - mu_x) / sc)
+            self.exit_cost.append(exp(x) * (e_part - p_exit))
             self.exit_prob.append(p_exit)
             # E[X 1{X<=0}], the signed depth a lot lands at when it does leave.
             # Measuring this is what makes the overshoot an observation rather
@@ -942,6 +966,15 @@ def economics(C, measure, occ, horizon=None):
     are per unit of the *current* spot price, matching the simulator's
     normalization.  Capital = put margin + the basis of every standing lot,
     and a lot's basis relative to current spot is e^x * (1 - c_p/k).
+
+    The economic ledger is in dollars per period: every flow is measured
+    against the capital the period it belongs to started with.  For
+    premiums, dividends and the appreciation of held shares that is the price
+    ruling when they accrue; for the two exit flows it is the price the option
+    was sold at -- the mark loss against the put's sale (`entry_mark_loss`),
+    the upside surrendered against the call's (`DepthWalk.exit_cost`).  Before
+    2026-11-06 both were measured at the exit price, which read the true excess
+    about 0.2 points high (TODO II-34).
     """
     k, p_real, mean_x0, _ = entry_law(C, measure)
     c_p = put_premium(C, measure)
@@ -978,7 +1011,7 @@ def economics(C, measure, occ, horizon=None):
     # when it happens, and the unrealized appreciation of held shares counted.
     m_price = occ["m"]
     mv_capital = C.gamma_p * k + inventory
-    acq_loss = lam * (entry_basis_ratio(C, measure) - 1.0)
+    acq_loss = lam * entry_mark_loss(C, measure)
     call_away_loss = lam * sum_cost
     econ_pnl = (prem_income + div_income + inventory * m_price
                 - acq_loss - call_away_loss)
@@ -987,6 +1020,10 @@ def economics(C, measure, occ, horizon=None):
         "call_away_loss": call_away_loss,
         "econ_excess": (econ_pnl - C.r * mv_capital) / mv_capital,
         "leak": inventory * C.delta * C.withhold,
+        # Track C's charge on the put collateral, which earns nothing here.
+        # With the leak it is all that separates the excess from zero at the
+        # pricing drift, where no strategy beats the risk-free rate.
+        "overcharge": C.r * C.gamma_p * k,
         "k": k, "p_real": p_real, "E[x0]": mean_x0, "E[d]": expected_drop(C, measure),
         "c_p": c_p, "lambda": lam, "nu": occ["nu"], "m": occ["m"],
         "q(x0)": occ["q(x0)"], "E[J]": occ["E[J]"], "E[T]": occ["E[J]"] * C.tau_c,
@@ -1000,66 +1037,11 @@ def economics(C, measure, occ, horizon=None):
     }
 
 
-def hidden_terms(C, measure, occ, horizon=None):
-    """What drives the net of the three terms Track A cannot see.
-
-    The net is economics()'s appreciation less its mark loss and call-away
-    giveaway.  In dollars a lot that has come and gone nets to exactly zero
-    across the three -- bought at K, delivered at K, so what the share gained
-    while held is the mark loss recovered plus the upside handed over -- and a
-    lot still held nets to S - K, minus its shortfall against its strike.  The
-    ledger is kept per unit of the price at each flow, though, and there the
-    net splits into signed contributions:
-
-        lift          +sigma^2/2 * E[I]: appreciation accrues at the mean m,
-                      the depth that sets the shortfall moves at nu
-        drag          -(log depth of the book standing at the horizon)/H
-        second_order  what separates a log-point from a percentage at the two
-                      ends of a lot's life: lambda*(E[x0] - (E[e^x0] - 1)) at
-                      entry, lambda * sum_j E[(e^X - 1 - X) 1{X<=0}] at exit
-
-    `gap` is the net less the three.  It is not zero, and it is not a further
-    term: it is the near grid's own error, mostly its entry law, whose cells of
-    width h put E[x0] at 1.58% where the closed form says 1.55% while the mark
-    loss uses the closed form (0.003 of the 0.005 at h = 0.01; it shrinks with
-    h -- see TODO II-32).  It grows where the walk loses mass above x_max, which
-    the drag cannot see: under the pricing drift at x_max = 4 it reaches -0.036
-    by a hundred years and returns to 0.005 at x_max = 8.  Stationary
-    (horizon=None) the drag vanishes, since a finite standing book spread over
-    an unbounded window is nothing.
-    """
-    _, _, mean_x0, _ = entry_law(C, measure)
-    lam = arrival_rate(C, measure)
-    e = economics(C, measure, occ, horizon=horizon)
-    nu, s, tc = occ["nu"], occ["sigma"], C.tau_c
-    surv, depth = occ["surv"], occ["depth"]
-    second = (lam * (mean_x0 - (entry_basis_ratio(C, measure) - 1.0))
-              + lam * sum((-c - d) * (1.0 if horizon is None
-                                      else max(0.0, horizon - (j + 1) * tc)
-                                      / horizon)
-                          for j, (c, d) in enumerate(zip(occ["exitcost"],
-                                                         occ["exitdepth"]))))
-    drag = 0.0
-    if horizon is not None:
-        # Lots of age a in period j at the horizon stand at depth x_j less the
-        # drift since that period opened, f = a - j*tau_c: integrate f over the
-        # period, the last one only up to the horizon.
-        n, rem = int(horizon // tc), horizon % tc
-        for j in range(min(n + 1, len(surv))):
-            span = tc if j < n else rem
-            if span <= 0 or surv[j] <= 0:
-                continue
-            drag += surv[j] * (depth[j] * span - nu * span * span / 2)
-        drag = -lam * drag / horizon
-    net = e["appreciation"] - e["acq_loss"] - e["call_away_loss"]
-    lift = s * s / 2 * e["I"]
-    return {"net": net, "lift": lift, "drag": drag, "second_order": second,
-            "gap": net - (lift + drag + second)}
-
-
 def hidden_terms_balance(C, measure, occ, lo=1.0, hi=200.0, tol=1e-6):
     """The horizon at which the three hidden terms net to zero.
 
+    Equivalently, where Track A's cash measured against market value meets the
+    economic return, since the two differ by exactly the net over the capital.
     The net is negative over a short window, where the costs arrive at once
     and the book is small, and positive over a long one; bisection on
     economics() between `lo` and `hi`, which must bracket the sign change.
@@ -2415,10 +2397,12 @@ def report(C, args):
                   f" | {x['mv_capital']:>8.2f} {x['econ_pnl']:>9.4f}"
                   f" {x['econ_excess']:>+10.4f}")
             if measure == "Q":
-                resid = x["econ_excess"] + x["leak"] / x["mv_capital"]
+                lk = x["leak"] / x["mv_capital"]
+                oc = x["overcharge"] / x["mv_capital"]
+                resid = x["econ_excess"] + lk + oc
                 print(f"   {'':>10} {'':>8}   no-arbitrage residual "
-                      f"{x['econ_excess']:+.4f} + leak {x['leak'] / x['mv_capital']:.4f}"
-                      f" = {resid:+.4f}")
+                      f"{x['econ_excess']:+.4f} + leak {lk:.4f}"
+                      f" + overcharge {oc:.4f} = {resid:+.4f}")
         x30 = economics(C, measure, occ, horizon=30.0)
         print(f"   per lot: P[eventual exit] = {occ['P[exit]']:.4f}"
               f"   call premiums {occ['E[prem]']:.4f}"

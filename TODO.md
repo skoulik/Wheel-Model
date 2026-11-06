@@ -503,9 +503,10 @@ lots slightly longer, and it shows wherever two decimals are quoted:
 The 15.42 is the near grid reading 0.7% above the extrapolated walk's 15.32 at thirty years, an
 open question until now; halving h twice closes it, so the two are one finding. **The headline does
 not move** — true excess agrees to a thousandth of a point at all three widths — but §08 and §09
-quote 11.40, 18.23, 0.5128 and −0.0063 off this grid, and `model.hidden_terms` reports the same
-error as a gap of 0.005 between the net and its three parts, 0.003 of it because the mark loss uses
-the closed-form entry law while the walk uses the grid's. **To decide:** refine the entry (a finer
+quote 11.40, 18.23, 0.5128 and −0.0063 off this grid, and `model.hidden_terms` reported the same
+error as a gap of 0.005 between the net and its three parts, 0.003 of it because the mark loss used
+the closed-form entry law while the walk used the grid's. (The table's economic rows are from before
+II-34, exits measured at the exit price; `hidden_terms` went with that convention.) **To decide:** refine the entry (a finer
 grid near zero, or the walk started from the closed-form moments) or Richardson-extrapolate the
 finite-horizon figures as `stationary()` already does; then every two-decimal Part II figure off the
 near grid moves, with its checks, the appendix and the figures.

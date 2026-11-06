@@ -7,26 +7,31 @@
 Backs eq:econ-pnl and eq:excess in section 09 -- the article's headline.
 Track A's cash is not a return: it misses the appreciation of held shares (a
 gain), the mark loss booked when a lot is bought above market, and the upside
-surrendered when a lot is called away below market.  The three nearly cancel
-at thirty years and at no other horizon, and option prices play no part in
-it: the net is a lift of sigma^2/2 on the lots held against the drag of the
-book still standing, which balance at 31 years (`model.hidden_terms`).  So
-Track A's cash against market-value capital is not the economic return --
-at five years it reads 5.9% over r against 1.60% -- and fig:hidden-terms
-draws the three against the horizon.
+surrendered when a lot is called away below market.  The two costs arrive at
+nearly their full rate at once while the gain grows with the book, so the
+net is negative early and positive late, and zero at one horizon only
+(`model.hidden_terms_balance`).  So Track A's cash against market-value
+capital is not the economic return except there, and fig:hidden-terms draws
+the three against the horizon.  All in dollars per period (TODO II-34): each
+exit flow is measured against the price its option was sold at.
 
 The two-ledger table is fixed at 5/10/30 years, as section 09 tabulates it,
 independent of --horizon (which drives the single-horizon breakdown above the
 table); section 09 shows it for both regimes, the Conservative rows from
 --p-star 0.10, and its equity row comes from returns_leverage.py.  True excess
-barely moves with the horizon -- flat at 1.60% in the Standard regime, which
-is particular to p* = 20%, and 1.37% to 1.49% in the Conservative one --
-while cash on cost basis falls through zero in both, at 20.5 years in the
-Standard regime.  Cash on market value sits between the two and splits the
-cash line's error: at five years nearly all numerator (5.9% against 1.60%,
-cost basis taking back 1.8 points), at thirty all denominator (1.66% against
-1.60%, cost basis at 1.57 times market value).  fig:two-ledgers draws the
-three returns against the horizon.
+rises with the horizon in both regimes, following the book's delta (TODO
+II-34) -- 1.23% to 1.40% from five years to thirty in the Standard regime,
+1.01% to 1.28% in the Conservative -- while cash on cost basis falls through
+zero in both, at 20.5 years in the Standard regime.  Cash on market value sits
+between the two and splits the cash line's error: mostly numerator at five
+years (5.9% against 1.23%, cost basis taking back 1.8 points), mostly
+denominator at thirty (1.66% against 1.40%, cost basis at 1.57 times market
+value).  fig:two-ledgers draws the three returns against the horizon.
+
+Case values are in dollars per period.  Comments quote the prose they back,
+and section 09 is being rewritten to these values
+(drafts/2026-11-06-dollars-per-period-plan.md), so until it is, some quotes
+show the figure measured at the exit price.
 
 Horizon-weighted; hangs off the near-grid killed walk (see `holding_time.py`).
 Note: the appreciation term is E[I]*m -- the section writes it as exactly that
@@ -72,11 +77,8 @@ FIELDS = [
     ("giveaway_per_exit", "  given up by each lot called away", ".2%"),
     ("net", "  net of the three", ".4f"),
     ("cost_ratio", "  the two costs as a multiple of the gain", ".2f"),
-    # What drives that net (model.hidden_terms), and the horizon it is zero at.
-    ("lift", "    lift: sigma^2/2 on the lots held", "+.4f"),
-    ("drag", "    drag: depth of lots still held", "+.4f"),
-    ("second_order", "    entry and exit, second order", "+.4f"),
-    ("hidden_gap", "    left over: the near grid's own error", "+.4f"),
+    # The horizon the net is zero at, where cash on market value meets the
+    # economic return.
     ("balance", "  horizon at which the three net to zero, years", ".1f"),
     ("income", "Track A income", ".4f"),
     ("cash_mv", "Track A cash on market value, over r", ".2%"),
@@ -92,8 +94,7 @@ FIELDS = [
     ("table_lots", "  lots held", ".2f"),
     ("table_mv", "  capital, market value", ".2f"),
     ("table_cost", "  capital, cost basis", ".2f"),
-    # Flat across horizons at the running example, which is particular to
-    # p* = 20%: the Conservative regime's climbs from 1.37% to 1.49%.
+    # Rises with the horizon in both regimes, following the book's delta.
     ("table_excess", "  true excess return", ".2%"),
     ("table_cash_mv", "  cash income on market value", ".2%"),
     ("table_cash", "  cash income on cost basis", ".2%"),
@@ -252,7 +253,6 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
     e = model.economics(cfg, measure, occ, horizon=horizon)
     # Appreciation is E[I]*m; no dedicated economics() field (see docstring).
     apprec = e["appreciation"]
-    hidden = model.hidden_terms(cfg, measure, occ, horizon=horizon)
     table = [model.economics(cfg, measure, occ, horizon=H) for H in HORIZONS]
 
     # The sticky-dividend correction is a row of the dividend sweep at a larger,
@@ -299,10 +299,6 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
         "giveaway_per_exit": occ["E[exitcost]"] / occ["P[exit]"],
         "net": apprec - e["acq_loss"] - e["call_away_loss"],
         "cost_ratio": (e["acq_loss"] + e["call_away_loss"]) / apprec,
-        "lift": hidden["lift"],
-        "drag": hidden["drag"],
-        "second_order": hidden["second_order"],
-        "hidden_gap": hidden["gap"],
         "balance": _balance(cfg, measure, occ),
         "income": e["income"],
         "cash_mv": (e["income"] - cfg.r * e["mv_capital"]) / e["mv_capital"],
@@ -336,25 +332,21 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
 CASES = [
     Case("", {
         "appreciation": (0.5128, 0.0020),   # "for 11.40 lots ... is 0.5128 a year"
-        "acq_loss": (0.1632, 0.0010),       # "mark loss ... comes to 0.1632"
-        "call_away_loss": (0.3559, 0.0020),  # "upside surrendered ... 0.3559"
-        "giveaway_per_exit": (0.036, 0.0005),  # "3.6% of a share price for each
+        "acq_loss": (0.1553, 0.0010),       # "mark loss ... comes to 0.1632"
+        "call_away_loss": (0.3875, 0.0020),  # "upside surrendered ... 0.3559"
+        "giveaway_per_exit": (0.039, 0.0005),  # "3.6% of a share price for each
                                                #   lot called away"
-        "net": (-0.0063, 0.0015),           # the ledger's "net -0.0063"
+        "net": (-0.0300, 0.0015),           # the ledger's "net -0.0063"
         # The decomposition table's 30 y column, and the horizon the figure marks.
-        "lift": (0.23, 0.005),              # "lift ... +0.23"
-        "drag": (-0.25, 0.005),             # "drag ... -0.25"
-        "second_order": (0.01, 0.005),      # "entry and exit, second order +0.01"
-        "hidden_gap": (0.0, 0.006),         # the rows add to the net, within the grid
-        "balance": (31.1, 0.1),             # "a little past thirty years"; "equal at 31"
-        "econ_pnl": (0.7655, 0.0020),       # eq:excess: E[Pi] = 0.7655
-        "econ_excess": (0.0160, 0.0005),    # eq:excess: "+1.60% per year"
-        # The two-ledger table's Standard rows (5/10/30y): true excess flat,
+        "balance": (35.8, 0.1),             # "a little past thirty years"; "equal at 31"
+        "econ_pnl": (0.7418, 0.0020),       # eq:excess: E[Pi] = 0.7655
+        "econ_excess": (0.0140, 0.0005),    # eq:excess: "+1.60% per year"
+        # The two-ledger table's Standard rows (5/10/30y): true excess rising,
         # cash falling through zero.
         "table_lots": ([5.41, 7.39, 11.40], 0.05),
         "table_mv": ([5.61, 7.59, 11.59], 0.05),
         "table_cost": ([6.70, 9.83, 18.23], 0.06),
-        "table_excess": ([0.0160, 0.0160, 0.0160], 0.0005),  # "flat ... to three decimals"
+        "table_excess": ([0.0123, 0.0131, 0.0140], 0.0005),  # "flat ... to three decimals"
         "table_cash": ([0.0411, 0.0181, -0.0077], 0.0005),
         "table_cash_mv": ([0.0588, 0.0382, 0.0166], 0.0005),
         # The cash-on-cost paragraph at thirty years: the numerator has come
@@ -365,45 +357,33 @@ CASES = [
     }, note="Standard regime"),
     # The decomposition table's other columns.  At five years the costs are
     # twice the gain, and Track A's cash on market value is the number an
-    # operator would take for the economic return: 5.9% over r, against 1.60%.
+    # operator would take for the economic return: 5.9% over r, against 1.23%.
     Case("--horizon 5", {
-        "net": (-0.24, 0.005),              # "the net is -0.24 a year"
-        "cost_ratio": (2.0, 0.05),          # "the costs are twice the gain"
-        "lift": (0.11, 0.005),
-        "drag": (-0.36, 0.005),
-        "second_order": (0.01, 0.005),
-        "hidden_gap": (0.0, 0.006),
+        "net": (-0.26, 0.005),              # "the net is -0.24 a year"
+        "cost_ratio": (2.1, 0.05),          # "the costs are twice the gain"
         "income": (0.61, 0.005),            # "0.24 a year off Track A's 0.61"
         "cash_mv": (0.059, 0.0005),         # "would report +5.9%"
         "basis_gap": (0.018, 0.0005),       # "cost basis takes back only 1.8 points"
-        "econ_excess": (0.0160, 0.0005),    # "at five years it comes out at 1.60% again"
+        "econ_excess": (0.0123, 0.0005),    # "at five years it comes out at 1.60% again"
     }, note="Standard regime, five years"),
     Case("--horizon 10", {
-        "net": (-0.17, 0.005),
-        "lift": (0.15, 0.005),
-        "drag": (-0.33, 0.005),
-        "second_order": (0.01, 0.005),
-        "hidden_gap": (0.0, 0.006),
+        "net": (-0.19, 0.005),
     }, note="Standard regime, ten years"),
     Case("--horizon 50", {
-        "net": (0.08, 0.005),               # "by fifty the gain is ahead"
-        "lift": (0.27, 0.005),
-        "drag": (-0.20, 0.005),
-        "second_order": (0.01, 0.005),
-        "hidden_gap": (0.0, 0.006),
+        "net": (0.06, 0.005),               # "by fifty the gain is ahead"
     }, note="Standard regime, fifty years"),
     # The economic figure is not a thirty-year one: "and at a hundred at 1.61%".
     Case("--horizon 100", {
-        "econ_excess": (0.0161, 0.0005),
+        "econ_excess": (0.0146, 0.0005),
     }, note="Standard regime, a hundred years"),
     Case("--p-star 0.10", {
-        "econ_excess": (0.0149, 0.0005),    # Conservative: "true excess +1.49%"
+        "econ_excess": (0.0128, 0.0005),    # Conservative: "true excess +1.49%"
         # The two-ledger table's Conservative rows, which the Conservative
         # subsection's 30 y line repeats.
         "table_lots": ([2.63, 3.58, 5.50], 0.05),   # "lots held 5.50"
         "table_mv": ([2.82, 3.77, 5.70], 0.05),     # "capital (market) 5.70"
         "table_cost": ([3.35, 4.86, 8.90], 0.06),   # "capital (cost) 8.90"
-        "table_excess": ([0.0137, 0.0143, 0.0149], 0.0005),  # "climbs from 1.37% to 1.49%"
+        "table_excess": ([0.0101, 0.0114, 0.0128], 0.0005),  # "climbs from 1.37% to 1.49%"
         "table_cash": ([0.0376, 0.0162, -0.0083], 0.0005),  # "cash-on-cost -0.83%"
         "table_cash_mv": ([0.0541, 0.0353, 0.0152], 0.0005),
     }, note="Conservative regime"),
@@ -413,9 +393,9 @@ CASES = [
     Case("--sticky", {
         "sticky_F": ([1.020, 1.039, 1.113], 0.001),        # "inflation factor 1.020 1.039 1.113"
         "sticky_delta_eff": ([0.0255, 0.0260, 0.0278], 0.0001),  # "δ_eff 2.55% 2.60% 2.78%"
-        "sticky_excess": ([0.0159, 0.0158, 0.0156], 0.0002),     # "true excess +1.59% +1.58% +1.56%"
+        "sticky_excess": ([0.0123, 0.0129, 0.0137], 0.0002),     # "true excess +1.59% +1.58% +1.56%"
         "sticky_change": ([-0.0001, -0.0001, -0.0004], 0.0001),  # "change −0.01pp −0.01pp −0.04pp"
-        "sticky_gap": ([0.0003, 0.0001, 0.0001], 0.0001),        # "gap vs buy-and-hold +0.03pp +0.01pp +0.01pp"
+        "sticky_gap": ([-0.0033, -0.0028, -0.0019], 0.0001),        # "gap vs buy-and-hold +0.03pp +0.01pp +0.01pp"
         "sticky_inv_rise": (0.034, 0.003),      # "inventory rises 3.4%"
         "sticky_capital_rise": (0.051, 0.004),  # "cost-basis capital 5.1%"
     }, note="Standard regime: the dividend frozen in dollars, at 5/10/30 years"),

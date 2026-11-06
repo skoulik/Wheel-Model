@@ -529,9 +529,15 @@ def main():
     for label, cfg, occ in (("Standard", STD, occ_q), ("Conservative", CON, occ_cq)):
         for H in (5.0, 10.0, 30.0):
             x = economics(cfg, "Q", occ, horizon=H)
-            resid = x["econ_excess"] + x["leak"] / x["mv_capital"]
-            check(f"{label} @ {H:.0f}y: Q-world excess = -(withholding leak)",
-                  resid, 0.0, 0.003)
+            # Exact up to a few basis points since the ledger went to dollars
+            # per period (TODO II-34): the residual is 2.3bp at five years and
+            # under one from ten on, where it was 15bp measuring exits at the
+            # exit price.  Shorter windows than the article quotes leave more
+            # (43bp at one year), which is why the check stops at five.
+            resid = (x["econ_excess"]
+                     + (x["leak"] + x["overcharge"]) / x["mv_capital"])
+            check(f"{label} @ {H:.0f}y: Q-world excess = -(leak + overcharge)",
+                  resid, 0.0, 0.0003)
 
     # ------------------------------------------------------------------
     # Section 11 is unwritten, so the working-capital closed forms sit with
@@ -783,7 +789,7 @@ def main():
     check("...where the sustainable draw is a deposit, per year",
           drift["draw"], -0.248, 0.001)
     check("...while its excess return on equity reads higher, not lower",
-          drift["roe_excess"], 0.0315, 0.0005)
+          drift["roe_excess"], 0.0293, 0.0005)
 
     # II-14's constrained no-arbitrage identity, in its analytic half.  Under
     # the pricing measure a blocked, levered wheel must still earn r on equity
@@ -930,7 +936,7 @@ def main():
     # Two quantities both called sustainable, a factor of two apart.  The draw
     # that keeps the account stationary in SHARES is derived, not tuned.
     check("the draw that holds the account's size, r + excess - m",
-          STD.r + f["econ_excess"] - (STD.mu - STD.delta), 0.0212, 0.0005)
+          STD.r + f["econ_excess"] - (STD.mu - STD.delta), 0.0200, 0.0005)
 
     if not I_inf / 11.59 < 1.0 / G25.gamma_s:
         FAILURES.append("the strategy's own demand exceeds the broker's ceiling")
@@ -1080,7 +1086,7 @@ def main():
             FAILURES.append(f"the correction is not adverse at {H}y")
     check("operating-book liquidation by 20y at L = 2", rows[2][4][0], 0.6236,
           0.05)
-    check("...against the closed form's", rows[2][2][0], 0.4312, 0.001)
+    check("...against the closed form's", rows[2][2][0], 0.4339, 0.001)
     # The mechanism is a ratchet: a price rise lets the operator sell more
     # puts, so the debit grows with the book and the account never de-levers
     # the way a frozen one does, while a price fall blocks and leaves it where

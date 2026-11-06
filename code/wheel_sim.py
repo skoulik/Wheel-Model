@@ -1308,8 +1308,10 @@ def validate(args):
             "market capital": agg.mvcap_sum / agg.cap_n,
             "premiums/yr": (agg.prem_put + agg.prem_call) * per_yr,
             "dividends/yr": agg.dividends / (agg.puts * P.cadence),
-            "acq loss/yr": agg.acq_loss * per_yr,
-            "call-away loss/yr": agg.giveaway * per_yr,
+            # In dollars per period, as model.economics books them: each exit
+            # against the price its option was sold at (TODO II-34).
+            "acq loss/yr": agg.acq_loss_d * per_yr,
+            "call-away loss/yr": agg.giveaway_d * per_yr,
         }
         ana = {
             "assignment rate": a["p_real"], "E[d]": a["E[d]"], "E[I]": a["I"],
@@ -1338,8 +1340,9 @@ def _dollar_row(P, g):
     """One run's economic excess three ways, from an Agg sampled with book_delta.
 
     The ledger books the mark loss and the upside surrendered per unit of the
-    price at exit, as model.economics does; the dollar version per unit of the
-    price the option was sold at, the capital the period started with.
+    price at exit, as model.economics did until TODO II-34; the dollar version
+    per unit of the price the option was sold at, the capital the period
+    started with, as it does now.
     Everything else -- premiums at sale, dividends and the appreciation E[I]*m
     per unit of the price ruling -- is the same in both.  The theory row is
     Black-Scholes's: each instrument's expected excess return is its delta
@@ -1404,7 +1407,7 @@ def dollars(args):
             print(f"{key + ' excess' if ' ' not in key else key:>34} "
                   f"{whole[key]:>+10.3%} {se:>9.3%}")
         print(f"{'book delta / market-value capital':>34} {whole['delta']:>10.3f}")
-        print(f"{'ledger, analytic (model.economics)':>34} {ana:>+10.3%}")
+        print(f"{'dollars, analytic (model.economics)':>34} {ana:>+10.3%}")
 
 
 def main():

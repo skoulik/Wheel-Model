@@ -275,6 +275,9 @@ def _draw_survival(fig, ax, cfg=None, measure="P", ctx=None, **kw):
 FIGURES = [Figure("survival-curve", _draw_survival)]
 
 
+# Economic figures are in dollars per period (TODO II-34).  Where a comment
+# quotes section 09 or 11, that prose is being rewritten to these values
+# (drafts/2026-11-06-dollars-per-period-plan.md) and may still show the old.
 CASES = [
     Case("", {
         "tax": (0.0323, 0.0005),        # section 07: "0.5826 x 0.20 x sqrt(1/13)"
@@ -310,7 +313,7 @@ CASES = [
         "EW_far": (1.93, 0.02),
         "EW_near": (2.22, 0.02),
         "prem": (0.0372, 0.001),        # section 09: "a lot collects 3.72% ... in call premiums"
-        "exitcost": (0.0358, 0.001),    # section 09: "and surrenders 3.58% in upside at call-away"
+        "exitcost": (0.0390, 0.001),    # section 09: "and surrenders 3.58% in upside at call-away"
     }, note="Standard regime"),
     Case("--measure Q", {
         "EW": (9.0, 1.0),               # "E[W] ~ 9 years" -- a round figure on
