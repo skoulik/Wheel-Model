@@ -20,7 +20,7 @@ Backs [eq:excess-return](#eq:excess-return).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_benchmark.py` | wheel = 1.60%, equity_frac = 98.3%, buy_hold = 1.62%, buy_hold_adj = 1.60%, difference = 0.01% |
+| `python code/examples/returns_benchmark.py` | wheel = 1.60%, equity_frac = 98.3%, buy_hold = 1.625%, buy_hold_adj = 1.60%, difference = 0.01% |
 | `python code/examples/returns_benchmark.py --p-star 0.10` | wheel = 1.49%, buy_hold_adj = 1.57%, difference = -0.08% |
 | `python code/examples/returns_benchmark.py --iv-spread 0.005` | wheel = 1.83%, difference = 0.23% |
 | `python code/examples/returns_benchmark.py --iv-spread 0.010` | wheel = 2.05%, difference = 0.46% |

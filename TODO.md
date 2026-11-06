@@ -510,8 +510,25 @@ grid near zero, or the walk started from the closed-form moments) or Richardson-
 finite-horizon figures as `stationary()` already does; then every two-decimal Part II figure off the
 near grid moves, with its checks, the appendix and the figures.
 
-**II-33. What Israelov and Nielsen's Myth 8 actually argues.** (Opened 2026-10-23, from the §09
-review.) §09's paragraph on the slogan (`para:discount-priced`) was recast that day on Sergei's
+**II-33. Check §09's citations against the PDFs, on the Windows machine where the copies are.**
+(Opened 2026-10-23 for Myth 8; widened 2026-11-06, when the review of "The benchmark that matters"
+found two more passages it could not check: the cloud session's network refuses the publishers'
+sites, and the PDFs the bibliography names are local.) Three passages, all in
+`sections/09-returns.md`:
+
+1. *Israelov and Nielsen, Myth 8* — below.
+2. *Israelov and Nielsen's worked example*, quoted in "The benchmark that matters": "even though the
+   annual collected option premium is 22.1% of net asset value, there would be zero compensation for
+   shorting volatility" and "no different from what would have been earned by simply reducing the
+   index position size by 51%". Check both word for word and note the page. **22.1% is also the
+   figure §09 quotes from Bondarenko for the monthly put-write programme's premium** — a
+   coincidence or a crossed wire. Their 51% is a delta-scaled equivalent, which bears on II-34.
+3. *Bondarenko (2019)*, quoted in "The one dial the model says is free": monthly and weekly
+   put-writing over 2006–2018 compounding **5.97%** and **4.51%**, and collecting **22.1%** and
+   **37.1%** of notional a year in premium. Check all four, the period, and that the premium
+   figures are a year's, of notional.
+
+*Myth 8.* §09's paragraph on the slogan (`para:discount-priced`) was recast that day on Sergei's
 point: the discount against the price on the day the put is sold is genuine, and what the slogan
 leaves out is that assignment comes only after the market has fallen through the strike, so the
 shares are bought above the price of the day. The old text said [Israelov and
@@ -520,6 +537,43 @@ paid for"; with the framing changed, that paraphrase was dropped and the citatio
 the same slogan apart directly"), because the paper was not to hand to check it. **To do:** open the
 PDF at Myth 8, and if their argument is the above-market purchase, say so in §09 in their terms; if
 it is something else, say what, and decide whether the citation still belongs on this paragraph.
+
+**II-34. The economic ledger measures exit flows against the price at exit, and reads about 0.2
+points high.** (Opened 2026-11-06, from the §09 review of "The benchmark that matters".) The ledger
+measures each flow against the share price ruling when it happens: a call's upside surrendered as
+(S_T − K)/S_T at expiry, a put's mark loss as (K − S′)/S′ at assignment. A dollar return per
+period measures both against the capital at the period's start, (S_T − K)/S_w and (K − S′)/S. The
+two differ at second order: E[(R − e^x)⁺] − E[(1 − e^x/R)⁺], with R = S_T/S_w, is 0.16% of a share
+price for a call period at the strike (about σ²·τ_c/2), 0.06% at five log-points deep and nothing
+past twenty. Summed over the thirty-year census (`model.census_weights`), 52 puts a year and the
+market-value capital, Standard regime (`python code/ledger_dollar_check.py` prints it):
+
+    measure                                        Q           P
+    ledger true excess                          −0.291%     +1.604%
+    exit-measurement bias                       +0.153%     +0.205%
+      of which calls / puts               +0.207/−0.054  +0.273/−0.068
+    dollar excess = ledger − bias               −0.444%     +1.399%
+    theory: δ_book·(μ − r) − leak − overcharge  −0.437%     +1.412%
+
+The theory row is independent of the bias computation: the book's own delta per unit of capital
+(`model.book_delta`: 0.946 under Q, 0.932 under P) times the stock's excess return, less the
+dividend-withholding leak and the collateral overcharge — Black–Scholes's result that an option's
+expected excess return is its delta times the stock's. The dollar figures meet it to 1.3bp at both
+measures; the ledger misses by 15 and 19.
+
+If it holds: **(1)** §09's headline is about +1.40%, not +1.60%. **(2)** "Identical to owning the
+stock" (+0.01%) is two effects of about 0.2 points cancelling. The book's delta is 93% of its
+capital, not the 98% in shares, so it trails the capital-share benchmark by about 0.2 points, and
+the ledger hands back about 0.2. Against a delta-scaled benchmark, which is Israelov and Nielsen's
+(II-33), the dollar gap is about zero. **(3)** The verification test's residual (8bp at thirty
+years against the leak alone; the collateral footnote's "residual of opposite sign") is this
+bias: against leak and overcharge together it is 15bp, and the dollar version closes it to under
+one. **(4)** The hidden-terms lift, σ²/2 on the lots held, belongs to the same convention; §09 says
+so itself ("the ledger, though, is not kept in dollars"). Whatever rests on eq:econ-pnl may move:
+§09's leverage break-even and volatility-premium conversion, §10, §11's return on equity.
+`wheel_sim.py` books flows the same way, so it cannot settle this. **To decide:** whether the
+article's return is dollar per period or per unit of the price at each flow, and if the former,
+how eq:econ-pnl books exits.
 
 ## Part III — Many assets
 

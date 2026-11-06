@@ -37,7 +37,7 @@ EXTRA = [("--collateral", dict(action="store_true",
 FIELDS = [
     ("wheel", "the wheel's true excess return", ".2%"),
     ("equity_frac", "  wheel equity exposure (% of capital)", ".1%"),
-    ("buy_hold", "buy & hold excess, mu - r - w*delta", ".2%"),
+    ("buy_hold", "buy & hold excess, mu - r - w*delta", ".3%"),
     ("buy_hold_adj", "  equity-adjusted to the wheel's exposure", ".2%"),
     ("difference", "wheel minus equity-adjusted buy & hold", ".2%"),
     # The collateral footnote (only under --collateral): Track C charges r on the
@@ -84,7 +84,7 @@ CASES = [
     Case("", {
         "wheel": (0.0160, 0.0005),          # section 09: "the wheel +1.60%"
         "equity_frac": (0.98, 0.005),       # "98% at the thirty-year mark"
-        "buy_hold": (0.0163, 0.0002),       # "mu - r - w*delta = +1.63%"
+        "buy_hold": (0.01625, 0.00001),     # "mu - r - w*delta = +1.625%"
         "buy_hold_adj": (0.0160, 0.0005),   # "+1.60% after scaling by the wheel's 98%"
         "difference": (0.0001, 0.0005),     # "difference +0.01%"
     }, note="Standard regime, 30y"),
@@ -183,7 +183,7 @@ CASES = [
         "difference": (0.0001, 0.0002),     # "Standard, as modelled  30y +0.01%"
         "overcharge": (0.0008, 0.0001),     # "8 at thirty"
         "gap_corrected": (0.0009, 0.0001),  # "collateral earning r  +0.09%"
-        "cash_secured": (4.5, 0.3),         # "about four and a half times" the margin one
+        "cash_secured": (4.7, 0.05),        # "about 4.7 times" the margin one
     }, note="Standard, thirty years"),
     Case("--p-star 0.10 --horizon 5 --collateral", {
         "difference": (-0.0014, 0.0001),    # "Conservative, as modelled  5y −0.14%"
