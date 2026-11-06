@@ -561,7 +561,7 @@ dividend-withholding leak and the collateral overcharge — Black–Scholes's re
 expected excess return is its delta times the stock's. The dollar figures meet it to 1.3bp at both
 measures; the ledger misses by 15 and 19.
 
-If it holds: **(1)** §09's headline is about +1.40%, not +1.60%. **(2)** "Identical to owning the
+What follows, if the article adopts dollars per period: **(1)** §09's headline is about +1.40%, not +1.60%. **(2)** "Identical to owning the
 stock" (+0.01%) is two effects of about 0.2 points cancelling. The book's delta is 93% of its
 capital, not the 98% in shares, so it trails the capital-share benchmark by about 0.2 points, and
 the ledger hands back about 0.2. Against a delta-scaled benchmark, which is Israelov and Nielsen's
@@ -571,7 +571,18 @@ bias: against leak and overcharge together it is 15bp, and the dollar version cl
 one. **(4)** The hidden-terms lift, σ²/2 on the lots held, belongs to the same convention; §09 says
 so itself ("the ledger, though, is not kept in dollars"). Whatever rests on eq:econ-pnl may move:
 §09's leverage break-even and volatility-premium conversion, §10, §11's return on equity.
-`wheel_sim.py` books flows the same way, so it cannot settle this. **To decide:** whether the
+**Confirmed by simulation** (2026-11-06), which shares no machinery with the depth walk:
+`python code/wheel_sim.py --scenario dollars --paths 3200` books both exits each way on the same
+paths and samples the book's delta from the simulated lots, with standard errors across 32
+batches:
+
+    run                          ledger     dollars    delta theory   dollars − theory
+    Standard, real world        +1.607%    +1.402%    +1.412%        −0.010% ± 0.006%
+    Conservative, real world    +1.502%    +1.294%    +1.297%        −0.004% ± 0.007%
+    Standard, μ = r             −0.289%    −0.442%    −0.437%        −0.006% ± 0.005%
+
+The ledger column reproduces `model.economics` (+1.604%, +1.494%, −0.291%), and the ledger misses
+the theory by 0.15–0.21 points at ± 0.005 in every run. **To decide:** whether the
 article's return is dollar per period or per unit of the price at each flow, and if the former,
 how eq:econ-pnl books exits.
 

@@ -9,8 +9,10 @@ are what this is meant to test -- so agreement between the two is evidence
 rather than arithmetic.
 
 `--scenario validate` is that comparison, component by component, from the
-assignment rate through to the economic excess return. The other scenarios are
-exploratory, and show what the analytic core cannot:
+assignment rate through to the economic excess return. `--scenario dollars`
+books the same paths' two exit flows in dollars per period beside the ledger's
+convention and sets both against the book's own delta (TODO II-34). The other
+scenarios are exploratory, and show what the analytic core cannot:
 
   * the emergent depth distribution of standing inventory (length-biased
     toward slow, deep layers),
@@ -51,7 +53,7 @@ The cadence/tenor split is built in: cadence T >= tau_p, defaulting to
 T = tau_p, the article's running example.
 
 Stdlib only.  Run:  python code/wheel_sim.py
-    [--scenario base|dividends|stress|sweep|validate|constrained|all]
+    [--scenario base|dividends|stress|sweep|validate|dollars|constrained|all]
 """
 
 import argparse
@@ -124,6 +126,7 @@ class Params:
     paths: int = 200
     seed: int = 20260722
     regimes: list = None
+    book_delta: bool = False   # sample the book's delta (--scenario dollars)
 
     def __post_init__(self):
         if self.cadence is None:
@@ -151,7 +154,7 @@ class Params:
 
 
 class Lot:
-    __slots__ = ("entry", "strike", "basis", "x", "periods")
+    __slots__ = ("entry", "strike", "basis", "x", "periods", "s_sale", "t_exp")
 
     def __init__(self, entry, strike, basis):
         self.entry = entry
@@ -159,6 +162,8 @@ class Lot:
         self.basis = basis
         self.x = 0.0        # depth ln(K_c/S) at the current call's sale
         self.periods = 0    # call periods run so far
+        self.s_sale = 0.0   # the price the current call was sold at
+        self.t_exp = 0.0    # ...and when it expires
 
 
 class Agg:
@@ -181,6 +186,13 @@ class Agg:
         self.mvcap_sum = 0.0
         self.acq_loss = 0.0
         self.giveaway = 0.0
+        # The same two exit flows in dollars per period: measured against the
+        # price the option was sold at, not the price at exit (TODO II-34).
+        self.acq_loss_d = 0.0
+        self.giveaway_d = 0.0
+        # The book's delta in shares, summed over the same dates as the
+        # capital; only with Params.book_delta, since it prices every lot's call.
+        self.delta_sum = 0.0
         self.inv_by_idx = Counter()    # for time profiles (stress scenario)
         self.eq_by_idx = Counter()     # log equity in shares, by cadence index
         self.eqn_by_idx = Counter()    # ...and how many paths contributed
@@ -224,7 +236,7 @@ class Agg:
 
     _SCALARS = ("puts", "assigned", "d_sum", "exits", "prem_put", "prem_call",
                 "dividends", "cap_sum", "cap_n", "mvcap_sum", "acq_loss",
-                "giveaway", "paths", "sales", "blocked", "withdrawn", "ps_t",
+                "giveaway", "acq_loss_d", "giveaway_d", "delta_sum", "paths", "sales", "blocked", "withdrawn", "ps_t",
                 "ps_inv", "ps_lev", "ps_eq", "ps_eqt", "ps_income", "ps_sales",
                 "ps_blocked")
     _COUNTERS = ("inv_hist", "inv_by_idx", "eq_by_idx", "eqn_by_idx",
@@ -502,6 +514,23 @@ def run_path(P, rng, agg):
                 agg.cap_n += 1
                 agg.cap_by_idx[idx] += cost_cap / S
                 agg.mvcap_by_idx[idx] += mv_cap
+                if P.book_delta:
+                    # Shares, each less its call's spot delta at the call's
+                    # remaining tenor, plus the short put just sold.
+                    book = 0.0
+                    for lot in lots:
+                        tau = lot.t_exp - t
+                        if tau > 1e-12:
+                            d1 = ((log(S / lot.strike)
+                                   + (P.r - P.delta + sig_iv**2 / 2) * tau)
+                                  / (sig_iv * sqrt(tau)))
+                            book += 1.0 - exp(-P.delta * tau) * N(d1)
+                        else:
+                            book += 0.0 if S >= lot.strike else 1.0
+                    d1p = ((log(1.0 / kf) + (P.r - P.delta + sig_iv**2 / 2) * P.tau_p)
+                           / (sig_iv * sqrt(P.tau_p)))
+                    book += exp(-P.delta * P.tau_p) * N(-d1p)
+                    agg.delta_sum += book
                 push(t + P.tau_p, PUTEXP, (K, S, c_p))
             if t + P.cadence <= P.years + 1e-9:
                 push(t + P.cadence, SALE, None)
@@ -514,6 +543,7 @@ def run_path(P, rng, agg):
                 agg.assigned += 1
                 agg.d_sum += 1 - S / S_sale
                 agg.acq_loss += (K - S) / S      # paid K for something worth S
+                agg.acq_loss_d += (K - S) / S_sale   # ...per unit of the sale price
                 lot = Lot(entry=t, strike=K, basis=K - c_p)
                 lots.append(lot)
                 if ledger:
@@ -523,6 +553,7 @@ def run_path(P, rng, agg):
                 agg.prem_call += c_c / S
                 earn(c_c)
                 lot.x = log(K / S)
+                lot.s_sale, lot.t_exp = S, t + P.tau_c
                 push(t + P.tau_c, CALLEXP, lot)
 
         else:  # CALLEXP
@@ -536,6 +567,7 @@ def run_path(P, rng, agg):
             if exited:
                 agg.exits += 1
                 agg.giveaway += (S - lot.strike) / S   # delivered below market
+                agg.giveaway_d += (S - lot.strike) / lot.s_sale
                 lots.remove(lot)
                 if ledger:
                     cash += lot.strike           # ...and this is what repays it
@@ -547,6 +579,7 @@ def run_path(P, rng, agg):
                 agg.prem_call += c_c / S
                 earn(c_c)
                 lot.x = log(lot.strike / S)
+                lot.s_sale, lot.t_exp = S, t + P.tau_c
                 push(t + P.tau_c, CALLEXP, lot)
 
     for lot in lots:  # censored at the horizon
@@ -1301,11 +1334,84 @@ def validate(args):
             print(f"{key:>20} {s:>12.4f} {v:>12.4f} {rel:>+9.1%}")
 
 
+def _dollar_row(P, g):
+    """One run's economic excess three ways, from an Agg sampled with book_delta.
+
+    The ledger books the mark loss and the upside surrendered per unit of the
+    price at exit, as model.economics does; the dollar version per unit of the
+    price the option was sold at, the capital the period started with.
+    Everything else -- premiums at sale, dividends and the appreciation E[I]*m
+    per unit of the price ruling -- is the same in both.  The theory row is
+    Black-Scholes's: each instrument's expected excess return is its delta
+    times the stock's, so the book earns its sampled delta times mu - r, less
+    the withheld dividends and the r charged on idle put collateral.
+    """
+    m = P.mu - P.delta
+    per_yr = 1.0 / (g.puts * P.cadence)
+    n = sum(g.inv_hist.values())
+    inv = sum(k * v for k, v in g.inv_hist.items()) / n
+    cap = g.mvcap_sum / g.cap_n
+    income = (g.prem_put + g.prem_call) * per_yr + g.dividends * per_yr
+    base = income + inv * m - P.r * cap
+    ledger = (base - (g.acq_loss + g.giveaway) * per_yr) / cap
+    dollar = (base - (g.acq_loss_d + g.giveaway_d) * per_yr) / cap
+    kf = k_star_drift(P.p_star, P.tau_p, P.sigma, m)
+    leak = inv * P.delta * P.withhold / cap
+    over = P.r * P.gamma_p * kf / cap
+    delta = g.delta_sum / g.cap_n / cap
+    theory = delta * (P.mu - P.r) - leak - over
+    return {"ledger": ledger, "dollar": dollar, "theory": theory,
+            "delta": delta, "dollar - theory": dollar - theory,
+            "ledger - theory": ledger - theory}
+
+
+def dollars(args):
+    """Ledger against dollars per period, on simulated paths (TODO II-34).
+
+    Three runs through one pool: Standard and Conservative in the real world,
+    and Standard at the pricing drift mu = r, where no-arbitrage makes the
+    dollar answer exact -- minus the leak and the overcharge, nothing else.
+    Standard errors are across the batches each run is split into.
+    """
+    import model
+    runs = (("Standard, real world", dict(p_star=0.20)),
+            ("Conservative, real world", dict(p_star=0.10)),
+            ("Standard, pricing drift mu = r", dict(p_star=0.20, mu=0.05)))
+    paths = args.paths or 1600
+    jobs, spans = [], []
+    for label, kw in runs:
+        P = Params(delta=0.025, years=30.0, paths=paths, seed=args.seed,
+                   book_delta=True, **kw)
+        js = batch_jobs(P)
+        spans.append((label, P, len(jobs), len(jobs) + len(js)))
+        jobs += js
+    aggs = pmap(_batch, jobs)
+    for label, P, a, b in spans:
+        rows = [_dollar_row(P, g) for g in aggs[a:b]]
+        whole = _dollar_row(P, merge_all(aggs[a:b]))
+        nb = len(rows)
+        C = as_config(P, label)
+        ana = model.economics(C, "P", model.occupation(C, "P"),
+                              horizon=P.years)["econ_excess"]
+        print(f"\n{'=' * 72}\nDOLLARS PER PERIOD: {label}  ({P.paths} paths x "
+              f"{P.years:g}y in {nb} batches, seed {P.seed})\n{'=' * 72}")
+        print(f"{'':>34} {'estimate':>10} {'s.e.':>9}")
+        for key in ("ledger", "dollar", "theory", "dollar - theory",
+                    "ledger - theory"):
+            vals = [r[key] for r in rows]
+            mean = sum(vals) / nb
+            se = sqrt(sum((v - mean) ** 2 for v in vals) / (nb - 1) / nb)
+            print(f"{key + ' excess' if ' ' not in key else key:>34} "
+                  f"{whole[key]:>+10.3%} {se:>9.3%}")
+        print(f"{'book delta / market-value capital':>34} {whole['delta']:>10.3f}")
+        print(f"{'ledger, analytic (model.economics)':>34} {ana:>+10.3%}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--scenario", default="all",
                     choices=["base", "dividends", "stress", "sweep",
-                             "validate", "constrained", "all"])
+                             "validate", "dollars", "constrained", "all"])
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     ap.add_argument("--years", type=float, default=None,
@@ -1318,6 +1424,10 @@ def main():
 
     if args.scenario == "validate":
         validate(args)
+        return
+
+    if args.scenario == "dollars":
+        dollars(args)
         return
 
     if args.scenario == "constrained":
