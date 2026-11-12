@@ -117,7 +117,7 @@ Of the table's three returns, then, only the first measures the strategy. The ot
 
 ## The benchmark that matters
 
-An excess return of +1.40% over the risk-free rate sounds like a verdict. It isn't, because T-bills are the wrong comparison. This strategy keeps almost all of its capital in shares — 98% at the thirty-year mark — so the question an operator actually faces is not whether it beats cash but whether it beats putting the same money in **the stock**.
+The 1.40% is measured against T-bills, and T-bills are the wrong comparison. This strategy keeps almost all of its capital in shares — 98% at the thirty-year mark — so the question an operator actually faces is not whether it beats cash but whether it beats putting the same money in **the stock**.
 
 Buying and holding the same stock earns μ − r − w·δ = **+1.625%** over the risk-free rate. Held in the proportion the wheel's own capital is in shares — 96.5% at five years, 98.3% at thirty — it earns:
 
