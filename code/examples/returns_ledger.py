@@ -20,12 +20,12 @@ independent of --horizon (which drives the single-horizon breakdown above the
 table); section 09 shows it for both regimes, the Conservative rows from
 --p-star 0.10, and its equity row comes from returns_leverage.py.  True excess
 rises with the horizon in both regimes, following the book's delta (TODO
-II-34) -- 1.23% to 1.40% from five years to thirty in the Standard regime,
-1.01% to 1.28% in the Conservative -- while cash on cost basis falls through
-zero in both, at 20.5 years in the Standard regime.  Cash on market value sits
+II-34) -- 1.38% to 1.49% from five years to thirty in the Standard regime,
+1.33% to 1.46% in the Conservative -- while cash on cost basis falls through
+zero in both, at 21.2 years in the Standard regime.  Cash on market value sits
 between the two and splits the cash line's error: mostly numerator at five
-years (5.9% against 1.23%, cost basis taking back 1.8 points), mostly
-denominator at thirty (1.66% against 1.40%, cost basis at 1.57 times market
+years (6.1% against 1.38%, cost basis taking back 1.8 points), mostly
+denominator at thirty (1.76% against 1.49%, cost basis at 1.57 times market
 value).  fig:two-ledgers draws the three returns against the horizon.
 
 Case values are in dollars per period.  Comments quote the prose they back,
@@ -355,14 +355,14 @@ CASES = [
         "table_lots": ([5.41, 7.39, 11.40], 0.05),
         "table_mv": ([5.61, 7.59, 11.59], 0.05),
         "table_cost": ([6.70, 9.83, 18.23], 0.06),
-        "table_excess": ([0.0138, 0.0143, 0.0149], 0.0005),  # "Standard's from 1.23% to 1.40%"
+        "table_excess": ([0.0138, 0.0143, 0.0149], 0.0001),  # "Standard's from 1.38% to 1.49%"
         "table_cash": ([0.0428, 0.0192, -0.0070], 0.0005),
         "table_cash_mv": ([0.0608, 0.0397, 0.0176], 0.0005),
         # The cash-on-cost paragraph at thirty years: the numerator has come
         # right and the error is all denominator; and the line's zero.
-        "cash_mv": (0.0176, 0.0005),        # "cash on market value reads 1.7%"
+        "cash_mv": (0.0176, 0.0005),        # "cash on market value reads 1.8%"
         "basis_ratio": (1.57, 0.005),       # "1.57 times market value"
-        "cash_cost_zero": (21.2, 0.05),     # "around year twenty"; "zero at 20.5"
+        "cash_cost_zero": (21.2, 0.05),     # "crosses zero a little after year twenty"
     }, note="Standard regime"),
     # The decomposition table's other columns.  At five years the costs are
     # twice the gain, and Track A's cash on market value is the number an
@@ -392,7 +392,7 @@ CASES = [
         "table_lots": ([2.63, 3.58, 5.50], 0.05),   # "lots held 5.50"
         "table_mv": ([2.82, 3.77, 5.70], 0.05),     # "capital (market) 5.70"
         "table_cost": ([3.35, 4.86, 8.90], 0.06),   # "capital (cost) 8.90"
-        "table_excess": ([0.0133, 0.0139, 0.0146], 0.0005),  # "Conservative's from 1.01% to 1.28%"
+        "table_excess": ([0.0133, 0.0139, 0.0146], 0.0001),  # "Conservative's from 1.33% to 1.46%"
         "table_cash": ([0.0407, 0.0184, -0.0071], 0.0005),  # "cash-on-cost -0.83%"
         "table_cash_mv": ([0.0578, 0.0381, 0.0170], 0.0005),
     }, note="Conservative regime"),
