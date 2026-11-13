@@ -15,6 +15,7 @@ sits in the same section.  The cut follows the code, not the headings.
 """
 
 import os
+from math import exp
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -69,6 +70,11 @@ FIELDS = [
     ("EW_near", "  Wald at the mean ladder height, the b -> 0 end", ".2f"),
     ("prem", "call premiums collected per lot over its life", ".4f"),
     ("exitcost", "upside surrendered per lot at call-away", ".4f"),
+    # The interest each call premium earns while its call runs (TODO II-35),
+    # and the covered-call leg's net: by eq:delta-return, exactly the stock's
+    # premium on the exposure the lot's calls hand over.
+    ("prem_float", "  interest on those premiums while each call runs", ".5f"),
+    ("call_leg_net", "  the covered-call leg, net, per lot", ".4f"),
 ]
 
 
@@ -203,6 +209,9 @@ def compute(cfg=None, measure="P", horizon=None, ctx=None, **kw):
         # upside handed back.  Quoted in section 09, but they come off this walk.
         "prem": near["E[prem]"],
         "exitcost": near["E[exitcost]"],
+        "prem_float": near["E[prem]"] * (exp(cfg.r * cfg.tau_c) - 1),
+        "call_leg_net": (near["E[prem]"] * exp(cfg.r * cfg.tau_c)
+                         - near["E[exitcost]"]),
     }
 
 
@@ -314,6 +323,10 @@ CASES = [
         "EW_near": (2.22, 0.02),
         "prem": (0.0372, 0.001),        # section 09: "a lot collects 3.72% ... in call premiums"
         "exitcost": (0.0390, 0.001),    # section 09: "and surrenders 3.90% in upside at call-away"
+        # "0.01% more in interest on them"; "costs a lot 0.16%".  By hand:
+        # 0.03724*(e^(0.05/13) - 1) = 0.000144, and 0.03724 + 0.000144 - 0.03900.
+        "prem_float": (0.000144, 0.000005),
+        "call_leg_net": (-0.00162, 0.00005),
     }, note="Standard regime"),
     Case("--measure Q", {
         "EW": (9.0, 1.0),               # "E[W] ~ 9 years" -- a round figure on
