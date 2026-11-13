@@ -20,7 +20,7 @@ Backs [eq:excess-return](#eq:excess-return), [eq:delta-return](#eq:delta-return)
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_benchmark.py` | wheel = 1.49%, equity_frac = 98.3%, buy_hold = 1.625%, buy_hold_adj = 1.60%, difference = -0.10%, exposure_sold = 0.104%, delta_frac = 93.1%, buy_hold_delta = 1.51%, difference_delta = -0.020%, delta_sale_frac = 93.24%, shortcut = 0.003% |
+| `python code/examples/returns_benchmark.py` | wheel = 1.49%, equity_frac = 98.3%, buy_hold = 1.625%, buy_hold_adj = 1.60%, difference = -0.10%, exposure_sold = 0.104%, delta_frac = 93.1%, calls_sold = 6.9%, put_adds = 1.68%, buy_hold_delta = 1.51%, difference_delta = -0.020%, delta_sale_frac = 93.24%, shortcut = 0.002% |
 | `python code/examples/returns_benchmark.py --p-star 0.10` | wheel = 1.46%, buy_hold_adj = 1.57%, difference = -0.11%, difference_delta = -0.020% |
 | `python code/examples/returns_benchmark.py --iv-spread 0.005` | wheel = 1.72%, difference = 0.12% |
 | `python code/examples/returns_benchmark.py --iv-spread 0.010` | wheel = 1.94%, difference = 0.35% |
@@ -34,7 +34,7 @@ Backs [eq:excess-return](#eq:excess-return), [eq:delta-return](#eq:delta-return)
 | `python code/examples/returns_benchmark.py --delta 0.01` | wheel = 1.69%, difference = -0.13% |
 | `python code/examples/returns_benchmark.py --delta 0.04` | wheel = 1.29%, difference = -0.09% |
 | `python code/examples/returns_benchmark.py --delta 0.06` | wheel = 1.02%, difference = -0.07% |
-| `python code/examples/returns_benchmark.py --horizon 5` | wheel = 1.38%, equity_frac = 96.5%, buy_hold_adj = 1.57%, difference = -0.19%, exposure_sold = 0.186%, delta_frac = 87.2%, buy_hold_delta = 1.42%, difference_delta = -0.035%, delta_sale_frac = 87.47%, shortcut = 0.006% |
+| `python code/examples/returns_benchmark.py --horizon 5` | wheel = 1.38%, equity_frac = 96.5%, buy_hold_adj = 1.57%, difference = -0.19%, exposure_sold = 0.186%, delta_frac = 87.2%, calls_sold = 12.8%, put_adds = 3.47%, buy_hold_delta = 1.42%, difference_delta = -0.035%, delta_sale_frac = 87.47%, shortcut = 0.005% |
 | `python code/examples/returns_benchmark.py --horizon 10` | wheel = 1.43%, buy_hold_adj = 1.58%, difference = -0.15%, delta_frac = 90.0%, buy_hold_delta = 1.46%, difference_delta = -0.028%, shortcut = 0.004% |
 | `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 5` | wheel = 1.33%, difference = -0.19%, difference_delta = -0.035% |
 | `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 10` | wheel = 1.39%, difference = -0.15%, difference_delta = -0.028% |

@@ -43,6 +43,8 @@ FIELDS = [
     # exposure the calls sell, (shares - delta)*(mu - r), and the gap to the
     # delta-scaled stock is the withholding on those shares, nothing else.
     ("delta_frac", "  the book's delta (% of capital)", ".1%"),
+    ("calls_sold", "    the exposure the calls take away", ".1%"),
+    ("put_adds", "    the exposure the put adds back", ".2%"),
     ("buy_hold_delta", "  buy & hold scaled to the book's delta", ".2%"),
     ("difference_delta", "wheel minus delta-scaled buy & hold", ".3%"),
     ("exposure_sold", "  the exposure the calls sell, at mu - r", ".3%"),
@@ -50,7 +52,7 @@ FIELDS = [
     # broker's screen shows (model.book_delta).  It overstates the exposure by
     # the drift of delta over an option's life.
     ("delta_sale_frac", "  the book's delta at sale (% of capital)", ".2%"),
-    ("shortcut", "  what the shortcut adds to the gap, at mu - r", ".3%"),
+    ("shortcut", "  what the shortcut adds to the delta-scaled gap", ".3%"),
 ]
 
 
@@ -81,11 +83,13 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
         "buy_hold_adj": buy_hold_adj,
         "difference": difference,
         "delta_frac": delta_frac,
+        "calls_sold": float(e["I"] * (1.0 - inv) / cap),
+        "put_adds": float(put / cap),
         "buy_hold_delta": buy_hold_delta,
         "difference_delta": e["econ_excess"] - buy_hold_delta,
         "exposure_sold": (equity_frac - delta_frac) * premium,
         "delta_sale_frac": delta_sale,
-        "shortcut": (delta_sale - delta_frac) * premium,
+        "shortcut": (delta_sale - delta_frac) * buy_hold,
     }
 
 
@@ -106,11 +110,13 @@ CASES = [
         # delta-scaled stock 0.375% of withholding on the 5.2 points of capital
         # between shares and delta, by hand: 0.00375*(0.9831 - 0.9309).
         "exposure_sold": (0.00105, 0.00002),
-        "delta_frac": (0.931, 0.0005),      # "93.2% at thirty", which is at sale
-        "buy_hold_delta": (0.0151, 0.0001), # "the stock, scaled to the book's delta  +1.52%"
-        "difference_delta": (-0.00020, 0.00002),  # "the wheel, minus it  -0.12%"
-        "delta_sale_frac": (0.9324, 0.0001),
-        "shortcut": (0.000030, 0.000005),
+        "delta_frac": (0.931, 0.0005),      # "leaves 93.1%"
+        "calls_sold": (0.069, 0.0005),      # "less 6.9"
+        "put_adds": (0.0168, 0.0005),       # "plus 1.7"
+        "buy_hold_delta": (0.0151, 0.0001), # "the stock, scaled to the book's delta  +1.51%"
+        "difference_delta": (-0.00020, 0.00002),  # "the wheel, minus it  -0.020%"; "2.0"
+        "delta_sale_frac": (0.9324, 0.0001),     # the shortcut: "93.2%"
+        "shortcut": (0.000025, 0.000005),        # "a quarter of one at thirty"
     }, note="Standard regime, 30y"),
     Case("--p-star 0.10", {
         "wheel": (0.0146, 0.0001),          # Conservative: "true excess +1.49%"
@@ -200,20 +206,22 @@ CASES = [
         "buy_hold_adj": (0.0157, 0.0001),   # "+1.57%"
         "difference": (-0.00187, 0.00002),  # "-0.19%"; "a fifth of a point at five"
         "exposure_sold": (0.00187, 0.00002),
-        "delta_frac": (0.872, 0.0005),      # "87.5% of its capital ... at five years", at sale
+        "delta_frac": (0.872, 0.0005),      # "leaving 87.2%"
+        "calls_sold": (0.128, 0.0005),      # "the calls take 12.8 points"
+        "put_adds": (0.0347, 0.0005),       # "the put adds 3.5 back"
         "buy_hold_delta": (0.0142, 0.0001), # "+1.42%"
-        "difference_delta": (-0.00035, 0.00002),  # "-0.19%"
-        "delta_sale_frac": (0.8747, 0.0001),
-        "shortcut": (0.000056, 0.000005),
+        "difference_delta": (-0.00035, 0.00002),  # "-0.035%"; "3.5 basis points"
+        "delta_sale_frac": (0.8747, 0.0001),     # the shortcut: "87.5%"
+        "shortcut": (0.000045, 0.000005),        # "under half a basis point wider"
     }, note="Standard, five years"),
     Case("--horizon 10", {
         "wheel": (0.0143, 0.0001),          # the 10 y column
         "buy_hold_adj": (0.0158, 0.0001),   # "+1.58%"
         "difference": (-0.00149, 0.00002),  # "-0.15%"
         "delta_frac": (0.900, 0.0005),
-        "buy_hold_delta": (0.0146, 0.0001), # "+1.47%"
-        "difference_delta": (-0.00028, 0.00002),  # "-0.16%"
-        "shortcut": (0.000044, 0.000005),
+        "buy_hold_delta": (0.0146, 0.0001), # "+1.46%"
+        "difference_delta": (-0.00028, 0.00002),  # "-0.028%"
+        "shortcut": (0.000036, 0.000005),
     }, note="Standard, ten years"),
     Case("--p-star 0.10 --horizon 5", {
         "wheel": (0.0133, 0.0001),

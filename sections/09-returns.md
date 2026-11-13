@@ -128,7 +128,7 @@ Buying and holding the same stock earns μ − r − w·δ = **+1.625%** over th
 | the same capital in the stock | +1.57% | +1.58% | +1.60% |
 | **difference** | **−0.19%** | **−0.15%** | **−0.10%** |
 
-At fair option prices, then, the wheel earns less than the same money in the stock: a tenth of a point a year at thirty years, a fifth of a point at five. The options are not what costs it; the exposure is. A lot is a share with a call sold against it, and the call takes back part of the share's exposure to the stock — about half of it while the price sits near the strike, almost none once the price has fallen well below it. The book is therefore a smaller position in the stock than the shares it holds.
+At fair option prices, then, the wheel earns less than the same money in the stock: a tenth of a point a year at thirty years, a fifth of a point at five. The options are not what costs it; the exposure is. A lot is a share with a call sold against it, and the call takes back part of the share's exposure to the stock — about half of it while the price sits near the strike, almost none once the price has fallen well below it. The one live put works the other way, adding a little exposure the shares do not carry. The book as a whole is therefore a smaller position in the stock than the shares it holds.
 
 > **Detour: delta, and what an option is expected to earn.** An option's *delta* — the number [the entry section](#sec:entry) noted a broker's screen displays — is how far its price moves when the share's price moves by one: about a half for a call struck at the money, close to zero for one far out of the money, close to one for one deep in it ([Hull](#ref:hull)). For a call with τ left to run it is Δ = e^(−δ·τ)·N(d₁), with d₁ the argument of [eq:bs-call](#eq:bs-call) and δ the dividend yield. Delta is also how options are priced: Δ shares, with the rest of the option's value held in cash, move with the option over the next instant, so the option must earn what that mix earns, or one could be sold against the other for a riskless profit. Over that instant, then, an option's expected gain above the risk-free rate is its delta times the share's:
 >
@@ -140,13 +140,14 @@ At fair option prices, then, the wheel earns less than the same money in the sto
 >
 > the factor e^(r·(τ−t)) carrying each moment's gain to expiry. Summing [eq:delta-return](#eq:delta-return) over the life, what the option earns above the risk-free rate is Δ̄·(μ − r)·τ of the price it was sold at. Delta is therefore the size of the stock position a book is equivalent to, as far as expected return goes; risk is another matter, taken up in the next subsection.
 
-Counted by delta, together with the short put, the book carries **87.5%** of its capital in stock exposure at five years and **93.2%** at thirty — not the 96.5% and 98.3% in shares. Against the stock scaled to that exposure instead, the gap all but closes:
+Counted by delta, each option's averaged over its life by [eq:life-delta](#eq:life-delta), the book carries less exposure than its capital. At five years 96.5% of the capital is in shares and the other 3.5% is the collateral behind the live put. The calls take 12.8 points of the shares' exposure away and the put adds 3.5 back, leaving **87.2%**. At thirty, 98.3% in shares less 6.9 plus 1.7 leaves **93.1%**. Against the stock scaled to that exposure instead, the gap all but closes:
 
 | Standard regime | 5 y | 10 y | 30 y |
 |---|---|---|---|
-| the stock, scaled to the book's delta | +1.42% | +1.47% | +1.52% |
-| the wheel, minus it | −0.19% | −0.16% | −0.12% |
-| …with the collateral credited, as below | −0.01% | −0.03% | −0.03% |
+| the stock, scaled to the book's delta | +1.42% | +1.46% | +1.51% |
+| the wheel, minus it | −0.035% | −0.028% | −0.020% |
+
+What is left is exactly the withholding tax on the dividends of the shares the book holds beyond the exposure it carries: 15% of the 2.5% dividend, on the 9.3 points of capital between them at five years — 3.5 basis points — and on 5.2 points at thirty, 2.0. The put's part of the exposure pays none, since it holds no shares. The usual shortcut takes each option's delta at the moment it is sold, the figure a broker's screen shows. It puts the book at 87.5% and 93.2%, a little higher, because a call's delta moves over its life — with the price and with the time left — and on this book averages slightly above its value at sale. Counted that way, the gap reads under half a basis point wider at five years and a quarter of one at thirty.
 
 <a id="para:identical-to-owning-the-stock"></a>
 **At fair option prices the wheel is economically a smaller position in the stock.** Per unit of the exposure it actually carries it earns what the stock earns, short only of the tax withheld on dividends from shares whose exposure its calls have sold. Its calls sell part of that exposure away at a fair price, and the shortfall against the same capital fully invested in the stock is the return on the exposure sold.
