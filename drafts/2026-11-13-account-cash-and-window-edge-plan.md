@@ -1,7 +1,7 @@
 # The account's cash, the window's edge, and the book's delta — plan
 
-**Status: drafted 2026-11-13, for Sergei's approval before any code.** The direction is his
-(*Decided* below); the method and the order of work are proposals. Closes TODO II-35 when done,
+**Status: agreed 2026-11-13**, in conversation, before any code: the direction and the four
+choices on how to carry it through, all under *Decided* below. Closes TODO II-35 when done,
 and absorbs what was left of II-34 (steps 6–7 of `drafts/2026-11-06-dollars-per-period-plan.md`).
 
 ## What was found
@@ -44,23 +44,28 @@ the real-world identity is exact too: **true excess = Δ̄·(μ − r) − withh
 3. **The book's delta is computed properly**, averaged over each option's life with its drift.
    The article then explains the usual shortcut — delta at the moment of sale, what a broker's
    screen shows — and what it does to the residual, citing Israelov and Nielsen where relevant.
-
-## To decide
-
-1. **Track A gets the same interest** (recommended). A brokerage statement shows interest on the
-   cash balance, and the same cash cannot earn r in one ledger and nothing in the other. Track A
+4. **Track A gets the same interest.** A brokerage statement shows interest on the cash
+   balance, and the same cash cannot earn r in one ledger and nothing in the other. Track A
    income gains one line; the cash rows move by 10–20bp. The point where cash on market value
    meets the economic return barely moves, 35.8 → 35.9 years, since the credit enters both.
-2. **The float runs from sale to expiry** (recommended), as interest on the premium,
-   premium·(e^(rτ) − 1). The alternative, discounting the payout to the sale date, is the same to
-   first order and harder to say.
-3. **The edge is fixed two independent ways.** In `model.py` a call's premium and its upside
-   surrendered carry the same weight, since both belong to one call period. In `wheel_sim.py`
-   each option still open at the horizon is marked to market, at its Black–Scholes value for the
-   tenor left. Agreement between them is evidence; the same fix in both would be arithmetic.
-4. **`code/ledger_dollar_check.py` is deleted** (recommended). It has been stale since II-34's
-   step 1, and the structural check below does its job exactly. II-34's `DONE.md` entry keeps
-   the record of what it showed.
+5. **Every flow is booked on the day it happens, in that day's dollars, and the account's cash
+   earns r from the day it arrives.** A premium earns interest from the day the option is sold;
+   the upside surrendered is booked at call-away and the mark loss at assignment, undiscounted.
+   The premium's interest is counted until its option expires, where the period's books close:
+   after that it is income, withdrawn in the model, and kept in the account it would earn r and
+   be charged r, adding nothing to the excess. The alternative — discounting each payout back
+   to its sale date — was set aside: Track A books no payout to discount, and it would put the
+   option flows alone in present-value dollars (it differs by 0.05–0.09bp weekly, 2–3bp at
+   quarterly cadence). Withholding is taken at the dividend, at source, and carries no float.
+6. **The edge is fixed two independent ways, and they must agree.** In `model.py` a call's
+   premium and its upside surrendered carry the same weight, since both belong to one call
+   period. In `wheel_sim.py` each option still open at the horizon is marked to market, at its
+   Black–Scholes value for the tenor left. The two agree to first order by construction and
+   differ only in how delta moves within the last weeks; they must agree within the
+   simulation's standard error, or the work stops and is reported.
+7. **`code/ledger_dollar_check.py` is deleted.** It has been stale since II-34's step 1, and the
+   structural check below does its job exactly. II-34's `DONE.md` entry keeps the record of what
+   it showed.
 
 ## What moves
 
