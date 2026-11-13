@@ -96,11 +96,11 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
 # old.
 CASES = [
     Case("", {
-        "wheel": (0.0149, 0.0001),          # section 09: "+1.40%"; the table's 30 y
+        "wheel": (0.0149, 0.0001),          # section 09: "+1.49%"; the table's 30 y
         "equity_frac": (0.983, 0.0005),     # "98% at the thirty-year mark"; "98.3%"
         "buy_hold": (0.01625, 0.00001),     # "mu - r - w*delta = +1.625%"
         "buy_hold_adj": (0.0160, 0.0001),   # "the same capital in the stock  +1.60%"
-        "difference": (-0.00105, 0.00002),  # "difference  -0.20%"; "a fifth of a point"
+        "difference": (-0.00105, 0.00002),  # "difference  -0.10%"; "a tenth of a point"
         # The identities the structural checks hold exactly: the gap to the
         # equity-adjusted stock is minus the exposure sold, and to the
         # delta-scaled stock 0.375% of withholding on the 5.2 points of capital
@@ -198,7 +198,7 @@ CASES = [
         "wheel": (0.0138, 0.0001),          # the benchmark tables' 5 y column
         "equity_frac": (0.965, 0.0005),     # "96.5% at five years"
         "buy_hold_adj": (0.0157, 0.0001),   # "+1.57%"
-        "difference": (-0.00187, 0.00002),  # "-0.33%"; "a third of a point at five"
+        "difference": (-0.00187, 0.00002),  # "-0.19%"; "a fifth of a point at five"
         "exposure_sold": (0.00187, 0.00002),
         "delta_frac": (0.872, 0.0005),      # "87.5% of its capital ... at five years", at sale
         "buy_hold_delta": (0.0142, 0.0001), # "+1.42%"
@@ -209,7 +209,7 @@ CASES = [
     Case("--horizon 10", {
         "wheel": (0.0143, 0.0001),          # the 10 y column
         "buy_hold_adj": (0.0158, 0.0001),   # "+1.58%"
-        "difference": (-0.00149, 0.00002),  # "-0.28%"
+        "difference": (-0.00149, 0.00002),  # "-0.15%"
         "delta_frac": (0.900, 0.0005),
         "buy_hold_delta": (0.0146, 0.0001), # "+1.47%"
         "difference_delta": (-0.00028, 0.00002),  # "-0.16%"

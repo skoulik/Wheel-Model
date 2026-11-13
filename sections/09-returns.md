@@ -118,17 +118,17 @@ Of the table's three returns, then, only the first measures the strategy. The ot
 
 ## The benchmark that matters
 
-The 1.40% is measured against T-bills, and T-bills are the wrong comparison. This strategy keeps almost all of its capital in shares — 98% at the thirty-year mark — so the question an operator actually faces is not whether it beats cash but whether it beats putting the same money in **the stock**.
+The 1.49% is measured against T-bills, and T-bills are the wrong comparison. This strategy keeps almost all of its capital in shares — 98% at the thirty-year mark — so the question an operator actually faces is not whether it beats cash but whether it beats putting the same money in **the stock**.
 
 Buying and holding the same stock earns μ − r − w·δ = **+1.625%** over the risk-free rate: its 7% expected return, less the 5% risk-free rate and the withholding tax w = 15% takes from its 2.5% dividend. Not all of the wheel's capital is in shares, though — the rest is the margin standing behind the live put. Held in the same proportion, 96.5% in the stock at five years and 98.3% at thirty with the rest in cash earning r, buy-and-hold earns:
 
 | Standard regime | 5 y | 10 y | 30 y |
 |---|---|---|---|
-| the wheel | +1.23% | +1.31% | +1.40% |
+| the wheel | +1.38% | +1.43% | +1.49% |
 | the same capital in the stock | +1.57% | +1.58% | +1.60% |
-| **difference** | **−0.33%** | **−0.28%** | **−0.20%** |
+| **difference** | **−0.19%** | **−0.15%** | **−0.10%** |
 
-At fair option prices, then, the wheel earns less than the same money in the stock: a fifth of a point a year at thirty years, a third of a point at five. The options are not what costs it; the exposure is. A lot is a share with a call sold against it, and the call takes back part of the share's exposure to the stock — most of it while the price sits near the strike, almost none once the price has fallen well below it. The book is therefore a smaller position in the stock than the shares it holds.
+At fair option prices, then, the wheel earns less than the same money in the stock: a tenth of a point a year at thirty years, a fifth of a point at five. The options are not what costs it; the exposure is. A lot is a share with a call sold against it, and the call takes back part of the share's exposure to the stock — about half of it while the price sits near the strike, almost none once the price has fallen well below it. The book is therefore a smaller position in the stock than the shares it holds.
 
 > **Detour: delta, and what an option is expected to earn.** An option's *delta* is how far its price moves when the share's price moves by one: about a half for a call struck at the money, close to zero for one far out of the money, close to one for one deep in it ([Hull](#ref:hull)). A share with a call sold against it moves by one less the call's delta, and a short put moves with the share by the put's delta, so the sum over a book is the number of shares it behaves like. In the Black–Scholes setting this article prices every option in, a position's expected return above the risk-free rate is its delta times the share's. Delta is therefore the size of the stock position a book is equivalent to, as far as expected return goes; risk is another matter, taken up in the next subsection.
 
