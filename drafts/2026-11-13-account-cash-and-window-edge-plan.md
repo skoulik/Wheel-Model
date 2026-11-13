@@ -75,9 +75,13 @@ the real-world identity is exact too: **true excess = Δ̄·(μ − r) − withh
    capital, and the spread at which leverage is neutral is no longer the excess itself but
    excess·(L − 1)/(L − 1 − c·L), 2% higher at the survivable leverage. With the premiums alone,
    at a 1.5-point spread, return on equity rises 0.5bp at the survivable leverage and 1.6bp at
-   the broker's ceiling. **Open, his call:** whether the put's collateral in §09's levered
-   book — posted from equity in `equity_required` — is likewise cash set against the debit;
-   by the same rule it would be, adding 3bp at the survivable leverage and 11bp at the ceiling.
+   the broker's ceiling. **The put's collateral too** (Sergei, the same day): in §09's levered
+   book it is posted from equity, and under one balance it is cash set against the debit,
+   adding 3bp more at the survivable leverage and 11bp at the ceiling. The buy-and-hold
+   benchmark keeps the same share of its capital in cash, so the rule applies to it as well,
+   and the gap between them still scales by L up to spread × the premiums held, 0.3bp a point
+   of spread. The neutral spread becomes 1.79% against an excess of 1.49% at the survivable
+   leverage — a fifth above it, since the collateral covers that much of a small debit.
 
 ## What moves
 

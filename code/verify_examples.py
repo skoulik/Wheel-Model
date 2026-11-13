@@ -318,25 +318,39 @@ def main():
     # `examples/returns_leverage.py` can only pin the article's own points on
     # them.  Both are checked here across the whole axis instead.
     #
-    # Neutrality: the spread at which leverage is exactly neutral is the
-    # strategy's own excess return, at EVERY leverage.  A single case cannot
-    # show "at every L", which is the whole content of the claim.
+    # Neutrality.  With no cash in the account the spread at which leverage is
+    # exactly neutral is the strategy's own excess return, at EVERY leverage.
+    # The account's cash -- the collateral and the premiums held -- is set
+    # against the debit (TODO II-35), and then the neutral spread is
+    # excess*(L - 1)/(L - 1 - c*L): above the excess, by most where the debit
+    # is smallest.  A single case cannot show "at every L", so both are
+    # checked across the axis.
     ex30 = e30["econ_excess"]
+    c30 = (STD.gamma_p * e30["k"] + e30["premium_held"]) / e30["mv_capital"]
     for L in (1.0, 1.0861, 1.1349, 1.5, 2.0, 4.0, 10.0):
-        check(f"leverage is neutral at L = {L:g} when the spread is the excess",
+        check(f"no cash: leverage is neutral at L = {L:g} when the spread is the excess",
               levered_excess(ex30, L, ex30), ex30, 1e-12)
+    for L in (1.0861, 1.1349, 1.5, 2.0, 4.0, 10.0):
+        s_star = ex30 * (L - 1) / (L - 1 - c30 * L)
+        check(f"with the account's cash: neutral at L = {L:g} at excess*(L-1)/(L-1-cL)",
+              levered_excess(ex30, L, s_star, c30), ex30, 1e-12)
     check("an unlevered book pays no spread, whatever the rate",
-          levered_excess(ex30, 1.0, 0.03), ex30, 1e-12)
-    # And the verdict is invariant to financing: the same L and the same spread
-    # apply to a levered buy-and-hold, so the gap merely scales by L.  If this
-    # ever fails, the wheel-versus-stock headline has become a claim about
-    # borrowing.
+          levered_excess(ex30, 1.0, 0.03, c30), ex30, 1e-12)
+    # And the verdict is invariant to financing, up to the premiums held: the
+    # same L and spread apply to a levered buy-and-hold, whose cash is the
+    # same share of its capital as the wheel's collateral, so the gap scales
+    # by L and keeps only spread times the premiums the wheel alone holds.
+    # If this ever fails otherwise, the wheel-versus-stock headline has become
+    # a claim about borrowing.
     bh30 = buy_hold_excess(STD, "P") * e30["I"] / e30["mv_capital"]
+    bh_c = 1.0 - e30["I"] / e30["mv_capital"]
+    held = e30["premium_held"] / e30["mv_capital"]
     for L in (1.0861, 1.1349, 1.1557, 2.0):
         for spread in (0.0, 0.015, 0.03):
-            gap = levered_excess(ex30, L, spread) - levered_excess(bh30, L, spread)
+            gap = (levered_excess(ex30, L, spread, c30)
+                   - levered_excess(bh30, L, spread, bh_c))
             check(f"wheel - buy-and-hold at L = {L:.4f}, spread {spread:.1%},"
-                  f" scales by L", gap / L - (ex30 - bh30), 0.0, 1e-15)
+                  f" scales by L", gap / L - (ex30 - bh30) - spread * held, 0.0, 1e-15)
     # The equity-required row against the capital it is a fraction of: shares
     # paid for in full require the whole of Track B, which is the row's
     # definition checked from the boundary rather than restated.

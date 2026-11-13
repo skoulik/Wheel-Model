@@ -83,10 +83,14 @@ def compute(cfg=None, measure="P", horizon=30.0, eps=0.10, ctx=None, **kw):
     e = model.economics(cfg, measure, occ, horizon=horizon)
     excess = e["econ_excess"]
     spread = cfg.fin_spread
-    # The premiums waiting for their options to expire are the account's cash,
-    # and a levered account holds them against its debit, where they earn r_b
-    # (TODO II-35).  The buy-and-hold benchmark holds none.
-    cash = e["premium_held"] / e["mv_capital"]
+    # The account's cash -- the put's collateral, posted from equity, and the
+    # premiums waiting for their options to expire -- is one balance with the
+    # debit in a levered account, so it is set against it and earns r_b
+    # (TODO II-35).  The benchmark holds the same share of its capital in cash,
+    # the share the wheel's collateral takes, and the same rule applies to it;
+    # only the premiums held are the wheel's alone.
+    cash = (cfg.gamma_p * e["k"] + e["premium_held"]) / e["mv_capital"]
+    bh_cash = 1.0 - e["I"] / e["mv_capital"]
     # The benchmark, levered the same way: buy-and-hold scaled to the wheel's
     # equity exposure, as in returns_benchmark.py.
     bh = model.buy_hold_excess(cfg, measure) * e["I"] / e["mv_capital"]
@@ -117,15 +121,15 @@ def compute(cfg=None, measure="P", horizon=30.0, eps=0.10, ctx=None, **kw):
         "unlevered": model.levered_excess(excess, 1.0, spread, cash),
         # Neutrality: excess*L - s*(L - 1 - cash*L) = excess at the survivable
         # leverage when s = excess*(L - 1)/(L - 1 - cash*L).  It was the excess
-        # itself, at every L, until the premiums held were set against the
-        # debit; they lift it by cash*L/(L - 1), 2% at L_max.
+        # itself, at every L, until the account's cash was set against the
+        # debit; that lifts it by cash*L/(L - 1 - cash*L), a fifth at L_max.
         "neutral_spread": excess * (L_max - 1) / (L_max - 1 - cash * L_max),
         "diff_levered": (model.levered_excess(excess, L_max, spread, cash)
-                         - model.levered_excess(bh, L_max, spread)),
+                         - model.levered_excess(bh, L_max, spread, bh_cash)),
         "L_ladder": Ls,
         "net_ladder": [model.levered_excess(excess, L, spread, cash) for L in Ls],
         "diff_ladder": [model.levered_excess(excess, L, spread, cash)
-                        - model.levered_excess(bh, L, spread) for L in Ls],
+                        - model.levered_excess(bh, L, spread, bh_cash) for L in Ls],
     }
 
 
@@ -149,21 +153,21 @@ CASES = [
         "L_max": (1.1349, 0.0005),          # section 11's survivable leverage
         "net_survivable": (0.0169, 0.0003), # "+1.82% at zero spread"
         "unlevered": (0.0149, 0.0003),      # eq:excess, unchanged at L = 1
-        "neutral_spread": (0.0153, 0.0003), # the crossover = the excess itself
+        "neutral_spread": (0.0179, 0.0003), # the crossover = the excess itself
         "diff_levered": (-0.001200, 0.00002),  # the capital-share gap, levered
         "L_ladder": ([1.0000, 1.0861, 1.1349, 1.1557], 0.0005),
         "net_ladder": ([0.0149, 0.0162, 0.0169, 0.0173], 0.0003),
         "diff_ladder": ([-0.001045, -0.001134, -0.001185, -0.001207], 0.00002),
     }, note="portfolio margin, financing at r: leverage at its most flattering"),
     Case("--gamma-s 0.25 --fin-spread 0.015", {
-        "net_ceiling": (0.0147, 0.0005),    # 3.8x the exposure, +0.29pp of return
-        "net_survivable": (0.0149, 0.0003), # "+1.62% at 1.5%"
-        "net_ladder": ([0.0149, 0.0149, 0.0149, 0.0149], 0.0003),
+        "net_ceiling": (0.0159, 0.0005),    # 3.8x the exposure, +0.29pp of return
+        "net_survivable": (0.0153, 0.0003), # "+1.62% at 1.5%"
+        "net_ladder": ([0.0149, 0.0152, 0.0153, 0.0153], 0.0003),
     }, note="the keenest retail financing: the whole ladder inside 2bp"),
     Case("--gamma-s 0.25 --fin-spread 0.03", {
-        "net_ceiling": (-0.0274, 0.0005),   # "-2.31%": past the crossover
-        "net_survivable": (0.0129, 0.0003), # "+1.42% at 3%"
-        "net_ladder": ([0.0149, 0.0136, 0.0129, 0.0126], 0.0003),
+        "net_ceiling": (-0.0251, 0.0005),   # "-2.31%": past the crossover
+        "net_survivable": (0.0136, 0.0003), # "+1.42% at 3%"
+        "net_ladder": ([0.0149, 0.0143, 0.0136, 0.0133], 0.0003),
     }, note="a 3% spread: every levered row below the unlevered one"),
     Case("--gamma-s 0.25 --p-star 0.10", {
         "table_equity": ([0.85, 1.09, 1.57], 0.005),  # the two-ledger table, Conservative
