@@ -341,15 +341,15 @@ CASES = [
     Case("", {
         "appreciation": (0.5128, 0.0020),   # "for 11.40 lots ... is 0.5128 a year"
         "acq_loss": (0.1553, 0.0010),       # eq:mark-loss: "0.1553 per year"
-        "call_away_loss": (0.3875, 0.0020),  # eq:giveaway: "0.3875 per year"
+        "call_away_loss": (0.3880, 0.0005),  # eq:giveaway: "0.3880 per year"
         "overpay": (0.015, 0.0005),         # "by 1.5% of the price the put was sold at"
         "giveaway_per_exit": (0.039, 0.0005),  # "3.9% of a share price for each
                                                #   lot called away"
-        "net": (-0.0300, 0.0015),           # the ledger's "net -0.0300"
+        "net": (-0.0305, 0.0002),           # the ledger's "net -0.0305"
         # The decomposition table's 30 y column, and the horizon the figure marks.
-        "balance": (35.8, 0.1),             # "meet at about thirty-six years"; "equal at 36"
-        "econ_pnl": (0.7526, 0.0020),       # eq:excess: E[Pi] = 0.7418
-        "econ_excess": (0.0149, 0.0005),    # eq:excess: "+1.40% per year"
+        "balance": (35.9, 0.1),             # "meet at about thirty-six years"; "equal at 36"
+        "econ_pnl": (0.7526, 0.0005),       # eq:excess: E[Pi] = 0.7526
+        "econ_excess": (0.0149, 0.0001),    # eq:excess: "+1.49% per year"
         # The two-ledger table's Standard rows (5/10/30y): true excess rising,
         # cash falling through zero.
         "table_lots": ([5.41, 7.39, 11.40], 0.05),
@@ -366,14 +366,14 @@ CASES = [
     }, note="Standard regime"),
     # The decomposition table's other columns.  At five years the costs are
     # twice the gain, and Track A's cash on market value is the number an
-    # operator would take for the economic return: 5.9% over r, against 1.23%.
+    # operator would take for the economic return: 6.1% over r, against 1.38%.
     Case("--horizon 5", {
         "net": (-0.26, 0.005),              # "the net is -0.26 a year"
         "cost_ratio": (2.1, 0.05),          # "the costs are twice the gain"
-        "income": (0.62, 0.005),            # "take 0.26 a year off its 0.61"
-        "cash_mv": (0.061, 0.0005),         # "would report +5.9%"
+        "income": (0.62, 0.005),            # "take 0.26 a year off its 0.62"
+        "cash_mv": (0.061, 0.0005),         # "reports +6.1%"
         "basis_gap": (0.018, 0.0005),       # "cost basis takes back only 1.8 points"
-        "econ_excess": (0.0138, 0.0005),    # "1.23% at five years"
+        "econ_excess": (0.0138, 0.0001),    # "1.38% at five years"
     }, note="Standard regime, five years"),
     Case("--horizon 10", {
         "net": (-0.19, 0.005),
@@ -381,9 +381,9 @@ CASES = [
     Case("--horizon 50", {
         "net": (0.06, 0.005),               # "by fifty the gain is ahead"
     }, note="Standard regime, fifty years"),
-    # "1.46% at a hundred": the economic figure rises with the horizon.
+    # "1.53% at a hundred": the economic figure rises with the horizon.
     Case("--horizon 100", {
-        "econ_excess": (0.0153, 0.0005),
+        "econ_excess": (0.0153, 0.0001),
     }, note="Standard regime, a hundred years"),
     Case("--p-star 0.10", {
         "econ_excess": (0.0146, 0.0005),    # Conservative: "true excess +1.49%"

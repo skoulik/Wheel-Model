@@ -40,7 +40,7 @@ At thirty years that is the 11.59 above, and it is the denominator of every retu
 
 ## What Track A leaves out
 
-Track A, the cash ledger of [the strategy section](#para:track-a), books premiums, dividends and the interest its cash earns as income and treats buying and selling a lot as swapping cash for shares at the strike, so neither assignment nor call-away registers as a gain or a loss. It is what a brokerage statement shows, and its 0.77 is the obvious candidate for the numerator. A strategy built from short options is exactly where such a number should not be taken on trust. [Goetzmann and colleagues](#ref:goetzmann-et-al-2007) show that the standard summary statistics of investment performance can be *manufactured* by option-writing overlays of this kind — that a strategy can be built to score well on them without earning anything — and characterize the measures that cannot be gamed this way. A cash yield is cruder than any of those statistics, since it does not mark the position to market at all.
+Track A, the cash ledger of [the strategy section](#para:track-a), books premiums, dividends and the interest its cash earns as income and treats buying and selling a lot as swapping cash for shares at the strike, so neither assignment nor call-away registers as a gain or a loss. It is what a brokerage statement shows, and its 0.78 is the obvious candidate for the numerator. A strategy built from short options is exactly where such a number should not be taken on trust. [Goetzmann and colleagues](#ref:goetzmann-et-al-2007) show that the standard summary statistics of investment performance can be *manufactured* by option-writing overlays of this kind — that a strategy can be built to score well on them without earning anything — and characterize the measures that cannot be gamed this way. A cash yield is cruder than any of those statistics, since it does not mark the position to market at all.
 
 Cash accounting is internally consistent, but it is not a return, because two real economic events pass through it without leaving a trace.
 
@@ -55,7 +55,7 @@ the average fall E[d] being [eq:d-mean](#eq:d-mean)'s.
 
 **The upside surrendered at call-away.** When a lot is called away, the shares are delivered at the strike while the market is *above* the strike — that is precisely why the call was exercised. The operator hands over something worth more than what they receive. Track A sees an exit at the same price as the entry and books nothing. A lot leaves once, at the first call expiry that finds the price at or above its strike — after J periods, in [the holding-time section](#sec:holding)'s notation — and stands then at a depth x_J ≤ 0: it delivers a share worth S_T, the price at that expiry, for its strike K. Measured against the price S the lot's last call was sold at, the upside it gives up is (S_T − K)/S, and at λ arrivals a year
 
-L_call  =  λ · E[ (S_T − K) / S ]  =  **0.3875** per year    {#eq:giveaway}
+L_call  =  λ · E[ (S_T − K) / S ]  =  **0.3880** per year    {#eq:giveaway}
 
 The average runs over every way a lot's price can reach that one exit, and the model takes it a call period at a time: the chance a lot is still held at period j and called at its end, times what it gives up when it is, summed over j. To first order the cost is −x_J, the overshoot of [eq:wald-holding](#eq:wald-holding), how far past its strike a lot stands on the first day it is allowed to leave, so this is the call-grid tax again, paid in price rather than in time: 3.9% of a share price for each lot called away. That is more than twice the put premiums, and it will turn out to be the largest negative term in the whole ledger. That ranking is not peculiar to this model: [Hill and colleagues](#ref:hill-et-al-2006), decomposing the returns of a fixed-strike covered-call programme into its component parts, likewise found that *"the cost of exercise ate away the largest proportion of the excess returns."*
 
@@ -65,9 +65,9 @@ Add all three, at the thirty-year horizon the section has used so far:
 
     appreciation of held shares    +0.5128
     mark loss at acquisition       −0.1553
-    upside surrendered             −0.3875
+    upside surrendered             −0.3880
     -------------------------------------
-    net                            −0.0300
+    net                            −0.0305
 
 The gain Track A ignores and the two costs it ignores nearly cancel. That is a property of the horizon, not of the strategy, and figure [fig:hidden-terms](#fig:hidden-terms) shows it. The two costs arrive at almost their full rate within a few years — every lot takes its mark loss the day it is assigned, and the fast lots are called away within weeks — while the gain accrues on whatever is held, and so grows only as the book does. At five years the costs are twice the gain and the net is −0.26 a year; the curves meet at about thirty-six years; by fifty the gain is ahead.
 
@@ -77,11 +77,11 @@ Only where the curves meet do the cash ledger and the economic one agree, so eve
 
 E[Π]  =  Track A income  +  E[I]·m  −  L_acq  −  L_call    {#eq:econ-pnl}
 
-At thirty years that is Track A's 0.7718 less the 0.0300 above: 0.7418 a year. What remains is the comparison [the strategy section](#eq:excess-return) set up: charge the capital of [eq:capital](#eq:capital) the risk-free rate it could have earned elsewhere — Track C — and divide what is left by that capital.
+At thirty years that is Track A's 0.7832 less the 0.0305 above: 0.7526 a year. What remains is the comparison [the strategy section](#eq:excess-return) set up: charge the capital of [eq:capital](#eq:capital) the risk-free rate it could have earned elsewhere — Track C — and divide what is left by that capital.
 
-**True excess return  =  ( E[Π] − r · E[Capital] ) / E[Capital]  =  (0.7418 − 0.05 × 11.591) / 11.591  =  +1.40% per year**    {#eq:excess}
+**True excess return  =  ( E[Π] − r · E[Capital] ) / E[Capital]  =  (0.7526 − 0.05 × 11.591) / 11.591  =  +1.49% per year**    {#eq:excess}
 
-The wheel earns 1.40 points a year more than the risk-free rate on the capital it ties up — at thirty years, for the figure depends on the horizon. Worked the same way it is 1.23% at five years, 1.31% at ten and 1.46% at a hundred: it rises as the book ages, for two reasons. A lot is a share with a call sold against it, and the call gives away part of what the share would earn — a large part while the price sits near the strike, almost none once the price has fallen well below it, where the call is unlikely ever to pay. A young book is mostly lots near their strikes; an old one holds more lots sunk deep, whose calls no longer offset their shares, so more of its capital earns what the stock earns. And the margin behind the one live put, which is charged the risk-free rate and earns nothing, weighs less on a larger book. The benchmark subsection below returns to both. Track A's reading moves the other way: at five years the three hidden terms take 0.26 a year off its 0.61, and its cash measured against market-value capital reports +5.9%, meeting the economic figure only near thirty-six years. The next subsection sets the horizons side by side, together with what an operator's own records would show.
+The wheel earns 1.49 points a year more than the risk-free rate on the capital it ties up — at thirty years, for the figure depends on the horizon. Worked the same way it is 1.38% at five years, 1.43% at ten and 1.53% at a hundred: it rises as the book ages. A lot is a share with a call sold against it, and the call gives away part of what the share would earn — a large part while the price sits near the strike, almost none once the price has fallen well below it, where the call is unlikely ever to pay. A young book is mostly lots near their strikes; an old one holds more lots sunk deep, whose calls no longer offset their shares, so more of its capital earns what the stock earns. The benchmark subsection below makes that exact. Track A's reading moves the other way: at five years the three hidden terms take 0.26 a year off its 0.62, and its cash measured against market-value capital reports +6.1%, meeting the economic figure only near thirty-six years. The next subsection sets the horizons side by side, together with what an operator's own records would show.
 
 ## The two ledgers, side by side
 
