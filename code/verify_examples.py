@@ -314,6 +314,36 @@ def main():
     check("MSG's observed put price against put-call parity at r = 6%",
           call_px - exp(-DIV * T_msg) + exp(-0.06 * T_msg), put_px, 0.001)
 
+    # Israelov & Nielsen (2014), p. 26: a one-month at-the-money call on a
+    # $100 index, r = delta = 0, 6% excess return, sold at 18% implied against
+    # 16% realised -- then, in the zero-premium case section 09 quotes, at 16%.
+    # Their figures are reproduced first, so the check is on their example and
+    # not on our reading of it; then their 51% is shown to be the delta at sale
+    # (the shortcut section 09 names), and the life-averaged delta is computed
+    # two ways that share nothing: model.life_delta's quadrature of E[Delta*S]
+    # over the month, and the call's expected payoff in closed form, since at
+    # r = 0 Black-Scholes gives E_P[C_T] - C_0 = Delta_bar * mu * tau exactly.
+    print("--- Section 09: Israelov and Nielsen's 51%, at sale and over the call's life ---")
+    T_in, MU_in, SIG_in = 1 / 12, 0.06, 0.16
+    check("I&N's call at 18% implied, $2.07 on $100",
+          bs_call(1.0, 1.0, T_in, 0.18, 0.0), 0.0207, 0.00005)
+    c_in = bs_call(1.0, 1.0, T_in, SIG_in, 0.0)
+    check("...at 16%, $0.23 cheaper", bs_call(1.0, 1.0, T_in, 0.18, 0.0) - c_in,
+          0.0023, 0.00005)
+    check("...twelve a year, '22.1% of net asset value'", 12 * c_in, 0.221, 0.0005)
+    d_sale = N(SIG_in * sqrt(T_in) / 2)
+    check("...the call's delta at sale, their 51% ('the delta is 49%')",
+          d_sale, 0.509, 0.0005)
+    C_in = Config(mu=MU_in, r=0.0, delta=0.0, sigma=SIG_in, withhold=0.0)
+    d_life = model.life_delta(C_in, "P", 0.0, T_in)
+    check("...averaged over the month by eq:life-delta, section 09's 53%",
+          d_life, 0.532, 0.0005)
+    # E_P[(S_T - K)^+] is a Black-Scholes call priced at the real-world drift
+    # and carried forward: e^(m*tau) * bs_call(r = m).
+    e_payoff = exp(MU_in * T_in) * bs_call(1.0, 1.0, T_in, SIG_in, MU_in)
+    check("...the same from the call's expected payoff, difference",
+          (e_payoff - c_in) / (MU_in * T_in) - d_life, 0.0, 1e-9)
+
     # Section 09's leverage result rests on two identities in L, and
     # `examples/returns_leverage.py` can only pin the article's own points on
     # them.  Both are checked here across the whole axis instead.

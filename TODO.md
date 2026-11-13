@@ -32,7 +32,7 @@ remainder is almost entirely §03's.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar two items, II-32 and II-33** —
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-32, with II-34 and II-35 in progress** —
 thirty of its items are in `DONE.md`, the last thirteen having landed on 2026-08-04 and
 2026-08-05;
 **Part III and Part IV are unwritten**, and between
@@ -41,7 +41,7 @@ them they are still the bulk of what is left besides those stubs and the assembl
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; two open items: II-32, the near grid's entry, which moves two-decimal figures and no conclusion, and II-33, a citation to check against the paper. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -485,7 +485,7 @@ against §07's reading of the live account's above-strike lot-time, moved to **I
 2026-08-26: §07's live paragraph was cut, the text parked under IV-1, and the claim is now §14's
 to make or qualify, so the constraint belongs with the section that will carry it. Nothing else
 reopened Part II until the §09 review of 2026-10-23 opened II-32, which is numerical and moves no
-conclusion, and II-33, a citation to check.
+conclusion, and II-33, a citation to check, which closed on 2026-11-14.
 
 **II-32. The near grid's entry law is a cell too coarse, and Part II's two-decimal figures carry
 it.** (Opened 2026-10-23, from the §09 review.) Every finite-horizon figure in Part II comes off the
@@ -510,37 +510,6 @@ II-34, exits measured at the exit price; `hidden_terms` went with that conventio
 grid near zero, or the walk started from the closed-form moments) or Richardson-extrapolate the
 finite-horizon figures as `stationary()` already does; then every two-decimal Part II figure off the
 near grid moves, with its checks, the appendix and the figures.
-
-**II-33. Check §09's citations against the PDFs, on the Windows machine where the copies are.**
-(Opened 2026-10-23 for Myth 8; widened 2026-11-06, when the review of "The benchmark that matters"
-found two more passages it could not check: the cloud session's network refuses the publishers'
-sites, and the PDFs the bibliography names are local.) Three passages, all in
-`sections/09-returns.md`:
-
-1. *Israelov and Nielsen, Myth 8* — below.
-2. *Israelov and Nielsen's worked example*, quoted in "The benchmark that matters": "even though the
-   annual collected option premium is 22.1% of net asset value, there would be zero compensation for
-   shorting volatility" and "no different from what would have been earned by simply reducing the
-   index position size by 51%". Check both word for word and note the page. **22.1% is also the
-   figure §09 quotes from Bondarenko for the monthly put-write programme's premium** — a
-   coincidence or a crossed wire. Their 51% is a delta-scaled equivalent, which bears on II-34:
-   check whether it is an at-the-money call's delta at the moment of sale — the shortcut §09
-   now names beside the delta averaged over an option's life (eq:life-delta, II-35) — and if it
-   is, say so in their paragraph in one sentence.
-3. *Bondarenko (2019)*, quoted in "The one dial the model says is free": monthly and weekly
-   put-writing over 2006–2018 compounding **5.97%** and **4.51%**, and collecting **22.1%** and
-   **37.1%** of notional a year in premium. Check all four, the period, and that the premium
-   figures are a year's, of notional.
-
-*Myth 8.* §09's paragraph on the slogan (`para:discount-priced`) was recast that day on Sergei's
-point: the discount against the price on the day the put is sold is genuine, and what the slogan
-leaves out is that assignment comes only after the market has fallen through the strike, so the
-shares are bought above the price of the day. The old text said [Israelov and
-Nielsen](#ref:israelov-nielsen-2014) "reach the same place: the discount is real, and it is exactly
-paid for"; with the framing changed, that paraphrase was dropped and the citation kept bare ("take
-the same slogan apart directly"), because the paper was not to hand to check it. **To do:** open the
-PDF at Myth 8, and if their argument is the above-market purchase, say so in §09 in their terms; if
-it is something else, say what, and decide whether the citation still belongs on this paragraph.
 
 **II-34. The economic ledger measures exit flows against the price at exit, and reads about 0.2
 points high.** (Opened 2026-11-06, from the §09 review of "The benchmark that matters".) The ledger
@@ -569,7 +538,7 @@ What follows, if the article adopts dollars per period: **(1)** §09's headline 
 stock" (+0.01%) is two effects of about 0.2 points cancelling. The book's delta is 93% of its
 capital, not the 98% in shares, so it trails the capital-share benchmark by about 0.2 points, and
 the ledger hands back about 0.2. Against a delta-scaled benchmark, which is Israelov and Nielsen's
-(II-33), the dollar gap is about zero. **(3)** The verification test's residual (8bp at thirty
+(II-33, in `DONE.md`), the dollar gap is about zero. **(3)** The verification test's residual (8bp at thirty
 years against the leak alone; the collateral footnote's "residual of opposite sign") is this
 bias: against leak and overcharge together it is 15bp, and the dollar version closes it to under
 one. **(4)** The hidden-terms lift, σ²/2 on the lots held, belongs to the same convention; §09 says

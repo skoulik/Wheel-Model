@@ -2,7 +2,7 @@
 # citing	target	citing fingerprint	target fingerprint	signed
 00-notation.md	sec:live	pending	pending	2026-10-23
 00-notation.md	sec:verification	pending	pending	2026-10-23
-02-introduction.md	para:discount-priced	80544b6e704b	fbe4ad9ae5c7	2026-11-06
+02-introduction.md	para:discount-priced	80544b6e704b	ffad2718b35c	2026-11-14
 04-strategy.md	sec:live	pending	pending	2026-10-23
 04-strategy.md	sec:portfolio	pending	pending	2026-10-23
 05-entry.md	sec:live	pending	pending	2026-10-23
