@@ -523,7 +523,10 @@ sites, and the PDFs the bibliography names are local.) Three passages, all in
    shorting volatility" and "no different from what would have been earned by simply reducing the
    index position size by 51%". Check both word for word and note the page. **22.1% is also the
    figure §09 quotes from Bondarenko for the monthly put-write programme's premium** — a
-   coincidence or a crossed wire. Their 51% is a delta-scaled equivalent, which bears on II-34.
+   coincidence or a crossed wire. Their 51% is a delta-scaled equivalent, which bears on II-34:
+   check whether it is an at-the-money call's delta at the moment of sale — the shortcut §09
+   now names beside the delta averaged over an option's life (eq:life-delta, II-35) — and if it
+   is, say so in their paragraph in one sentence.
 3. *Bondarenko (2019)*, quoted in "The one dial the model says is free": monthly and weekly
    put-writing over 2006–2018 compounding **5.97%** and **4.51%**, and collecting **22.1%** and
    **37.1%** of notional a year in premium. Check all four, the period, and that the premium
