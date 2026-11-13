@@ -587,6 +587,21 @@ the theory by 0.15–0.21 points at ± 0.005 in every run. **To decide:** whethe
 article's return is dollar per period or per unit of the price at each flow, and if the former,
 how eq:econ-pnl books exits.
 
+**II-35. The economic ledger has a window-edge bug and leaves the account's cash uncredited.**
+(Opened 2026-11-13, from the §09 review of "The benchmark that matters".) The true excess
+return disagreed with delta theory by +43bp at one year, +2.1 at five and −1.2 at thirty, which
+the pricing-drift check tolerated by stopping at five years. Traced to three parts and nothing
+else: over a finite horizon a call's premium is spread across its period while its upside
+surrendered is booked at expiry, so calls open at the horizon count premium and no cost (+5.2bp
+at 5 y, +0.4 at 30); a premium earns no interest between sale and expiry (−2.6, −1.4), the twin
+of the collateral overcharge the §09 footnote records; and the comparison took each option's
+delta at sale, where its delta drifts over its life (−0.56, −0.30). With the first two fixed,
+the collateral credited and the delta averaged over each option's life, true excess =
+Δ̄·(μ − r) − withholding leak, exactly, at every horizon and in both regimes. **Decided**
+(Sergei, 2026-11-13): fix both throughout, credit the collateral and the premiums alike, and
+compute the delta properly while explaining the usual shortcut. Plan:
+`drafts/2026-11-13-account-cash-and-window-edge-plan.md`.
+
 ## Part III — Many assets
 
 Neither file exists. This is Stage 3 of the restructure and the largest single block of
