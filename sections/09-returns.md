@@ -1,18 +1,19 @@
 # Returns and Capital {#sec:returns}
 
-What does the wheel earn, and on how much money? All quantities below are per unit of the current share price, so "capital of 11.59" means eleven and a half times what one share costs today, and an income of 0.77 means three quarters of a share price per year.
+What does the wheel earn, and on how much money? All quantities below are per unit of the current share price, so "capital of 11.59" means eleven and a half times what one share costs today, and an income of 0.78 means just over three quarters of a share price per year.
 
 ## What comes in
 
-Take the Standard regime at a thirty-year horizon, which by [the inventory section](#para:inventory-window-average) means 11.40 lots held on average. Cash arrives from three places:
+Take the Standard regime at a thirty-year horizon, which by [the inventory section](#para:inventory-window-average) means 11.40 lots held on average. Cash arrives from four places:
 
     put premiums      0.1591 per year     one put a week, at 0.31% each
     call premiums     0.3706 per year     11.40 lots, each selling a call every four weeks
     dividends         0.2422 per year     δ_net on 11.40 lots at today's price
+    interest          0.0114 per year     r on the put's collateral, and on each premium until its option expires
     ------------------------------------
-    Track A income    0.7718 per year    {#eq:income}
+    Track A income    0.7832 per year    {#eq:income}
 
-Three quarters of a share price per year, in cash, realized. It is an impressive-looking number, and it is the number that makes this strategy popular. Note also what the composition says: **the calls out-earn the puts more than two to one**, and the dividends out-earn the puts as well. The strategy is named after selling puts, but by the time it is running at scale, put premium is its smallest cash source.
+Just over three quarters of a share price per year, in cash, realized. It is an impressive-looking number, and it is the number that makes this strategy popular. Note also what the composition says: **the calls out-earn the puts more than two to one**, and the dividends out-earn the puts as well. The strategy is named after selling puts, but by the time it is running at scale, put premium is the smallest of the three sources its trades produce. The fourth, interest, is the account's own cash at work: r on the collateral behind the live put, 0.0098 a year, and on the premiums waiting for their options to expire, 0.0016.
 
 The number is also, on its own, meaningless. It says nothing until we ask what had to be tied up to earn it.
 

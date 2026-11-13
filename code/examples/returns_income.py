@@ -77,14 +77,15 @@ CASES = [
         "call": (0.3706, 0.0020),       # "call premiums 0.3706 per year"
         "premiums": (0.5297, 0.0010),   # the vol-risk-premium table: "20.0% (fair) 0.5297"
         "dividends": (0.2422, 0.0010),  # "dividends 0.2422 per year"
-        # The account's cash at r (TODO II-35); section 09 does not quote these
-        # yet.  r*gamma_p*k on the collateral, and each leg's premiums times
+        # The account's cash at r (TODO II-35): eq:income "interest 0.0114", and
+        # the paragraph after it, "0.0098 a year" and "0.0016".  r*gamma_p*k on
+        # the collateral, and each leg's premiums times
         # e^(r*tau) - 1, checked by hand: 0.05*0.2*0.98 and 0.1591*(e^(0.05/52) - 1)
         # + 0.3706*(e^(0.05/13) - 1).
         "interest": (0.0114, 0.0002),
         "collateral": (0.0098, 0.0001),
         "float": (0.0016, 0.0001),
-        "income": (0.7832, 0.0020),     # eq:income "Track A income 0.7718 per year"
+        "income": (0.7832, 0.0020),     # eq:income "Track A income 0.7832 per year"
     }, note="Standard regime, 30y; call leg pinned transitively"),
     Case("--p-star 0.10", {
         "income": (0.3816, 0.0020),     # Conservative: "Track A income 0.371/yr"
