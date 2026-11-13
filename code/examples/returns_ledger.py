@@ -99,6 +99,10 @@ FIELDS = [
     ("table_excess", "  true excess return", ".2%"),
     ("table_cash_mv", "  cash income on market value", ".2%"),
     ("table_cash", "  cash income on cost basis", ".2%"),
+    # An operator who secures the put with its whole strike in cash (gamma_p = 1)
+    # rather than the broker's margin: the extra cash earns r and is charged r,
+    # so the same dollars are spread over more capital (TODO II-35).
+    ("table_cash_secured", "  true excess, the put secured in full", ".2%"),
     # "What if the dividend never falls?" (only under --sticky), at 5/10/30 years.
     ("sticky_F", "  sticky-dividend inflation factor", ".3f"),
     ("sticky_delta_eff", "  effective yield delta_eff", ".2%"),
@@ -316,6 +320,9 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
         "table_lots": [t["I"] for t in table],
         "table_mv": [t["mv_capital"] for t in table],
         "table_cost": [t["capital"] for t in table],
+        "table_cash_secured": [
+            model.economics(model.replace(cfg, gamma_p=1.0), measure, occ,
+                            horizon=H)["econ_excess"] for H in HORIZONS],
         "table_excess": [t["econ_excess"] for t in table],
         "table_cash_mv": [(t["income"] - cfg.r * t["mv_capital"]) / t["mv_capital"]
                           for t in table],
@@ -358,6 +365,10 @@ CASES = [
         "table_excess": ([0.0138, 0.0143, 0.0149], 0.0001),  # "Standard's from 1.38% to 1.49%"
         "table_cash": ([0.0428, 0.0192, -0.0070], 0.0005),
         "table_cash_mv": ([0.0608, 0.0397, 0.0176], 0.0005),
+        # The equity paragraph: "1.21% rather than 1.38% at five years, 1.40%
+        # rather than 1.49% at thirty".  By hand, the same dollars over k + E[I]
+        # instead of gamma_p*k + E[I]: 0.013819*5.61/6.39 and 0.014931*11.59/12.38.
+        "table_cash_secured": ([0.0121, 0.0130, 0.0140], 0.0001),
         # The cash-on-cost paragraph at thirty years: the numerator has come
         # right and the error is all denominator; and the line's zero.
         "cash_mv": (0.0176, 0.0005),        # "cash on market value reads 1.8%"

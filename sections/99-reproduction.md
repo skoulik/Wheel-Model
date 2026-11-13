@@ -231,7 +231,7 @@ Draws [fig:two-ledgers](#fig:two-ledgers): `python code/examples/returns_ledger.
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_ledger.py` | appreciation = 0.5128, acq_loss = 0.1553, call_away_loss = 0.3880, overpay = 1.49%, giveaway_per_exit = 3.90%, net = -0.0305, balance = 35.9, econ_pnl = 0.7526, econ_excess = 1.49%, table_lots = 5.41  7.39  11.40, table_mv = 5.61  7.59  11.59, table_cost = 6.70  9.83  18.23, table_excess = 1.38%  1.43%  1.49%, table_cash = 4.28%  1.92%  -0.70%, table_cash_mv = 6.08%  3.97%  1.76%, cash_mv = 1.76%, basis_ratio = 1.57, cash_cost_zero = 21.2 |
+| `python code/examples/returns_ledger.py` | appreciation = 0.5128, acq_loss = 0.1553, call_away_loss = 0.3880, overpay = 1.49%, giveaway_per_exit = 3.90%, net = -0.0305, balance = 35.9, econ_pnl = 0.7526, econ_excess = 1.49%, table_lots = 5.41  7.39  11.40, table_mv = 5.61  7.59  11.59, table_cost = 6.70  9.83  18.23, table_excess = 1.38%  1.43%  1.49%, table_cash = 4.28%  1.92%  -0.70%, table_cash_mv = 6.08%  3.97%  1.76%, table_cash_secured = 1.21%  1.30%  1.40%, cash_mv = 1.76%, basis_ratio = 1.57, cash_cost_zero = 21.2 |
 | `python code/examples/returns_ledger.py --horizon 5` | net = -0.2636, cost_ratio = 2.08, income = 0.6214, cash_mv = 6.08%, basis_gap = +1.81%, econ_excess = 1.38% |
 | `python code/examples/returns_ledger.py --horizon 10` | net = -0.1923 |
 | `python code/examples/returns_ledger.py --horizon 50` | net = 0.0584 |
