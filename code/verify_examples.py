@@ -32,11 +32,15 @@ figures the article does not print, arithmetic on a displayed quantity with no
 model function behind it, and the comparisons against `wheel_sim.py` -- whose
 simulated barrier is a different object from `model.py`'s static one.
 
-The structural check at the end is the strongest one in the file: run the whole
+The structural checks at the end are the strongest in the file. Run the whole
 machinery in the Q-world and the economic excess return must vanish up to the
 dividend-withholding leak, because no strategy beats the risk-free rate under
-the pricing measure. It exercises the entry law, the depth walk, the occupation
-measure, premium pricing and the capital definition simultaneously.
+the pricing measure. Run it in the real world and it must equal the book's
+delta, each option's averaged over its life, times mu - r, less the same leak:
+Black-Scholes's result that an instrument earns its delta times the stock's.
+Both hold exactly, at every horizon (TODO II-35), and together they exercise the
+entry law, the depth walk, the occupation measure, premium pricing, the cash
+the account earns and the capital definition simultaneously.
 
 Stdlib only (Python 3.8+), with numpy and matplotlib used when installed: numpy
 to speed the walk, matplotlib to redraw the figures and compare them.
@@ -46,7 +50,7 @@ import argparse
 from math import exp, log, pi, sqrt
 
 import model
-from model import (BETA, Config, N, buy_hold_excess, criteria, depth_census,
+from model import (BETA, Config, N, book_delta_life, buy_hold_excess, criteria, depth_census,
                    economics, entry_law, debit_growth, equity_required,
                    first_passage_prob, leverage, levered_excess,
                    liquidation_barrier, liquidation_prob, max_leverage,
@@ -525,19 +529,24 @@ def main():
               abs(fast["E[overshoot]"] - ref["E[overshoot]"]), 0.0, 1e-14)
 
     # ------------------------------------------------------------------
-    print("--- Structural: no-arbitrage in the Q-world ---")
-    for label, cfg, occ in (("Standard", STD, occ_q), ("Conservative", CON, occ_cq)):
-        for H in (5.0, 10.0, 30.0):
-            x = economics(cfg, "Q", occ, horizon=H)
-            # Exact up to a few basis points since the ledger went to dollars
-            # per period (TODO II-34): the residual is 2.3bp at five years and
-            # under one from ten on, where it was 15bp measuring exits at the
-            # exit price.  Shorter windows than the article quotes leave more
-            # (43bp at one year), which is why the check stops at five.
-            resid = (x["econ_excess"]
-                     + (x["leak"] + x["overcharge"]) / x["mv_capital"])
-            check(f"{label} @ {H:.0f}y: Q-world excess = -(leak + overcharge)",
-                  resid, 0.0, 0.0003)
+    print("--- Structural: no-arbitrage in the Q-world, delta theory in the real one ---")
+    # Exact since TODO II-35: the ledger books every flow on the day it
+    # happens, the account's cash earns r from the day it arrives, and a call's
+    # upside surrendered carries its premium's weights over a finite window.
+    # Before it the Q-world residual was 43bp at one year and 2.3bp at five,
+    # which is why this check used to stop at five years at 3bp.
+    for label, cfg, occ_world in (("Standard", STD, {"Q": occ_q, "P": occ_p}),
+                                  ("Conservative", CON, {"Q": occ_cq, "P": occ_c})):
+        for H in (1.0, 5.0, 10.0, 30.0):
+            x = economics(cfg, "Q", occ_world["Q"], horizon=H)
+            check(f"{label} @ {H:.0f}y: Q-world excess = -leak",
+                  x["econ_excess"] + x["leak"] / x["mv_capital"], 0.0, 1e-6)
+            x = economics(cfg, "P", occ_world["P"], horizon=H)
+            inv, put = book_delta_life(cfg, "P", horizon=H)
+            dbar = (x["I"] * inv + put) / x["mv_capital"]
+            check(f"{label} @ {H:.0f}y: real-world excess = delta*(mu - r) - leak",
+                  x["econ_excess"] - (dbar * (cfg.mu - cfg.r)
+                                      - x["leak"] / x["mv_capital"]), 0.0, 1e-6)
 
     # ------------------------------------------------------------------
     # Section 11 is unwritten, so the working-capital closed forms sit with
@@ -750,10 +759,12 @@ def main():
 
     # The gap between this block's shares-only excess and economics()'s Track B
     # excess is exactly the put collateral, deliberately excluded from capacity,
-    # from the barrier and from the financing ledger alike.
+    # from the barrier and from the financing ledger alike.  economics() credits
+    # it r and charges it r, so what is left of it is the denominator.
+    shares_pnl = f["econ_pnl"] - f["collateral_interest"] - STD.r * I_inf
     check("the excluded put collateral, as a formula",
           full["econ_excess_shares"] - f["econ_excess"],
-          f["econ_pnl"] * (f["mv_capital"] - I_inf) / (I_inf * f["mv_capital"]),
+          shares_pnl * (f["mv_capital"] - I_inf) / (I_inf * f["mv_capital"]),
           1e-15)
 
     # The draw.  g_max inverts the same equation as L_max, in the other
@@ -787,7 +798,7 @@ def main():
     drift = saturation(G25, "P", far_p, 0.10, equity=11.59,
                        L_max=L_reach, econ=f)
     check("...where the sustainable draw is a deposit, per year",
-          drift["draw"], -0.248, 0.001)
+          drift["draw"], -0.247, 0.001)          # was -0.248 before TODO II-35
     check("...while its excess return on equity reads higher, not lower",
           drift["roe_excess"], 0.0293, 0.0005)
 
@@ -935,8 +946,10 @@ def main():
 
     # Two quantities both called sustainable, a factor of two apart.  The draw
     # that keeps the account stationary in SHARES is derived, not tuned.
+    # 2.05% since TODO II-35 credited the account's cash; section 11 still
+    # quotes the 2.00% it was.
     check("the draw that holds the account's size, r + excess - m",
-          STD.r + f["econ_excess"] - (STD.mu - STD.delta), 0.0200, 0.0005)
+          STD.r + f["econ_excess"] - (STD.mu - STD.delta), 0.0205, 0.0005)
 
     if not I_inf / 11.59 < 1.0 / G25.gamma_s:
         FAILURES.append("the strategy's own demand exceeds the broker's ceiling")
@@ -1079,14 +1092,19 @@ def main():
     # running a utilization rule buys instead, so the leverage that the closed
     # form lets decay is held at the stopping rule indefinitely.  Pinned,
     # because it is a result rather than an identity.
-    for (H, _, _, _, _, co, _), want in zip(rows, (0.0422, 0.0851, 0.2098)):
+    # Re-pinned after TODO II-35: these runs draw r + excess - m, which the
+    # credited cash moved from 2.00% to 2.05%, and a different draw re-samples
+    # which puts are refused on every path.  The 20-year correction moved from
+    # 0.210 to 0.159, two standard errors; the 5- and 10-year ones stayed in
+    # tolerance (0.037 and 0.064 against 0.042 and 0.085).
+    for (H, _, _, _, _, co, _), want in zip(rows, (0.0422, 0.0851, 0.1590)):
         check(f"the wheel's own correction to survival at {H:.0f}y", co[0],
               want, 0.03)
         if co[0] <= 0:
             FAILURES.append(f"the correction is not adverse at {H}y")
     check("operating-book liquidation by 20y at L = 2", rows[2][4][0], 0.6236,
           0.05)
-    check("...against the closed form's", rows[2][2][0], 0.4339, 0.001)
+    check("...against the closed form's", rows[2][2][0], 0.4314, 0.001)
     # The mechanism is a ratchet: a price rise lets the operator sell more
     # puts, so the debit grows with the book and the account never de-levers
     # the way a frozen one does, while a price fall blocks and leaves it where

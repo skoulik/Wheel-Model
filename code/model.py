@@ -58,7 +58,7 @@ import argparse
 import os
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field, replace
-from math import ceil, exp, floor, log, pi, sqrt
+from math import ceil, cos, exp, floor, log, pi, sqrt
 from statistics import NormalDist
 
 try:                                   # optional accelerator, see module docstring
@@ -975,6 +975,18 @@ def economics(C, measure, occ, horizon=None):
     the upside surrendered against the call's (`DepthWalk.exit_cost`).  Before
     2026-11-06 both were measured at the exit price, which read the true excess
     about 0.2 points high (TODO II-34).
+
+    Every flow is booked on the day it happens, and the account's cash earns r
+    from the day it arrives (TODO II-35): the put's collateral throughout, and
+    each premium from its sale until its option expires, where the period's
+    books close -- after that it is income, and kept in the account it would
+    earn r and be charged r, adding nothing.  Both ledgers credit it alike,
+    since a statement shows the interest whichever ledger reads it.  Over a
+    finite horizon a call's upside surrendered takes its premium's weights,
+    both belonging to one call period; booking it as a point at expiry, as
+    until 2026-11-13, let the calls open at the horizon count premium and no
+    cost, +43bp at one year and +5bp at five.  With both, the pricing-drift
+    excess is exactly minus the withholding leak at every horizon.
     """
     k, p_real, mean_x0, _ = entry_law(C, measure)
     c_p = put_premium(C, measure)
@@ -989,10 +1001,10 @@ def economics(C, measure, occ, horizon=None):
         sum_S = sum(f * wi for f, wi in zip(occ["surv"], w)) / C.tau_c
         sum_prem = sum(f * wi for f, wi in zip(occ["prem"], w)) / C.tau_c
         sum_basis = sum(f * wi for f, wi in zip(occ["basis"], w)) / C.tau_c
-        # The call-away giveaway is a point flow at the end of period j, not an
-        # occupancy, so it carries its own weights.
-        sum_cost = sum(f * max(0.0, horizon - (j + 1) * C.tau_c) / horizon
-                       for j, f in enumerate(occ["exitcost"]))
+        # The upside surrendered at the end of period j is that period's, as
+        # its premium is, so it carries the premium's weights.  As a point at
+        # expiry it would leave out the cost of the calls still open at H.
+        sum_cost = sum(f * wi for f, wi in zip(occ["exitcost"], w)) / C.tau_c
 
     inventory = lam * C.tau_c * sum_S
     capital = C.gamma_p * k + lam * C.tau_c * sum_basis * basis_factor
@@ -1004,7 +1016,14 @@ def economics(C, measure, occ, horizon=None):
     prem_call = lam * sum_prem
     prem_income = prem_put + prem_call
     div_income = inventory * C.delta_net
-    income = prem_income + div_income
+    # The account's cash at r: the collateral behind the live put, and each
+    # premium until its option expires.  The withholding is taken at the
+    # dividend, at source, and has no float.
+    collateral_interest = C.r * C.gamma_p * k
+    premium_float = (prem_put * (exp(C.r * C.tau_p) - 1)
+                     + prem_call * (exp(C.r * C.tau_c) - 1))
+    cash_interest = collateral_interest + premium_float
+    income = prem_income + div_income + cash_interest
 
     # Economic ledger: inventory carried at market value (a share is worth the
     # current spot, whatever was paid for it), the acquisition mark loss booked
@@ -1013,17 +1032,18 @@ def economics(C, measure, occ, horizon=None):
     mv_capital = C.gamma_p * k + inventory
     acq_loss = lam * entry_mark_loss(C, measure)
     call_away_loss = lam * sum_cost
-    econ_pnl = (prem_income + div_income + inventory * m_price
+    econ_pnl = (prem_income + div_income + cash_interest + inventory * m_price
                 - acq_loss - call_away_loss)
     return {
         "mv_capital": mv_capital, "acq_loss": acq_loss, "econ_pnl": econ_pnl,
         "call_away_loss": call_away_loss,
         "econ_excess": (econ_pnl - C.r * mv_capital) / mv_capital,
+        # The one thing that separates the excess from zero at the pricing
+        # drift, where no strategy beats the risk-free rate.
         "leak": inventory * C.delta * C.withhold,
-        # Track C's charge on the put collateral, which earns nothing here.
-        # With the leak it is all that separates the excess from zero at the
-        # pricing drift, where no strategy beats the risk-free rate.
-        "overcharge": C.r * C.gamma_p * k,
+        "cash_interest": cash_interest,
+        "collateral_interest": collateral_interest,
+        "premium_float": premium_float,
         "k": k, "p_real": p_real, "E[x0]": mean_x0, "E[d]": expected_drop(C, measure),
         "c_p": c_p, "lambda": lam, "nu": occ["nu"], "m": occ["m"],
         "q(x0)": occ["q(x0)"], "E[J]": occ["E[J]"], "E[T]": occ["E[J]"] * C.tau_c,
@@ -1505,6 +1525,84 @@ def book_delta(C, measure, shock, horizon=None, **census_kw):
     return inv, disc_p * N(-d1p)
 
 
+def _gauss_legendre(n):
+    """Nodes and weights of n-point Gauss-Legendre on [-1, 1], by Newton."""
+    nodes, weights = [], []
+    for i in range(1, n + 1):
+        x = cos(pi * (i - 0.25) / (n + 0.5))
+        for _ in range(100):
+            p0, p1 = 1.0, x
+            for k in range(2, n + 1):
+                p0, p1 = p1, ((2 * k - 1) * x * p1 - (k - 1) * p0) / k
+            dp = n * (x * p1 - p0) / (x * x - 1)
+            dx = p1 / dp
+            x -= dx
+            if abs(dx) < 1e-15:
+                break
+        nodes.append(x)
+        weights.append(2 / ((1 - x * x) * dp * dp))
+    return nodes, weights
+
+
+_GL = _gauss_legendre(48)
+
+
+def life_delta(C, measure, x, tau, put=False):
+    """An option's dollar delta averaged over its life, per unit of the price at sale.
+
+        D  =  e^(r*tau) * E[ integral_0^tau e^(-r*t) * Delta_t * S_t dt ] / tau,
+
+    the expectation at the world's drift and Delta_t the option's Black-Scholes
+    delta at the time left, so that by Black-Scholes's own dynamics
+
+        E[payoff] - E_Q[payoff]  =  D * (mu - r) * tau          exactly,
+
+    the identity book_delta()'s delta at sale holds only to first order.  A
+    call struck at e^x of the price at sale, or with `put` the short put's
+    exposure, N(-d1) in place of N(d1).  Inside, E[S_t * N(alpha + beta*ln S_t)]
+    is closed form for a lognormal S_t; across the life, Gauss-Legendre, the
+    integrand being smooth because the expectation smooths delta's step at
+    expiry.
+    """
+    m, s = C.world(measure)
+    siv, carry = C.sigma_iv, C.r - C.delta + C.sigma_iv**2 / 2
+    nodes, weights = _GL
+    acc = 0.0
+    for z, wz in zip(nodes, weights):
+        t = (z + 1) * tau / 2
+        u = tau - t
+        a, b2 = (m - s * s / 2) * t, s * s * t
+        alpha = (-x + carry * u) / (siv * sqrt(u))
+        beta = 1 / (siv * sqrt(u))
+        e_s = exp(a + b2 / 2)                                    # E[S_t]
+        e_sn = e_s * N((alpha + beta * (a + b2)) / sqrt(1 + beta * beta * b2))
+        dollar_delta = exp(-C.delta * u) * ((e_s - e_sn) if put else e_sn)
+        acc += wz * exp(-C.r * t) * dollar_delta
+    return exp(C.r * tau) * acc / 2
+
+
+def book_delta_life(C, measure, horizon=None, **census_kw):
+    """(inventory delta, short-put delta) of the book, each option's averaged over its life.
+
+    book_delta() takes every option's delta at the moment it is sold, which is
+    what a broker's screen shows and what the article calls the shortcut.  An
+    option's delta drifts over its life, and Black-Scholes's result -- an
+    instrument's expected excess return is its delta times the stock's -- holds
+    with the delta it has at each moment.  Averaged that way (`life_delta`), the
+    book's delta makes the true excess exactly delta*(mu - r) less the
+    withholding leak, which verify_examples.py checks at every horizon.
+
+    In share units, as book_delta(); the put's is scaled by tau_p/T, the share
+    of the time a put is live.  No shock: this is the book as it stands.
+    """
+    xs, wts = census_weights(C, measure, horizon, **census_kw)
+    total = sum(wts)
+    inv = sum((wx / total) * (1.0 - life_delta(C, measure, x, C.tau_c))
+              for x, wx in zip(xs, wts) if wx > 0.0)
+    put = life_delta(C, measure, log(strike(C, measure)), C.tau_p, put=True)
+    return inv, put * C.tau_p / C.cadence
+
+
 def trapped_fraction(C, measure, zero_depth=False):
     """P(J = infinity): the share of lots that never come back, when nu <= 0.
 
@@ -1970,8 +2068,11 @@ def max_leverage(C, measure, eps, gamma_s=None, g=0.0):
 #    a statement about shares.  The collateral against the one open put is
 #    gamma_p*k* ~ 0.196, which is 1.5% of a saturated running example's
 #    capacity, and the price of carrying it through three formulas is worse
-#    than the price of naming it once.  It is the whole of the gap between
-#    this block's `econ_excess_shares` and economics()'s `econ_excess`.
+#    than the price of naming it once.  Its interest goes with it, out of the
+#    income and out of the P&L; the premiums' float stays, being the shares'
+#    own trade.  Since economics() credits the collateral r and charges it r,
+#    what is left between this block's `econ_excess_shares` and economics()'s
+#    `econ_excess` is the denominator alone.
 # ----------------------------------------------------------------------
 
 def survival_utilization(C, measure, eps, g=0.0):
@@ -2069,8 +2170,9 @@ def saturation(C, measure, occ, eps, equity=None, L_max=None, econ=None):
     # Uniform thinning: every flow and every stock scales with the throughput,
     # so every RATE -- the excess return, and hence the return on equity -- is
     # invariant to it, and only leverage moves them.
-    income = e["income"] * thr
-    ee = (e["econ_pnl"] - C.r * I_inf) / I_inf      # shares-only, see the header
+    income = (e["income"] - e["collateral_interest"]) * thr
+    ee = ((e["econ_pnl"] - e["collateral_interest"] - C.r * I_inf)
+          / I_inf)                                   # shares-only, see the header
     g_max = max_debit_growth(C, measure, L_real, eps)
     return {
         "A": A, "A*": A_star, "L_max": L_max, "L": L_real,
@@ -2398,11 +2500,9 @@ def report(C, args):
                   f" {x['econ_excess']:>+10.4f}")
             if measure == "Q":
                 lk = x["leak"] / x["mv_capital"]
-                oc = x["overcharge"] / x["mv_capital"]
-                resid = x["econ_excess"] + lk + oc
+                resid = x["econ_excess"] + lk
                 print(f"   {'':>10} {'':>8}   no-arbitrage residual "
-                      f"{x['econ_excess']:+.4f} + leak {lk:.4f}"
-                      f" + overcharge {oc:.4f} = {resid:+.4f}")
+                      f"{x['econ_excess']:+.4f} + leak {lk:.4f} = {resid:+.4f}")
         x30 = economics(C, measure, occ, horizon=30.0)
         print(f"   per lot: P[eventual exit] = {occ['P[exit]']:.4f}"
               f"   call premiums {occ['E[prem]']:.4f}"

@@ -190,6 +190,21 @@ class Agg:
         # price the option was sold at, not the price at exit (TODO II-34).
         self.acq_loss_d = 0.0
         self.giveaway_d = 0.0
+        # The account's cash at r (TODO II-35): each premium from its sale
+        # until its option expires or the run ends, and the put's collateral
+        # while the put is live.  Spot-normalized at the sale, as the premium.
+        self.prem_float = 0.0
+        self.coll_int = 0.0
+        # Lot-years held over the window: inventory as a time average, which is
+        # what model.py's horizon figures are.  The census sampled at sale
+        # dates counts both of a run's end dates, overweighting its last week.
+        self.lot_time = 0.0
+        # Options still open when the run ends, marked to market there: the
+        # run's last puts and every standing lot's call.  Booked with the exits
+        # they stand in for, so a window that closes mid-option counts its
+        # cost as well as its premium.
+        self.open_put = 0.0
+        self.open_call = 0.0
         # The book's delta in shares, summed over the same dates as the
         # capital; only with Params.book_delta, since it prices every lot's call.
         self.delta_sum = 0.0
@@ -236,7 +251,8 @@ class Agg:
 
     _SCALARS = ("puts", "assigned", "d_sum", "exits", "prem_put", "prem_call",
                 "dividends", "cap_sum", "cap_n", "mvcap_sum", "acq_loss",
-                "giveaway", "acq_loss_d", "giveaway_d", "delta_sum", "paths", "sales", "blocked", "withdrawn", "ps_t",
+                "giveaway", "acq_loss_d", "giveaway_d", "prem_float", "coll_int", "lot_time",
+                "open_put", "open_call", "delta_sum", "paths", "sales", "blocked", "withdrawn", "ps_t",
                 "ps_inv", "ps_lev", "ps_eq", "ps_eqt", "ps_income", "ps_sales",
                 "ps_blocked")
     _COUNTERS = ("inv_hist", "inv_by_idx", "eq_by_idx", "eqn_by_idx",
@@ -383,10 +399,11 @@ def run_path(P, rng, agg):
                 agg.ps_income += amount / S
 
     while heap:
-        te, prio, _, data = heapq.heappop(heap)
+        te, prio, sq, data = heapq.heappop(heap)
         dt = min(te, P.years) - t
         div = len(lots) * P.delta_net * dt
         agg.dividends += div
+        agg.lot_time += len(lots) * dt
         if ledger and not dead:
             # Interest is signed: earned on an idle balance, paid on a debit.
             interest = cash * (P.r if cash >= 0 else P.r_b) * dt
@@ -413,6 +430,7 @@ def run_path(P, rng, agg):
                 agg.ps_lev += (m_last / eq if eq > 0 else 0.0) * dt
                 agg.ps_income += div / S
         if te > P.years + 1e-9:
+            heapq.heappush(heap, (te, prio, sq, data))   # still open: marked below
             break
         s_a = S
         sig_step = regime_at(P, t).sigma       # constrained runs are single-regime
@@ -499,6 +517,9 @@ def run_path(P, rng, agg):
                 c_p = S * bs_put(kf, P.tau_p, sig_iv, P.r, P.delta)
                 agg.puts += 1
                 agg.prem_put += c_p / S
+                live = min(t + P.tau_p, P.years) - t
+                agg.prem_float += c_p / S * (exp(P.r * live) - 1)
+                agg.coll_int += P.r * P.gamma_p * kf * live
                 earn(c_p)
                 if t_sat is not None:
                     ps_sales += 1
@@ -551,6 +572,7 @@ def run_path(P, rng, agg):
                 # Sell the first covered call at the frozen strike.
                 c_c = bs_call(S, K, P.tau_c, sig_iv, P.r, P.delta)
                 agg.prem_call += c_c / S
+                agg.prem_float += c_c / S * (exp(P.r * (min(t + P.tau_c, P.years) - t)) - 1)
                 earn(c_c)
                 lot.x = log(K / S)
                 lot.s_sale, lot.t_exp = S, t + P.tau_c
@@ -577,6 +599,7 @@ def run_path(P, rng, agg):
             else:
                 c_c = bs_call(S, lot.strike, P.tau_c, sig_iv, P.r, P.delta)
                 agg.prem_call += c_c / S
+                agg.prem_float += c_c / S * (exp(P.r * (min(t + P.tau_c, P.years) - t)) - 1)
                 earn(c_c)
                 lot.x = log(lot.strike / S)
                 lot.s_sale, lot.t_exp = S, t + P.tau_c
@@ -584,6 +607,24 @@ def run_path(P, rng, agg):
 
     for lot in lots:  # censored at the horizon
         agg.durations.append((round((P.years - lot.entry) * 12, 6), False))
+    if not dead:
+        # Mark what is still open to market where the run ends, each against
+        # the price it was sold at as its exit would have been.  No random
+        # draw: every other scenario runs the same stream as before.
+        sig_end = regime_at(P, t).sigma + P.iv_spread
+        for te, prio, _, data in heap:
+            left = te - t
+            if prio == PUTEXP:
+                K, S_sale, _ = data
+                v = S * bs_put(K / S, left, sig_end, P.r, P.delta)
+                agg.open_put += v / S_sale
+                agg.acq_loss += v / S
+                agg.acq_loss_d += v / S_sale
+            elif prio == CALLEXP:
+                v = bs_call(S, data.strike, left, sig_end, P.r, P.delta)
+                agg.open_call += v / data.s_sale
+                agg.giveaway += v / S
+                agg.giveaway_d += v / data.s_sale
     for cnt in exits_at.values():
         agg.batch_hist[cnt] += 1
 
@@ -1288,10 +1329,16 @@ def constrained(args):
 
 
 def validate(args):
-    """Simulation vs. the analytic core, component by component."""
+    """Simulation vs. the analytic core, component by component.
+
+    `--years` sets the horizon (default 30).  A short one is where the two
+    treatments of the window's edge are tested against each other: model.py
+    gives a call's upside surrendered its premium's weights, and this marks
+    the options open at the end to market, which agree to first order.
+    """
     import model
     for label, ps in (("Standard", 0.20), ("Conservative", 0.10)):
-        P = Params(p_star=ps, delta=0.025, years=30.0,
+        P = Params(p_star=ps, delta=0.025, years=args.years or 30.0,
                    paths=args.paths or 200, seed=args.seed)
         agg = simulate(P)
         C = as_config(P, label)
@@ -1299,19 +1346,28 @@ def validate(args):
         a = model.economics(C, "P", occ, horizon=P.years)
 
         n_samples = sum(agg.inv_hist.values())
-        per_yr = 1.0 / (agg.puts * P.cadence)
+        # Per year of the window simulated.  Not puts*cadence: a run sells a
+        # put on both of its end dates, one more than it has weeks, which
+        # overstates the window by a week in its length -- 2% at one year.
+        per_yr = 1.0 / (agg.paths * P.years)
         sim = {
             "assignment rate": agg.assigned / agg.puts,
             "E[d]": agg.d_sum / max(1, agg.assigned),
-            "E[I]": sum(k * v for k, v in agg.inv_hist.items()) / n_samples,
+            "E[I]": agg.lot_time * per_yr,
             "cost capital": agg.cap_sum / agg.cap_n,
-            "market capital": agg.mvcap_sum / agg.cap_n,
+            "market capital": (P.gamma_p * k_star_drift(P.p_star, P.tau_p, P.sigma,
+                                                        P.mu - P.delta)
+                               + agg.lot_time * per_yr),
             "premiums/yr": (agg.prem_put + agg.prem_call) * per_yr,
-            "dividends/yr": agg.dividends / (agg.puts * P.cadence),
+            "dividends/yr": agg.dividends * per_yr,
             # In dollars per period, as model.economics books them: each exit
             # against the price its option was sold at (TODO II-34).
             "acq loss/yr": agg.acq_loss_d * per_yr,
             "call-away loss/yr": agg.giveaway_d * per_yr,
+            # The account's cash at r (TODO II-35), and its two parts.
+            "cash interest/yr": (agg.prem_float + agg.coll_int) * per_yr,
+            "  premium float/yr": agg.prem_float * per_yr,
+            "  collateral/yr": agg.coll_int * per_yr,
         }
         ana = {
             "assignment rate": a["p_real"], "E[d]": a["E[d]"], "E[I]": a["I"],
@@ -1319,8 +1375,12 @@ def validate(args):
             "premiums/yr": a["premiums"], "dividends/yr": a["dividends"],
             "acq loss/yr": a["acq_loss"],
             "call-away loss/yr": a["call_away_loss"],
+            "cash interest/yr": a["cash_interest"],
+            "  premium float/yr": a["premium_float"],
+            "  collateral/yr": a["collateral_interest"],
         }
         sim_pnl = (sim["premiums/yr"] + sim["dividends/yr"]
+                   + sim["cash interest/yr"]
                    + sim["E[I]"] * (P.mu - P.delta)
                    - sim["acq loss/yr"] - sim["call-away loss/yr"])
         sim["economic excess/yr"] = ((sim_pnl - P.r * sim["market capital"])
@@ -1343,26 +1403,26 @@ def _dollar_row(P, g):
     price at exit, as model.economics did until TODO II-34; the dollar version
     per unit of the price the option was sold at, the capital the period
     started with, as it does now.
-    Everything else -- premiums at sale, dividends and the appreciation E[I]*m
-    per unit of the price ruling -- is the same in both.  The theory row is
-    Black-Scholes's: each instrument's expected excess return is its delta
-    times the stock's, so the book earns its sampled delta times mu - r, less
-    the withheld dividends and the r charged on idle put collateral.
+    Everything else -- premiums at sale, the account's cash at r, dividends and
+    the appreciation E[I]*m per unit of the price ruling -- is the same in both.
+    The theory row is Black-Scholes's: each instrument's expected excess return
+    is its delta times the stock's, so the book earns its sampled delta times
+    mu - r, less the withheld dividends.  The delta is sampled at every put sale
+    across each call's life, so it is a life average, as book_delta_life()'s.
     """
     m = P.mu - P.delta
-    per_yr = 1.0 / (g.puts * P.cadence)
+    per_yr = 1.0 / (g.paths * P.years)           # the window, as in validate()
     n = sum(g.inv_hist.values())
-    inv = sum(k * v for k, v in g.inv_hist.items()) / n
-    cap = g.mvcap_sum / g.cap_n
-    income = (g.prem_put + g.prem_call) * per_yr + g.dividends * per_yr
+    inv = g.lot_time * per_yr                    # time-averaged, as model.py's
+    cap = P.gamma_p * k_star_drift(P.p_star, P.tau_p, P.sigma, m) + inv
+    income = (g.prem_put + g.prem_call + g.prem_float + g.coll_int
+              + g.dividends) * per_yr
     base = income + inv * m - P.r * cap
     ledger = (base - (g.acq_loss + g.giveaway) * per_yr) / cap
     dollar = (base - (g.acq_loss_d + g.giveaway_d) * per_yr) / cap
-    kf = k_star_drift(P.p_star, P.tau_p, P.sigma, m)
     leak = inv * P.delta * P.withhold / cap
-    over = P.r * P.gamma_p * kf / cap
-    delta = g.delta_sum / g.cap_n / cap
-    theory = delta * (P.mu - P.r) - leak - over
+    delta = g.delta_sum / g.mvcap_sum             # per unit of the sampled capital
+    theory = delta * (P.mu - P.r) - leak
     return {"ledger": ledger, "dollar": dollar, "theory": theory,
             "delta": delta, "dollar - theory": dollar - theory,
             "ledger - theory": ledger - theory}
@@ -1373,7 +1433,7 @@ def dollars(args):
 
     Three runs through one pool: Standard and Conservative in the real world,
     and Standard at the pricing drift mu = r, where no-arbitrage makes the
-    dollar answer exact -- minus the leak and the overcharge, nothing else.
+    dollar answer exact -- minus the leak, nothing else.
     Standard errors are across the batches each run is split into.
     """
     import model
@@ -1383,8 +1443,8 @@ def dollars(args):
     paths = args.paths or 1600
     jobs, spans = [], []
     for label, kw in runs:
-        P = Params(delta=0.025, years=30.0, paths=paths, seed=args.seed,
-                   book_delta=True, **kw)
+        P = Params(delta=0.025, years=args.years or 30.0, paths=paths,
+                   seed=args.seed, book_delta=True, **kw)
         js = batch_jobs(P)
         spans.append((label, P, len(jobs), len(jobs) + len(js)))
         jobs += js
@@ -1418,7 +1478,8 @@ def main():
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     ap.add_argument("--years", type=float, default=None,
-                    help="horizon for --scenario constrained (default 60)")
+                    help="horizon for --scenario constrained (default 60), "
+                         "validate and dollars (default 30)")
     ap.add_argument("--gamma-s", dest="gamma_s", type=float, default=0.25,
                     help="equity required against held shares (0.25 = PM)")
     ap.add_argument("--eps", type=float, default=0.10,

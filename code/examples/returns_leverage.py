@@ -127,6 +127,10 @@ def compute(cfg=None, measure="P", horizon=30.0, eps=0.10, ctx=None, **kw):
 # Economic figures are in dollars per period (TODO II-34).  Where a comment
 # quotes section 09 or 11, that prose is being rewritten to these values
 # (drafts/2026-11-06-dollars-per-period-plan.md) and may still show the old.
+# Economic and Track A figures moved with TODO II-35 (the account's cash earns
+# r, the window's edge closed).  Where a comment quotes a section, that prose
+# is being rewritten to these values (drafts/2026-11-13-account-cash-and-
+# window-edge-plan.md) and still shows the old.
 CASES = [
     Case("--gamma-s 0.25", {
         "equity_req": (3.04, 0.02),         # the capital table's new row, 30y
@@ -136,25 +140,25 @@ CASES = [
         "L_ceiling": (3.81, 0.02),          # section 04's "close to four times"
         "dd_ceiling": (0.017, 0.001),       # "1.7% below today's price"
         "p_liq_ceiling": (0.979, 0.005),    # "97.9%": not a surviving account
-        "net_ceiling": (0.0533, 0.0005),    # "+6.11% at no spread at all"
+        "net_ceiling": (0.0568, 0.0005),    # "+6.11% at no spread at all"
         "L_max": (1.1349, 0.0005),          # section 11's survivable leverage
-        "net_survivable": (0.0159, 0.0003), # "+1.82% at zero spread"
-        "unlevered": (0.0140, 0.0003),      # eq:excess, unchanged at L = 1
-        "neutral_spread": (0.0140, 0.0003), # the crossover = the excess itself
-        "diff_levered": (-0.002247, 0.00002),  # the capital-share gap, levered
+        "net_survivable": (0.0169, 0.0003), # "+1.82% at zero spread"
+        "unlevered": (0.0149, 0.0003),      # eq:excess, unchanged at L = 1
+        "neutral_spread": (0.0149, 0.0003), # the crossover = the excess itself
+        "diff_levered": (-0.001200, 0.00002),  # the capital-share gap, levered
         "L_ladder": ([1.0000, 1.0861, 1.1349, 1.1557], 0.0005),
-        "net_ladder": ([0.0140, 0.0152, 0.0159, 0.0162], 0.0003),
-        "diff_ladder": ([-0.001980, -0.002150, -0.002247, -0.002288], 0.00002),
+        "net_ladder": ([0.0149, 0.0162, 0.0169, 0.0173], 0.0003),
+        "diff_ladder": ([-0.001045, -0.001134, -0.001185, -0.001207], 0.00002),
     }, note="portfolio margin, financing at r: leverage at its most flattering"),
     Case("--gamma-s 0.25 --fin-spread 0.015", {
-        "net_ceiling": (0.0112, 0.0005),    # 3.8x the exposure, +0.29pp of return
-        "net_survivable": (0.0139, 0.0003), # "+1.62% at 1.5%"
-        "net_ladder": ([0.0140, 0.0139, 0.0139, 0.0138], 0.0003),
+        "net_ceiling": (0.0147, 0.0005),    # 3.8x the exposure, +0.29pp of return
+        "net_survivable": (0.0149, 0.0003), # "+1.62% at 1.5%"
+        "net_ladder": ([0.0149, 0.0149, 0.0149, 0.0149], 0.0003),
     }, note="the keenest retail financing: the whole ladder inside 2bp"),
     Case("--gamma-s 0.25 --fin-spread 0.03", {
-        "net_ceiling": (-0.0309, 0.0005),   # "-2.31%": past the crossover
-        "net_survivable": (0.0118, 0.0003), # "+1.42% at 3%"
-        "net_ladder": ([0.0140, 0.0126, 0.0118, 0.0115], 0.0003),
+        "net_ceiling": (-0.0274, 0.0005),   # "-2.31%": past the crossover
+        "net_survivable": (0.0129, 0.0003), # "+1.42% at 3%"
+        "net_ladder": ([0.0149, 0.0136, 0.0129, 0.0126], 0.0003),
     }, note="a 3% spread: every levered row below the unlevered one"),
     Case("--gamma-s 0.25 --p-star 0.10", {
         "table_equity": ([0.85, 1.09, 1.57], 0.005),  # the two-ledger table, Conservative

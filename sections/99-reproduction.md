@@ -20,26 +20,24 @@ Backs [eq:excess-return](#eq:excess-return).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_benchmark.py` | wheel = 1.40%, equity_frac = 98.3%, buy_hold = 1.625%, buy_hold_adj = 1.60%, difference = -0.20%, delta_frac = 93.2%, buy_hold_delta = 1.52%, difference_delta = -0.12% |
-| `python code/examples/returns_benchmark.py --p-star 0.10` | wheel = 1.28%, buy_hold_adj = 1.57%, difference = -0.29% |
-| `python code/examples/returns_benchmark.py --iv-spread 0.005` | wheel = 1.62%, difference = 0.03% |
-| `python code/examples/returns_benchmark.py --iv-spread 0.010` | wheel = 1.85%, difference = 0.25% |
-| `python code/examples/returns_benchmark.py --iv-spread 0.015` | wheel = 2.08%, difference = 0.48% |
-| `python code/examples/returns_benchmark.py --iv-spread 0.020` | wheel = 2.32%, difference = 0.72% |
-| `python code/examples/returns_benchmark.py --tau-p 0.0384615385` | wheel = 1.30%, difference = -0.28% |
-| `python code/examples/returns_benchmark.py --tau-p 0.0833333333` | wheel = 1.14%, difference = -0.43% |
-| `python code/examples/returns_benchmark.py --tau-p 0.25` | wheel = 0.77%, difference = -0.76% |
-| `python code/examples/returns_benchmark.py --tau-p 0.0833333333 --iv-spread 0.010` | wheel = 1.56% |
-| `python code/examples/returns_benchmark.py --delta 0.0` | wheel = 1.69%, difference = -0.27% |
-| `python code/examples/returns_benchmark.py --delta 0.01` | wheel = 1.58%, difference = -0.24% |
-| `python code/examples/returns_benchmark.py --delta 0.04` | wheel = 1.22%, difference = -0.16% |
-| `python code/examples/returns_benchmark.py --delta 0.06` | wheel = 0.96%, difference = -0.13% |
-| `python code/examples/returns_benchmark.py --horizon 5 --collateral` | wheel = 1.23%, equity_frac = 96.5%, buy_hold_adj = 1.57%, difference = -0.33%, delta_frac = 87.5%, buy_hold_delta = 1.42%, difference_delta = -0.19%, overcharge = 0.17%, gap_corrected = -0.16%, delta_corrected = -0.01% |
-| `python code/examples/returns_benchmark.py --horizon 10 --collateral` | wheel = 1.31%, buy_hold_adj = 1.58%, difference = -0.28%, buy_hold_delta = 1.47%, difference_delta = -0.16%, overcharge = 0.13%, gap_corrected = -0.15%, delta_corrected = -0.03% |
-| `python code/examples/returns_benchmark.py --collateral` | difference = -0.20%, overcharge = 0.08%, gap_corrected = -0.11%, delta_corrected = -0.03%, cash_secured = 4.68 |
-| `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 5 --collateral` | difference = -0.50%, gap_corrected = -0.16% |
-| `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 10 --collateral` | difference = -0.41%, gap_corrected = -0.15% |
-| `python code/examples/returns_benchmark.py --p-star 0.10 --collateral` | difference = -0.29%, overcharge = 0.17%, gap_corrected = -0.12% |
+| `python code/examples/returns_benchmark.py` | wheel = 1.49%, equity_frac = 98.3%, buy_hold = 1.625%, buy_hold_adj = 1.60%, difference = -0.10%, exposure_sold = 0.104%, delta_frac = 93.1%, buy_hold_delta = 1.51%, difference_delta = -0.020%, delta_sale_frac = 93.24%, shortcut = 0.003% |
+| `python code/examples/returns_benchmark.py --p-star 0.10` | wheel = 1.46%, buy_hold_adj = 1.57%, difference = -0.11%, difference_delta = -0.020% |
+| `python code/examples/returns_benchmark.py --iv-spread 0.005` | wheel = 1.72%, difference = 0.12% |
+| `python code/examples/returns_benchmark.py --iv-spread 0.010` | wheel = 1.94%, difference = 0.35% |
+| `python code/examples/returns_benchmark.py --iv-spread 0.015` | wheel = 2.18%, difference = 0.58% |
+| `python code/examples/returns_benchmark.py --iv-spread 0.020` | wheel = 2.41%, difference = 0.81% |
+| `python code/examples/returns_benchmark.py --tau-p 0.0384615385` | wheel = 1.44%, difference = -0.15% |
+| `python code/examples/returns_benchmark.py --tau-p 0.0833333333` | wheel = 1.35%, difference = -0.22% |
+| `python code/examples/returns_benchmark.py --tau-p 0.25` | wheel = 1.16%, difference = -0.38% |
+| `python code/examples/returns_benchmark.py --tau-p 0.0833333333 --iv-spread 0.010` | wheel = 1.78% |
+| `python code/examples/returns_benchmark.py --delta 0.0` | wheel = 1.81%, difference = -0.14% |
+| `python code/examples/returns_benchmark.py --delta 0.01` | wheel = 1.69%, difference = -0.13% |
+| `python code/examples/returns_benchmark.py --delta 0.04` | wheel = 1.29%, difference = -0.09% |
+| `python code/examples/returns_benchmark.py --delta 0.06` | wheel = 1.02%, difference = -0.07% |
+| `python code/examples/returns_benchmark.py --horizon 5` | wheel = 1.38%, equity_frac = 96.5%, buy_hold_adj = 1.57%, difference = -0.19%, exposure_sold = 0.186%, delta_frac = 87.2%, buy_hold_delta = 1.42%, difference_delta = -0.035%, delta_sale_frac = 87.47%, shortcut = 0.006% |
+| `python code/examples/returns_benchmark.py --horizon 10` | wheel = 1.43%, buy_hold_adj = 1.58%, difference = -0.15%, delta_frac = 90.0%, buy_hold_delta = 1.46%, difference_delta = -0.028%, shortcut = 0.004% |
+| `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 5` | wheel = 1.33%, difference = -0.19%, difference_delta = -0.035% |
+| `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 10` | wheel = 1.39%, difference = -0.15%, difference_delta = -0.028% |
 
 ### `strategy_cadence.py` {#repro:strategy-cadence}
 
@@ -217,8 +215,8 @@ Backs [eq:income](#eq:income).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_income.py` | put = 0.1591, call = 0.3706, premiums = 0.5297, dividends = 0.2422, income = 0.7718 |
-| `python code/examples/returns_income.py --p-star 0.10` | income = 0.3711 |
+| `python code/examples/returns_income.py` | put = 0.1591, call = 0.3706, premiums = 0.5297, dividends = 0.2422, interest = 0.0114, collateral = 0.0098, float = 0.0016, income = 0.7832 |
+| `python code/examples/returns_income.py --p-star 0.10` | income = 0.3816 |
 | `python code/examples/returns_income.py --iv-spread 0.005` | premiums = 0.5555 |
 | `python code/examples/returns_income.py --iv-spread 0.010` | premiums = 0.5818 |
 | `python code/examples/returns_income.py --iv-spread 0.020` | premiums = 0.6358 |
@@ -233,13 +231,13 @@ Draws [fig:two-ledgers](#fig:two-ledgers): `python code/examples/returns_ledger.
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_ledger.py` | appreciation = 0.5128, acq_loss = 0.1553, call_away_loss = 0.3875, overpay = 1.49%, giveaway_per_exit = 3.90%, net = -0.0300, balance = 35.8, econ_pnl = 0.7418, econ_excess = 1.40%, table_lots = 5.41  7.39  11.40, table_mv = 5.61  7.59  11.59, table_cost = 6.70  9.83  18.23, table_excess = 1.23%  1.31%  1.40%, table_cash = 4.11%  1.81%  -0.77%, table_cash_mv = 5.88%  3.82%  1.66%, cash_mv = 1.66%, basis_ratio = 1.57, cash_cost_zero = 20.5 |
-| `python code/examples/returns_ledger.py --horizon 5` | net = -0.2607, cost_ratio = 2.07, income = 0.6102, cash_mv = 5.88%, basis_gap = +1.77%, econ_excess = 1.23% |
-| `python code/examples/returns_ledger.py --horizon 10` | net = -0.1908 |
-| `python code/examples/returns_ledger.py --horizon 50` | net = 0.0587 |
-| `python code/examples/returns_ledger.py --horizon 100` | econ_excess = 1.46% |
-| `python code/examples/returns_ledger.py --p-star 0.10` | econ_excess = 1.28%, table_lots = 2.63  3.58  5.50, table_mv = 2.82  3.77  5.70, table_cost = 3.35  4.86  8.90, table_excess = 1.01%  1.14%  1.28%, table_cash = 3.76%  1.62%  -0.83%, table_cash_mv = 5.41%  3.53%  1.52% |
-| `python code/examples/returns_ledger.py --sticky` | sticky_F = 1.020  1.039  1.113, sticky_delta_eff = 2.55%  2.60%  2.78%, sticky_excess = 1.23%  1.29%  1.37%, sticky_change = -0.01%  -0.01%  -0.03%, sticky_gap = -0.33%  -0.28%  -0.19%, sticky_inv_rise = 3.4%, sticky_capital_rise = 5.1% |
+| `python code/examples/returns_ledger.py` | appreciation = 0.5128, acq_loss = 0.1553, call_away_loss = 0.3880, overpay = 1.49%, giveaway_per_exit = 3.90%, net = -0.0305, balance = 35.9, econ_pnl = 0.7526, econ_excess = 1.49%, table_lots = 5.41  7.39  11.40, table_mv = 5.61  7.59  11.59, table_cost = 6.70  9.83  18.23, table_excess = 1.38%  1.43%  1.49%, table_cash = 4.28%  1.92%  -0.70%, table_cash_mv = 6.08%  3.97%  1.76%, cash_mv = 1.76%, basis_ratio = 1.57, cash_cost_zero = 21.2 |
+| `python code/examples/returns_ledger.py --horizon 5` | net = -0.2636, cost_ratio = 2.08, income = 0.6214, cash_mv = 6.08%, basis_gap = +1.81%, econ_excess = 1.38% |
+| `python code/examples/returns_ledger.py --horizon 10` | net = -0.1923 |
+| `python code/examples/returns_ledger.py --horizon 50` | net = 0.0584 |
+| `python code/examples/returns_ledger.py --horizon 100` | econ_excess = 1.53% |
+| `python code/examples/returns_ledger.py --p-star 0.10` | econ_excess = 1.46%, table_lots = 2.63  3.58  5.50, table_mv = 2.82  3.77  5.70, table_cost = 3.35  4.86  8.90, table_excess = 1.33%  1.39%  1.46%, table_cash = 4.07%  1.84%  -0.71%, table_cash_mv = 5.78%  3.81%  1.70% |
+| `python code/examples/returns_ledger.py --sticky` | sticky_F = 1.020  1.039  1.113, sticky_delta_eff = 2.55%  2.60%  2.78%, sticky_excess = 1.38%  1.42%  1.46%, sticky_change = -0.01%  -0.01%  -0.04%, sticky_gap = -0.19%  -0.15%  -0.10%, sticky_inv_rise = 3.4%, sticky_capital_rise = 5.1% |
 | `python code/examples/returns_ledger.py --trap` | trap_xstar = 0.693, trap_below = 50.0%, trap_beyond = 16.7% |
 | `python code/examples/returns_ledger.py --measure Q --trap` | trap_xstar = 0.182, trap_below = 16.7%, trap_beyond = 69.0% |
 
@@ -249,9 +247,9 @@ Backs [eq:levered-excess](#eq:levered-excess).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_leverage.py --gamma-s 0.25` | equity_req = 3.04, equity_frac = 26.3%, table_equity = 1.55  2.04  3.04, table_equity_frac = 27.6%  26.9%  26.3%, L_ceiling = 3.81, dd_ceiling = 1.7%, p_liq_ceiling = 97.9%, net_ceiling = +5.33%, L_max = 1.1349, net_survivable = +1.59%, unlevered = +1.40%, neutral_spread = 1.40%, diff_levered = -0.225%, L_ladder = 1.0000  1.0861  1.1349  1.1557, net_ladder = +1.40%  +1.52%  +1.59%  +1.62%, diff_ladder = -0.198%  -0.215%  -0.225%  -0.229% |
-| `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.015` | net_ceiling = +1.12%, net_survivable = +1.39%, net_ladder = +1.40%  +1.39%  +1.39%  +1.38% |
-| `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.03` | net_ceiling = -3.09%, net_survivable = +1.18%, net_ladder = +1.40%  +1.26%  +1.18%  +1.15% |
+| `python code/examples/returns_leverage.py --gamma-s 0.25` | equity_req = 3.04, equity_frac = 26.3%, table_equity = 1.55  2.04  3.04, table_equity_frac = 27.6%  26.9%  26.3%, L_ceiling = 3.81, dd_ceiling = 1.7%, p_liq_ceiling = 97.9%, net_ceiling = +5.68%, L_max = 1.1349, net_survivable = +1.69%, unlevered = +1.49%, neutral_spread = 1.49%, diff_levered = -0.119%, L_ladder = 1.0000  1.0861  1.1349  1.1557, net_ladder = +1.49%  +1.62%  +1.69%  +1.73%, diff_ladder = -0.104%  -0.113%  -0.119%  -0.121% |
+| `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.015` | net_ceiling = +1.47%, net_survivable = +1.49%, net_ladder = +1.49%  +1.49%  +1.49%  +1.49% |
+| `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.03` | net_ceiling = -2.74%, net_survivable = +1.29%, net_ladder = +1.49%  +1.36%  +1.29%  +1.26% |
 | `python code/examples/returns_leverage.py --gamma-s 0.25 --p-star 0.10` | table_equity = 0.85  1.09  1.57, table_equity_frac = 30.1%  28.8%  27.5% |
 
 ## Stability: Two Ways to Be Buried, and a Third if You Borrow
@@ -311,12 +309,12 @@ Backs [eq:debit-growth](#eq:debit-growth), [eq:theta-eff](#eq:theta-eff), [eq:gm
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.0` | f_star = 0.0000, p_liq = 0.0%, draw_frac = 4.63%, roe_excess = +1.558% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.0192` | f_star = 0.0251, p_liq = 1.0%, draw_frac = 4.65%, roe_excess = +1.588% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.1349` | f_star = 0.1585, p_liq = 10.0%, g = 0.0000, draw_frac = 4.58%, roe_excess = +1.768% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.25` | f_star = 0.2667, p_liq = 19.2%, draw_frac = 4.30%, roe_excess = +1.948% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.5` | f_star = 0.4444, p_liq = 36.3%, draw_frac = 2.86%, roe_excess = +2.337% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.883` | f_star = 0.6252, p_liq = 55.6%, draw_frac = -2.14%, roe_excess = +2.934% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.0` | f_star = 0.0000, p_liq = 0.0%, draw_frac = 4.64%, roe_excess = +1.566% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.0192` | f_star = 0.0251, p_liq = 1.0%, draw_frac = 4.66%, roe_excess = +1.596% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.1349` | f_star = 0.1585, p_liq = 10.0%, g = 0.0000, draw_frac = 4.59%, roe_excess = +1.777% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.25` | f_star = 0.2667, p_liq = 19.2%, draw_frac = 4.31%, roe_excess = +1.957% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.5` | f_star = 0.4444, p_liq = 36.3%, draw_frac = 2.87%, roe_excess = +2.349% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.883` | f_star = 0.6252, p_liq = 55.6%, draw_frac = -2.13%, roe_excess = +2.948% |
 
 ### `account_leverage.py` {#repro:account-leverage}
 

@@ -4,8 +4,10 @@
     python code/examples/returns_income.py --p-star 0.10
     python code/examples/returns_income.py --measure Q
 
-Backs eq:income in section 09 -- the put premiums, call premiums and
-dividends that sum to the Track A cash income.  Horizon-weighted (income
+Backs eq:income in section 09 -- the put premiums, call premiums, dividends
+and the interest the account's cash earns, which sum to the Track A cash
+income.  The interest is r on the put's collateral and on each premium until
+its option expires (TODO II-35).  Horizon-weighted (income
 scales with the standing inventory), so it hangs off the near-grid killed
 walk; see `holding_time.py` for the pattern.
 
@@ -33,6 +35,9 @@ FIELDS = [
     ("call", "call premiums / yr", ".4f"),
     ("premiums", "  the two premium legs together", ".4f"),
     ("dividends", "dividends / yr", ".4f"),
+    ("interest", "interest on the account's cash / yr", ".4f"),
+    ("collateral", "  on the put's collateral", ".4f"),
+    ("float", "  on premiums until their options expire", ".4f"),
     ("income", "Track A income / yr", ".4f"),
 ]
 
@@ -55,20 +60,34 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
         "call": e["premiums_call"],
         "premiums": e["premiums"],
         "dividends": e["dividends"],
+        "interest": e["cash_interest"],
+        "collateral": e["collateral_interest"],
+        "float": e["premium_float"],
         "income": e["income"],
     }
 
 
+# Economic and Track A figures moved with TODO II-35 (the account's cash earns
+# r, the window's edge closed).  Where a comment quotes a section, that prose
+# is being rewritten to these values (drafts/2026-11-13-account-cash-and-
+# window-edge-plan.md) and still shows the old.
 CASES = [
     Case("", {
         "put": (0.1591, 0.0010),        # section 09: "put premiums 0.1591 per year"
         "call": (0.3706, 0.0020),       # "call premiums 0.3706 per year"
         "premiums": (0.5297, 0.0010),   # the vol-risk-premium table: "20.0% (fair) 0.5297"
         "dividends": (0.2422, 0.0010),  # "dividends 0.2422 per year"
-        "income": (0.7718, 0.0020),     # eq:income "Track A income 0.7718 per year"
+        # The account's cash at r (TODO II-35); section 09 does not quote these
+        # yet.  r*gamma_p*k on the collateral, and each leg's premiums times
+        # e^(r*tau) - 1, checked by hand: 0.05*0.2*0.98 and 0.1591*(e^(0.05/52) - 1)
+        # + 0.3706*(e^(0.05/13) - 1).
+        "interest": (0.0114, 0.0002),
+        "collateral": (0.0098, 0.0001),
+        "float": (0.0016, 0.0001),
+        "income": (0.7832, 0.0020),     # eq:income "Track A income 0.7718 per year"
     }, note="Standard regime, 30y; call leg pinned transitively"),
     Case("--p-star 0.10", {
-        "income": (0.3711, 0.0020),     # Conservative: "Track A income 0.371/yr"
+        "income": (0.3816, 0.0020),     # Conservative: "Track A income 0.371/yr"
     }, note="Conservative regime"),
     # The volatility-risk-premium sweep of section 09 -- premiums per year as the
     # quote gets richer.  Only the quote moves, so this is the premiums column of

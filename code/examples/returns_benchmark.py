@@ -9,10 +9,10 @@ are the wrong comparison: the wheel keeps almost all its capital in equity, so
 the question is not whether it beats cash but whether it beats owning the same
 stock.  Buy-and-hold earns mu - r - w*delta over the risk-free rate; scaled by
 the wheel's capital in shares it is the operator's own alternative.  In
-dollars per period (TODO II-34) the wheel trails it by about 0.2 points at
-thirty years: per unit of the exposure the book actually carries, its delta,
-the wheel earns what the stock does, and the shortfall is the exposure its
-calls give away.
+dollars per period (TODO II-34) the wheel trails it by about 0.1 points at
+thirty years: per unit of the exposure the book actually carries, its delta
+averaged over each option's life, the wheel earns what the stock does less the
+withholding, and the shortfall is exactly the exposure its calls sell.
 
 Horizon-weighted (equity exposure and the wheel's excess both move with the
 standing inventory); hangs off the near-grid killed walk.
@@ -30,33 +30,27 @@ TITLE = "Returns: the wheel against buy-and-hold"
 SECTION = "sec:strategy"
 EQ = ["eq:excess-return"]
 
-# The collateral footnote is an accounting correction on top of the ledger, not
-# part of eq:excess -- section 09 is emphatic about that -- so it is off by
-# default and only printed under --collateral.
-EXTRA = [("--collateral", dict(action="store_true",
-                               help="also show Track C's collateral overcharge "
-                                    "(the section 09 footnote), off by default"))]
-
 FIELDS = [
     ("wheel", "the wheel's true excess return", ".2%"),
     ("equity_frac", "  wheel equity exposure (% of capital)", ".1%"),
     ("buy_hold", "buy & hold excess, mu - r - w*delta", ".3%"),
     ("buy_hold_adj", "  equity-adjusted to the wheel's exposure", ".2%"),
     ("difference", "wheel minus equity-adjusted buy & hold", ".2%"),
-    # The same comparison with the stock scaled to the book's delta instead of
-    # its capital in shares: each lot a share less its call's delta, plus the
-    # short put's (model.book_delta).  Per unit of the exposure it carries, the
-    # wheel earns what the stock does.
+    # The book's delta, each option's averaged over its life with its drift
+    # (model.book_delta_life): a share less its call's, plus the short put's.
+    # Black-Scholes's result -- an instrument earns its delta times the stock's
+    # -- then holds exactly, so the gap to the equity-adjusted stock is the
+    # exposure the calls sell, (shares - delta)*(mu - r), and the gap to the
+    # delta-scaled stock is the withholding on those shares, nothing else.
     ("delta_frac", "  the book's delta (% of capital)", ".1%"),
     ("buy_hold_delta", "  buy & hold scaled to the book's delta", ".2%"),
-    ("difference_delta", "wheel minus delta-scaled buy & hold", ".2%"),
-    # The collateral footnote (only under --collateral): Track C charges r on the
-    # put margin that in fact earns ~r at the broker, so it overcharges by
-    # r*gamma_p*k a year.  Crediting it back is what makes the two regimes agree.
-    ("overcharge", "Track C overcharge on the put collateral", ".2%"),
-    ("gap_corrected", "  difference once the collateral earns r", ".2%"),
-    ("delta_corrected", "  delta-scaled difference once it does", ".2%"),
-    ("cash_secured", "  cash-secured overcharge, as a multiple", ".2f"),
+    ("difference_delta", "wheel minus delta-scaled buy & hold", ".3%"),
+    ("exposure_sold", "  the exposure the calls sell, at mu - r", ".3%"),
+    # The usual shortcut: each option's delta at the moment it is sold, what a
+    # broker's screen shows (model.book_delta).  It overstates the exposure by
+    # the drift of delta over an option's life.
+    ("delta_sale_frac", "  the book's delta at sale (% of capital)", ".2%"),
+    ("shortcut", "  what the shortcut adds to the gap, at mu - r", ".3%"),
 ]
 
 
@@ -64,25 +58,22 @@ def requires(cfg, measure="P", horizon=30.0, **kw):
     return [need_occupation(cfg, measure)]
 
 
-def compute(cfg=None, measure="P", horizon=30.0, ctx=None, collateral=False, **kw):
+def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
     cfg = cfg if cfg is not None else model.Config()
     occ = resolve(ctx, need_occupation(cfg, measure))
     e = model.economics(cfg, measure, occ, horizon=horizon)
-    equity_frac = e["I"] / e["mv_capital"]      # section 09's "98%"
+    cap = e["mv_capital"]
+    equity_frac = e["I"] / cap                  # section 09's "98%"
     buy_hold = model.buy_hold_excess(cfg, measure)
     buy_hold_adj = buy_hold * equity_frac
     difference = e["econ_excess"] - buy_hold_adj
-    inv, put = model.book_delta(cfg, measure, 0.0, horizon=horizon)
-    delta_frac = (e["I"] * inv + put) / e["mv_capital"]
+    m, _ = cfg.world(measure)
+    premium = m + cfg.delta - cfg.r             # the stock's own, mu - r
+    inv, put = model.book_delta_life(cfg, measure, horizon=horizon)
+    delta_frac = float((e["I"] * inv + put) / cap)
     buy_hold_delta = buy_hold * delta_frac
-    difference_delta = e["econ_excess"] - buy_hold_delta
-    # The collateral correction is arithmetic on the ledger, not a model formula:
-    # r on the put margin gamma_p*k, over the capital of eq:capital.
-    overcharge = cfg.r * cfg.gamma_p * e["k"] / e["mv_capital"]
-    # The fully-cash-secured convention posts k, not gamma_p*k, so its overcharge
-    # -- k over the whole capital -- is the larger multiple the footnote names.
-    cash_secured = ((e["k"] / (e["k"] + e["I"]))
-                    / (cfg.gamma_p * e["k"] / e["mv_capital"]))
+    inv_s, put_s = model.book_delta(cfg, measure, 0.0, horizon=horizon)
+    delta_sale = float((e["I"] * inv_s + put_s) / cap)
     return {
         "wheel": e["econ_excess"],
         "equity_frac": equity_frac,
@@ -91,55 +82,64 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, collateral=False, **k
         "difference": difference,
         "delta_frac": delta_frac,
         "buy_hold_delta": buy_hold_delta,
-        "difference_delta": difference_delta,
-        "overcharge": overcharge if collateral else None,
-        "gap_corrected": difference + overcharge if collateral else None,
-        "delta_corrected": difference_delta + overcharge if collateral else None,
-        "cash_secured": cash_secured if collateral else None,
+        "difference_delta": e["econ_excess"] - buy_hold_delta,
+        "exposure_sold": (equity_frac - delta_frac) * premium,
+        "delta_sale_frac": delta_sale,
+        "shortcut": (delta_sale - delta_frac) * premium,
     }
 
 
-# Economic figures are in dollars per period (TODO II-34).  Where a comment
+# Economic figures are in dollars per period (TODO II-34), with the account's
+# cash earning r and the window's edge closed (TODO II-35).  Where a comment
 # quotes section 09 or 11, that prose is being rewritten to these values
-# (drafts/2026-11-06-dollars-per-period-plan.md) and may still show the old.
+# (drafts/2026-11-13-account-cash-and-window-edge-plan.md) and still shows the
+# old.
 CASES = [
     Case("", {
-        "wheel": (0.0140, 0.0005),          # section 09: "+1.40%"; the table's 30 y
+        "wheel": (0.0149, 0.0001),          # section 09: "+1.40%"; the table's 30 y
         "equity_frac": (0.983, 0.0005),     # "98% at the thirty-year mark"; "98.3%"
         "buy_hold": (0.01625, 0.00001),     # "mu - r - w*delta = +1.625%"
-        "buy_hold_adj": (0.0160, 0.0005),   # "the same capital in the stock  +1.60%"
-        "difference": (-0.0020, 0.0005),    # "difference  -0.20%"; "a fifth of a point"
-        "delta_frac": (0.932, 0.0005),      # "93.2% at thirty"
-        "buy_hold_delta": (0.0152, 0.0005), # "the stock, scaled to the book's delta  +1.52%"
-        "difference_delta": (-0.0012, 0.0005),  # "the wheel, minus it  -0.12%"
+        "buy_hold_adj": (0.0160, 0.0001),   # "the same capital in the stock  +1.60%"
+        "difference": (-0.00105, 0.00002),  # "difference  -0.20%"; "a fifth of a point"
+        # The identities the structural checks hold exactly: the gap to the
+        # equity-adjusted stock is minus the exposure sold, and to the
+        # delta-scaled stock 0.375% of withholding on the 5.2 points of capital
+        # between shares and delta, by hand: 0.00375*(0.9831 - 0.9309).
+        "exposure_sold": (0.00105, 0.00002),
+        "delta_frac": (0.931, 0.0005),      # "93.2% at thirty", which is at sale
+        "buy_hold_delta": (0.0151, 0.0001), # "the stock, scaled to the book's delta  +1.52%"
+        "difference_delta": (-0.00020, 0.00002),  # "the wheel, minus it  -0.12%"
+        "delta_sale_frac": (0.9324, 0.0001),
+        "shortcut": (0.000030, 0.000005),
     }, note="Standard regime, 30y"),
     Case("--p-star 0.10", {
-        "wheel": (0.0128, 0.0005),          # Conservative: "true excess +1.49%"
-        "buy_hold_adj": (0.0157, 0.0005),   # "against a benchmark of +1.57%"
-        "difference": (-0.0029, 0.0005),    # "The eight-basis-point deficit"
+        "wheel": (0.0146, 0.0001),          # Conservative: "true excess +1.49%"
+        "buy_hold_adj": (0.0157, 0.0001),   # "against a benchmark of +1.57%"
+        "difference": (-0.00107, 0.00002),  # "The eight-basis-point deficit"
+        "difference_delta": (-0.00020, 0.00002),
     }, note="Conservative regime"),
 
     # The volatility-risk-premium sweep of section 09: the excess a richer quote
     # buys, and the gap over buy-and-hold that grows with it -- "about 45 basis
     # points per volatility point".  (Premiums per year are in returns_income.py.)
     Case("--iv-spread 0.005", {
-        "wheel": (0.0162, 0.0005),          # the table: "20.5%  +1.83%"
-        "difference": (0.0003, 0.0005),     # "vs buy-and-hold  +0.23%"
+        "wheel": (0.0172, 0.0001),          # the table: "20.5%  +1.83%"
+        "difference": (0.0012, 0.0001),     # "vs buy-and-hold  +0.23%"
     }, note="sigma_IV = 20.5%"),
     Case("--iv-spread 0.010", {
-        "wheel": (0.0185, 0.0005),          # "21.0%  +2.05%"
-        "difference": (0.0025, 0.0005),     # "+0.46%"
+        "wheel": (0.0194, 0.0001),          # "21.0%  +2.05%"
+        "difference": (0.0035, 0.0001),     # "+0.46%"
     }, note="sigma_IV = 21.0%"),
     # 1.5 points is the top of the single-name range section 09 now quotes
     # (Bakshi & Kapadia: 1.07 dropping dividend payers, 1.5 across all
     # options), so the range is bracketed by checks rather than interpolated.
     Case("--iv-spread 0.015", {
-        "wheel": (0.0208, 0.0005),          # the table: "21.5%  +2.29%"
-        "difference": (0.0048, 0.0005),     # "vs buy-and-hold  +0.69%"
+        "wheel": (0.0218, 0.0001),          # the table: "21.5%  +2.29%"
+        "difference": (0.0058, 0.0001),     # "vs buy-and-hold  +0.69%"
     }, note="sigma_IV = 21.5%, the top of the single-name range"),
     Case("--iv-spread 0.020", {
-        "wheel": (0.0232, 0.0005),          # "22.0%  +2.52%"
-        "difference": (0.0072, 0.0005),     # "+0.92%"
+        "wheel": (0.0241, 0.0001),          # "22.0%  +2.52%"
+        "difference": (0.0081, 0.0001),     # "+0.92%"
     }, note="sigma_IV = 22.0%, two vol points dear"),
 
     # The cadence sweep of section 09: thirteen basis points across a
@@ -150,23 +150,23 @@ CASES = [
     # INF-6: the harness pinned `cadence` at 1/52, so --tau-p 0.08333 sold a
     # monthly put every WEEK and reported +1.74% here instead of +1.56%.
     Case("--tau-p 0.0384615385", {
-        "wheel": (0.0130, 0.0005),          # the table: "biweekly  +1.59%"
-        "difference": (-0.0028, 0.0005),     # "vs buy-and-hold  +0.00%"
+        "wheel": (0.0144, 0.0001),          # the table: "biweekly  +1.59%"
+        "difference": (-0.0015, 0.0001),     # "vs buy-and-hold  +0.00%"
     }, note="biweekly cadence, n = 4"),
     Case("--tau-p 0.0833333333", {
-        "wheel": (0.0114, 0.0005),          # "monthly  +1.56%"
-        "difference": (-0.0043, 0.0005),    # "-0.01%"
+        "wheel": (0.0135, 0.0001),          # "monthly  +1.56%"
+        "difference": (-0.0022, 0.0001),    # "-0.01%"
     }, note="monthly cadence, n = 4"),
     Case("--tau-p 0.25", {
-        "wheel": (0.0077, 0.0005),          # "quarterly  +1.47%"
-        "difference": (-0.0076, 0.0005),    # "-0.07%"
+        "wheel": (0.0116, 0.0001),          # "quarterly  +1.47%"
+        "difference": (-0.0038, 0.0001),    # "-0.07%"
     }, note="quarterly cadence, n = 4"),
     # The residual tilt the section admits to: at a FLAT premium the model
     # harvests more per point the faster it writes, because premium volume goes
     # as 1/sqrt(tau).  45.0bp weekly against 42.0 monthly -- the wrong way round
     # against the record, which is the whole point of the subsection.
     Case("--tau-p 0.0833333333 --iv-spread 0.010", {
-        "wheel": (0.0156, 0.0005),          # 42.0bp per point, against 45.0 weekly
+        "wheel": (0.0178, 0.0001),          # 42.0bp per point, against 45.0 weekly
     }, note="monthly at one vol point, for the per-point harvest"),
 
     # The dividend sweep of section 09: the true excess falls ~90bp across it,
@@ -174,68 +174,57 @@ CASES = [
     # pays the same tax stays "essentially zero throughout -- never more than two
     # basis points, at any yield".  (Lots and capital are in returns_capital.py.)
     Case("--delta 0.0", {
-        "wheel": (0.0169, 0.0005),          # the table: "δ 0%  +1.98%"
-        "difference": (-0.0027, 0.0003),     # "the gap is essentially zero"
+        "wheel": (0.0181, 0.0001),          # the table: "δ 0%  +1.98%"
+        "difference": (-0.0014, 0.0003),     # "the gap is essentially zero"
     }, note="no dividend"),
     Case("--delta 0.01", {
-        "wheel": (0.0158, 0.0005),          # "δ 1%  +1.83%"
-        "difference": (-0.0024, 0.0003),
+        "wheel": (0.0169, 0.0001),          # "δ 1%  +1.83%"
+        "difference": (-0.0013, 0.0003),
     }, note="a 1% yielder"),
     Case("--delta 0.04", {
-        "wheel": (0.0122, 0.0005),          # "δ 4%  +1.38%"
-        "difference": (-0.0016, 0.0003),
+        "wheel": (0.0129, 0.0001),          # "δ 4%  +1.38%"
+        "difference": (-0.0009, 0.0003),
     }, note="a 4% yielder"),
     Case("--delta 0.06", {
-        "wheel": (0.0096, 0.0005),          # "δ 6%  +1.08%" -- a non-converging snapshot
-        "difference": (-0.0013, 0.0003),
+        "wheel": (0.0102, 0.0001),          # "δ 6%  +1.08%" -- a non-converging snapshot
+        "difference": (-0.0007, 0.0003),
     }, note="a 6% yielder, past the count boundary"),
 
-    # The collateral footnote and the regime-comparison table it explains.  The
-    # difference "as modelled" and the difference "once the collateral earns r"
-    # are the middle two and last two rows of that table; the overcharge is the
-    # footnote's own 17/13/8 bp.  Crediting the collateral makes the regimes agree.
-    Case("--horizon 5 --collateral", {
-        "wheel": (0.0123, 0.0005),          # the benchmark tables' 5 y column
+    # The benchmark tables' other horizons, and the Conservative regime beside
+    # them.  The collateral footnote these cases used to back is gone: since
+    # TODO II-35 the collateral earns r inside the ledger, and Standard and
+    # Conservative agree on both gaps to a basis point.
+    Case("--horizon 5", {
+        "wheel": (0.0138, 0.0001),          # the benchmark tables' 5 y column
         "equity_frac": (0.965, 0.0005),     # "96.5% at five years"
-        "buy_hold_adj": (0.0157, 0.0005),   # "+1.57%"
-        "difference": (-0.0033, 0.0001),    # "-0.33%"; "a third of a point at five"
-        "delta_frac": (0.875, 0.0005),      # "87.5% of its capital ... at five years"
-        "buy_hold_delta": (0.0142, 0.0005), # "+1.42%"
-        "difference_delta": (-0.0019, 0.0005),  # "-0.19%"
-        "overcharge": (0.0017, 0.0001),     # footnote: "17 basis points ... at five years"
-        "gap_corrected": (-0.0016, 0.0001), # footnote: "narrows to -0.16 points at five"
-        "delta_corrected": (-0.0001, 0.0001),  # "with the collateral credited  -0.01%"
-    }, note="Standard, five years: the fixed margin is a large share of a small book"),
-    Case("--horizon 10 --collateral", {
-        "wheel": (0.0131, 0.0005),          # the 10 y column
-        "buy_hold_adj": (0.0158, 0.0005),   # "+1.58%"
-        "difference": (-0.0028, 0.0001),    # "-0.28%"
-        "buy_hold_delta": (0.0147, 0.0005), # "+1.47%"
-        "difference_delta": (-0.0016, 0.0005),  # "-0.16%"
-        "overcharge": (0.0013, 0.0001),     # "13 at ten"
-        "gap_corrected": (-0.0015, 0.0001), # the Conservative regime's table
-        "delta_corrected": (-0.0003, 0.0001),  # "with the collateral credited  -0.03%"
+        "buy_hold_adj": (0.0157, 0.0001),   # "+1.57%"
+        "difference": (-0.00187, 0.00002),  # "-0.33%"; "a third of a point at five"
+        "exposure_sold": (0.00187, 0.00002),
+        "delta_frac": (0.872, 0.0005),      # "87.5% of its capital ... at five years", at sale
+        "buy_hold_delta": (0.0142, 0.0001), # "+1.42%"
+        "difference_delta": (-0.00035, 0.00002),  # "-0.19%"
+        "delta_sale_frac": (0.8747, 0.0001),
+        "shortcut": (0.000056, 0.000005),
+    }, note="Standard, five years"),
+    Case("--horizon 10", {
+        "wheel": (0.0143, 0.0001),          # the 10 y column
+        "buy_hold_adj": (0.0158, 0.0001),   # "+1.58%"
+        "difference": (-0.00149, 0.00002),  # "-0.28%"
+        "delta_frac": (0.900, 0.0005),
+        "buy_hold_delta": (0.0146, 0.0001), # "+1.47%"
+        "difference_delta": (-0.00028, 0.00002),  # "-0.16%"
+        "shortcut": (0.000044, 0.000005),
     }, note="Standard, ten years"),
-    Case("--collateral", {
-        "difference": (-0.0020, 0.0002),    # the 30 y column
-        "overcharge": (0.0008, 0.0001),     # "8 at thirty"
-        "gap_corrected": (-0.0011, 0.0001), # footnote: "and -0.11 at thirty"
-        "delta_corrected": (-0.0003, 0.0001),  # "with the collateral credited  -0.03%"
-        "cash_secured": (4.7, 0.05),        # "about 4.7 times larger at thirty years"
-    }, note="Standard, thirty years"),
-    Case("--p-star 0.10 --horizon 5 --collateral", {
-        "difference": (-0.0050, 0.0001),    # "Conservative, as modelled  5y −0.14%"
-        "gap_corrected": (-0.0016, 0.0001),  # "Conservative, collateral earning r  +0.20%"
+    Case("--p-star 0.10 --horizon 5", {
+        "wheel": (0.0133, 0.0001),
+        "difference": (-0.00187, 0.00002),  # "Conservative, as modelled  5y"
+        "difference_delta": (-0.00035, 0.00002),
     }, note="Conservative, five years"),
-    Case("--p-star 0.10 --horizon 10 --collateral", {
-        "difference": (-0.0041, 0.0001),    # "Conservative, as modelled  10y −0.11%"
-        "gap_corrected": (-0.0015, 0.0001),  # "+0.14%"
+    Case("--p-star 0.10 --horizon 10", {
+        "wheel": (0.0139, 0.0001),
+        "difference": (-0.00150, 0.00002),  # "Conservative, as modelled  10y"
+        "difference_delta": (-0.00028, 0.00002),
     }, note="Conservative, ten years"),
-    Case("--p-star 0.10 --collateral", {
-        "difference": (-0.0029, 0.0002),    # "Conservative, as modelled  30y −0.08%"
-        "overcharge": (0.0017, 0.0001),     # "Track C's overcharge doubles ... from 8 to 17"
-        "gap_corrected": (-0.0012, 0.0001),  # "+0.09%"
-    }, note="Conservative, thirty years: same fixed margin over half the book"),
 ]
 
 
