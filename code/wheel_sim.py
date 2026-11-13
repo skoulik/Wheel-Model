@@ -384,17 +384,21 @@ def run_path(P, rng, agg):
     # cash.
     proportional = P.draw == "stationary"
 
-    def earn(amount):
-        """Book a premium: to the account under a policy that retains it, out
-        of the door under one that does not.  Either way it is income, and it
-        is accumulated per unit of the spot RULING AT THE TIME, which is the
-        normalization every figure in model.py is quoted in."""
+    pending = []                    # (expiry, premium) waiting to be withdrawn
+
+    def earn(amount, expiry):
+        """Book a premium.  It goes into the account on the day of sale and,
+        under a policy that withdraws income, comes out when its option
+        expires and the period's books close (TODO II-35): until then it is
+        the account's cash, earning r on a credit balance and saving r_b on a
+        debit.  Either way it is income, accumulated per unit of the spot
+        RULING AT THE TIME, which is the normalization every figure in
+        model.py is quoted in."""
         nonlocal cash
         if ledger:
-            if keep_income:
-                cash += amount
-            else:
-                agg.withdrawn += amount
+            cash += amount
+            if not keep_income:
+                pending.append((expiry, amount))
             if t_sat is not None:
                 agg.ps_income += amount / S
 
@@ -417,6 +421,14 @@ def run_path(P, rng, agg):
                 take += P.draw * dt
             d_a = max(0.0, -cash)
             cash += div + interest - take
+            # Premiums whose options expire now leave the account, having
+            # earned the interval's interest above.
+            if pending:
+                due = [a for e_, a in pending if e_ <= te + 1e-12]
+                if due:
+                    pending[:] = [(e_, a) for e_, a in pending if e_ > te + 1e-12]
+                    cash -= sum(due)
+                    agg.withdrawn += sum(due)
             d_b = d_last = max(0.0, -cash)
             eq_last, s_last = cash + m_last, S
             agg.withdrawn += take
@@ -452,6 +464,7 @@ def run_path(P, rng, agg):
                                 (round((t - lot.entry) * 12, 6), False))
                         lots = []
                         cash = 0.0
+                        pending.clear()          # sold out with the rest
                 if shadow and bridge_hit(s_a, S, b_frozen, b_frozen, var, u):
                     t_stat = t
             # Nothing is left to learn from a dead path once its shadow has
@@ -520,7 +533,7 @@ def run_path(P, rng, agg):
                 live = min(t + P.tau_p, P.years) - t
                 agg.prem_float += c_p / S * (exp(P.r * live) - 1)
                 agg.coll_int += P.r * P.gamma_p * kf * live
-                earn(c_p)
+                earn(c_p, t + P.tau_p)
                 if t_sat is not None:
                     ps_sales += 1
                 # Both capital tracks, spot-normalized.  Track A is margin plus
@@ -573,7 +586,7 @@ def run_path(P, rng, agg):
                 c_c = bs_call(S, K, P.tau_c, sig_iv, P.r, P.delta)
                 agg.prem_call += c_c / S
                 agg.prem_float += c_c / S * (exp(P.r * (min(t + P.tau_c, P.years) - t)) - 1)
-                earn(c_c)
+                earn(c_c, t + P.tau_c)
                 lot.x = log(K / S)
                 lot.s_sale, lot.t_exp = S, t + P.tau_c
                 push(t + P.tau_c, CALLEXP, lot)
@@ -600,7 +613,7 @@ def run_path(P, rng, agg):
                 c_c = bs_call(S, lot.strike, P.tau_c, sig_iv, P.r, P.delta)
                 agg.prem_call += c_c / S
                 agg.prem_float += c_c / S * (exp(P.r * (min(t + P.tau_c, P.years) - t)) - 1)
-                earn(c_c)
+                earn(c_c, t + P.tau_c)
                 lot.x = log(lot.strike / S)
                 lot.s_sale, lot.t_exp = S, t + P.tau_c
                 push(t + P.tau_c, CALLEXP, lot)

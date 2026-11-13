@@ -67,6 +67,18 @@ the real-world identity is exact too: **true excess = Δ̄·(μ − r) − withh
    structural check below does its job exactly. II-34's `DONE.md` entry keeps the record of what
    it showed.
 
+8. **The account's cash earns what that account's cash earns** (Sergei, 2026-11-13, after
+   step 1). A premium stays in the account until its option expires — in the simulator too,
+   whose income-withdrawing policies used to take it out on the day of sale — and there it
+   earns r on a credit balance and saves r_b on a debit. A levered account holds it against
+   its debit, so eq:levered-excess charges the spread on L − 1 − c·L, c the cash per unit of
+   capital, and the spread at which leverage is neutral is no longer the excess itself but
+   excess·(L − 1)/(L − 1 − c·L), 2% higher at the survivable leverage. With the premiums alone,
+   at a 1.5-point spread, return on equity rises 0.5bp at the survivable leverage and 1.6bp at
+   the broker's ceiling. **Open, his call:** whether the put's collateral in §09's levered
+   book — posted from equity in `equity_required` — is likewise cash set against the debit;
+   by the same rule it would be, adding 3bp at the survivable leverage and 11bp at the ceiling.
+
 ## What moves
 
 First estimates, from scratch scripts. The changed model recomputes them, and they are never

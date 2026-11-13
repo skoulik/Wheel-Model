@@ -130,7 +130,7 @@ CASES = [
     Case("--gamma-s 0.25 --equity 11.59 --leverage 1.883", {
         "f_star": (0.625, 0.001),       # draw table, L = 1.883 = E[I(inf)]/A
         "p_liq": (0.556, 0.002),
-        "draw_frac": (-0.0214, 0.0003), # "-2.14%": a demand for deposits
+        "draw_frac": (-0.0211, 0.0003), # "-2.14%": a demand for deposits
         "roe_excess": (0.0293, 0.0005), # "+3.15% ... higher"
     }, note="the strategy's own leverage cap: RoE up, cash negative"),
 ]

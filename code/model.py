@@ -1023,6 +1023,10 @@ def economics(C, measure, occ, horizon=None):
     premium_float = (prem_put * (exp(C.r * C.tau_p) - 1)
                      + prem_call * (exp(C.r * C.tau_c) - 1))
     cash_interest = collateral_interest + premium_float
+    # ...and the premium cash that float is earned on: the average balance of
+    # premiums waiting for their options to expire.  It offsets a debit when
+    # the account borrows, so in a levered account it earns r_b, not r.
+    premium_held = prem_put * C.tau_p + prem_call * C.tau_c
     income = prem_income + div_income + cash_interest
 
     # Economic ledger: inventory carried at market value (a share is worth the
@@ -1044,6 +1048,7 @@ def economics(C, measure, occ, horizon=None):
         "cash_interest": cash_interest,
         "collateral_interest": collateral_interest,
         "premium_float": premium_float,
+        "premium_held": premium_held,
         "k": k, "p_real": p_real, "E[x0]": mean_x0, "E[d]": expected_drop(C, measure),
         "c_p": c_p, "lambda": lam, "nu": occ["nu"], "m": occ["m"],
         "q(x0)": occ["q(x0)"], "E[J]": occ["E[J]"], "E[T]": occ["E[J]"] * C.tau_c,
@@ -1332,10 +1337,16 @@ def equity_required(C, econ):
     return C.gamma_p * econ["k"] + C.gamma_s * econ["I"]
 
 
-def levered_excess(excess, L, spread):
+def levered_excess(excess, L, spread, cash=0.0):
     """Excess return on equity for a book of leverage L financed at r + spread.
 
         net excess on equity  =  excess*L - spread*(L - 1)   [eq:levered-excess]
+
+    with `cash` the account's own cash per unit of the capital, which an account
+    that borrows does not hold beside its debit but against it: one balance,
+    so the cash reduces what is borrowed and earns r_b rather than the r that
+    `excess` credited it.  The borrowed part per unit of equity is then
+    L - 1 - cash*L (TODO II-35); cash = 0 is the displayed form.
 
     The whole ledger collapses to this: equity earns the excess on everything
     it carries and pays the spread on the borrowed part, since the risk-free
@@ -1352,7 +1363,7 @@ def levered_excess(excess, L, spread):
     idle cash it holds instead earns r rather than r_b, so the borrowing term
     does not run backwards below L = 1.
     """
-    return excess * L - spread * max(0.0, L - 1.0)
+    return excess * L - spread * max(0.0, L - 1.0 - cash * L)
 
 
 def census_weights(C, measure, horizon=None, h=0.01, x_max=8.0,
@@ -2165,12 +2176,21 @@ def saturation(C, measure, occ, eps, equity=None, L_max=None, econ=None):
     I_bar = min(cap, I_inf)                  # the steady state actually reached
     thr = I_bar / I_inf                      # = lambda_eff/lambda = min(1, A/A*)
     L_real = I_bar / A
-    debit = max(0.0, I_bar - A)
+    # The premiums waiting for their options to expire are cash in the
+    # account, and an account that borrows holds them against its debit: the
+    # debit is what the shares cost beyond the equity and that cash.  The part
+    # they offset is credited through the lower debit, at r_b; only the rest,
+    # if any, is idle cash earning r and stays in the income as float.
+    held = e["premium_held"] * thr
+    offset = min(held, max(0.0, I_bar - A))
+    debit = max(0.0, I_bar - A - held)
 
     # Uniform thinning: every flow and every stock scales with the throughput,
     # so every RATE -- the excess return, and hence the return on equity -- is
     # invariant to it, and only leverage moves them.
-    income = (e["income"] - e["collateral_interest"]) * thr
+    float_idle = e["premium_float"] * (1.0 - offset / held) if held > 0 else 0.0
+    income = (e["income"] - e["collateral_interest"] - e["premium_float"]) * thr \
+        + float_idle * thr
     ee = ((e["econ_pnl"] - e["collateral_interest"] - C.r * I_inf)
           / I_inf)                                   # shares-only, see the header
     g_max = max_debit_growth(C, measure, L_real, eps)
@@ -2186,7 +2206,8 @@ def saturation(C, measure, occ, eps, equity=None, L_max=None, econ=None):
         # roe*A = pnl - r_b*D + r*(idle cash), and idle - D = A - I_bar, so the
         # whole ledger collapses to section 9's [eq:levered-excess] -- the
         # excess earned on leverage less the spread paid on the borrowed part.
-        "roe_excess": levered_excess(ee, L_real, C.fin_spread),
+        "roe_excess": levered_excess(ee, L_real, C.fin_spread,
+                                     cash=held / I_bar),
     }
 
 

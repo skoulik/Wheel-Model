@@ -83,6 +83,10 @@ def compute(cfg=None, measure="P", horizon=30.0, eps=0.10, ctx=None, **kw):
     e = model.economics(cfg, measure, occ, horizon=horizon)
     excess = e["econ_excess"]
     spread = cfg.fin_spread
+    # The premiums waiting for their options to expire are the account's cash,
+    # and a levered account holds them against its debit, where they earn r_b
+    # (TODO II-35).  The buy-and-hold benchmark holds none.
+    cash = e["premium_held"] / e["mv_capital"]
     # The benchmark, levered the same way: buy-and-hold scaled to the wheel's
     # equity exposure, as in returns_benchmark.py.
     bh = model.buy_hold_excess(cfg, measure) * e["I"] / e["mv_capital"]
@@ -107,19 +111,20 @@ def compute(cfg=None, measure="P", horizon=30.0, eps=0.10, ctx=None, **kw):
         "L_ceiling": L_ceiling,
         "dd_ceiling": 1.0 - model.liquidation_barrier(L_ceiling, cfg.gamma_s),
         "p_liq_ceiling": model.liquidation_prob(cfg, measure, L=L_ceiling),
-        "net_ceiling": model.levered_excess(excess, L_ceiling, spread),
+        "net_ceiling": model.levered_excess(excess, L_ceiling, spread, cash),
         "L_max": L_max,
-        "net_survivable": model.levered_excess(excess, L_max, spread),
-        "unlevered": model.levered_excess(excess, 1.0, spread),
-        # Neutrality is an identity, not a fit: excess*L - s*(L-1) = excess for
-        # every L exactly when s = excess.  Printed as the excess itself so the
-        # reader can see the two are the same number.
-        "neutral_spread": excess,
-        "diff_levered": (model.levered_excess(excess, L_max, spread)
+        "net_survivable": model.levered_excess(excess, L_max, spread, cash),
+        "unlevered": model.levered_excess(excess, 1.0, spread, cash),
+        # Neutrality: excess*L - s*(L - 1 - cash*L) = excess at the survivable
+        # leverage when s = excess*(L - 1)/(L - 1 - cash*L).  It was the excess
+        # itself, at every L, until the premiums held were set against the
+        # debit; they lift it by cash*L/(L - 1), 2% at L_max.
+        "neutral_spread": excess * (L_max - 1) / (L_max - 1 - cash * L_max),
+        "diff_levered": (model.levered_excess(excess, L_max, spread, cash)
                          - model.levered_excess(bh, L_max, spread)),
         "L_ladder": Ls,
-        "net_ladder": [model.levered_excess(excess, L, spread) for L in Ls],
-        "diff_ladder": [model.levered_excess(excess, L, spread)
+        "net_ladder": [model.levered_excess(excess, L, spread, cash) for L in Ls],
+        "diff_ladder": [model.levered_excess(excess, L, spread, cash)
                         - model.levered_excess(bh, L, spread) for L in Ls],
     }
 
@@ -144,7 +149,7 @@ CASES = [
         "L_max": (1.1349, 0.0005),          # section 11's survivable leverage
         "net_survivable": (0.0169, 0.0003), # "+1.82% at zero spread"
         "unlevered": (0.0149, 0.0003),      # eq:excess, unchanged at L = 1
-        "neutral_spread": (0.0149, 0.0003), # the crossover = the excess itself
+        "neutral_spread": (0.0153, 0.0003), # the crossover = the excess itself
         "diff_levered": (-0.001200, 0.00002),  # the capital-share gap, levered
         "L_ladder": ([1.0000, 1.0861, 1.1349, 1.1557], 0.0005),
         "net_ladder": ([0.0149, 0.0162, 0.0169, 0.0173], 0.0003),

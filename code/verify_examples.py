@@ -798,7 +798,7 @@ def main():
     drift = saturation(G25, "P", far_p, 0.10, equity=11.59,
                        L_max=L_reach, econ=f)
     check("...where the sustainable draw is a deposit, per year",
-          drift["draw"], -0.247, 0.001)          # was -0.248 before TODO II-35
+          drift["draw"], -0.244, 0.001)          # -0.248 before TODO II-35
     check("...while its excess return on equity reads higher, not lower",
           drift["roe_excess"], 0.0293, 0.0005)
 

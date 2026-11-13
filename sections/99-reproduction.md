@@ -247,9 +247,9 @@ Backs [eq:levered-excess](#eq:levered-excess).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_leverage.py --gamma-s 0.25` | equity_req = 3.04, equity_frac = 26.3%, table_equity = 1.55  2.04  3.04, table_equity_frac = 27.6%  26.9%  26.3%, L_ceiling = 3.81, dd_ceiling = 1.7%, p_liq_ceiling = 97.9%, net_ceiling = +5.68%, L_max = 1.1349, net_survivable = +1.69%, unlevered = +1.49%, neutral_spread = 1.49%, diff_levered = -0.119%, L_ladder = 1.0000  1.0861  1.1349  1.1557, net_ladder = +1.49%  +1.62%  +1.69%  +1.73%, diff_ladder = -0.104%  -0.113%  -0.119%  -0.121% |
-| `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.015` | net_ceiling = +1.47%, net_survivable = +1.49%, net_ladder = +1.49%  +1.49%  +1.49%  +1.49% |
-| `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.03` | net_ceiling = -2.74%, net_survivable = +1.29%, net_ladder = +1.49%  +1.36%  +1.29%  +1.26% |
+| `python code/examples/returns_leverage.py --gamma-s 0.25` | equity_req = 3.04, equity_frac = 26.3%, table_equity = 1.55  2.04  3.04, table_equity_frac = 27.6%  26.9%  26.3%, L_ceiling = 3.81, dd_ceiling = 1.7%, p_liq_ceiling = 97.9%, net_ceiling = +5.68%, L_max = 1.1349, net_survivable = +1.69%, unlevered = +1.49%, neutral_spread = 1.53%, diff_levered = -0.119%, L_ladder = 1.0000  1.0861  1.1349  1.1557, net_ladder = +1.49%  +1.62%  +1.69%  +1.73%, diff_ladder = -0.104%  -0.113%  -0.119%  -0.121% |
+| `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.015` | net_ceiling = +1.49%, net_survivable = +1.50%, net_ladder = +1.49%  +1.50%  +1.50%  +1.50% |
+| `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.03` | net_ceiling = -2.71%, net_survivable = +1.30%, net_ladder = +1.49%  +1.37%  +1.30%  +1.27% |
 | `python code/examples/returns_leverage.py --gamma-s 0.25 --p-star 0.10` | table_equity = 0.85  1.09  1.57, table_equity_frac = 30.1%  28.8%  27.5% |
 
 ## Stability: Two Ways to Be Buried, and a Third if You Borrow
@@ -313,8 +313,8 @@ Backs [eq:debit-growth](#eq:debit-growth), [eq:theta-eff](#eq:theta-eff), [eq:gm
 | `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.0192` | f_star = 0.0251, p_liq = 1.0%, draw_frac = 4.66%, roe_excess = +1.596% |
 | `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.1349` | f_star = 0.1585, p_liq = 10.0%, g = 0.0000, draw_frac = 4.59%, roe_excess = +1.777% |
 | `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.25` | f_star = 0.2667, p_liq = 19.2%, draw_frac = 4.31%, roe_excess = +1.957% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.5` | f_star = 0.4444, p_liq = 36.3%, draw_frac = 2.87%, roe_excess = +2.349% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.883` | f_star = 0.6252, p_liq = 55.6%, draw_frac = -2.13%, roe_excess = +2.948% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.5` | f_star = 0.4444, p_liq = 36.3%, draw_frac = 2.88%, roe_excess = +2.349% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.883` | f_star = 0.6252, p_liq = 55.6%, draw_frac = -2.11%, roe_excess = +2.948% |
 
 ### `account_leverage.py` {#repro:account-leverage}
 
