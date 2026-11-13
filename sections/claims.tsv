@@ -37,7 +37,7 @@ para:answers-inventory	para:warehouse-fills-with-slow-lots	19f47f70cfd0	fbc5dbbb
 para:answers-live-account	sec:live	pending	pending	2026-10-23
 para:answers-portfolios	sec:correlation	pending	pending	2026-10-23
 para:answers-portfolios	sec:portfolio	pending	pending	2026-10-23
-para:answers-returns	para:identical-to-owning-the-stock	ed6e783b07eb	13d0c9836b77	2026-11-06
+para:answers-returns	para:smaller-position-in-the-stock	ed6e783b07eb	04b07ce700ff	2026-11-13
 para:answers-stability	eq:capital-criterion	31411e21fcce	a45f9ef6aeab	2026-10-22
 para:answers-stability	eq:count-criterion	31411e21fcce	c2a862f053c9	2026-10-22
 para:answers-stability	para:boundaries-belong-to-the-stock	31411e21fcce	746e9c4ad1af	2026-10-22
