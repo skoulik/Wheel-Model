@@ -16,7 +16,7 @@ Draws [fig:payoff-diagrams](#fig:payoff-diagrams): `python code/examples/strateg
 
 ### `returns_benchmark.py` {#repro:returns-benchmark}
 
-Backs [eq:excess-return](#eq:excess-return).
+Backs [eq:excess-return](#eq:excess-return), [eq:delta-return](#eq:delta-return), [eq:life-delta](#eq:life-delta).
 
 | command | the article's figures |
 |---|---|

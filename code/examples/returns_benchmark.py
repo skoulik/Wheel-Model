@@ -28,7 +28,7 @@ import model                                                  # noqa: E402
 
 TITLE = "Returns: the wheel against buy-and-hold"
 SECTION = "sec:strategy"
-EQ = ["eq:excess-return"]
+EQ = ["eq:excess-return", "eq:delta-return", "eq:life-delta"]
 
 FIELDS = [
     ("wheel", "the wheel's true excess return", ".2%"),
