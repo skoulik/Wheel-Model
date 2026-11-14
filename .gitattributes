@@ -1,0 +1,3 @@
+# Figures are generated with LF line endings on every platform (code/figures.py),
+# and verify_examples.py compares them byte for byte; keep git from converting them.
+figures/*.svg text eol=lf

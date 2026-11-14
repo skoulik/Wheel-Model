@@ -20,12 +20,14 @@ article shares it:
 *   **A legend for two or more series**, with sparing direct labels; one
     series needs none, since the caption names it.  One y-axis per plot.
 
-Deterministic output, so a regenerated figure diffs clean when nothing moved:
-no creation date in the metadata, a fixed hash salt for the SVG's internal
-ids, and text left as text rather than outlined -- which is also what lets the
-assembly step typeset labels in the article's own font.
+Deterministic output, so a regenerated figure diffs clean when nothing moved,
+on any machine: no creation date in the metadata, a fixed hash salt for the
+SVG's internal ids, LF line endings whatever the platform, and text left as
+text rather than outlined -- which is also what lets the assembly step typeset
+labels in the article's own font.
 """
 
+import io
 import os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -119,9 +121,18 @@ def reference_line(ax, *, x=None, y=None, label=None, where=None):
 
 
 def save(fig, path):
-    """Write `fig` as a deterministic SVG and close it."""
+    """Write `fig` as a deterministic SVG and close it.
+
+    Drawn into memory and written as bytes with LF line endings.  Given a path,
+    matplotlib writes the platform's newline -- CRLF on Windows, LF elsewhere --
+    so the same drawing was a different file on each machine, and the drift
+    check failed every figure on whichever machine had not drawn it.
+    """
     plt = pyplot()
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    fig.savefig(path, format="svg", bbox_inches="tight", pad_inches=0.05,
+    buf = io.BytesIO()
+    fig.savefig(buf, format="svg", bbox_inches="tight", pad_inches=0.05,
                 metadata={"Date": None, "Creator": None})
     plt.close(fig)
+    with open(path, "wb") as fh:
+        fh.write(buf.getvalue().replace(b"\r\n", b"\n"))
