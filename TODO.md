@@ -21,8 +21,8 @@ assembly and so never reaches a reader; they mark the one unread download, the s
 cited for their existence only, and the entries the readings of 2026-08-04 and 2026-08-05 left
 owing something to I-7, III-3, IV-3 or IV-9.
 
-**The bibliography stands at 43 entries** — **16 [F]**, 17 [A], 6 [P] and 3 [R] textbooks — of
-which **26 are cited, from 9 sections**. Three still carry `[cite unverified]`. Those counts move
+**The bibliography stands at 44 entries** — **18 [F]**, 12 [A], 11 [P] and 3 [R] textbooks — of
+which **29 are cited, from 10 sections**. Two still carry `[cite unverified]`. Those counts move
 most weeks and are printed by `python -m examples --references`, so **read them off the checker
 rather than from here**; what is recorded here is only the shape, which is that the uncited
 remainder is almost entirely §03's.
@@ -1451,9 +1451,13 @@ structure.
 
 - **Transaction costs get a number** (harvest H10). The list currently says commissions "eat a few
   percent of the premium on weekly puts" — a live-account figure — and has nothing at all for the
-  spread, which is the larger cost. **Muravyev & Pearson (2020) [A]**: traders who time their
-  executions pay effective spreads of **29.6%** (algorithmic) to **58.4%** (all traders) of the
-  quoted half-spread, so conventional estimates roughly double the truth. Hill et al.'s **3–6
+  spread, which is the larger cost. **Muravyev & Pearson (2020) [P]**, options on S&P 500 stocks
+  (single names) over 2004–2015, p. 3 of the working paper: traders who time their executions pay
+  an effective half-spread of **29.6%** of the quoted half-spread, and the average over all traders
+  is **58.4%** of it. Against the conventionally *measured* effective half-spread the correction is
+  smaller: timers pay **37.4%** of it ("less than 40%"), but the all-trader average is only
+  **26.3%** below it ("one-quarter smaller") — so conventional estimates roughly double the truth
+  for the timers alone, not on average (checked against the copy 2026-11-14). Hill et al.'s **3–6
   bp/month** at half an implied-volatility point of slippage is the covered-call-specific version.
   Both are quotable in a sentence and turn a descope into a bounded one.
 
