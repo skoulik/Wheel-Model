@@ -264,7 +264,7 @@ claim a later pass can only strengthen.
 **If it finds something**, the repair is confined to §03's subsection 6. No result in the article
 depends on being first, and that is worth saying inside §03 rather than only here.
 
-**I-7. Bibliography entries carrying details nobody has checked against a copy — three open.**
+**I-7. Bibliography entries carrying details nobody has checked against a copy — none tagged, not yet closed.**
 (From building `sections/98-bibliography.md`, 2026-08-01. The count moves whenever an entry is
 cleared; `python -m examples --references` prints it, and that is the number to trust.)
 
@@ -286,28 +286,40 @@ volume and year are settled from inside the copy by his own reference [4] — pa
 series, *Ann. Math. Statist.* **36** 28–54, 1965, the article immediately preceding this one in the
 same volume.
 
-**Two are open, and both are Siegmund's** — the residue after a run of clearings:
+**None is open: both Siegmund entries cleared on 2026-11-17**, the book off its title and
+copyright pages and the 1979 paper off its published pages — see their bullets below. **A tag
+count of zero does not close this item**: its own conclusion, further down, is that the tag list
+was never the risk surface, and that before assembly every entry needs a copy or a named
+corroborating source, tagged or not. Until 2026-11-17 the residue after a run of clearings was
+two, both Siegmund's:
 janssen-vanleeuwaarden-2007 closed with II-29 on 2026-08-04, li-linetsky and
 israelov-covering-the-world on 2026-08-05. **Every entry that a *read* could clear is now cleared.**
 What is left is blocked on copies rather than on effort: the 1979 paper wants its published
 version, since the preprint cannot supply a journal, and the 1985 entry is a **book**, which is why
 it is the hardest of all to source.
 
-- **israelov-covering-the-world** is downloaded but unread, and the title or author list is the
-  guessed part. The read is owed by **I-1**; clearing the citation falls out of doing it.
-- **li-linetsky** (the anchor was `li-zhang`) was read for II-23 on 2026-08-05 and **the tag
-  stays**, which is the point of it. The read fixed a *guessed author* — the second author is
-  **Linetsky**, not Zhang, so the anchor had been naming someone not on the paper — and put the
-  title and affiliations on a copy. It could not fix the venue, because there is none: no journal
-  header, no DOI, no arXiv id, in the text or in the PDF metadata. **The one field the copy
-  yielded was a date**, off its own metadata — a MiKTeX typescript last written 2014-06-18, with
-  references reaching 2014 — so the entry now says "2014 typescript" rather than guessing a year.
-  This is the second instance of the Janssen pattern (a full read that cannot clear a citation),
-  and the first where the *anchor itself* was wrong, which is worse than a wrong field: an anchor
-  is what prose cites by.
-- **siegmund-1985** has no copy, and it is a **book** — *Sequential Analysis: Tests and Confidence
-  Intervals*, Springer — which is why it is the hardest of the three to source. Chang & Peres's
-  reference list corroborates title, publisher and city; the edition and printing are unchecked.
+- **israelov-covering-the-world is cleared** (2026-08-05, `d8a960a`), by the read **I-1** owed.
+  It was the most incomplete entry in the bibliography and nearly every field was wrong: carried
+  as "Israelov, R. et al. … AQR" with no year, volume, pages or DOI, it is Israelov, Klein &
+  Tummala, *Journal of Risk* 21(1):61–89, 2018, doi:10.21314/JOR.2018.394 — every field now off
+  the journal's own header, and the level [F].
+- **li-linetsky is cleared** (2026-08-05, `8eeef79`; the anchor was `li-zhang`). The read for
+  II-23 fixed a *guessed author* — the second author is **Linetsky**, not Zhang, so the anchor had
+  been naming someone not on the paper — and put the title and affiliations on a copy, but could
+  not fix the venue: the first copy is a bare MiKTeX typescript with no journal header, DOI or
+  identifier, so the tag stayed and the year rested on the file's own timestamps (last written
+  2014-06-18). **A second copy of the same typescript, carrying an SSRN footer, supplied the one
+  missing field** — working paper 2519015 — and the tag came off. The entry cites the working
+  paper and does not claim a journal version. This is the second instance of the Janssen pattern
+  (a full read that cannot clear a citation), and the first where the *anchor itself* was wrong,
+  which is worse than a wrong field: an anchor is what prose cites by.
+- **siegmund-1985 is cleared** (2026-11-17), off Sergei's Google Books captures of the title and
+  copyright pages: Springer-Verlag New York, © 1985, first printing, ISBN 0-387-96134-8, Springer
+  Series in Statistics. **Nothing was wrong** — title, subtitle, publisher, city and year all
+  stood as Chang & Peres's list had them — so the book that was "the hardest to source" cleared
+  by *confirming* every field, the title included. The preview stops
+  after Chapter III; Springer's free front matter supplied the contents, which put the overshoot
+  constant at X.4, pp. 224–228. The level stays [A].
 - **siegmund-1979** was **never tagged, and was wrong in exactly the way this item says matters
   most**: the title had been silently truncated to "Corrected Diffusion Approximations" for
   "Corrected diffusion approximations in certain random walk problems". Completed, with pages
@@ -324,6 +336,14 @@ it is the hardest of all to source.
   technical report cannot supply the journal, volume, issue, pages or the 1979 date, all of which
   are still Chang & Peres's. The level stays **[A]** — cover and front matter only — and §07 quotes
   no number from it.
+
+  **Cleared 2026-11-17, off the published article** (Sergei's captures of pp. 701–719, now one
+  PDF in `literature/`). Page 701's header prints *Adv. Appl. Prob.* **11**, 701–719 (1979); the
+  issue, 4, is not printed on the pages and comes from the publisher's record on Cambridge Core,
+  with DOI 10.2307/1426855. **Every field Chang & Peres supplied was right.** The title is in
+  capitals on both copies, so its casing is the one thing no copy fixes, and the entry keeps
+  title case. The level stays [A]: only p. 701 has been read.
+
 **janssen-vanleeuwaarden-2007 was the fifth, and it was tagged and cleared within one day** — a
 whole life cycle of this item, worth keeping as its worked example. It was tagged 2026-08-04 **by
 having been read in full**: the copy is the authors' own typescript (`paperGRWdiffstyleFinal.dvi`,
@@ -336,10 +356,10 @@ II-29 put one of its figures in §07 — and cleared by **the publisher**, since
 could have closed it**, which is the strongest statement of the two-independent-checks point this
 item has produced. Full details in [`DONE.md`](DONE.md).
 
-The printed count has gone 10 → 3 → 5 → 6 → 5 → 4 → **3**. Every rise was this item working
+The printed count has gone 10 → 3 → 5 → 6 → 5 → 4 → 3 → 2 → 1 → **0**. Every rise was this item working
 rather than regressing, and every fall is an entry it has *closed*.
 
-**One entry was born clear**, and it is the standard the remaining three are held to:
+**One entry was born clear**, and it is the standard every entry is held to:
 `glynn-whitt-1989-extensions` was added on 2026-08-04 *after* its copy had been obtained and read,
 with every field taken off the JSTOR cover page and the article header. It is the first entry in
 the bibliography that never needed the tag, and the first added in that order. It cost this item
@@ -419,6 +439,9 @@ are not printed on the article's pages and come from [Carr & Wu](#ref:carr-wu-20
 list — which, in the same line, has the title wrong the other way, printing "Premium" singular
 where the copy is plural. **A sixth reference list, and it is wrong about the paper we hold, in
 the field this item says always goes first.** The two entries read that day and checked field by
+field, `carr-wu-2009` and `bakshi-kapadia-2003-rfs`, were both **clean in every field** — the first
+two [A]→[F] promotions to cost this item nothing.
+
 **And a sixth check, later the same day, was the first to *confirm* a title rather than correct
 one** — which is the outcome this item wants and had not yet seen. Sergei's copy of siegmund-1979
 (the 1978 Stanford technical report) reads "Corrected Diffusion Approximations in Certain Random
@@ -428,9 +451,6 @@ besides: it **adjudicates between two disagreeing reference lists**, confirming 
 convicting Janssen & van Leeuwaarden of the transposition. The lesson is the one this item has been
 circling — when two lists disagree, the one whose *usage* matches its list is the one to believe,
 and a copy is what proves it.
-
-field, `carr-wu-2009` and `bakshi-kapadia-2003-rfs`, were both **clean in every field** — the first
-two [A]→[F] promotions to cost this item nothing.
 
 **And the read-level rule caught a figure this item could never have seen** (2026-08-05). §09's
 BXM detour quoted "up and down betas of roughly **0.63 and 0.78**" — carried from the literature
@@ -443,8 +463,9 @@ of 0.39 against the recorded 0.15. **So the worst case is not an unverified entr
 with no entry at all**, and the check that would catch it is not a bibliography check but a scan
 for digits in prose that no source is named for. Worth building before assembly.
 
-**This is still a smaller worry than the read-level rule and a different one.** All four that
-remain open are pointers for further reading and the article quotes no figure from any of them. The one number
+**This is still a smaller worry than the read-level rule and a different one.** The entries that
+stayed tagged longest were pointers for further reading, and the article quoted no figure from any
+of them while they were. The one number
 that looked like an exception — β = 0.5826, attributed in §07 to siegmund-1979 — now rests on
 **two [F] sources**: chang-peres-1997 prints it to seven digits, and chernoff-1965 supplies an
 independent representation, Corollary 1(b)'s Wiener–Hopf integral, which evaluates to the same
