@@ -342,7 +342,7 @@ it is the hardest of all to source.
   issue, 4, is not printed on the pages and comes from the publisher's record on Cambridge Core,
   with DOI 10.2307/1426855. **Every field Chang & Peres supplied was right.** The title is in
   capitals on both copies, so its casing is the one thing no copy fixes, and the entry keeps
-  title case. The level stays [A]: only p. 701 has been read.
+  title case. It was then read in full the same day, and is [F].
 
 **janssen-vanleeuwaarden-2007 was the fifth, and it was tagged and cleared within one day** — a
 whole life cycle of this item, worth keeping as its worked example. It was tagged 2026-08-04 **by
