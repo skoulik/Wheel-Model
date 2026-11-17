@@ -17,12 +17,14 @@ Sections reference items as "TODO I-1", "TODO IV-2" — at present **no section 
 flag** (checked 2026-08-05), and that is the intended steady state: an in-text flag is a promise to
 a reader and should be added only when the text genuinely defers something. Twenty-one live in
 `sections/98-bibliography.md`, in the internal field after an entry's anchor, which is stripped at
-assembly and so never reaches a reader; they mark the one unread download, the sources that may be
-cited for their existence only, and the entries the readings of 2026-08-04 and 2026-08-05 left
-owing something to I-7, III-3, IV-3 or IV-9.
+assembly and so never reaches a reader; they mark the sources that may be cited for their
+existence only, and the entries the readings of 2026-08-04 and 2026-08-05 left owing something to
+I-7, III-3, IV-3 or IV-9. (Until 2026-08-05 they also marked one unread download; it is read.)
 
-**The bibliography stands at 44 entries** — **18 [F]**, 12 [A], 11 [P] and 3 [R] textbooks — of
-which **29 are cited, from 10 sections**. Two still carry `[cite unverified]`. Those counts move
+**The bibliography stands at 45 entries** — **20 [F]**, 9 [A], 13 [P] and 3 [R] textbooks — of
+which **30 are cited, from 10 sections**. None carries `[cite unverified]` (since 2026-11-17, see
+I-7), and every [A] entry still cited — Santa-Clara & Saretto alone — has had its claim checked
+against a draft. Those counts move
 most weeks and are printed by `python -m examples --references`, so **read them off the checker
 rather than from here**; what is recorded here is only the shape, which is that the uncited
 remainder is almost entirely §03's.
