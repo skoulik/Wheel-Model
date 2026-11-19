@@ -168,7 +168,7 @@ How much of a move in the stock a position takes is its beta, and for this book 
 
 Measured over one call period against the depth census, the shares the operator holds have an **up-beta of 0.83 and a down-beta of exactly 1.00**.[^returns-beta]
 
-That second number is not a rounding. It is exact, in every configuration, for a reason visible in one line: a lot still in inventory is a lot below its call strike, and below its strike a covered call is *pure stock*. The call expires worthless, the share falls the whole way, and nothing about having sold the call changes it. **Covered calls do not provide downside protection.** The premium is a cushion, but it is one period's premium against the entire decline, and the model prices the cushion at exactly what it is worth and no more. This is the most widely repeated claim made for the strategy, and the article's own machinery contradicts it without needing any data.
+That second number is not a rounding. It is exact, in every configuration, for a reason visible in one line: a lot still in inventory is a lot below its call strike, and below its strike a covered call is *pure stock*. The call expires worthless, the share falls the whole way, and nothing about having sold the call changes it. **Covered calls do not provide downside protection.** The premium is a cushion, but it is one period's premium against the entire decline. Downside protection is one of the eight myths [Israelov and Nielsen](#ref:israelov-nielsen-2014) take apart.
 
 **And inventory is not the whole book.** The operator is also short a live put, which loses when the stock falls — so the total position is more than fully exposed on the downside. Shocking the whole book and marking it gives, per unit of capital committed:
 

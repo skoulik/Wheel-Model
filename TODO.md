@@ -34,7 +34,7 @@ remainder is almost entirely §03's.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-32, with II-34 and II-35 in progress** —
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-32 and II-36, with II-34 and II-35 in progress** —
 thirty of its items are in `DONE.md`, the last thirteen having landed on 2026-08-04 and
 2026-08-05;
 **Part III and Part IV are unwritten**, and between
@@ -43,7 +43,7 @@ them they are still the bulk of what is left besides those stubs and the assembl
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-36, a citation to check against the copy. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -596,6 +596,16 @@ the collateral credited and the delta averaged over each option's life, true exc
 (Sergei, 2026-11-13): fix both throughout, credit the collateral and the premiums alike, and
 compute the delta properly while explaining the usual shortcut. Plan:
 `drafts/2026-11-13-account-cash-and-window-edge-plan.md`.
+
+**II-36. §09 cites Israelov and Nielsen (2014) for a myth nobody has checked against the copy.**
+(Opened 2026-11-19, from the §09 review of the risk subsection, on cloud, where neither aqr.com
+nor `literature/` is reachable.) The inventory-beta paragraph ends "Downside protection is one of
+the eight myths [Israelov and Nielsen] take apart", replacing an unsourced "the most widely
+repeated claim made for the strategy". It was written from memory. **On the Windows machine:**
+open `israelov-nielsen-2014-covered-call-one-fact-eight-myths.pdf`, confirm that one of the eight
+myths is that covered calls provide downside protection, and add its number and page to the
+bibliography entry beside Myth 8's. If no myth says that, cut the sentence and let the paragraph
+end on "against the entire decline".
 
 ## Part III — Many assets
 
