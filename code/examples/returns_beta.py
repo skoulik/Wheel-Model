@@ -26,7 +26,7 @@ it rises.  Israelov & Nielsen call this dynamic exposure *equity reversal* and
 attribute about a quarter of a covered call's risk to it.
 
 Both are P-measure and use the thirty-year census, as section 09's ledger does.
-Nothing here is comparable with BXM's published 0.63/0.78 -- that is a
+Nothing here is comparable with BXM's published 0.46/0.85 -- that is a
 different estimator on a different book, and the comparison has its own detour.
 """
 
@@ -41,9 +41,9 @@ import model                                                     # noqa: E402
 
 TITLE = "Risk: the wheel's beta, up and down"
 SECTION = "sec:returns"
-# No displayed formula: section 09 reports these as prose figures, so this
-# module is placed in the appendix by its SECTION rather than by an anchor.
-EQ = []
+# The betas are eq:split-beta.  The shocked book deltas have no displayed
+# formula, and section 09 links this module's appendix entry for them.
+EQ = ["eq:split-beta"]
 
 SHOCKS = (-0.20, -0.10, 0.0, 0.10, 0.20)
 

@@ -183,7 +183,7 @@ Draws [fig:inventory-approach](#fig:inventory-approach): `python code/examples/i
 
 ### `returns_beta.py` {#repro:returns-beta}
 
-Backs figures quoted in the prose of [Returns and Capital](#sec:returns), which carry no formula of their own.
+Backs [eq:split-beta](#eq:split-beta).
 
 | command | the article's figures |
 |---|---|
