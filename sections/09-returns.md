@@ -160,11 +160,11 @@ Nor is this only what the present model finds. [Israelov and Nielsen](#ref:israe
 
 So the benchmark that matters gives a plain answer. At fair option prices the wheel trails the same money in the stock, by a fifth of a point a year at five years and a tenth at thirty, and the whole of the shortfall is the exposure its calls sell, net of what its put buys back. Per unit of the exposure it keeps it earns what the stock earns, less the withholding on the shares it holds beyond that exposure. No-arbitrage fixes that shape; the machinery supplies the size — the book's delta, 87% to 93% of its capital — and with it everything else that decides whether the strategy can be run: how much capital it needs, how long that capital stays committed, how large the inventory grows, and when the whole thing stops resolving. What the comparison leaves out is how that delta behaves. An average of 93% is not 93% in every market, and a smaller position in the stock need not be a smaller risk. The next subsection asks how the book's exposure moves when the price does.
 
-## Identical in return. Not identical in risk.
+## Less exposed on average, more exposed in a fall
 
-Equal expected returns invite the obvious follow-up: equal *how*? Two strategies can earn the same average and feel nothing alike, and this is a case where they do not.
+How much of a move in the stock a position takes is its beta, and for this book the answer depends on which way the stock moves.
 
-> **Beta, up and down.** A position's beta is how much of the market's move it takes: beta 1 means a 10% fall in the stock costs 10%, beta 0.5 means it costs 5%. A single number assumes the position responds the same way in both directions, which is exactly what an option position does not do. Splitting it — measuring the response to rising prices and to falling prices separately — is standard practice for option strategies, and for this one the two numbers are very far apart.
+> **Beta, up and down.** A position's beta is how much of the market's move it takes: beta 1 means a 10% fall in the stock costs 10%, beta 0.5 means it costs 5%. A single number assumes the position responds the same way in both directions, which is exactly what an option position does not do. Splitting it — measuring the response to rising prices and to falling prices separately — is standard practice for option strategies.
 
 Measured over one call period against the depth census, the shares the operator holds have an **up-beta of 0.83 and a down-beta of exactly 1.00**.[^returns-beta]
 
