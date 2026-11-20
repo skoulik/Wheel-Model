@@ -95,11 +95,14 @@ CASES = [
         "beta_up": (0.828, 0.0005),     # section 09: "0.83", and "0.828" beside Conservative
         "beta_dn": (1.000, 0.001),      # "exactly one on the way down"
         "delta_dn20": (1.069, 0.005),   # "1.07 of its capital after a 20% fall"
-        "delta_flat": (0.932, 0.005),   # "0.93 undisturbed"
+        "delta_flat": (0.932, 0.0005),  # "the 0.932 ... at thirty years"
         "delta_up20": (0.608, 0.005),   # "0.61 after a 20% rise"
         "put_dn20": (1.000, 0.002),     # the put is the whole of the excess
         "put_up20": (0.000, 0.002),     # and contributes nothing on the way up
     }, note="Standard regime, 30y census"),
+    Case("--horizon 5", {
+        "delta_flat": (0.8747, 0.0005),  # "0.875 ... at five", the young book fig:book-exposure adds
+    }, note="the five-year book, the figure's second pair of curves"),
     Case("--p-star 0.10", {
         "beta_up": (0.824, 0.0005),     # "0.828 to 0.824": the strike dial barely moves it
         "beta_dn": (1.000, 0.001),
@@ -124,41 +127,44 @@ CASES = [
 ]
 
 
-def _draw_book_exposure(fig, ax, cfg=None, measure="P", horizon=30.0,
-                        ctx=None, **kw):
+def _draw_book_exposure(fig, ax, cfg=None, measure="P", ctx=None, **kw):
     """fig:book-exposure -- eq:book-exposure against the shock, -30% to +30%.
 
-    Two series: the whole book, and its inventory alone, so the gap between
-    them is the short put -- wide after a fall, nothing after a rise.  The
-    stock's own exposure, one, is the reference line, and the undisturbed
-    book is marked, which is the same SHOCKS grid the cases check.
+    Two books, the thirty-year one section 09 follows (solid) and a young
+    five-year one (dotted), each as the whole book and as its inventory alone,
+    so the gap between a pair is the short put: wide after a fall, nothing
+    after a rise, and wider in the young book, whose capital is smaller.  The
+    stock's own exposure, one, is the reference line, and each undisturbed
+    book is marked.  Horizons are fixed, as the ledger table's are.
     """
     import figures
     from matplotlib.ticker import PercentFormatter
     cfg = cfg if cfg is not None else model.Config()
     occ = resolve(ctx, need_occupation(cfg, measure))
-    e = model.economics(cfg, measure, occ, horizon=horizon)
-    inv, cap = e["I"], e["mv_capital"]
     shocks = [-0.30 + 0.01 * i for i in range(61)]
-    book, held = [], []
-    for s in shocks:
-        lot, put = model.book_delta(cfg, measure, s, horizon=horizon)
-        held.append(lot * inv / cap)
-        book.append((lot * inv + put) / cap)
-
     figures.reference_line(ax, y=1.0, label="the stock",
                            where=(0.155, 1.008))
-    ax.plot(shocks, book, color=figures.SERIES[0],
-            label="the whole book")
-    ax.plot(shocks, held, color=figures.SERIES[1],
-            label="the shares held, with their calls")
-    y0 = book[30]
-    ax.plot([0.0], [y0], "o", color=figures.INK, markersize=4.5,
-            markeredgecolor=figures.GROUND, markeredgewidth=1.0, zorder=3)
-    ax.annotate(f"{y0:.2f} undisturbed", (0.0, y0), xytext=(6, 4),
-                textcoords="offset points", color=figures.INK, fontsize=8)
+    for horizon, style, off in ((30.0, "-", (6, 4)),
+                                (5.0, (0, (1, 1.5)), (-38, -12))):
+        e = model.economics(cfg, measure, occ, horizon=horizon)
+        inv, cap = e["I"], e["mv_capital"]
+        book, held = [], []
+        for s in shocks:
+            lot, put = model.book_delta(cfg, measure, s, horizon=horizon)
+            held.append(lot * inv / cap)
+            book.append((lot * inv + put) / cap)
+        years = f"{horizon:.0f} years"
+        ax.plot(shocks, book, color=figures.SERIES[0], linestyle=style,
+                label=f"the whole book, {years}")
+        ax.plot(shocks, held, color=figures.SERIES[1], linestyle=style,
+                label=f"the shares with their calls, {years}")
+        y0 = book[30]
+        ax.plot([0.0], [y0], "o", color=figures.INK, markersize=4.5,
+                markeredgecolor=figures.GROUND, markeredgewidth=1.0, zorder=3)
+        ax.annotate(f"{y0:.3f}", (0.0, y0), xytext=off,
+                    textcoords="offset points", color=figures.INK, fontsize=8)
     ax.set_xlim(-0.30, 0.30)
-    ax.set_ylim(0.4, 1.15)
+    ax.set_ylim(0.2, 1.2)
     ax.xaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
     ax.set_xlabel("instantaneous change in the share price")
     ax.set_ylabel("exposure per unit of capital")
