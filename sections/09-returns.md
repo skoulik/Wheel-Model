@@ -186,10 +186,11 @@ Here the E[I] lots, the capital of [eq:capital](#eq:capital) and the census ρ(x
 
 The slope of [fig:book-exposure](#fig:book-exposure) is the more interesting part: it is the position *changing character as prices move*. As the stock falls, every frozen call slides further out of the money and each lot reverts toward being plain stock; as it rises, the calls come alive and the exposure drains away. The strategy therefore buys exposure into declines and sheds it into rallies, automatically and without anyone deciding to. [Israelov and Nielsen](#ref:israelov-nielsen-2015) name this **equity reversal** and attribute about a quarter of a covered call's total risk to it, at a Sharpe ratio near 0.10 — a real risk that is paid almost nothing. The model pays it nothing at all, and says why: in the price process assumed here a share's next move does not depend on its last, so exposure added after a fall earns no more per unit than exposure held all along, and the book is paid only for its average exposure, the delta counted above. The timing is risk taken on for no reward, and not only in the model: [Israelov, Klein and Tummala](#ref:israelov-covering-the-world) split covered calls on eleven national equity indexes the same way and find the timing component's average return statistically indistinguishable from zero in all eleven, though it carries about a quarter of the risk.
 
-Which lever controls it? Not the strike dial: at the Conservative setting the up-beta moves from 0.828 to 0.824, which is nothing. It is **n**, the number of put periods a call is written across:
+Which lever controls the gap between the two betas? Not the strike dial: at the Conservative setting the up-beta moves from 0.828 to 0.824. It is **n**, the clock ratio: the number of put periods a call is written across.
 
-    calls written every…      1 put period   4 periods   13 periods
-    up-beta                       0.93          0.83         0.68
+| calls written every… | week (n = 1) | four weeks (n = 4) | quarter (n = 13) |
+|---|---|---|---|
+| up-beta | 0.93 | 0.83 | 0.68 |
 
 That is [the holding-time section](#sec:holding)'s call-grid tax arriving a second time. There, freezing a strike for four weeks while puts are written weekly cost holding time; here the same freeze costs *upside*, and for the same reason — the longer a strike stays fixed, the further the stock can run away from it before anyone resets. One lever, two consequences, and the article has been drawing only the first. Higher volatility, counter-intuitively, *reduces* the asymmetry: at σ = 30% the up-beta rises to 0.87, because lots run deeper and their calls sit further out of the money.
 
