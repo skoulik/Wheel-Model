@@ -140,11 +140,13 @@ assumption bites — not a change of constants.
    book's betas under constant and changing volatility, and why a published beta reads
    differently — and the real-index replication goes to §14, which §09 points to by link (a
    promise until §14 exists). The project's rule keeps Parts I–II in the model's own voice.
+2. **The stock's swing structure** (Sergei, 2026-11-20): borrow the index's measured swings —
+   standard deviation of log volatility 0.50, half-life about two months — at the running
+   example's σ = 20%, the leverage correlation run both at zero and at the index's, and say so.
+   A new TODO item verifies the structure on representative stocks from NOBL's holdings (the
+   S&P 500 Dividend Aristocrats) and on the index itself, which §14 measures anyway.
 
 ## Open questions
 
-2. **The stock's swing structure.** The index's measured swings, applied to a single stock at
-   σ = 20%: a stock's volatility swings at least as much, with a weaker leverage effect. Borrow
-   the index's numbers and say so, or find a single-stock source.
 3. **The mean results.** Run the central results under changing volatility now, as part of
    step 1, or open it as its own TODO item once the betas are done.
