@@ -183,7 +183,9 @@ Draws [fig:inventory-approach](#fig:inventory-approach): `python code/examples/i
 
 ### `returns_beta.py` {#repro:returns-beta}
 
-Backs [eq:split-beta](#eq:split-beta).
+Backs [eq:split-beta](#eq:split-beta), [eq:book-exposure](#eq:book-exposure).
+
+Draws [fig:book-exposure](#fig:book-exposure): `python code/examples/returns_beta.py --figure`.
 
 | command | the article's figures |
 |---|---|

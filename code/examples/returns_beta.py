@@ -7,7 +7,7 @@
 Backs section 09's risk subsection, which is the only risk statistic anywhere
 in the article.  Two objects, and they answer different halves of the question:
 
-**The split beta** (`model.split_beta`) regresses standing inventory's payoff
+**The split beta** (`model.split_beta`, eq:split-beta) regresses standing inventory's payoff
 change on the underlying's, separately for up and down periods, over one call
 period and census-weighted over depth.  Inventory only.  Down-beta is exactly
 1 in every configuration -- below its strike a lot is pure stock, so the whole
@@ -16,8 +16,9 @@ between them is governed by n, the number of put periods in a call period, and
 barely by the strike dial: it is the same sqrt(n) grid tax section 07 charges
 against holding time, showing up a second time as risk.
 
-**The book delta** (`model.book_delta`) is the whole book, marked, after an
-instantaneous price shock.  It carries the leg the beta cannot: the live short
+**The book delta** (`model.book_delta`, eq:book-exposure) is the whole book,
+marked, after an instantaneous price shock; fig:book-exposure draws it from
+-30% to +30% beside the inventory alone.  It carries the leg the beta cannot: the live short
 put, whose delta runs to +1 as it goes into the money.  That is what takes the
 book past *fully* exposed on a fall -- the operator holds the shares and owes
 on a losing put at the same time -- and it exhibits the reversal directly,
@@ -35,15 +36,13 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from examples._harness import (Case, need_occupation, resolve,   # noqa: E402
-                               run_cli)
+from examples._harness import (Case, Figure, need_occupation,   # noqa: E402
+                               resolve, run_cli)
 import model                                                     # noqa: E402
 
 TITLE = "Risk: the wheel's beta, up and down"
 SECTION = "sec:returns"
-# The betas are eq:split-beta.  The shocked book deltas have no displayed
-# formula, and section 09 links this module's appendix entry for them.
-EQ = ["eq:split-beta"]
+EQ = ["eq:split-beta", "eq:book-exposure"]
 
 SHOCKS = (-0.20, -0.10, 0.0, 0.10, 0.20)
 
@@ -123,6 +122,50 @@ CASES = [
         "beta_gap": (0.130, 0.005),
     }, note="sigma = 30%, where the asymmetry shrinks"),
 ]
+
+
+def _draw_book_exposure(fig, ax, cfg=None, measure="P", horizon=30.0,
+                        ctx=None, **kw):
+    """fig:book-exposure -- eq:book-exposure against the shock, -30% to +30%.
+
+    Two series: the whole book, and its inventory alone, so the gap between
+    them is the short put -- wide after a fall, nothing after a rise.  The
+    stock's own exposure, one, is the reference line, and the undisturbed
+    book is marked, which is the same SHOCKS grid the cases check.
+    """
+    import figures
+    from matplotlib.ticker import PercentFormatter
+    cfg = cfg if cfg is not None else model.Config()
+    occ = resolve(ctx, need_occupation(cfg, measure))
+    e = model.economics(cfg, measure, occ, horizon=horizon)
+    inv, cap = e["I"], e["mv_capital"]
+    shocks = [-0.30 + 0.01 * i for i in range(61)]
+    book, held = [], []
+    for s in shocks:
+        lot, put = model.book_delta(cfg, measure, s, horizon=horizon)
+        held.append(lot * inv / cap)
+        book.append((lot * inv + put) / cap)
+
+    figures.reference_line(ax, y=1.0, label="the stock",
+                           where=(0.155, 1.008))
+    ax.plot(shocks, book, color=figures.SERIES[0],
+            label="the whole book")
+    ax.plot(shocks, held, color=figures.SERIES[1],
+            label="the shares held, with their calls")
+    y0 = book[30]
+    ax.plot([0.0], [y0], "o", color=figures.INK, markersize=4.5,
+            markeredgecolor=figures.GROUND, markeredgewidth=1.0, zorder=3)
+    ax.annotate(f"{y0:.2f} undisturbed", (0.0, y0), xytext=(6, 4),
+                textcoords="offset points", color=figures.INK, fontsize=8)
+    ax.set_xlim(-0.30, 0.30)
+    ax.set_ylim(0.4, 1.15)
+    ax.xaxis.set_major_formatter(PercentFormatter(1.0, decimals=0))
+    ax.set_xlabel("instantaneous change in the share price")
+    ax.set_ylabel("exposure per unit of capital")
+    ax.legend(loc="lower left")
+
+
+FIGURES = [Figure("book-exposure", _draw_book_exposure)]
 
 
 if __name__ == "__main__":
