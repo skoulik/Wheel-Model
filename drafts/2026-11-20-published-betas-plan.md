@@ -89,11 +89,19 @@ not the calendar months §09 describes; `verify_examples.py`'s "a buy-write's do
    otherwise, as it does for matplotlib.
 4. **The prose**, in plain paragraphs: what is measured, what the model produces, what is
    published, why they differ, what makes them agree — and what this book's betas become when
-   volatility changes. Where it lives is the first open question.
+   volatility changes. §09 carries the model's side and links forward to §14 for the
+   real-index replication (decision 1); §14's part is drafted with it, parked until §14 is
+   written.
 5. **The bibliography**: the three data series as entries; Broadie–Chernov–Johannes cited
    where its parameters are used; the read levels of the four papers updated for what was read
    on 2026-11-20. Copies renamed into `literature/` on Windows.
-6. **TODO**: II-36 closed — Myth 2 is "Covered calls provide downside protection" (2014,
+6. **The limitation, stated where it bites.** The article already names constant σ in §06 (depth
+   is self-contained "which leans on σ being a constant", with a pointer to §09), §10 (volatility
+   rises in falling markets) and §15's outlook ("Volatility that moves"). Each is brought up to
+   date with what the simulator measures — §06's pointer made true by §09's new paragraphs, §10's
+   stress paragraph given the measured effect on the boundaries if step 1 finds one, §15's item
+   narrowed to what is still open — and §07 gains a sentence if the holding time moves.
+7. **TODO**: II-36 closed — Myth 2 is "Covered calls provide downside protection" (2014,
    Exhibit 1 p. 24, argued p. 28); II-37 opened for this, citing this plan.
 
 ## The model's assumptions and constants
@@ -104,20 +112,37 @@ S&P 500's realized volatility over 1988–2026 was 17.9% (monthly mean 14.9%), a
 return grew 10.7% a year in log terms — one path, which estimates an expected return poorly.
 
 **The constant-σ assumption is challenged — for risk statistics measured across periods.**
-It is also the spine's foundation: with one σ, depth is a self-contained state, and that is
-what lets the census, the holding time and the ledger be computed rather than simulated. So
-the analytic model cannot carry changing volatility without losing what it is. The simulator
-can, and step 1 measures whether the central results move. If they move materially, that is a
-finding for the article to state — most likely in §10 or §14 — not a change of constants.
+It is also the spine's foundation, and the obstacle to relaxing it is not a missing closed
+form so much as what the model would stop being:
+
+- **A second state variable.** With one σ, a lot's prospects depend on its depth alone, so a
+  single function of x answers every question. With σ moving, they depend on depth *and* the
+  current volatility, which every lot shares and which persists for months: the walk becomes
+  two-dimensional, the census a joint density over (x, σ), and the lots no longer independent
+  given the price.
+- **The closed-form results are statements about one σ.** The call-grid tax β·σ·√τ_c, its √n
+  law, the two stability boundaries μ − δ > σ²/2 and > σ², and the ~45bp a vol point are each
+  exact for a constant σ; with σ moving, each becomes an average over the volatility path that
+  has to be computed, and the boundaries become conditions on its distribution.
+- **A second priced risk.** Option prices then depend on volatility as well as the price, so
+  "one measure, two worlds" needs a volatility risk premium as a further free parameter, and
+  the strongest test the model has — excess = Δ̄·(μ − r) − leak, exactly — acquires a vega term.
+
+The expectations themselves (Little's law, the census integrals) are linear and would survive
+on a two-dimensional grid; it is the analytic spine and the exact tests that would not. The
+simulator carries changing volatility at no such cost, and step 1 measures whether the central
+results move. If they move materially, that is a finding for the article to state where the
+assumption bites — not a change of constants.
+
+## Decided
+
+1. **Where the explanation lives** (Sergei, 2026-11-20): §09 keeps the model's side — this
+   book's betas under constant and changing volatility, and why a published beta reads
+   differently — and the real-index replication goes to §14, which §09 points to by link (a
+   promise until §14 exists). The project's rule keeps Parts I–II in the model's own voice.
 
 ## Open questions
 
-1. **Where the explanation lives.** The project's rule keeps Parts I–II in the model's own
-   voice, with the extended treatment of data in Part IV. Real index data in §09 is outside the
-   model, if not the live account. Options: (a) all of it in §09, as a subsection after the
-   betas; (b) §09 keeps the model's side — its betas under constant and changing volatility,
-   and why a published beta differs — and the real-index replication goes to §14 with a
-   pointer; (c) all of it to §14, §09 keeping one sentence and a pointer.
 2. **The stock's swing structure.** The index's measured swings, applied to a single stock at
    σ = 20%: a stock's volatility swings at least as much, with a weaker leverage effect. Borrow
    the index's numbers and say so, or find a single-stock source.
