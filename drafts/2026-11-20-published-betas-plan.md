@@ -153,3 +153,24 @@ assumption bites — not a change of constants.
    volatility Black–Scholes at the current volatility misprices an option (a fair price uses
    the volatility expected over its life, plus a convexity term), so the ledger needs proper
    pricing first, and its exact test gains a vega term. That is its own TODO item.
+4. **A lot's return includes its premium** (Sergei, 2026-11-20, after step 1): the beta is
+   measured on the lot's whole return over a call period, premium included, as a published
+   beta is. At one volatility this changes no figure — the premium is a level, uncorrelated
+   with the period's return, so the slope is the same either way — but once volatility moves
+   it is larger in turbulent months, and the down-beta reads 0.98–0.99 rather than exactly 1.
+   Step 4 restates §09's definition of R, gives the cushion sentence its condition ("at one
+   volatility"), and says why the down-beta drops; `model.split_beta`'s docstring says the
+   premium is included and why it does not move the slope.
+
+## Step 1's results (2026-11-20, `--scenario stochvol`, 1,280 paths × 30 years per run)
+
+| | up | down | plain | E[I] | E[I]/λ, years | held at 3 months |
+|---|---|---|---|---|---|---|
+| constant σ (model.py 0.828 / 1.000 / 11.40 / 1.10) | 0.827 | 1.000 | 0.926 | 11.3 | 1.09 | 38% |
+| changing σ, no leverage effect | 0.804 | 0.976 | 0.904 | 10.7 | 1.02 | 37% |
+| changing σ, leverage ρ = −0.9 | 0.884 | 0.988 | 0.949 | 9.9 | 0.97 | 31% |
+
+Standard errors ≈0.003 on the betas, ≈0.15 on E[I]; the median holding time is 8 weeks in all
+three. The up-beta's direction depends on the leverage effect; the inventory falls 6–13%, its
+mechanism not yet established; with the premium left out the down-beta is exactly 1.000 in
+every run. ρ = −0.9 is a daily correlation, about −0.34 monthly against the index's −0.41.
