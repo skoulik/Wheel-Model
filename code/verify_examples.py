@@ -479,31 +479,40 @@ def main():
         print(f"      {_msg}")
 
     # ------------------------------------------------------------------
-    # Section 09's detour declines to compare its betas with BXM's published
-    # pair, and quotes three numbers to say how far apart the estimators are.
-    # `bxm_beta.py` measures them by replicating BXM's own construction; this
-    # pins what the prose quotes.  400 paths reproduces the script's 4000 to
-    # three decimals, so the cheap run is the one wired in here.
-    print("--- Section 09: our split beta against BXM's estimator ---")
+    # Section 09 sets its betas beside the ones published for BXM, and
+    # explains the difference by running the index's construction through the
+    # model (`bxm_beta.py`): on the two clocks -- each option's life, and
+    # 21-day overlapping windows, the published one -- and in the two worlds,
+    # constant sigma and the S&P 500's measured swings.  48 paths reproduce the
+    # script's 200 to about 0.01, so the cheap run is the one wired in here.
+    print("--- Section 09: the model's buy-write against BXM's published betas ---")
     import bxm_beta
-    kw = dict(C=STD, paths=400)
-    up_aligned, _ = bxm_beta.measure(0.0, False, **kw)
-    up_cal, dn_cal = bxm_beta.measure(0.0, True, **kw)
-    up_both, _ = bxm_beta.measure(0.02, True, **kw)
+    kw = dict(paths=48)
+    const = bxm_beta.measure(**kw)
     # Analytic, not simulated: an at-the-money call gives away the whole of
-    # every rise, so the up-side payoff is flat and no slope exists.  If this
-    # ever drifts off zero the replication has stopped being at the money.
-    check("aligned at-the-money buy-write has an up-beta of exactly zero",
-          up_aligned, 0.0, 0.004)
-    check("...measuring off the roll instead lifts it", up_cal, 0.165, 0.010)
-    check("...and a strike above spot takes it further", up_both, 0.289, 0.012)
-    # The point of the detour: both mechanisms together still fall well short.
-    check("...both together still fall short of BXM's published 0.63",
-          up_both < 0.45, True, 0)
-    # Section 09's own inventory down-beta is exactly 1; a buy-write's is 1.02
-    # because its return is on cost (share less premium), not on the share.
-    check("a buy-write's down-beta exceeds 1 by its own premium",
-          dn_cal < 1.0, True, 0)
+    # every rise to its expiry, so over its life the up-side payoff is flat.
+    check("over each option's life the up-beta is exactly zero",
+          const["life"][0], 0.0, 0.002)
+    check("...and the down-beta exceeds 1, the return being on cost",
+          const["life"][1], 1.025, 0.01)
+    check("on overlapping 21-day windows, constant sigma: up-beta",
+          const["over"][0], 0.173, 0.015)
+    check("...down-beta, near the published 0.85", const["over"][1], 0.825, 0.015)
+    check("...plain beta", const["over"][2], 0.470, 0.015)
+    check("...a strike 2% above spot: up-beta",
+          bxm_beta.measure(offset=0.02, **kw)["over"][0], 0.293, 0.015)
+    lev = bxm_beta.measure(sv=True, **kw)
+    check("with the S&P's swings and its leverage effect: up-beta",
+          lev["over"][0], 0.384, 0.02)
+    check("...down-beta", lev["over"][1], 0.833, 0.02)
+    check("...plain beta, against the published 0.62", lev["over"][2], 0.599, 0.02)
+    # The calibration, measured on the simulated paths as it was on the index.
+    check("...the simulated swings: sd of log monthly vol (index 0.48-0.51)",
+          lev["stats"][0], 0.49, 0.02)
+    check("...a month's return against its change in log vol (index -0.35 to -0.43)",
+          lev["stats"][2], -0.34, 0.03)
+    check("...and with implied volatility 1.2x realized: up-beta",
+          bxm_beta.measure(sv=True, iv_mult=1.2, **kw)["over"][0], 0.427, 0.02)
 
     # ------------------------------------------------------------------
     # The example harness turns a command line into a Config, and it must not

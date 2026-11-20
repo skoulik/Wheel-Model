@@ -1450,16 +1450,26 @@ def split_beta(C, measure, horizon=None, nz=2001, zmax=8.0, **census_kw):
 
     with R the period's log return.  Each side is an ordinary least-squares
     slope of p on u over that side's returns, census-weighted over depth --
-    a regression WITH an intercept, which is what the covered-call literature
-    reports and what makes `bxm_style_beta` comparable to it.  Taking the ratio
-    of conditional means instead (an up/down *capture* ratio) reads about seven
+    a regression WITH an intercept, the estimator that reproduces BXM's
+    published 0.46 / 0.85 from the index's own history, and the one
+    `bxm_beta.py` applies to the model's buy-write.  Taking the ratio of
+    conditional means instead (an up/down *capture* ratio) reads about seven
     points higher on the up side and is a different statistic.
+
+    The lot's return includes its premium, as a published beta's does: p
+    above plus c_c(x).  At one volatility that changes nothing -- the premium
+    depends on x alone, and x is independent of R, so the intercept absorbs
+    it -- which is why it is left out of the integral.  Once volatility moves
+    it no longer does: the premium is larger in turbulent months, which carry
+    the large moves, and `wheel_sim.py --scenario stochvol` measures what that
+    does to both slopes.
 
     **Down-beta is exactly 1.** Below its strike a lot is pure stock: p = u for
     every u < 0, so both the slope and the intercept are exact, at 1 and 0, in
-    every configuration and under either estimator.  That is the covered-call
-    "downside protection" claim refuted inside the model -- the premium is the
-    only cushion, and it is one period's premium against the whole decline.
+    every configuration and under either estimator -- at one volatility, and
+    with the premium left out at any.  That is the covered-call "downside
+    protection" claim refuted inside the model -- the premium is the only
+    cushion, and it is one period's premium against the whole decline.
     Inventory is not the whole book, though: see `book_delta`, where the short
     put carries the total past 1.
     """

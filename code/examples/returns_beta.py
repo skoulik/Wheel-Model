@@ -27,8 +27,10 @@ it rises.  Israelov & Nielsen call this dynamic exposure *equity reversal* and
 attribute about a quarter of a covered call's risk to it.
 
 Both are P-measure and use the thirty-year census, as section 09's ledger does.
-Nothing here is comparable with BXM's published 0.46/0.85 -- that is a
-different estimator on a different book, and the comparison has its own detour.
+Nothing here is comparable with BXM's published 0.46/0.85 as it stands: that is
+a different book, measured on a different clock, in a world where volatility
+moves.  `bxm_beta.py` runs the index's construction through the model on both
+clocks and in both worlds, and `wheel_sim.py --scenario stochvol` this book's.
 """
 
 import os
