@@ -514,6 +514,39 @@ def main():
     check("...and with implied volatility 1.2x realized: up-beta",
           bxm_beta.measure(sv=True, iv_mult=1.2, **kw)["over"][0], 0.427, 0.02)
 
+    # The real-index half (`bxm_real.py`), when its three series are in
+    # data/market/: they are Cboe's, S&P's and FRED's, so the public repository
+    # does not carry them.  Windows are fixed by date, so a longer download
+    # reproduces these to the digit.
+    print("--- Section 09 / 14: BXM's published betas from the index's own history ---")
+    import bxm_real
+    _root = _os.path.dirname(_here)
+    if not bxm_real.available(_root):
+        print("SKIP  data/market/ not present; see bxm_real.py for the three downloads")
+    else:
+        _D = bxm_real.load(_root)
+        (_s1, _e1), (_s2, _e2) = bxm_real.WINDOWS
+        _a = bxm_real.real_betas(_D, _s1, _e1)
+        _b = bxm_real.real_betas(_D, _s2, _e2)
+        check("real BXM 2002-2014, section 09's estimator: up-beta", _a["total"][0], 0.530, 0.002)
+        check("...down-beta", _a["total"][1], 0.826, 0.002)
+        check("...plain beta", _a["total"][2], 0.650, 0.002)
+        check("...through the origin misses the down side", _a["through the origin"][1], 0.711, 0.002)
+        check("real BXM 2002-2026: up-beta", _b["total"][0], 0.441, 0.002)
+        check("...down-beta", _b["total"][1], 0.870, 0.002)
+        check("...plain beta", _b["total"][2], 0.633, 0.002)
+        _syn = bxm_real.synthetic(_D, _s2, _e2, bxm_real.trailing_iv())
+        check("synthetic BXM on the real path, priced at each month's vol: up-beta",
+              _syn["betas"][0], 0.471, 0.002)
+        check("...down-beta", _syn["betas"][1], 0.850, 0.002)
+        check("...its 21-day returns against the real index's", _syn["corr"], 0.965, 0.002)
+        check("...at a constant 18% instead: up-beta",
+              bxm_real.synthetic(_D, _s2, _e2, bxm_real.constant_iv(0.18))["betas"][0], 0.244, 0.002)
+        _med, _sd, _ac, _co = bxm_real.swings(_D, *bxm_real.SWING_WINDOW)
+        check("the S&P 500's monthly vol 1988-2026: sd of its log", _sd, 0.48, 0.005)
+        check("...month-to-month autocorrelation", _ac, 0.64, 0.005)
+        check("...a month's return against its change", _co, -0.43, 0.005)
+
     # ------------------------------------------------------------------
     # The example harness turns a command line into a Config, and it must not
     # pin a field that __post_init__ derives.  `cadence` is declared None and
