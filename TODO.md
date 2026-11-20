@@ -34,7 +34,7 @@ remainder is almost entirely §03's.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-32 and II-36, with II-34 and II-35 in progress** —
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-32 and II-37 to II-40, with II-34 and II-35 in progress** —
 thirty of its items are in `DONE.md`, the last thirteen having landed on 2026-08-04 and
 2026-08-05;
 **Part III and Part IV are unwritten**, and between
@@ -43,7 +43,7 @@ them they are still the bulk of what is left besides those stubs and the assembl
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-36, a citation to check against the copy. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-37, §09's betas against the published ones; II-38 and II-39, its two follow-ups; II-40, changing volatility in the model, to discuss. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -597,15 +597,44 @@ the collateral credited and the delta averaged over each option's life, true exc
 compute the delta properly while explaining the usual shortcut. Plan:
 `drafts/2026-11-13-account-cash-and-window-edge-plan.md`.
 
-**II-36. §09 cites Israelov and Nielsen (2014) for a myth nobody has checked against the copy.**
-(Opened 2026-11-19, from the §09 review of the risk subsection, on cloud, where neither aqr.com
-nor `literature/` is reachable.) The inventory-beta paragraph ends "Downside protection is one of
-the eight myths [Israelov and Nielsen] take apart", replacing an unsourced "the most widely
-repeated claim made for the strategy". It was written from memory. **On the Windows machine:**
-open `israelov-nielsen-2014-covered-call-one-fact-eight-myths.pdf`, confirm that one of the eight
-myths is that covered calls provide downside protection, and add its number and page to the
-bibliography entry beside Myth 8's. If no myth says that, cut the sentence and let the paragraph
-end on "against the entire decline".
+**II-37. §09's betas against the published ones.** (Opened 2026-11-20, from the §09 review of
+the BXM caution box.) The box's comparison could not be reproduced and BXM's published up-beta
+(0.46) could not be explained. It reproduces from the index's own history with §09's estimator,
+and the model's buy-write misses it because σ is constant: with the S&P 500's measured volatility
+swings and leverage effect it reaches 0.43 / 0.81 against 0.46 / 0.85. Being carried through in
+seven steps. Plan: `drafts/2026-11-20-published-betas-plan.md`.
+
+**II-38. The volatility's swing structure, checked on single stocks and on the index.**
+(Opened 2026-11-20, Sergei, II-37's decision 2.) `wheel_sim.py --scenario stochvol` and
+`bxm_beta.py` borrow the S&P 500's measured swings — standard deviation of log monthly
+volatility 0.50, half-life about two months, a month's return correlating about −0.4 with its
+change — for a single stock at σ = 20%, and run the leverage correlation at zero and near the
+index's. Measure the same three statistics on representative stocks from NOBL's holdings (the
+S&P 500 Dividend Aristocrats) and on the index itself, and say in §09 whether the borrowing
+holds.
+
+**II-39. The true excess return under changing volatility.** (Opened 2026-11-20, II-37's
+decision 3.) Step 1 of II-37 measures the betas, the inventory and the time in the window with
+volatility moving, but not the excess return: Black–Scholes at the day's volatility misprices an
+option when the volatility moves (a fair price uses the volatility expected over its life, plus
+a convexity term), so the ledger would book mispricing as return. It needs proper pricing, and
+the exact test excess = Δ̄·(μ − r) − leak gains a vega term.
+
+**II-40. Changing volatility in the analytic model — to discuss.** (Opened 2026-11-20,
+Sergei: "Perhaps we still need to incorporate sigma change with the stock movement into the base
+model … This would involve reviewing all previous results but might be worth doing to better
+model the reality.") The simulator shows what the constant σ hides: with the S&P 500's swings
+and leverage effect the book holds 13% fewer lots over thirty years (9.9 against 11.3), for 0.97
+years in the window against 1.09, and its up-beta reads 0.88 against 0.83 (II-37's plan, step
+1's results). What carrying it into `model.py` would take is in that plan's section on the
+model's assumptions: a second state variable, the current volatility, shared by every lot and
+persistent — a two-dimensional walk and a joint census; the closed forms (the call-grid tax and
+its √n law, the two stability boundaries, the ~45bp a vol point) turned into averages over the
+volatility's path; and a second priced risk, so a volatility risk premium as a free parameter and
+a vega term in the exact test. The expectations are linear and would survive on a 2-D grid. To
+discuss: whether; which results it would move enough to matter, which the simulator can answer
+first; and where it would live — a revision of Part II, or the model kept as it is and the
+difference reported where the assumption bites.
 
 ## Part III — Many assets
 
