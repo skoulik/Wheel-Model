@@ -174,3 +174,47 @@ Standard errors ≈0.003 on the betas, ≈0.15 on E[I]; the median holding time 
 three. The up-beta's direction depends on the leverage effect; the inventory falls 6–13%, its
 mechanism not yet established; with the premium left out the down-beta is exactly 1.000 in
 every run. ρ = −0.9 is a daily correlation, about −0.34 monthly against the index's −0.41.
+
+## Where it stands (2026-11-20, end of session)
+
+Steps 1–3 are on `main` (`f38c990`, `733af28`, `13a02ed`), and step 7's TODO part was brought
+forward (`f27499b`: II-36 closed, II-37 to II-40 opened). **Step 4, the §09 prose, is under
+way, paragraph by paragraph with Sergei**; its first change is in (the beta definition now
+includes the premium, "exact in every configuration of this model", the cushion "at one
+volatility"). **Pick up at the BXM caution box**, which still describes the old script, and
+replace it, one paragraph per exchange, with a subsection after the risk subsection's last
+paragraph. The outline Sergei saw on 2026-11-20 (plain paragraphs, no run-in titles; heading
+"Published betas come from a world where volatility moves"), with the committed figures in
+place of the scratch ones:
+
+1. What is measured: a beta belongs to a position and to its clock; §09's figures are this
+   book's over one call period, at one volatility.
+2. What is published: BXM's construction; 0.46 up / 0.85 down / 0.62 plain over 1996–2014 on
+   21-day overlapping returns (Israelov and Nielsen 2015); other periods and markets differ
+   (0.63 / 0.78 over 1986–2013, 2014 paper; up-betas 0.35–0.60 across eleven indexes, Israelov,
+   Klein and Tummala).
+3. The model's buy-write at one volatility: 0.00 up over each option's life (analytic), and on
+   overlapping windows 0.17 up / 0.83 down / 0.47 plain (`bxm_beta.py`).
+4. Why they differ: the premium is a level within a month and a tilt across months; volatility
+   rises in falls, so the pairing is strongest on the way up.
+5. What makes them agree: the S&P's measured swings with its leverage effect give 0.38 / 0.83 /
+   0.60; with implied volatility 1.2× realized, 0.43 / 0.81 — against 0.46 / 0.85 / 0.62. The
+   swings' figures (sd of log monthly vol 0.48–0.50, half-life about two months, a month's
+   return against its change −0.43) want a data citation: the bibliography entries for the
+   series are step 5's, so add them first or with this paragraph. Whether the index's own
+   history bears it out is a forward pointer to §14 (`sec:verification`) — a promise, to be
+   registered with `python -m examples --sign`.
+6. This book under moving volatility (`wheel_sim.py --scenario stochvol`): up-beta 0.80 without
+   the leverage effect and 0.88 with it, against 0.83 — so its direction depends on the
+   leverage effect, and the draft's "too low for the same reason" was wrong; the down-beta
+   0.976 / 0.988, not exactly 1, because the premium is larger in the turbulent months that
+   carry the large falls (exactly 1.000 with the premium left out); plain 0.90 / 0.95.
+7. Why the model keeps σ constant (or one sentence and a pointer, the rest in §06 — undecided).
+
+Then: the `[^bxm-beta]` footnote goes; §00 needs nothing new unless a symbol appears. After
+step 4: step 5 (bibliography: the three data series, Broadie–Chernov–Johannes, read levels;
+copies into `literature/` on Windows), step 6 (the limitation where it bites: §06, §07/§08 with
+the inventory result, §10, §15), and the rest of step 7 (II-37 to `DONE.md` when finished).
+`data/market/` on Windows needs Cboe's and FRED's CSVs and `python code/bxm_real.py
+--fetch-sp500tr`, or the real-data checks SKIP.
+
