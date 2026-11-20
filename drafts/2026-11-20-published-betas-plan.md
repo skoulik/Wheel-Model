@@ -1,8 +1,8 @@
 # §09's betas against the published ones — plan
 
-**Status: DRAFT, 2026-11-20** — written in conversation; the direction is agreed (Sergei:
+**Status: agreed 2026-11-20**, in conversation, before any code: the direction (Sergei:
 quantify this book's beta under changing volatility, and explain the sources of the mismatch to
-the reader in detail), the open questions at the end are not. Opens TODO II-37; closes II-36.
+the reader in detail) and the three choices under *Decided*. Opens TODO II-37; closes II-36.
 
 ## What was found
 
@@ -76,8 +76,8 @@ not the calendar months §09 describes; `verify_examples.py`'s "a buy-write's do
    taken from the S&P's measured statistics and its level the running example's σ = 20%, each
    option priced at the volatility of the day it is sold. Its defaults stay constant σ, so the
    other scenarios are byte-identical (diff checked, as for `--scenario constrained`). It
-   reports the wheel book's plain and split betas — and, for the question below, its central
-   mean results, so it is known whether they move.
+   reports the wheel book's plain and split betas, and its holding time and inventory, so it is
+   known whether they move (decision 3).
 2. **The buy-write replica.** `bxm_beta.py` reworked to daily steps, with the conventions the
    prose describes (each option's life; 21-day overlapping), under constant σ and under the
    calibrated swings; its checks fixed and the figures pinned.
@@ -102,7 +102,9 @@ not the calendar months §09 describes; `verify_examples.py`'s "a buy-write's do
    stress paragraph given the measured effect on the boundaries if step 1 finds one, §15's item
    narrowed to what is still open — and §07 gains a sentence if the holding time moves.
 7. **TODO**: II-36 closed — Myth 2 is "Covered calls provide downside protection" (2014,
-   Exhibit 1 p. 24, argued p. 28); II-37 opened for this, citing this plan.
+   Exhibit 1 p. 24, argued p. 28); II-37 opened for this, citing this plan; two more opened —
+   the swing structure checked on representative NOBL holdings and on the index (decision 2),
+   and the true excess return under changing volatility with proper pricing (decision 3).
 
 ## The model's assumptions and constants
 
@@ -145,8 +147,9 @@ assumption bites — not a change of constants.
    example's σ = 20%, the leverage correlation run both at zero and at the index's, and say so.
    A new TODO item verifies the structure on representative stocks from NOBL's holdings (the
    S&P 500 Dividend Aristocrats) and on the index itself, which §14 measures anyway.
-
-## Open questions
-
-3. **The mean results.** Run the central results under changing volatility now, as part of
-   step 1, or open it as its own TODO item once the betas are done.
+3. **The mean results** (Sergei, 2026-11-20): step 1's runs also report the median and mean
+   holding time and the average inventory under changing volatility, which depend on the price
+   path and the strikes but not on option prices. The true excess return waits: under moving
+   volatility Black–Scholes at the current volatility misprices an option (a fair price uses
+   the volatility expected over its life, plus a convexity term), so the ledger needs proper
+   pricing first, and its exact test gains a vega term. That is its own TODO item.
