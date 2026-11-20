@@ -1104,6 +1104,23 @@ def main():
     check("unlimited equity refuses no put", free.blocked, 0, 0)
     check("...and never reaches a barrier", len(free.t_liq), 0, 0)
 
+    # The split beta on the simulator's own paths: each lot over one call
+    # period, premium included, against model.split_beta's census integral --
+    # machinery that shares nothing with it.  It is also the constant-sigma
+    # reference that `--scenario stochvol`'s changing-volatility runs are read
+    # against.  192 paths carry about 0.008 of standard error on the up side.
+    up_s, dn_s, _ = free.betas()
+    up_m, dn_m = model.split_beta(STD, "P", horizon=YEARS)
+    check("simulated up-beta against model.split_beta", up_s, up_m, 0.025)
+    check("...and the down-beta", dn_s, dn_m, 0.002)
+    # Changing volatility off is inert: sv_eta = 0 keeps no state and draws
+    # nothing, so setting its other knobs changes no path.
+    a_off = W.simulate(W.Params(delta=0.025, years=5.0, paths=3, seed=7))
+    a_knobs = W.simulate(W.Params(delta=0.025, years=5.0, paths=3, seed=7,
+                                  sv_rho=-0.9, sv_half_life=0.5))
+    check("constant volatility untouched by the changing-volatility code",
+          (a_off.lot_time, a_off.beta) == (a_knobs.lot_time, a_knobs.beta), True, 0)
+
     # T_sat.  model.py reads it off the UNCONSTRAINED transient curve, so the
     # simulator's matching object is the unlimited run's mean inventory
     # reaching the same capacity -- not the constrained account, which starts

@@ -40,6 +40,17 @@ Defaults are the unlimited operator of Parts I and II, and inertly so: with
 `equity = inf` the ledger is skipped entirely and the four scenarios above run
 the same statements against the same random stream as before it existed.
 
+`--scenario stochvol` lets the volatility move, which model.py cannot: one
+sigma is what makes a lot's depth a complete description of its prospects, and
+the whole analytic spine rests on it (drafts/2026-11-20-published-betas-plan.md).
+The log of the volatility mean-reverts with the S&P 500's measured swings,
+around a level that keeps E[sigma^2] at sigma^2, and options are struck and
+priced at the volatility ruling on the day they are sold.  It reports the
+book's split and plain betas, its inventory and its time in the window, beside
+the same run at constant sigma, which must agree with model.py.  The default
+sv_eta = 0 keeps no state and draws nothing, so every other scenario is
+byte-identical with it present.
+
 Dividends under the total-return convention: mu is the asset's TOTAL expected
 return, the price drifts at mu - delta, held lots accrue delta_net =
 delta*(1 - withholding) per year of holding (reported as a separate Track A
@@ -53,7 +64,7 @@ The cadence/tenor split is built in: cadence T >= tau_p, defaulting to
 T = tau_p, the article's running example.
 
 Stdlib only.  Run:  python code/wheel_sim.py
-    [--scenario base|dividends|stress|sweep|validate|dollars|constrained|all]
+    [--scenario base|dividends|stress|sweep|validate|dollars|constrained|stochvol|all]
 """
 
 import argparse
@@ -127,6 +138,17 @@ class Params:
     seed: int = 20260722
     regimes: list = None
     book_delta: bool = False   # sample the book's delta (--scenario dollars)
+    # -- changing volatility (--scenario stochvol).  sv_eta = 0 is the constant
+    # sigma of Parts I and II, and inertly so: no state is kept and no draw is
+    # made, so every other scenario runs the same stream as before.  With
+    # sv_eta > 0 the log of the volatility mean-reverts (Ornstein-Uhlenbeck)
+    # around a level set so that E[sigma_t^2] = sigma^2, the article's one
+    # volatility on average: the price's long-run variance and drift are
+    # unchanged, and only how the variance is spread over time differs.
+    sv_eta: float = 0.0        # volatility of log-volatility, per sqrt(year)
+    sv_half_life: float = 1.9 / 12   # years for a log-vol deviation to halve
+    sv_rho: float = 0.0        # correlation of the price's and the log-vol's shocks
+    sv_step: float = 1 / 252   # largest step the joint path is advanced by
 
     def __post_init__(self):
         if self.cadence is None:
@@ -139,6 +161,10 @@ class Params:
         self._starts = [rg.start for rg in self.regimes]
         if isinstance(self.draw, str) and self.draw not in DRAW_POLICIES:
             raise ValueError(f"unknown draw policy {self.draw!r}")
+        self.sv_kappa = log(2) / self.sv_half_life
+        self.sv_var = self.sv_eta**2 / (2 * self.sv_kappa)   # stationary var of log-vol
+        if self.sv_eta > 0 and (len(self.regimes) > 1 or self.equity != float("inf")):
+            raise ValueError("changing volatility is single-regime and unconstrained only")
 
     def nominal_g(self):
         """The debit growth rate the closed forms would be told to assume.
@@ -154,7 +180,8 @@ class Params:
 
 
 class Lot:
-    __slots__ = ("entry", "strike", "basis", "x", "periods", "s_sale", "t_exp")
+    __slots__ = ("entry", "strike", "basis", "x", "periods", "s_sale", "t_exp",
+                 "c_sale")
 
     def __init__(self, entry, strike, basis):
         self.entry = entry
@@ -164,6 +191,7 @@ class Lot:
         self.periods = 0    # call periods run so far
         self.s_sale = 0.0   # the price the current call was sold at
         self.t_exp = 0.0    # ...and when it expires
+        self.c_sale = 0.0   # ...and the premium it was sold for
 
 
 class Agg:
@@ -219,6 +247,13 @@ class Agg:
         self.batch_hist = Counter()    # simultaneous exits per exit date
         # depth bins: [lot-periods, exits, sum q_theory, sum x]
         self.bins = [[0, 0, 0.0, 0.0] for _ in DEPTH_EDGES[:-1]]
+        # The split beta, measured as model.split_beta defines it: each lot over
+        # one call period, its return against the stock's from the call's sale
+        # to its expiry.  The lot's return includes the premium -- under one
+        # volatility a level, which leaves the slope alone; under a changing one
+        # it is not, which is the point of measuring it here.  Per side
+        # [up, down, all]: [n, sum u, sum p, sum u^2, sum u*p].
+        self.beta = [[0, 0.0, 0.0, 0.0, 0.0] for _ in range(3)]
         # -- the constrained account.  All of this stays zero unless Params
         # gives the operator a finite equity.
         self.paths = 0
@@ -239,6 +274,23 @@ class Agg:
         self.ps_eq = self.ps_eqt = 0.0
         self.ps_sales = self.ps_blocked = 0
         self.bins_ps = [[0, 0, 0.0, 0.0] for _ in DEPTH_EDGES[:-1]]
+
+    def record_beta(self, u, p):
+        for side in ((0, 2) if u > 0 else (1, 2) if u < 0 else (2,)):
+            b = self.beta[side]
+            b[0] += 1
+            b[1] += u
+            b[2] += p
+            b[3] += u * u
+            b[4] += u * p
+
+    def betas(self):
+        """(up, down, plain): least-squares slopes with an intercept, per side."""
+        out = []
+        for n, su, sp, suu, sup in self.beta:
+            var = suu / n - (su / n) ** 2 if n else 0.0
+            out.append((sup / n - su / n * sp / n) / var if var > 0 else float("nan"))
+        return tuple(out)
 
     def record_call_period(self, x, exited, mu, sigma, tau_c, saturated=False):
         q_th = N(((mu - sigma**2 / 2) * tau_c - x) / (sigma * sqrt(tau_c)))
@@ -269,9 +321,9 @@ class Agg:
             getattr(self, k).update(getattr(o, k))
         for k in self._LISTS:
             getattr(self, k).extend(getattr(o, k))
-        for name in ("bins", "bins_ps"):
+        for name in ("bins", "bins_ps", "beta"):
             for a, b in zip(getattr(self, name), getattr(o, name)):
-                for i in range(4):
+                for i in range(len(a)):
                     a[i] += b[i]
         return self
 
@@ -295,6 +347,34 @@ def advance(S, t0, t1, P, rng):
         a = b
         i += 1
     return S
+
+
+def advance_sv(S, h, t0, t1, P, rng):
+    """The price and the log-volatility deviation h, stepped jointly to t1.
+
+    The volatility is sigma_bar * e^h with sigma_bar = sigma * e^(-Var h), so
+    E[sigma_t^2] = sigma^2.  h is an Ornstein-Uhlenbeck process, stepped
+    exactly; the price is stepped as a lognormal at the volatility ruling at
+    the start of each substep, which is exact in the limit of the step and
+    within the simulator's resolution at a trading day.  The two shocks are
+    correlated rho: negative rho is the leverage effect, volatility rising as
+    the price falls.
+    """
+    if t1 - t0 <= 1e-12:
+        return S, h
+    rg = P.regimes[0]
+    k = max(1, int((t1 - t0) / P.sv_step + 1 - 1e-9))
+    dt = (t1 - t0) / k
+    sig_bar = rg.sigma * exp(-P.sv_var)
+    decay = exp(-P.sv_kappa * dt)
+    h_sd = sqrt(P.sv_var * (1 - decay * decay))
+    rho, rho_c = P.sv_rho, sqrt(1 - P.sv_rho**2)
+    for _ in range(k):
+        s = sig_bar * exp(h)
+        z1, z2 = rng.gauss(0.0, 1.0), rng.gauss(0.0, 1.0)
+        S *= exp((rg.mu - P.delta - s * s / 2) * dt + s * sqrt(dt) * z1)
+        h = h * decay + h_sd * (rho * z1 + rho_c * z2)
+    return S, h
 
 
 def bridge_hit(s_a, s_b, b_a, b_b, var, u):
@@ -351,6 +431,11 @@ def run_path(P, rng, agg):
     push(0.0, SALE, None)
     lots = []
     exits_at = Counter()
+
+    # ---- changing volatility.  Off, nothing is kept and nothing is drawn.
+    sv = P.sv_eta > 0
+    h = rng.gauss(0.0, sqrt(P.sv_var)) if sv else 0.0   # started stationary
+    sig_now = P.regimes[0].sigma * exp(h - P.sv_var) if sv else P.regimes[0].sigma
 
     # ---- the account.  `ledger` off is Parts I and II verbatim.
     ledger = P.equity != float("inf")
@@ -446,7 +531,10 @@ def run_path(P, rng, agg):
             break
         s_a = S
         sig_step = regime_at(P, t).sigma       # constrained runs are single-regime
-        S = advance(S, t, te, P, rng)
+        if sv:
+            S, h = advance_sv(S, h, t, te, P, rng)
+        else:
+            S = advance(S, t, te, P, rng)
         t = te
 
         if ledger:
@@ -474,7 +562,11 @@ def run_path(P, rng, agg):
                 break
 
         rg = regime_at(P, t)
-        sig_iv = rg.sigma + P.iv_spread
+        # The volatility ruling now: the regime's, or the path's own when it
+        # moves.  Strikes and premiums are both set at it, as an operator
+        # quoting the day's volatility would.
+        sig_now = P.regimes[0].sigma * exp(h - P.sv_var) if sv else rg.sigma
+        sig_iv = sig_now + P.iv_spread
 
         if prio == SALE:
             # Sample state at the cadence grid (after same-date settlements).
@@ -497,7 +589,7 @@ def run_path(P, rng, agg):
             # Sell the put.  The strike dial is a real-world assignment
             # probability (the model's one measure), so k* inverts the
             # P-world probability; the premium is a quote, priced at IV.
-            kf = k_star_drift(P.p_star, P.tau_p, rg.sigma, rg.mu - P.delta)
+            kf = k_star_drift(P.p_star, P.tau_p, sig_now, rg.mu - P.delta)
             K = kf * S
             # Blocked means skip the put: the operator does not sell what they
             # could not cover.  Equity is marked to market, so capacity in lots
@@ -588,7 +680,7 @@ def run_path(P, rng, agg):
                 agg.prem_float += c_c / S * (exp(P.r * (min(t + P.tau_c, P.years) - t)) - 1)
                 earn(c_c, t + P.tau_c)
                 lot.x = log(K / S)
-                lot.s_sale, lot.t_exp = S, t + P.tau_c
+                lot.s_sale, lot.t_exp, lot.c_sale = S, t + P.tau_c, c_c
                 push(t + P.tau_c, CALLEXP, lot)
 
         else:  # CALLEXP
@@ -597,6 +689,8 @@ def run_path(P, rng, agg):
             lot = data
             lot.periods += 1
             exited = S >= lot.strike
+            agg.record_beta(S / lot.s_sale - 1.0,
+                            (min(S, lot.strike) + lot.c_sale) / lot.s_sale - 1.0)
             agg.record_call_period(lot.x, exited, rg.mu - P.delta, rg.sigma,
                                    P.tau_c, t_sat is not None)
             if exited:
@@ -615,7 +709,7 @@ def run_path(P, rng, agg):
                 agg.prem_float += c_c / S * (exp(P.r * (min(t + P.tau_c, P.years) - t)) - 1)
                 earn(c_c, t + P.tau_c)
                 lot.x = log(lot.strike / S)
-                lot.s_sale, lot.t_exp = S, t + P.tau_c
+                lot.s_sale, lot.t_exp, lot.c_sale = S, t + P.tau_c, c_c
                 push(t + P.tau_c, CALLEXP, lot)
 
     for lot in lots:  # censored at the horizon
@@ -624,7 +718,7 @@ def run_path(P, rng, agg):
         # Mark what is still open to market where the run ends, each against
         # the price it was sold at as its exit would have been.  No random
         # draw: every other scenario runs the same stream as before.
-        sig_end = regime_at(P, t).sigma + P.iv_spread
+        sig_end = (sig_now if sv else regime_at(P, t).sigma) + P.iv_spread
         for te, prio, _, data in heap:
             left = te - t
             if prio == PUTEXP:
@@ -1483,11 +1577,110 @@ def dollars(args):
         print(f"{'dollars, analytic (model.economics)':>34} {ana:>+10.3%}")
 
 
+# The S&P 500's own volatility, measured from its daily total-return history
+# 1988-2026 (drafts/2026-11-20-published-betas-plan.md): the log of monthly
+# realized volatility has a standard deviation of about 0.50 and a half-life of
+# about 1.9 months, and a month's return correlates about -0.4 with that
+# month's change in it.  Borrowed for a single stock, at the running example's
+# sigma, and the leverage correlation run at zero and near the index's (TODO
+# II-38 checks the structure on single names).  rho = -0.9 is a daily
+# correlation; in this process it gives a monthly one of about -0.34.
+SV_SD_LOGVOL = 0.50
+SV_HALF_LIFE = 1.9 / 12
+SV_RHO_INDEX = -0.9
+
+
+def _sv_row(P, g):
+    """One run's betas, inventory and time in the window, from an Agg."""
+    up, dn, plain = g.betas()
+    inv = g.lot_time / (g.paths * P.years)
+    lam = g.assigned / (g.paths * P.years)
+    return {"up-beta": up, "down-beta": dn, "plain beta": plain,
+            "E[I], lots": inv, "E[I]/lambda, years": inv / lam if lam else float("nan")}
+
+
+def stochvol(args):
+    """The wheel under changing volatility: its betas and holding time.
+
+    Three runs through one pool, the Standard regime at thirty years: constant
+    sigma, the reference that must agree with model.py; volatility swinging
+    as the S&P 500's does but with no leverage effect; and with one near the
+    index's.  Each holds E[sigma^2] at the running example's 20%, so the price's
+    long-run drift and variance are the same in all three, and only how the
+    variance is spread over time differs.  Standard errors are across the
+    batches each run is split into.
+    """
+    import model
+    eta = SV_SD_LOGVOL * sqrt(2 * log(2) / SV_HALF_LIFE)
+    runs = (("constant volatility", dict()),
+            ("changing volatility, no leverage effect",
+             dict(sv_eta=eta, sv_half_life=SV_HALF_LIFE, sv_rho=0.0)),
+            (f"changing volatility, leverage rho = {SV_RHO_INDEX}",
+             dict(sv_eta=eta, sv_half_life=SV_HALF_LIFE, sv_rho=SV_RHO_INDEX)))
+    paths = args.paths or 640
+    jobs, spans = [], []
+    for label, kw in runs:
+        P = Params(delta=0.025, years=args.years or 30.0, paths=paths,
+                   seed=args.seed, **kw)
+        js = batch_jobs(P)
+        spans.append((label, P, len(jobs), len(jobs) + len(js)))
+        jobs += js
+    aggs = pmap(_batch, jobs)
+    P0 = spans[0][1]
+    C = as_config(P0, "Standard")
+    a = model.economics(C, "P", model.occupation(C, "P"), horizon=P0.years)
+    up_m, dn_m = model.split_beta(C, "P", horizon=P0.years)
+    ref = {"up-beta": up_m, "down-beta": dn_m, "E[I], lots": a["I"],
+           "E[I]/lambda, years": a["I"] / (C.p_star / C.cadence)}
+    print(f"\n{'=' * 72}\nCHANGING VOLATILITY  ({paths} paths x {P0.years:g}y per run, "
+          f"seed {P0.seed})\n  log-vol: sd {SV_SD_LOGVOL}, half-life "
+          f"{SV_HALF_LIFE * 12:.1f} months (eta {eta:.3f}); E[sigma^2] = "
+          f"{P0.sigma:.2f}^2 in every run\n{'=' * 72}")
+    keys = ("up-beta", "down-beta", "plain beta", "E[I], lots", "E[I]/lambda, years")
+    for label, P, i, j in spans:
+        rows = [_sv_row(P, g) for g in aggs[i:j]]
+        whole_agg = merge_all(aggs[i:j])
+        whole = _sv_row(P, whole_agg)
+        nb = len(rows)
+        print(f"\n-- {label} --")
+        for key in keys:
+            vals = [r[key] for r in rows]
+            mean = sum(vals) / nb
+            se = sqrt(sum((v - mean) ** 2 for v in vals) / (nb - 1) / nb)
+            m_ref = f"   model.py {ref[key]:.3f}" if key in ref else ""
+            print(f"  {key:>20} {whole[key]:>8.3f}  s.e. {se:.3f}{m_ref}")
+        surv = km_survival(whole_agg.durations, KM_HORIZONS_M)
+        print(f"  KM survival, months {''.join(f'{h:>7}' for h in KM_HORIZONS_M)}\n"
+              f"                       {''.join(f'{s:>7.3f}' for s in surv)}")
+        med = next((h for h, s in zip(*_km_curve(whole_agg.durations)) if s <= 0.5),
+                   float("nan"))
+        print(f"  median holding time  {med:.2f} months")
+
+
+def _km_curve(durations):
+    """The Kaplan-Meier curve as (event times in months, survival after each)."""
+    ds = sorted(durations)
+    times, survs, surv, at_risk, i = [], [], 1.0, len(ds), 0
+    while i < len(ds):
+        tt = ds[i][0]
+        ev = cen = 0
+        while i < len(ds) and ds[i][0] == tt:
+            ev, cen = (ev + 1, cen) if ds[i][1] else (ev, cen + 1)
+            i += 1
+        if ev:
+            surv *= 1 - ev / at_risk
+            times.append(tt)
+            survs.append(surv)
+        at_risk -= ev + cen
+    return times, survs
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--scenario", default="all",
                     choices=["base", "dividends", "stress", "sweep",
-                             "validate", "dollars", "constrained", "all"])
+                             "validate", "dollars", "constrained", "stochvol",
+                             "all"])
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     ap.add_argument("--years", type=float, default=None,
@@ -1509,6 +1702,10 @@ def main():
 
     if args.scenario == "constrained":
         constrained(args)
+        return
+
+    if args.scenario == "stochvol":
+        stochvol(args)
         return
 
     if args.scenario in ("base", "all"):
