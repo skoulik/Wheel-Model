@@ -55,6 +55,7 @@ FIELDS = [
     ("delta_flat", "  unshocked", ".3f"),
     ("delta_up10", "  price +10%", ".3f"),
     ("delta_up20", "  price +20%", ".3f"),
+    ("held_dn20", "the shares with their calls alone, at -20%", ".3f"),
     ("put_dn20", "of which the short put, at -20%", ".3f"),
     ("put_up20", "  and at +20%", ".3f"),
 ]
@@ -85,6 +86,7 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
         "delta_flat": sum(d[0.0]) / cap,
         "delta_up10": sum(d[0.10]) / cap,
         "delta_up20": sum(d[0.20]) / cap,
+        "held_dn20": d[-0.20][0] / cap,
         "put_dn20": d[-0.20][1],
         "put_up20": d[0.20][1],
     }
@@ -94,7 +96,8 @@ CASES = [
     Case("", {
         "beta_up": (0.828, 0.0005),     # section 09: "0.83", and "0.828" beside Conservative
         "beta_dn": (1.000, 0.001),      # "exactly one on the way down"
-        "delta_dn20": (1.069, 0.005),   # "1.07 of its capital after a 20% fall"
+        "delta_dn20": (1.069, 0.005),   # "1.07" after a 20% fall
+        "held_dn20": (0.983, 0.005),    # "0.98 of the capital, the part of it in shares"
         "delta_flat": (0.932, 0.0005),  # "the 0.932 ... at thirty years"
         "delta_up20": (0.608, 0.005),   # "0.61 after a 20% rise"
         "put_dn20": (1.000, 0.002),     # the put is the whole of the excess
@@ -102,6 +105,7 @@ CASES = [
     }, note="Standard regime, 30y census"),
     Case("--horizon 5", {
         "delta_flat": (0.8747, 0.0005),  # "0.875 ... at five", the young book fig:book-exposure adds
+        "delta_dn20": (1.143, 0.005),   # "1.14 after a 20% fall against 1.07"
     }, note="the five-year book, the figure's second pair of curves"),
     Case("--p-star 0.10", {
         "beta_up": (0.824, 0.0005),     # "0.828 to 0.824": the strike dial barely moves it

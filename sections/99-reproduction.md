@@ -189,8 +189,8 @@ Draws [fig:book-exposure](#fig:book-exposure): `python code/examples/returns_bet
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_beta.py` | beta_up = 0.828, beta_dn = 1.000, delta_dn20 = 1.069, delta_flat = 0.932, delta_up20 = 0.608, put_dn20 = 1.000, put_up20 = 0.000 |
-| `python code/examples/returns_beta.py --horizon 5` | delta_flat = 0.875 |
+| `python code/examples/returns_beta.py` | beta_up = 0.828, beta_dn = 1.000, delta_dn20 = 1.069, held_dn20 = 0.983, delta_flat = 0.932, delta_up20 = 0.608, put_dn20 = 1.000, put_up20 = 0.000 |
+| `python code/examples/returns_beta.py --horizon 5` | delta_flat = 0.875, delta_dn20 = 1.143 |
 | `python code/examples/returns_beta.py --p-star 0.10` | beta_up = 0.824, beta_dn = 1.000 |
 | `python code/examples/returns_beta.py --n 1` | beta_up = 0.927, beta_gap = 0.073 |
 | `python code/examples/returns_beta.py --n 13` | beta_up = 0.683, beta_gap = 0.317 |
