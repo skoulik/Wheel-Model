@@ -268,6 +268,10 @@ class Agg:
         # The put's strike over spot, summed over put sales: its margin's average when
         # the strike moves with the state (the fitted process).
         self.kf_sum = 0.0
+        # The book's delta through the price's channel alone, beside delta_sum: equal to
+        # it at constant sigma; under the fitted process the difference is the volatility
+        # channel's share, measured on the same dates without noise of its own.
+        self.delta_px_sum = 0.0
         self.gaps = []             # 1 - S/K at each assignment, with Params.record_gaps
         # Why a lot leaves when it does, under a changing volatility: the
         # volatility at its assignment over that at its put's sale, summed
@@ -350,7 +354,8 @@ class Agg:
     _SCALARS = ("puts", "assigned", "d_sum", "exits", "prem_put", "prem_call",
                 "dividends", "cap_sum", "cap_n", "mvcap_sum", "acq_loss",
                 "giveaway", "acq_loss_d", "giveaway_d", "prem_float", "coll_int", "lot_time",
-                "open_put", "open_call", "delta_sum", "kf_sum", "vol_rise", "first_n",
+                "open_put", "open_call", "delta_sum", "kf_sum", "delta_px_sum",
+                "vol_rise", "first_n",
                 "first_exit",
                 "paths", "sales", "blocked", "withdrawn", "ps_t",
                 "ps_inv", "ps_lev", "ps_eq", "ps_eqt", "ps_income", "ps_sales",
@@ -525,7 +530,8 @@ def run_path(P, rng, agg):
             the vega times how far a one-sd diffusive shock moves each factor, per unit of
             the move it makes in the price.  The pricing measure shifts exactly that
             shock, so this is the exposure mu - r is earned on (decision 4); a put's is
-            the call's less e^(-delta tau), by parity."""
+            the call's less e^(-delta tau), by parity.  Returns (both channels, the
+            price's alone)."""
             tau = sessions * VP.DT
             iv, d_f, d_s, d_x = tables.call_iv_grad(hf, hs, phase(sessions),
                                                     log(strike / S), sessions)
@@ -536,8 +542,8 @@ def run_path(P, rng, agg):
             vega = S * carry * exp(-d1 * d1 / 2) / sqrt(2 * pi) * sqrt(tau)
             H = max(-VP.H_CLIP, min(VP.H_CLIP, hf + hs))
             sd = proc.sig_bar * exp(H)
-            return (carry * N(d1) - vega * d_x / S
-                    + (proc.th_f * d_f + proc.th_s * d_s) * vega / (sd * S))
+            price = carry * N(d1) - vega * d_x / S
+            return price + (proc.th_f * d_f + proc.th_s * d_s) * vega / (sd * S), price
 
     # ---- the account.  `ledger` off is Parts I and II verbatim.
     ledger = P.equity != float("inf")
@@ -758,16 +764,24 @@ def run_path(P, rng, agg):
                 agg.cap_by_idx[idx] += cost_cap / S
                 agg.mvcap_by_idx[idx] += mv_cap
                 if P.book_delta and fv:
-                    # The same book, each option's delta through both channels.
-                    book = 0.0
+                    # The same book, each option's delta through both channels, and
+                    # through the price's alone.
+                    book = book_px = 0.0
                     for lot in lots:
                         ell = round((lot.t_exp - t) * VP.SESSIONS)
                         if ell > 0:
-                            book += 1.0 - eff_delta(lot.strike, ell)
+                            full, px = eff_delta(lot.strike, ell)
+                            book += 1.0 - full
+                            book_px += 1.0 - px
                         else:
                             book += 0.0 if S >= lot.strike else 1.0
-                    book -= eff_delta(K, 5) - exp(-P.delta * P.tau_p)
+                            book_px += 0.0 if S >= lot.strike else 1.0
+                    full, px = eff_delta(K, 5)
+                    carry = exp(-P.delta * P.tau_p)
+                    book -= full - carry
+                    book_px -= px - carry
                     agg.delta_sum += book
+                    agg.delta_px_sum += book_px
                 elif P.book_delta:
                     # Shares, each less its call's spot delta at the call's
                     # remaining tenor, plus the short put just sold.
@@ -785,6 +799,7 @@ def run_path(P, rng, agg):
                            / (sig_iv * sqrt(P.tau_p)))
                     book += exp(-P.delta * P.tau_p) * N(-d1p)
                     agg.delta_sum += book
+                    agg.delta_px_sum += book     # one channel: the price's
                 push(t + P.tau_p, PUTEXP, (K, S, c_p, sig_now))
             if t + P.cadence <= P.years + 1e-9:
                 push(t + P.cadence, SALE, None)
@@ -1875,8 +1890,12 @@ def _fv_row(P, g):
     row = {"excess": dollar, "minus the leak": -leak, "excess + leak": dollar + leak}
     if g.delta_sum:
         d = _dollar_row(P, g)
+        d_px = g.delta_px_sum / g.mvcap_sum
         row.update({"delta x (mu - r) - leak": d["theory"],
-                    "excess - that": d["dollar - theory"], "book delta": d["delta"]})
+                    "excess - that": d["dollar - theory"], "book delta": d["delta"],
+                    "book delta, price only": d_px,
+                    "excess - that, price only": d["dollar"] - (d_px * (P.mu - P.r)
+                                                                - leak)})
     row.update(_sv_row(P, g))
     gaps = sorted(g.gaps)
     if gaps:
@@ -1896,6 +1915,17 @@ def fittedvol(args):
     At the pricing drift the excess plus the leak must be zero -- at constant sigma
     because Black-Scholes is exact there, on the fitted process only if the tables price
     every option fair, so that row is their test.  Standard errors are across batches.
+
+    In the real world the excess must be the book's delta times mu - r, less the leak,
+    and under the fitted process the delta has two channels, the price's and the
+    volatility's the price moves; the price's alone is reported beside it.  Read on its
+    own that test resolves about 1.7bp, which is the size of the volatility channel, so
+    it is also read paired: each batch's pricing-drift run has the same draws (the price
+    drift moves no random number) and its excess plus leak is zero by no-arbitrage, so
+    subtracting it removes the noise the two runs share and leaves an estimate with the
+    same expectation.  At 640 paths a run that one reads to about 0.7bp; --paths 5120
+    (about 35 minutes) reads it to 0.2bp, which separates the two channels by four
+    standard errors.
     """
     runs = (("constant volatility, real world", dict(book_delta=True)),
             ("constant volatility, pricing drift mu = r", dict(mu=0.05)),
@@ -1925,7 +1955,19 @@ def fittedvol(args):
             se = sqrt(sum((v - mean) ** 2 for v in vals) / (len(vals) - 1) / len(vals))
             pct = key.startswith(("excess", "minus", "gap", "delta x"))
             fmt = (lambda v: f"{v:>+9.3%}") if pct else (lambda v: f"{v:>9.3f}")
-            print(f"  {key:>24} {fmt(whole[key])}  s.e. {fmt(se).strip()}")
+            print(f"  {key:>26} {fmt(whole[key])}  s.e. {fmt(se).strip()}")
+    print("\n-- paired: real world less its pricing-drift run, batch by batch --")
+    for real, priced in ((0, 1), (3, 2)):
+        label, P, i, j = spans[real]
+        _, Pq, iq, jq = spans[priced]
+        rows = [_fv_row(P, g) for g in aggs[i:j]]
+        zero = [_fv_row(Pq, g)["excess + leak"] for g in aggs[iq:jq]]
+        print(f"  {label}:")
+        for key in ("excess - that", "excess - that, price only"):
+            vals = [r[key] - z for r, z in zip(rows, zero)]
+            mean = sum(vals) / len(vals)
+            se = sqrt(sum((v - mean) ** 2 for v in vals) / (len(vals) - 1) / len(vals))
+            print(f"  {key:>26} {mean:>+9.3%}  s.e. {se:.3%}")
 
 
 def _km_curve(durations):

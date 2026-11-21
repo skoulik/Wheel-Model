@@ -760,8 +760,39 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
      ∂V/∂S + (share·θ·∂V/∂h_fast + share′·θ·∂V/∂h_slow)/(σ_t·S): the price's channel (with the
      smile, since depth moves with the price) plus the vega's, weighted by how far one sd of
      diffusive shock moves each factor per unit of the move it makes in the price. It is exact
-     to first order in κ, about 0.009 a session at the median state. The test resolves 1.7bp,
-     and the volatility channel's share of Δ̄ has not been split out.
+     to first order in κ, about 0.009 a session at the median state.
+   - **The volatility channel, measured and confirmed** (Sergei asked, 2026-11-22: "Do you think
+     this is worth further digging?"). Read alone the test resolves 1.7bp, about the
+     channel's whole size, so a run without it might have passed too. Two additions settle
+     it:
+     - **The split is exact.** The book's delta is recorded on the same dates through the
+       price's channel alone, so the difference carries no noise of its own.
+     - **The test is paired.** Each batch's pricing-drift run has the same draws (the drift
+       moves no random number), and its excess plus leak is zero by no-arbitrage.
+       Subtracting it, batch by batch, removes the noise the two share, along with any
+       pricing error common to their tables.
+
+     At 5,120 paths × 30 years (`--paths 5120`, about 35 minutes):
+
+     | | Δ̄ | excess − (Δ̄·(μ − r) − leak), paired |
+     |---|---|---|
+     | constant σ, the reference | 0.932 | −0.4 ± 0.2bp |
+     | fitted, both channels | 0.935 | −0.3 ± 0.2bp |
+     | fitted, the price's channel alone | 0.929 | +0.7 ± 0.2bp |
+
+     The volatility channel adds 0.006 to the book's delta, worth about 1.2bp a year at μ − r
+     = 2%. With it the fitted process matches the constant-σ reference to 0.1 ± 0.3bp; without
+     it, it misses by 1.1bp, about four standard errors. The test confirms the vega term
+     decision 4 said it would gain. The reference's own −0.4bp is common to both (two
+     standard errors, plausibly the delta's weekly sampling) and cancels in the comparison.
+   - **The tables' level error shows at this resolution.** At μ = r the fitted process's
+     excess plus leak is +1.1 ± 0.5bp at 5,120 paths (constant σ: −0.2 ± 0.4bp). That is the
+     size the tables' 0.1% implied-volatility error predicts: options sold slightly rich, by
+     a level common to the whole table. It is below everything step 7 will report except
+     the excess return itself, and there it cancels if each excess is read against its own
+     pricing-drift twin, as the paired test does. If step 7 needs the excess unpaired at
+     the basis point, the remedy is more table paths: four times as many halves the error,
+     for about twenty minutes a parameter set.
    - **Nothing else moved.** `--scenario dollars` and `stochvol` are byte-identical with the
      committed simulator, and `verify_examples.py` passes.
 
