@@ -594,6 +594,10 @@ def main():
         check(f"{_name}: E[I]/lambda, years", _row["E[I]/lambda, years"], held, _d3)
         for _h, _s in zip((3, 120), W.km_survival(_g.durations, (3, 120))):
             check(f"{_name}: still held at {_h} months", _s, km[_h == 120], _d3)
+        # The median, read off the Kaplan-Meier curve as the scenario prints it:
+        # what does not move while the mean does.
+        _med = next(t for t, s in zip(*W._km_curve(_g.durations)) if s <= 0.5)
+        check(f"{_name}: median holding time, months (eight weeks)", _med, 1.85, 0.006)
         for _i, _r in zip((4, 5), exits):
             _b = _g.bins[_i]
             check(f"{_name}: exit rate a period at depth {W.DEPTH_EDGES[_i]:.2f}-"
