@@ -42,7 +42,7 @@ them they are still the bulk of what is left besides those stubs and the assembl
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-38 and II-39, the follow-ups to §09's published betas; II-40, changing volatility in the model, to discuss. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-38 and II-39, the follow-ups to §09's published betas, now steps of II-40's plan; II-40, changing volatility and jumps in the model, planned (`drafts/2026-11-21-moving-volatility-plan.md`). Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -603,16 +603,18 @@ volatility 0.50, half-life about two months, a month's return correlating about 
 change — for a single stock at σ = 20%, and run the leverage correlation at zero and near the
 index's. Measure the same three statistics on representative stocks from NOBL's holdings (the
 S&P 500 Dividend Aristocrats) and on the index itself, and say in §09 whether the borrowing
-holds.
+holds. Widened on 2026-11-21 into step 4 of II-40's plan, which measures these on what is left
+once earnings days and jumps are taken out, with two terms more.
 
 **II-39. The true excess return under changing volatility.** (Opened 2026-11-20, II-37's
 decision 3.) Step 1 of II-37 measures the betas, the inventory and the time in the window with
 volatility moving, but not the excess return: Black–Scholes at the day's volatility misprices an
 option when the volatility moves (a fair price uses the volatility expected over its life, plus
 a convexity term), so the ledger would book mispricing as return. It needs proper pricing, and
-the exact test excess = Δ̄·(μ − r) − leak gains a vega term.
+the exact test excess = Δ̄·(μ − r) − leak gains a vega term. The pricing is step 5 of II-40's
+plan, which settles what "fair" means (its decision 4).
 
-**II-40. Changing volatility in the analytic model — to discuss.** (Opened 2026-11-20,
+**II-40. Changing volatility in the analytic model — planned.** (Opened 2026-11-20,
 Sergei: "Perhaps we still need to incorporate sigma change with the stock movement into the base
 model … This would involve reviewing all previous results but might be worth doing to better
 model the reality.") The simulator shows what the constant σ hides: with the S&P 500's swings
@@ -623,10 +625,15 @@ model's assumptions: a second state variable, the current volatility, shared by 
 persistent — a two-dimensional walk and a joint census; the closed forms (the call-grid tax and
 its √n law, the two stability boundaries, the ~45bp a vol point) turned into averages over the
 volatility's path; and a second priced risk, so a volatility risk premium as a free parameter and
-a vega term in the exact test. The expectations are linear and would survive on a 2-D grid. To
-discuss: whether; which results it would move enough to matter, which the simulator can answer
-first; and where it would live — a revision of Part II, or the model kept as it is and the
-difference reported where the assumption bites.
+a vega term in the exact test. The expectations are linear and would survive on a 2-D grid.
+
+The representation was agreed on 2026-11-21 and is in
+[`drafts/2026-11-21-moving-volatility-plan.md`](drafts/2026-11-21-moving-volatility-plan.md): one
+volatility state drives the price and σ_IV is derived from it; jumps up and down, and earnings
+as scheduled jumps; fair prices only the stock's own diffusive risk; takeovers not modelled.
+Its sequence calibrates, then measures in the simulator which results move. Where it lives — a
+revision of Part II, or the model kept and the difference reported where the assumption bites —
+is decided on those measurements.
 
 ## Part III — Many assets
 
