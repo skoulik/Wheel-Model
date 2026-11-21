@@ -547,17 +547,20 @@ def main():
         check("...month-to-month autocorrelation", _ac, 0.64, 0.005)
         check("...a month's return against its change", _co, -0.43, 0.005)
 
-    # This book under the same swings (`wheel_sim.py --scenario stochvol`): the
-    # article quotes the 1,280-path run; 320 paths reproduce it within these
-    # tolerances in a quarter of the time.  The premium-less up-beta and the
-    # spread of a rise are what section 09 gives as the reason the up-beta's
-    # direction turns on the leverage effect.
-    print("--- Section 09: this book's betas under changing volatility ---")
+    # This book under the same swings (`wheel_sim.py --scenario stochvol`),
+    # rerun at the article's 1,280 paths and seed, so every figure is the one
+    # quoted, to its printed digits (about 20 s).  A smaller run cannot carry
+    # the holding-time figures: at 320 paths E[I]/lambda's standard error is
+    # as large as the change.  The premium-less up-beta and the spread of a
+    # rise are section 09's reason the up-beta's direction turns on the
+    # leverage effect; the rise of volatility to assignment, the exits at the
+    # first call expiry and the exit rate by depth are why inventory falls.
+    print("--- Section 09: this book's betas and holding time under changing volatility ---")
     import wheel_sim as W
     _eta = W.SV_SD_LOGVOL * sqrt(2 * log(2) / W.SV_HALF_LIFE)
     _sv_runs = (dict(), dict(sv_eta=_eta, sv_half_life=W.SV_HALF_LIFE, sv_rho=0.0),
                 dict(sv_eta=_eta, sv_half_life=W.SV_HALF_LIFE, sv_rho=W.SV_RHO_INDEX))
-    _sv_P = [W.Params(delta=0.025, years=30.0, paths=320, seed=20260722, **kw)
+    _sv_P = [W.Params(delta=0.025, years=30.0, paths=1280, seed=20260722, **kw)
              for kw in _sv_runs]
     _sv_jobs = [W.batch_jobs(P) for P in _sv_P]
     _sv_out = pmap(W._batch, [j for js in _sv_jobs for j in js])
@@ -566,20 +569,41 @@ def main():
         _sv_agg.append(W.merge_all(_sv_out[_k:_k + len(js)]))
         _k += len(js)
     _c, _n, _l = (W._sv_row(P, g) for P, g in zip(_sv_P, _sv_agg))
-    check("one volatility: the spread of a four-week rise", _c["sd of a rise"], 0.036, 0.002)
-    check("...call periods begun within 2% of the strike", _c["within 2% of strike"], 0.080, 0.005)
-    check("moving, no leverage effect: up-beta", _n["up-beta"], 0.804, 0.015)
-    check("...down-beta", _n["down-beta"], 0.976, 0.003)
-    check("...plain beta", _n["plain beta"], 0.904, 0.01)
-    check("...up-beta with the premium left out", _n["up-beta, no premium"], 0.784, 0.015)
-    check("...the spread of a rise", _n["sd of a rise"], 0.041, 0.002)
-    check("...within 2% of the strike", _n["within 2% of strike"], 0.099, 0.005)
-    check("moving, leverage effect: up-beta", _l["up-beta"], 0.884, 0.015)
-    check("...down-beta", _l["down-beta"], 0.988, 0.003)
-    check("...plain beta", _l["plain beta"], 0.949, 0.01)
-    check("...up-beta with the premium left out", _l["up-beta, no premium"], 0.863, 0.015)
-    check("...the spread of a rise", _l["sd of a rise"], 0.034, 0.002)
-    check("...within 2% of the strike", _l["within 2% of strike"], 0.093, 0.005)
+    _d3, _d4 = 0.0006, 0.00006       # half a unit in the printed third / fourth place
+    for _name, _row, _g, _want in (
+            ("one volatility", _c, _sv_agg[0],
+             (None, None, None, None, 0.036, 0.080, 0.408, 11.312, 1.089,
+              (0.378, 0.039), (0.0161, 0.0010))),
+            ("moving, no leverage effect", _n, _sv_agg[1],
+             (0.804, 0.976, 0.904, 0.784, 0.041, 0.099, 0.417, 10.685, 1.018,
+              (0.368, 0.037), (0.0199, 0.0050))),
+            ("moving, leverage effect", _l, _sv_agg[2],
+             (0.884, 0.988, 0.949, 0.863, 0.034, 0.093, 0.473, 9.909, 0.974,
+              (0.307, 0.038), (0.0117, 0.0016)))):
+        up, dn, pl, upx, sd, near, first, inv, held, km, exits = _want
+        for _key, _v in (("up-beta", up), ("down-beta", dn), ("plain beta", pl),
+                         ("up-beta, no premium", upx)):
+            if _v is not None:
+                check(f"{_name}: {_key}", _row[_key], _v, _d3)
+        check(f"{_name}: the spread of a four-week rise", _row["sd of a rise"], sd, _d3)
+        check(f"{_name}: call periods begun within 2% of the strike",
+              _row["within 2% of strike"], near, _d3)
+        check(f"{_name}: lots leaving at their first call expiry",
+              _row["left at first expiry"], first, _d3)
+        check(f"{_name}: E[I], lots", _row["E[I], lots"], inv, _d3)
+        check(f"{_name}: E[I]/lambda, years", _row["E[I]/lambda, years"], held, _d3)
+        for _h, _s in zip((3, 120), W.km_survival(_g.durations, (3, 120))):
+            check(f"{_name}: still held at {_h} months", _s, km[_h == 120], _d3)
+        for _i, _r in zip((4, 5), exits):
+            _b = _g.bins[_i]
+            check(f"{_name}: exit rate a period at depth {W.DEPTH_EDGES[_i]:.2f}-"
+                  f"{W.DEPTH_EDGES[_i + 1]:.2f}", _b[1] / _b[0], _r, _d4)
+    check("one volatility: the volatility at assignment is the volatility at sale",
+          _c["vol rise to assignment"], 1.0, 1e-12)
+    check("moving, no leverage effect: volatility at assignment over at the put's sale",
+          _n["vol rise to assignment"], 1.040, _d3)
+    check("moving, leverage effect: the fall that assigns a lot raises volatility",
+          _l["vol rise to assignment"], 1.299, _d3)
     # By identity, not by measurement: below its strike a lot without its
     # premium is the share, so every falling period's return is the stock's.
     for _g in _sv_agg[1:]:

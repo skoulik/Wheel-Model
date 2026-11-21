@@ -236,6 +236,13 @@ class Agg:
         # The book's delta in shares, summed over the same dates as the
         # capital; only with Params.book_delta, since it prices every lot's call.
         self.delta_sum = 0.0
+        # Why a lot leaves when it does, under a changing volatility: the
+        # volatility at its assignment over that at its put's sale, summed
+        # over assignments, and how many lots reached their first call
+        # expiry and how many left there.
+        self.vol_rise = 0.0
+        self.first_n = 0
+        self.first_exit = 0
         self.inv_by_idx = Counter()    # for time profiles (stress scenario)
         self.eq_by_idx = Counter()     # log equity in shares, by cadence index
         self.eqn_by_idx = Counter()    # ...and how many paths contributed
@@ -310,7 +317,8 @@ class Agg:
     _SCALARS = ("puts", "assigned", "d_sum", "exits", "prem_put", "prem_call",
                 "dividends", "cap_sum", "cap_n", "mvcap_sum", "acq_loss",
                 "giveaway", "acq_loss_d", "giveaway_d", "prem_float", "coll_int", "lot_time",
-                "open_put", "open_call", "delta_sum", "paths", "sales", "blocked", "withdrawn", "ps_t",
+                "open_put", "open_call", "delta_sum", "vol_rise", "first_n", "first_exit",
+                "paths", "sales", "blocked", "withdrawn", "ps_t",
                 "ps_inv", "ps_lev", "ps_eq", "ps_eqt", "ps_income", "ps_sales",
                 "ps_blocked")
     _COUNTERS = ("inv_hist", "inv_by_idx", "eq_by_idx", "eqn_by_idx",
@@ -663,16 +671,17 @@ def run_path(P, rng, agg):
                            / (sig_iv * sqrt(P.tau_p)))
                     book += exp(-P.delta * P.tau_p) * N(-d1p)
                     agg.delta_sum += book
-                push(t + P.tau_p, PUTEXP, (K, S, c_p))
+                push(t + P.tau_p, PUTEXP, (K, S, c_p, sig_now))
             if t + P.cadence <= P.years + 1e-9:
                 push(t + P.cadence, SALE, None)
 
         elif prio == PUTEXP:
             if dead:
                 continue
-            K, S_sale, c_p = data
+            K, S_sale, c_p, sig_sale = data
             if S < K:
                 agg.assigned += 1
+                agg.vol_rise += sig_now / sig_sale
                 agg.d_sum += 1 - S / S_sale
                 agg.acq_loss += (K - S) / S      # paid K for something worth S
                 agg.acq_loss_d += (K - S) / S_sale   # ...per unit of the sale price
@@ -695,6 +704,9 @@ def run_path(P, rng, agg):
             lot = data
             lot.periods += 1
             exited = S >= lot.strike
+            if lot.periods == 1:
+                agg.first_n += 1
+                agg.first_exit += exited
             agg.record_beta(S / lot.s_sale - 1.0,
                             (min(S, lot.strike) + lot.c_sale) / lot.s_sale - 1.0,
                             min(S, lot.strike) / lot.s_sale - 1.0)
@@ -729,7 +741,7 @@ def run_path(P, rng, agg):
         for te, prio, _, data in heap:
             left = te - t
             if prio == PUTEXP:
-                K, S_sale, _ = data
+                K, S_sale, _, _ = data
                 v = S * bs_put(K / S, left, sig_end, P.r, P.delta)
                 agg.open_put += v / S_sale
                 agg.acq_loss += v / S
@@ -1606,7 +1618,13 @@ def _sv_row(P, g):
     stock's return over the call periods in which it rose -- says how far the
     rises reach, which is what decides how often they run through a strike.
     The share of call periods begun within 2% of the strike is the census's
-    side of it: those are the lots a modest rise caps."""
+    side of it: those are the lots a modest rise caps.
+
+    Two more say why lots leave sooner when volatility moves.  The volatility
+    at a lot's assignment over the volatility when its put was sold is how far
+    the fall that assigned it raised volatility -- with the leverage effect,
+    the lot meets turbulent weeks from a depth set in a calmer one -- and the
+    share of lots leaving at their first call expiry is what that does."""
     up, dn, plain = g.betas()
     n, su, _, suu, _ = g.beta[0]
     periods = sum(b[0] for b in g.bins)
@@ -1616,6 +1634,8 @@ def _sv_row(P, g):
             "up-beta, no premium": g.betas(premium=False)[0],
             "sd of a rise": sqrt(suu / n - (su / n) ** 2) if n else float("nan"),
             "within 2% of strike": g.bins[0][0] / periods if periods else float("nan"),
+            "vol rise to assignment": g.vol_rise / g.assigned if g.assigned else float("nan"),
+            "left at first expiry": g.first_exit / g.first_n if g.first_n else float("nan"),
             "E[I], lots": inv, "E[I]/lambda, years": inv / lam if lam else float("nan")}
 
 
@@ -1657,7 +1677,8 @@ def stochvol(args):
           f"{SV_HALF_LIFE * 12:.1f} months (eta {eta:.3f}); E[sigma^2] = "
           f"{P0.sigma:.2f}^2 in every run\n{'=' * 72}")
     keys = ("up-beta", "down-beta", "plain beta", "up-beta, no premium",
-            "sd of a rise", "within 2% of strike", "E[I], lots", "E[I]/lambda, years")
+            "sd of a rise", "within 2% of strike", "vol rise to assignment",
+            "left at first expiry", "E[I], lots", "E[I]/lambda, years")
     for label, P, i, j in spans:
         rows = [_sv_row(P, g) for g in aggs[i:j]]
         whole_agg = merge_all(aggs[i:j])
@@ -1673,6 +1694,12 @@ def stochvol(args):
         surv = km_survival(whole_agg.durations, KM_HORIZONS_M)
         print(f"  KM survival, months {''.join(f'{h:>7}' for h in KM_HORIZONS_M)}\n"
               f"                       {''.join(f'{s:>7.3f}' for s in surv)}")
+        # The exit rate per call period by depth below the strike at the
+        # call's sale: where in the census lots leave sooner or later.
+        print("  exit rate by depth  " + "".join(
+            f"{f'{a:.2f}-':>7}" for a in DEPTH_EDGES[:-1]))
+        print("                      " + "".join(
+            f"{b[1] / b[0]:>7.4f}" if b[0] else f"{'-':>7}" for b in whole_agg.bins))
         med = next((h for h, s in zip(*_km_curve(whole_agg.durations)) if s <= 0.5),
                    float("nan"))
         print(f"  median holding time  {med:.2f} months")
