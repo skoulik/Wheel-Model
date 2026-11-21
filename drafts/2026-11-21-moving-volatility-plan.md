@@ -5,8 +5,8 @@ eight choices under *Decided*. Steps 1 and 3 are coded and committed; step 2 has
 bound (TODO II-41 for the rest); **step 4 ended overnight 2026-11-21/22 in a fitted model**
 (*The volatility fit — method* below, and step 4's records), chosen on Sergei's instruction
 while he was away — "if the result is good or acceptable, please move on and finalize the
-method" — and awaiting his review: the choices made in it (the weights, the reductions, the
-final specification) are proposals until he has read them. Takes up TODO II-40, and absorbs II-38 (the swing structure on single names, step 4) and II-39
+method" — and **approved by him on 2026-11-22** ("Perfect, that you've got the model
+settle"). Takes up TODO II-40, and absorbs II-38 (the swing structure on single names, step 4) and II-39
 (the excess return under changing volatility, step 5). Sergei, 2026-11-20: "Perhaps we still
 need to incorporate sigma change with the stock movement into the base model … This would involve
 reviewing all previous results but might be worth doing to better model the reality." On
@@ -641,6 +641,42 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
    carried by a handful of deep ones. Step 3 compares like with like, each live gap measured in
    its own name's σ·√τ_p. The mean d against the sale price, 3.75% at constant σ, is
    eq:d-mean's 3.8%.
+
+   **Design, proposed 2026-11-22** (awaiting Sergei's go-ahead). Four pieces, in order:
+   - **(a) The earnings law, measured directly.** Earnings days are dated, so they need no
+     simulation. Each date's two-session move, in units of the yardstick before it, is fitted
+     by maximum likelihood as two days' diffusion plus one double-exponential jump, separate
+     up and down sides (decision 3), its size scaling as σ^β_E. Two checks on the data decide
+     the shape: whether the utilities' and REITs' moves are smaller (the sector split of
+     *Calibration*), and whether volatility steps after the date. The fitted model has no
+     earnings term in h, because earnings windows were masked out of the fit.
+   - **(b) The process in `wheel_sim.py`.** The fitted model, stepped by session, five a
+     week: two factors, θ, the down-jump kick, Kou jumps scaled by σ_t^0.58, and an earnings
+     jump every 13 weeks at a phase drawn per path. The fit's statistics are scale-free, so σ̄
+     is free; it is set so that the total variance (diffusion, jumps and earnings) averages
+     σ², and the article's 20% stays the stock's whole volatility. The drift is compensated
+     so the mean stays m. A new process beside the present one, which §09 quotes and keeps.
+     `wheel_sim.py` stays stdlib.
+   - **(c) Fair prices at the state.** Under decision 4 the pricing measure moves the
+     diffusion's drift to r − δ and keeps the real-world law of the jumps and earnings. With no
+     volatility shocks of its own (η = 0), the volatility risk decision 4 leaves unpriced is
+     empty: every move of h is the stock's own, so "fair" has one meaning. Prices are read
+     from tables built beforehand by Monte Carlo (numpy, a new `code/fairprice.py`, cached):
+     implied volatility over a grid of the two factors and moneyness, for the put's five
+     sessions and the call's twenty, under both measures. The pricing measure gives the
+     premiums; the real-world one gives the strike for the dial p\*, now a quantile of the
+     same table. Earnings enter by one quadrature over their law at a shifted strike, which
+     holds if (a) finds the earnings move independent of the path; otherwise the sessions to
+     the date become a table dimension. Rejected: a three-dimensional lattice (price and two
+     factors) by backward induction, exact to its grid but much more code, where the tables'
+     Monte Carlo error is controllable and (d)'s first test measures it.
+   - **(d) The tests.** At m = r − δ the excess must be −leak to the tables' accuracy: the
+     check that the tables price the simulator's own process. The real-world test, excess =
+     Δ̄·(μ − r) − leak, takes Δ̄ as the sensitivity to the diffusive shock through both of its
+     channels, the price and h (θ times the vega); its form on the session lattice, which
+     decision 4 left to be derived, is derived here. Constant σ stays byte-identical.
+
+   Then the d-tail reading again, on the fitted process, against the live 2.3.
 6. **The overlay**, from the trade-log panel against the fair layer at the same state; the IBKR
    implied-volatility series if it can be had.
 7. **Magnitudes**, result by result, from the simulator; then `model.py` (h on 10–15 nodes, the
