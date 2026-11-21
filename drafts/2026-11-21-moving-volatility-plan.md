@@ -133,6 +133,25 @@ regime; the call's z_K = x/(σ√τ_c) moves with depth, so the residual smile i
    explains.
 6. **The overlay**, from the trade-log panel against the fair layer at the same state; the IBKR
    implied-volatility series if it can be had.
+   **Run 2026-11-21** (scratch `d_tail.py`, wrapping `Lot.__init__`; `--scenario stochvol`'s
+   three runs, 1,280 paths × 30 years each, seed 20260722): the acquisition gap g = 1 − S/K at
+   assignment, the statistic `model_vs_live.py` reports as T2 and the pre-registration's P5
+   tracks.
+
+   | run | assignments | mean g | median g | mean/median | g > 5% | g > 10% |
+   |---|---|---|---|---|---|---|
+   | constant σ | 398,792 | 1.53% | 1.21% | 1.26 | 1.8% | 0.0% |
+   | moving σ, no leverage | 402,863 | 1.36% | 0.92% | 1.48 | 3.0% | 0.2% |
+   | moving σ, ρ = −0.9 | 390,461 | 1.60% | 1.05% | 1.52 | 5.0% | 0.5% |
+
+   The live account reads 2.3× over 68 assigned lots (`model_vs_live.py`, rerun the same
+   day). Moving volatility alone takes the ratio from the lognormal's 1.26 to about 1.5, a
+   quarter of the way to the live figure. Two cautions before the remainder is put down to
+   jumps: the live lots pool names of very different volatility, and mixing scales raises a
+   mean/median ratio by itself, which one simulated stock does not do; and 68 lots is a ratio
+   carried by a handful of deep ones. Step 3 compares like with like, each live gap measured in
+   its own name's σ·√τ_p. The mean d against the sale price, 3.75% at constant σ, is
+   eq:d-mean's 3.8%.
 7. **Magnitudes**, result by result, from the simulator; then `model.py` (h on 10–15 nodes, the
    depth walk modulated by them) and where in the article it lives — a revision of Part II, or
    the model kept and the difference reported where the assumption bites. Decided then, on the
