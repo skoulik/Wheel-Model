@@ -135,7 +135,7 @@ That asymmetry — filled in three years, drained in decades — is the ratchet,
 
 One last reason the boundaries are closer than they look. The model treats μ, σ and δ as constants. In stress they move, they move at the same time, and every one of them moves the wrong way.
 
-- **Volatility rises in falling markets** — reliably, and by a lot. Since it enters ν quadratically and enters both criteria, a move from 20% to 30% is enough to cross both boundaries at once.
+- **Volatility rises in falling markets** — reliably, and by a lot. Since it enters ν quadratically and enters both criteria, a move from 20% to 30% is enough to cross both boundaries at once. That is the level of volatility rising and staying risen, which moves ν directly. It is not what [the returns section](#para:smaller-book-moving-volatility) simulates: there volatility swings around a fixed average variance, and the book's mean holding time shortens rather than lengthens.
 - **Rising volatility widens the strikes** the operator sells at a fixed p\*, which sounds protective, but the assignments that do occur land deeper.
 - **Dividend cuts** arrive in exactly the same conditions, and δ falling helps ν — but a cut usually signals a fall in μ that more than offsets it.
 - **The operator's own μ estimate** is at its least reliable precisely when it matters most, since the "fundamentally sound" judgment that justifies μ > 0 is being tested by the same event.
