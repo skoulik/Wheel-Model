@@ -254,6 +254,11 @@ class Agg:
         # it is not, which is the point of measuring it here.  Per side
         # [up, down, all]: [n, sum u, sum p, sum u^2, sum u*p].
         self.beta = [[0, 0.0, 0.0, 0.0, 0.0] for _ in range(3)]
+        # ...and the same with the premium left out of the lot's return, which
+        # separates what the premium does to the slope from what the cap at
+        # the strike does.  Below its strike a lot is then the share exactly,
+        # so this down-beta is 1 by identity.
+        self.beta_ex = [[0, 0.0, 0.0, 0.0, 0.0] for _ in range(3)]
         # -- the constrained account.  All of this stays zero unless Params
         # gives the operator a finite equity.
         self.paths = 0
@@ -275,19 +280,20 @@ class Agg:
         self.ps_sales = self.ps_blocked = 0
         self.bins_ps = [[0, 0, 0.0, 0.0] for _ in DEPTH_EDGES[:-1]]
 
-    def record_beta(self, u, p):
+    def record_beta(self, u, p, p_ex):
         for side in ((0, 2) if u > 0 else (1, 2) if u < 0 else (2,)):
-            b = self.beta[side]
-            b[0] += 1
-            b[1] += u
-            b[2] += p
-            b[3] += u * u
-            b[4] += u * p
+            for b, y in ((self.beta[side], p), (self.beta_ex[side], p_ex)):
+                b[0] += 1
+                b[1] += u
+                b[2] += y
+                b[3] += u * u
+                b[4] += u * y
 
-    def betas(self):
-        """(up, down, plain): least-squares slopes with an intercept, per side."""
+    def betas(self, premium=True):
+        """(up, down, plain): least-squares slopes with an intercept, per side;
+        with premium=False, of the lot's return without its call's premium."""
         out = []
-        for n, su, sp, suu, sup in self.beta:
+        for n, su, sp, suu, sup in (self.beta if premium else self.beta_ex):
             var = suu / n - (su / n) ** 2 if n else 0.0
             out.append((sup / n - su / n * sp / n) / var if var > 0 else float("nan"))
         return tuple(out)
@@ -321,7 +327,7 @@ class Agg:
             getattr(self, k).update(getattr(o, k))
         for k in self._LISTS:
             getattr(self, k).extend(getattr(o, k))
-        for name in ("bins", "bins_ps", "beta"):
+        for name in ("bins", "bins_ps", "beta", "beta_ex"):
             for a, b in zip(getattr(self, name), getattr(o, name)):
                 for i in range(len(a)):
                     a[i] += b[i]
@@ -690,7 +696,8 @@ def run_path(P, rng, agg):
             lot.periods += 1
             exited = S >= lot.strike
             agg.record_beta(S / lot.s_sale - 1.0,
-                            (min(S, lot.strike) + lot.c_sale) / lot.s_sale - 1.0)
+                            (min(S, lot.strike) + lot.c_sale) / lot.s_sale - 1.0,
+                            min(S, lot.strike) / lot.s_sale - 1.0)
             agg.record_call_period(lot.x, exited, rg.mu - P.delta, rg.sigma,
                                    P.tau_c, t_sat is not None)
             if exited:
@@ -1591,11 +1598,24 @@ SV_RHO_INDEX = -0.9
 
 
 def _sv_row(P, g):
-    """One run's betas, inventory and time in the window, from an Agg."""
+    """One run's betas, inventory and time in the window, from an Agg.
+
+    Two figures say why the up-beta moves.  The up-beta with the premium left
+    out isolates the cap at the strike from the premium's pairing with the
+    size of the move; the spread of a rise -- the standard deviation of the
+    stock's return over the call periods in which it rose -- says how far the
+    rises reach, which is what decides how often they run through a strike.
+    The share of call periods begun within 2% of the strike is the census's
+    side of it: those are the lots a modest rise caps."""
     up, dn, plain = g.betas()
+    n, su, _, suu, _ = g.beta[0]
+    periods = sum(b[0] for b in g.bins)
     inv = g.lot_time / (g.paths * P.years)
     lam = g.assigned / (g.paths * P.years)
     return {"up-beta": up, "down-beta": dn, "plain beta": plain,
+            "up-beta, no premium": g.betas(premium=False)[0],
+            "sd of a rise": sqrt(suu / n - (su / n) ** 2) if n else float("nan"),
+            "within 2% of strike": g.bins[0][0] / periods if periods else float("nan"),
             "E[I], lots": inv, "E[I]/lambda, years": inv / lam if lam else float("nan")}
 
 
@@ -1630,13 +1650,14 @@ def stochvol(args):
     C = as_config(P0, "Standard")
     a = model.economics(C, "P", model.occupation(C, "P"), horizon=P0.years)
     up_m, dn_m = model.split_beta(C, "P", horizon=P0.years)
-    ref = {"up-beta": up_m, "down-beta": dn_m, "E[I], lots": a["I"],
-           "E[I]/lambda, years": a["I"] / (C.p_star / C.cadence)}
+    ref = {"up-beta": up_m, "down-beta": dn_m, "up-beta, no premium": up_m,
+           "E[I], lots": a["I"], "E[I]/lambda, years": a["I"] / (C.p_star / C.cadence)}
     print(f"\n{'=' * 72}\nCHANGING VOLATILITY  ({paths} paths x {P0.years:g}y per run, "
           f"seed {P0.seed})\n  log-vol: sd {SV_SD_LOGVOL}, half-life "
           f"{SV_HALF_LIFE * 12:.1f} months (eta {eta:.3f}); E[sigma^2] = "
           f"{P0.sigma:.2f}^2 in every run\n{'=' * 72}")
-    keys = ("up-beta", "down-beta", "plain beta", "E[I], lots", "E[I]/lambda, years")
+    keys = ("up-beta", "down-beta", "plain beta", "up-beta, no premium",
+            "sd of a rise", "within 2% of strike", "E[I], lots", "E[I]/lambda, years")
     for label, P, i, j in spans:
         rows = [_sv_row(P, g) for g in aggs[i:j]]
         whole_agg = merge_all(aggs[i:j])

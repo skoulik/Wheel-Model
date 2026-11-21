@@ -547,6 +547,45 @@ def main():
         check("...month-to-month autocorrelation", _ac, 0.64, 0.005)
         check("...a month's return against its change", _co, -0.43, 0.005)
 
+    # This book under the same swings (`wheel_sim.py --scenario stochvol`): the
+    # article quotes the 1,280-path run; 320 paths reproduce it within these
+    # tolerances in a quarter of the time.  The premium-less up-beta and the
+    # spread of a rise are what section 09 gives as the reason the up-beta's
+    # direction turns on the leverage effect.
+    print("--- Section 09: this book's betas under changing volatility ---")
+    import wheel_sim as W
+    _eta = W.SV_SD_LOGVOL * sqrt(2 * log(2) / W.SV_HALF_LIFE)
+    _sv_runs = (dict(), dict(sv_eta=_eta, sv_half_life=W.SV_HALF_LIFE, sv_rho=0.0),
+                dict(sv_eta=_eta, sv_half_life=W.SV_HALF_LIFE, sv_rho=W.SV_RHO_INDEX))
+    _sv_P = [W.Params(delta=0.025, years=30.0, paths=320, seed=20260722, **kw)
+             for kw in _sv_runs]
+    _sv_jobs = [W.batch_jobs(P) for P in _sv_P]
+    _sv_out = pmap(W._batch, [j for js in _sv_jobs for j in js])
+    _sv_agg, _k = [], 0
+    for js in _sv_jobs:
+        _sv_agg.append(W.merge_all(_sv_out[_k:_k + len(js)]))
+        _k += len(js)
+    _c, _n, _l = (W._sv_row(P, g) for P, g in zip(_sv_P, _sv_agg))
+    check("one volatility: the spread of a four-week rise", _c["sd of a rise"], 0.036, 0.002)
+    check("...call periods begun within 2% of the strike", _c["within 2% of strike"], 0.080, 0.005)
+    check("moving, no leverage effect: up-beta", _n["up-beta"], 0.804, 0.015)
+    check("...down-beta", _n["down-beta"], 0.976, 0.003)
+    check("...plain beta", _n["plain beta"], 0.904, 0.01)
+    check("...up-beta with the premium left out", _n["up-beta, no premium"], 0.784, 0.015)
+    check("...the spread of a rise", _n["sd of a rise"], 0.041, 0.002)
+    check("...within 2% of the strike", _n["within 2% of strike"], 0.099, 0.005)
+    check("moving, leverage effect: up-beta", _l["up-beta"], 0.884, 0.015)
+    check("...down-beta", _l["down-beta"], 0.988, 0.003)
+    check("...plain beta", _l["plain beta"], 0.949, 0.01)
+    check("...up-beta with the premium left out", _l["up-beta, no premium"], 0.863, 0.015)
+    check("...the spread of a rise", _l["sd of a rise"], 0.034, 0.002)
+    check("...within 2% of the strike", _l["within 2% of strike"], 0.093, 0.005)
+    # By identity, not by measurement: below its strike a lot without its
+    # premium is the share, so every falling period's return is the stock's.
+    for _g in _sv_agg[1:]:
+        check("premium left out, the down-beta is exactly one whatever volatility does",
+              _g.betas(premium=False)[1], 1.0, 1e-9)
+
     # ------------------------------------------------------------------
     # The example harness turns a command line into a Config, and it must not
     # pin a field that __post_init__ derives.  `cadence` is declared None and
