@@ -34,16 +34,15 @@ remainder is almost entirely §03's.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-32 and II-37 to II-40, with II-34 and II-35 in progress** —
-thirty of its items are in `DONE.md`, the last thirteen having landed on 2026-08-04 and
-2026-08-05;
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-32 and II-38 to II-40, with II-34 and II-35 in progress** —
+thirty-three of its items are in `DONE.md`, the latest II-37 on 2026-11-21;
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-37, §09's betas against the published ones; II-38 and II-39, its two follow-ups; II-40, changing volatility in the model, to discuss. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-38 and II-39, the follow-ups to §09's published betas; II-40, changing volatility in the model, to discuss. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -596,13 +595,6 @@ the collateral credited and the delta averaged over each option's life, true exc
 (Sergei, 2026-11-13): fix both throughout, credit the collateral and the premiums alike, and
 compute the delta properly while explaining the usual shortcut. Plan:
 `drafts/2026-11-13-account-cash-and-window-edge-plan.md`.
-
-**II-37. §09's betas against the published ones.** (Opened 2026-11-20, from the §09 review of
-the BXM caution box.) The box's comparison could not be reproduced and BXM's published up-beta
-(0.46) could not be explained. It reproduces from the index's own history with §09's estimator,
-and the model's buy-write misses it because σ is constant: with the S&P 500's measured volatility
-swings and leverage effect it reaches 0.43 / 0.81 against 0.46 / 0.85. Being carried through in
-seven steps. Plan: `drafts/2026-11-20-published-betas-plan.md`.
 
 **II-38. The volatility's swing structure, checked on single stocks and on the index.**
 (Opened 2026-11-20, Sergei, II-37's decision 2.) `wheel_sim.py --scenario stochvol` and

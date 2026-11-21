@@ -220,15 +220,12 @@ volatility, two paragraphs, with the up-beta's direction explained by the cap at
 eq:delta-return signed (`bc41a26`). The §14 pointer sits under §09's existing promise on
 `sec:verification`. §00 needed nothing new.
 
-**Step 5, partly done.** The three data series are in the bibliography under a new **[D]**
-level (`70df915`), and the copies are in `literature/` and `data/market/` on Windows. Left: the
-read levels of the four papers for what was read on 2026-11-20 — the copies read on cloud were
-the SSRN working paper of *Covered Calls Uncovered* and the May 2007 revision of
-Broadie–Chernov–Johannes, now in `literature/` beside the held journal copy and January 2008
-revision; BCJ's P-measure parameters are identical in both revisions (checked 2026-11-21), and
-its entry should name the copy it rests on. BCJ is not cited in the prose — its parameters
-were used only in a scratch run — so "cited where its parameters are used" has nothing to
-attach to unless a later paragraph uses them.
+**Step 5 is on `main`.** The three data series are in the bibliography under a new **[D]**
+level (`70df915`), and the copies are in `literature/` and `data/market/` on Windows. The four
+papers' entries name the copies they rest on and what was read and checked (`7fabf08`); no read
+level changed. BCJ is not cited in the prose — its parameters went only into a scratch run —
+so "cited where its parameters are used" lapsed; its entry says any figure quoted later names
+the January 2008 copy, the published version not being held.
 
 **Step 6 is on `main` (2026-11-21).** Why inventory falls was traced, its evidence moved into
 `--scenario stochvol`'s output and pinned at the article's own 1,280 paths (`00df11c`), and the
@@ -248,5 +245,6 @@ the fall that assigns a lot raises volatility, to 1.30× its level at the put's 
 meets turbulent weeks from a depth set in a calmer one — 47.3% leave at the first call expiry —
 and fewer survive to sink. The median holding time is eight weeks in all three runs.
 
-**Left: step 5's remainder above, then step 7** (II-37 to `DONE.md`, the plan's last word).
+**Step 7 closed the plan on 2026-11-21:** II-37 moved to `DONE.md`; II-38, II-39 and II-40 stay
+open in `TODO.md`.
 
