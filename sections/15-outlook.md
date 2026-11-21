@@ -12,6 +12,6 @@
 
 **Volatility skew.** The article's single implied-volatility number cannot express that the puts sold are richer than the calls sold. Since the strategy's whole edge lives in that richness, a two-sided treatment would sharpen the break-even estimate of [the returns section](#sec:returns).
 
-**Volatility that moves.** σ is constant here and is the parameter most obviously not constant in practice — and it enters the stability boundaries quadratically.
+**Volatility that moves.** σ is constant in the model, and it is the parameter most obviously not constant in practice. [The returns section](#sec:returns) lets it move in a simulation, with the S&P 500's swings, and measures what that does to the book's betas and to how long its lots stay; three questions remain. What the strategy earns: an option priced at the day's volatility is mispriced once volatility moves, so the excess return needs a pricing model that carries a volatility risk premium, and its exact test a further term. Whose swings: those were borrowed from the index, and a single stock's may differ. And where the boundaries lie: σ enters them quadratically, and with σ moving they become conditions on how volatility is spread over time rather than on a single number.
 
 **Depth-dependent drift.** The model assumes the expected return of a stock does not depend on how far it has fallen. Value investors assume the opposite, and if they are right, deep lots recover faster than the walk predicts and every result in Part II is conservative.
