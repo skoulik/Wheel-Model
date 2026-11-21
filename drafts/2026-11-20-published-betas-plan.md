@@ -73,6 +73,28 @@ down-betas within 0.012. The window figures are the strike's blurring (0 → 0.1
 volatility) and the premium pairing, and the two do not add: 0.17 + 0.18 against 0.38 with
 the leverage effect, 0.17 + 0.12 against 0.25 without.
 
+**What turns this book's up-beta** (2026-11-21, scratch traces at 1,280 paths, seed 20260722;
+the headline figures are in `--scenario stochvol`'s output since `c095869`). The premium adds
++0.020 / +0.021 with and without the leverage effect, so it does not decide the direction;
+premium left out, the up-beta is 0.827 / 0.784 / 0.863 (constant σ / moving, no leverage /
+moving, leverage). The cap at the strike decides it, through how far the rises reach — sd of a
+four-week rise 0.036 / 0.041 / 0.034, rises over 20% 0.12% / 0.85% / 0.34% — and through the
+depth mix. Within-depth pooling with the constant run's census gives 0.805 without the leverage
+effect (so about half of its −0.043 is the rises, half the census, approximately) and 0.860
+with it (nearly all of its +0.036 is the rises, the census −0.006).
+
+**Why the census tilts toward the strike** (same traces). Share of call periods begun within
+2% of the strike 8.0% / 9.9% / 9.3%, for different reasons. *Without the leverage effect* lots
+enter shallower: with E[σ²] held at 20%², 68% of assignments happen below 20% volatility (mean
+at entry 17.8%), and entry depth scales with it (mean x₀ 0.0072 below 12%, 0.0309 above 32%),
+so 77.4% of new lots enter within 2% against 70.6%; shallow call periods 13.8 a year against
+11.7. *With it* entries are not shallower — assignments come in falls, as volatility rises
+(mean at entry 22.3%), 72.3% enter within 2%, shallow periods 12.0 a year — and the share rises
+because the book has 12% fewer call periods in all (128.6 a year against 146.9; at the constant
+run's total the share would be 8.2%). Why the book shrinks under moving volatility is step 6's
+open inventory question; §09's paragraph 6 states the larger share and leaves its reason until
+that is answered (Sergei, 2026-11-21).
+
 **Also found:** `bxm_beta.py`'s "calendar" case measures half-month periods marked to market,
 not the calendar months §09 describes; `verify_examples.py`'s "a buy-write's down-beta exceeds
 1" checks `< 1.0`; "BXM's published 0.63" there and in two docstrings is stale (0.46).
