@@ -65,6 +65,14 @@ bring small moves and small premiums, turbulent ones large moves and large premi
 moves arrive with large premiums and the fitted line steepens; falls tend to bring rising
 volatility, so the pairing is strongest on the way up.
 
+**Re-marking is not the mechanism** (2026-11-21, a scratch counterfactual on the same paths).
+Marking each call through its life at the volatility it was sold at, rather than the day's,
+leaves the per-life betas unchanged and moves the 21-day window betas by 0.01–0.02: up-beta
+0.384 → 0.369 with the leverage effect, 0.253 → 0.242 without, 0.427 → 0.405 at implied 1.2×;
+down-betas within 0.012. The window figures are the strike's blurring (0 → 0.17 at one
+volatility) and the premium pairing, and the two do not add: 0.17 + 0.18 against 0.38 with
+the leverage effect, 0.17 + 0.12 against 0.25 without.
+
 **Also found:** `bxm_beta.py`'s "calendar" case measures half-month periods marked to market,
 not the calendar months §09 describes; `verify_examples.py`'s "a buy-write's down-beta exceeds
 1" checks `< 1.0`; "BXM's published 0.63" there and in two docstrings is stale (0.46).
