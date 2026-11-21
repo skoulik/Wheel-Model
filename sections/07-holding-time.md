@@ -132,6 +132,6 @@ This is the first appearance of something the model will keep saying in differen
 <a id="para:holding-ten-weeks-against-two-years"></a>
 Repeating a fresh lot's 40% odds period after period would have said 2.5 periods — ten weeks. The correct answer is a median of eight weeks and a mean of two years, and the gap between them is not a technicality: capital is committed for the *mean*, not the median. Every lot that leaves quickly frees its capital quickly; the operator's balance sheet is dominated by the ones that don't.
 
-Those two facts are worse together than apart. The mean is the number that commits the capital, and it is the one a book cannot show its owner until the lots carrying it have closed — which is to say, not while the decision is still live.
+Those two facts are worse together than apart. The mean is the number that commits the capital, and it is the one a book cannot show its owner until the lots carrying it have closed — which is to say, not while the decision is still live. Both figures hold σ at one value; [the returns section](#sec:returns) measures what a volatility that moves does to each.
 
 Turning "a mean holding time of 2.10 years" into "how much stock am I holding and what does it cost me" takes one more step, and it is a famous one. That is [the inventory section](#sec:inventory).
