@@ -1,10 +1,10 @@
 # Moving volatility and jumps in the base model — plan
 
-**Status: agreed 2026-11-21**, in conversation, before any code: the representation and the six
-choices under *Decided*. Nothing is measured or coded yet. Takes up TODO II-40, and absorbs
-II-38 (the swing structure on single names, step 4) and II-39 (the excess return under
-changing volatility, step 5). Sergei, 2026-11-20: "Perhaps we still need
-to incorporate sigma change with the stock movement into the base model … This would involve
+**Status: agreed 2026-11-21**, in conversation, before any code: the representation and the
+seven choices under *Decided*. What is measured so far is scratch probes; nothing is coded yet.
+Takes up TODO II-40, and absorbs II-38 (the swing structure on single names, step 4) and II-39
+(the excess return under changing volatility, step 5). Sergei, 2026-11-20: "Perhaps we still
+need to incorporate sigma change with the stock movement into the base model … This would involve
 reviewing all previous results but might be worth doing to better model the reality." On
 2026-11-21 he asked for a way to represent σ_IV's movement before measuring the magnitude of
 the effect on each of the model's results.
@@ -54,10 +54,27 @@ the effect on each of the model's results.
 6. **Earnings dates come from a public source** (Sergei, 2026-11-21: "Ideally a public source
    if there is one"). Proposed: SEC EDGAR. A US filer announces results on an 8-K carrying Item
    2.02, *Results of Operations and Financial Condition*, and EDGAR's free submissions API lists
-   each filing with its item codes. Foreign private issuers file 6-Ks, which carry none — NVO,
-   ATHM and BEKE among the names in `data/prices` — so their dates are detected as gaps a
-   quarter apart, or the names are left out of the earnings fit. EDGAR's fair-access policy
-   asks an automated client to declare a contact in its User-Agent.
+   each filing with its item codes. Foreign private issuers file 6-Ks, which carry none; no name
+   in the calibration universe (decision 7) does. EDGAR's fair-access policy
+   asks an automated client to declare a contact in its User-Agent: Claude's mailbox
+   (Sergei, 2026-11-21: "use your address if the system permits, otherwise mine").
+7. **The calibration universe is the Dividend Aristocrats, each counted while its cap is $10B
+   or more** (Sergei, 2026-11-21: "Take the list from the NOBL index"). Not the names the
+   account trades: those are its own data, and include foreign issuers EDGAR cannot date. The
+   floor was first $20B, a margin over the live account's $10B, and was relaxed the same day:
+   "Quite a few names that the live account trades were filtered because of the higher limit."
+   The $10B rule is applied at each date, not to today's cap: a name's day counts only if its
+   cap that day was $10B or more. A margin on today's cap could not keep out the years a name
+   now large spent small; the rule applied by date does, and needs no margin. Cap on a day:
+   EDGAR's latest share count on or before it, put on today's split basis, times Yahoo's
+   split-adjusted close; before a name's first count (2009–2011, as XBRL arrived) that count
+   stands in. Names reporting shares by class take the all-class weighted-average count, and
+   ERIE its 10-K cover (Class A plus 2,400 per Class B share). NOBL's holdings file of
+   2026-11-20 lists 68 names, and all enter: 1,131 eligible name-years from 2005, of which the
+   18 names under $20B today carry 197. ALB, FRT and AOS, under $10B today, count for the 7.3,
+   2.1 and 5.9 years they spent above it. The list is still today's members, so names that
+   left the index on a dividend cut, usually after the kind of fall the jump calibration is
+   looking for, are missing: a survivorship tilt, taken up with step 2.
 
 ## The representation, as proposed
 
@@ -98,11 +115,12 @@ regime; the call's z_K = x/(σ√τ_c) moves with depth, so the residual smile i
 
 - **Earnings first, then jumps, then the state**, each fitted on what the previous step leaves:
   otherwise an earnings day is counted as a jump and again as a volatility swing.
-- **The state:** realized-volatility statistics from `data/prices` (171 names, daily, up to
-  2018–2026) and the S&P series, on a jump-robust realized variance (bipower variation).
+- **The state:** realized-volatility statistics on the calibration universe (decision 7),
+  daily from 2005, and the S&P series, on a jump-robust realized variance (bipower variation).
 - **Unscheduled jumps:** the days that variance flags, outside earnings dates, split by sign.
   The index's jumps are mostly down and cannot be borrowed for a single name.
-- **Earnings:** the dates are not in `data/prices` (the fetch takes dividends and splits only).
+- **Earnings:** EDGAR's dates (decision 6, step 1); the two sessions from each date are its
+  move, and the size law is fitted by sector if the utilities' and REITs' small moves hold up.
 - **The overlay:** the trade-log IV panel, re-measured against the fair layer at the same state.
   Two cautions on the panel as it stands: the shallow-to-deep rise in σ_IV(x) is partly state —
   lots get deep in falls that raised volatility — and must be split before an overlay is set;
@@ -114,14 +132,40 @@ regime; the call's z_K = x/(σ√τ_c) moves with depth, so the residual smile i
 
 ## Sequence
 
-1. **Earnings dates** (decision 6). Fetch and cache them beside `data/prices`; check on the
-   first fetch that the item codes reach back to 2018 and that the filing day is the day of
-   the gap. The fair-access contact is settled with Sergei first.
+1. **Earnings dates** (decision 6). `code/earnings.py`, in `prices.py`'s shape, with the
+   dated universe pinned in it (Sergei agreed the design, 2026-11-21). EDGAR's filings and the
+   universe's price histories are cached under `data/aristocrats/`, apart from the live
+   account's `data/prices`, which every statement tranche refreshes; the EDGAR contact is read
+   from an environment variable, so the repository carries no address; the predecessor CIKs,
+   the by-date cap and the rule for undated quarters live in the script.
+
+   **Probed 2026-11-21** (scratch, on the 50 names, prices from 2005 since Item 2.02 began in
+   August 2004): keeping the last Item 2.02 within 60 days before each 10-Q or 10-K drops the
+   extra ones a few filers make (AbbVie's at each quarter's start) and gives 4.0 a year for
+   most names. On 37.5% of the two-session windows from those dates the stock moves more than
+   3 robust standard deviations, against 4.8% of all other windows. Three things to fix: a
+   reorganized company's history sits under its predecessor's CIK (XOM's new holding company
+   from 2026, LIN from 2019, MDT from 2015); ED until about 2017 and TROW until about 2022
+   announced most results outside Item 2.02; and a dozen names lose an occasional quarter to
+   the 60-day rule. Earnings barely move the utilities and the REIT (z > 3 on 6–11% of ATO, ES,
+   ED and O's dates, against 30–60% elsewhere), which the size law will have to carry.
+
+   **Re-probed the same day** on the 68 names, each counted by date at $10B. Merging the
+   predecessors' filings puts XOM, LIN and MDT at 4.0 dates a year. The obvious fallback for a
+   quarter with no Item 2.02 — the last 8-K carrying Item 8.01 or 7.01 — lands on a gap only
+   14% of the time (29 dates, mostly ED's and TROW's), so it mostly is not results. Proposed
+   instead: a quarter whose date cannot be found is left out whole, its earnings and its other
+   windows alike, rather than guessed. Size shows, modestly: on the names under $20B today the
+   earnings windows move more than 3 robust standard deviations 44.1% of the time against
+   37.2% above it (other windows 4.2% against 4.8%), and median robust volatility is 19.6%
+   against 17.3%. Step 4 reports its fit for the two groups apart as well as together.
 2. **Takeovers' rarity** (decision 5). Count acquisitions among the S&P 500 Dividend
    Aristocrats from the index's published changes, against member-years, over as long a
    window as the changes are published for. The traded universe cannot answer it — an acquired
    name drops out of the price histories, so the names held are survivors by construction.
-   If the rate is low, the article says so, with the rate, where it introduces jumps.
+   If the rate is low, the article says so, with the rate, where it introduces jumps. The same
+   changes name the members that left on a dividend cut (decision 7's survivorship tilt);
+   whether to bring them into the calibration for their member years is decided here.
 3. **Unscheduled jumps.** The days the jump-robust variance flags, outside earnings dates and
    takeover bids, split by sign: λ↑, λ↓, the two size laws and each side's kick to h.
 4. **The state — II-38, widened.** σ̄, half-life, θ, γ and η per name and across names, on what
