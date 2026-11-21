@@ -159,6 +159,15 @@ regime; the call's z_K = x/(σ√τ_c) moves with depth, so the residual smile i
    earnings windows move more than 3 robust standard deviations 44.1% of the time against
    37.2% above it (other windows 4.2% against 4.8%), and median robust volatility is 19.6%
    against 17.3%. Step 4 reports its fit for the two groups apart as well as together.
+
+   **Coded 2026-11-21** (`code/earnings.py`). Of the 1,130 name-years the cap rule admits,
+   1,101 are dated; 38.2% of the 4,449 earnings windows move more than 3 robust standard
+   deviations, against 4.7% of the others. ED loses 33 quarters and TROW 53, most with no 8-K
+   at all near the release: 1.7% of the name-years. Elsewhere a missing quarter is usually a
+   release filed with no item but 9.01: the last such 8-K lands on a gap 44% of the time, close
+   to Item 2.02's rate, but would recover only 9 quarters, so those quarters are left out with
+   the rest, at 0.4%. The stretch after each name's last periodic report is left out too
+   (0.5%), since no report in the window confirms its results.
 2. **Takeovers' rarity** (decision 5). Count acquisitions among the S&P 500 Dividend
    Aristocrats from the index's published changes, against member-years, over as long a
    window as the changes are published for. The traded universe cannot answer it — an acquired
