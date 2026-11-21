@@ -230,11 +230,23 @@ its entry should name the copy it rests on. BCJ is not cited in the prose — it
 were used only in a scratch run — so "cited where its parameters are used" has nothing to
 attach to unless a later paragraph uses them.
 
-**Step 6, next: the limitation where it bites.** §06's "[the returns section] prices what that
-leaves out" now has the subsection to land on — reread the two together. §07/§08: inventory
-falls under moving volatility (E[I] 11.3 → 10.7 without the leverage effect, 9.9 with), its
-mechanism untraced; it is also why, with the leverage effect, a larger share of the book sits
-near its strikes, which paragraph 6 states without a reason until this is answered. §10's
-stress paragraph and §15's "Volatility that moves" narrowed to what is still open. Then the
-rest of step 7 (II-37 to `DONE.md`).
+**Step 6 is on `main` (2026-11-21).** Why inventory falls was traced, its evidence moved into
+`--scenario stochvol`'s output and pinned at the article's own 1,280 paths (`00df11c`), and the
+prose follows it: paragraph 6 gives the book's tilt toward its strikes a reason in both worlds
+(`e433d78`); a §09 paragraph, `para:smaller-book-moving-volatility`, states the inventory result
+with the median pinned (`19687ff`); §07 and §08 point to it (`76773d5`); §06 "measures" rather
+than "prices" (`66a5010`); §10 separates a rising level of volatility from §09's swings, its
+claim signed (`1aa764a`); §15's item narrowed to the return, the swings' source and the
+boundaries (`4103858`).
+
+**Why inventory falls** (traced 2026-11-21; E[I] = λ·E[W], and λ moves under 2%, so it is
+holding time). *Without the leverage effect* the first months barely change (41.7% leave at the
+first call expiry against 40.8%) and the long stays shorten: occasional large rallies lift lots
+out from 10–35% below their strikes (exit rate per period at 15–22% below 0.0050 against
+0.0010), while shallow lots exit less in calm months. *With it* the loss is in the first years:
+the fall that assigns a lot raises volatility, to 1.30× its level at the put's sale, so the lot
+meets turbulent weeks from a depth set in a calmer one — 47.3% leave at the first call expiry —
+and fewer survive to sink. The median holding time is eight weeks in all three runs.
+
+**Left: step 5's remainder above, then step 7** (II-37 to `DONE.md`, the plan's last word).
 
