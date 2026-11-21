@@ -11,6 +11,7 @@
 07-holding-time.md	sec:verification	pending	pending	2026-10-23
 08-inventory.md	sec:portfolio	pending	pending	2026-10-23
 08-inventory.md	sec:verification	pending	pending	2026-10-23
+09-returns.md	eq:delta-return	10cc553bf0b5	d3c8f9e8b3b4	2026-11-21
 09-returns.md	eq:excess-return	d9a94f8d0367	ad308c3ff97e	2026-11-13
 09-returns.md	eq:wald-holding	0e2fba1f7f48	86d43c3450c0	2026-11-06
 09-returns.md	para:census-thirty-years	88fe690c632b	f73e55f8cd9f	2026-10-23
