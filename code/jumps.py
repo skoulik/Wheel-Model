@@ -154,6 +154,8 @@ def main():
           + f" months (half-life {V.half_life(st['month acf 1']):.1f} months); "
           f"corr(month's return, change in log vol) {st['month corr(return, dlogvol)']:+.3f}")
     print("  acf |r|: " + ", ".join(f"{st[f'acf |r| {k}']:.3f} at {k}" for k in V.ACF_LAGS))
+    print("  leverage, corr(r, mean |r| ahead): " + ", ".join(
+        f"{st[k]:+.3f} over {k.split()[1]}" for k in st if k.startswith("leverage")))
 
     md, mr = market_returns()
     ms = V.standardize(mr[None, :])[0][0]

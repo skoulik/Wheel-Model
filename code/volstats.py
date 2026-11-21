@@ -23,6 +23,10 @@ simulated at any level answers for a name at any other:
   month's return with the change in its log volatility. A month is MONTH consecutive
   sessions, so the data and a simulation cut it identically.
 - **acf**: the autocorrelation of |r| at ACF_LAGS sessions, about each series' mean.
+- **leverage**: the correlation of a day's return with the mean |r| over each window of
+  LEVERAGE_WINDOWS sessions after it -- the leverage function of Bouchaud, Matacz and
+  Potters (2001), who measured its decay at about 69 days for US stocks, here with |r| for
+  their r² so that a single crash cannot carry it.
 """
 
 from math import inf, log, pi
@@ -40,6 +44,7 @@ MONTH = 21
 MIN_MONTH = 17          # clean returns a month must hold
 MONTH_LAGS = (1, 3, 6)
 ACF_LAGS = (1, 5, 20, 60, 120, 250)
+LEVERAGE_WINDOWS = ((1, 1), (2, 5), (6, 20), (21, 60), (61, 120))
 MU1_SQ = 2 / pi         # E|z|² for a standard normal z
 SESSIONS = 252
 SIDES = (("up", 1), ("down", -1))
@@ -171,7 +176,34 @@ def stats(R):
     a = _centred(np.abs(R))
     for lag in ACF_LAGS:
         out[f"acf |r| {lag}"] = _lagged_corr(a, lag)
+    r = _centred(R)
+    sums = _running(np.abs(R))
+    for lo, hi in LEVERAGE_WINDOWS:
+        label = f"{lo}" if lo == hi else f"{lo}-{hi}"
+        out[f"leverage {label}"] = _pooled_corr(r, _centred(_ahead_mean(sums, lo, hi)))
     return out
+
+
+def _running(X):
+    """Running sums of X over its defined values, and of their count."""
+    n = X.shape[0]
+    ok = ~np.isnan(X)
+    zero = np.zeros((n, 1))
+    return (np.concatenate([zero, np.cumsum(np.where(ok, X, 0.0), axis=1)], axis=1),
+            np.concatenate([zero, np.cumsum(ok, axis=1)], axis=1))
+
+
+def _ahead_mean(sums, lo, hi):
+    """For each t, the mean of X[t+lo .. t+hi] over its defined values, from X's running
+    sums; NaN where fewer than half are defined."""
+    cs, cc = sums
+    T = cs.shape[1] - 1
+    t = np.arange(T)
+    a = np.clip(t + lo, 0, T)
+    b = np.clip(t + hi + 1, 0, T)
+    S, C = cs[:, b] - cs[:, a], cc[:, b] - cc[:, a]
+    with np.errstate(invalid="ignore", divide="ignore"):
+        return np.where(C >= (hi - lo + 1) / 2, S / C, np.nan)
 
 
 def pad(rows):

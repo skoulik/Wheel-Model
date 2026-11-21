@@ -34,7 +34,7 @@ remainder is almost entirely §03's.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-32 and II-38 to II-40, with II-34 and II-35 in progress** —
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-32 and II-38 to II-41, with II-34 and II-35 in progress** —
 thirty-three of its items are in `DONE.md`, the latest II-37 on 2026-11-21;
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
@@ -42,7 +42,7 @@ them they are still the bulk of what is left besides those stubs and the assembl
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-38 and II-39, the follow-ups to §09's published betas, now steps of II-40's plan; II-40, changing volatility and jumps in the model, planned (`drafts/2026-11-21-moving-volatility-plan.md`). Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-38 and II-39, the follow-ups to §09's published betas, now steps of II-40's plan; II-40, changing volatility and jumps in the model, under way (`drafts/2026-11-21-moving-volatility-plan.md`); II-41, the index's removals from S&P's own record, for II-40's step 2. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -634,6 +634,20 @@ as scheduled jumps; fair prices only the stock's own diffusive risk; takeovers n
 Its sequence calibrates, then measures in the simulator which results move. Where it lives — a
 revision of Part II, or the model kept and the difference reported where the assumption bites —
 is decided on those measurements.
+
+**II-41. The index's removals, from S&P's own record.** (Opened 2026-11-21, Sergei: "let's go
+with the simpler option (lower bound) for now and write a todo item to download the full data
+later".) Step 2 of II-40's plan needs two counts that S&P Dow Jones Indices publishes only as
+announcements: the S&P 500 Dividend Aristocrats' takeover exits, for the rate the article quotes
+where it introduces jumps, and the members that left on a dividend cut, for the plan's
+survivorship decision. For now the rate is a lower bound: the six takeover exits Wikipedia's
+table names for 2009–2025, against about 950 member-years from S&P's own counts — at least 0.6%
+a year (the plan's step 2). To close it, Sergei saves the January rebalance announcements and the
+mid-year "Constituent Change Announced for the S&P 500 Dividend Aristocrats" notices for
+2005–2026 from S&P's announcements search into `literature/` (the site refuses automated
+fetches); every deletion is then classified by reason, the rate restated as a count, and the
+dividend-cut leavers listed for the decision whether they join the calibration for their member
+years.
 
 ## Part III — Many assets
 
