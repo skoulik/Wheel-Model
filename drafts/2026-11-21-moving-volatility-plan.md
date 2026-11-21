@@ -676,7 +676,99 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
      channels, the price and h (θ times the vega); its form on the session lattice, which
      decision 4 left to be derived, is derived here. Constant σ stays byte-identical.
 
-   Then the d-tail reading again, on the fitted process, against the live 2.3.
+   Then the d-tail reading again, on the fitted process, against the live 2.3. Sergei,
+   2026-11-22: "Yes, please go ahead with both" (the tables, and the earnings law fitted
+   directly).
+
+   **(a) The earnings law, measured 2026-11-22** (`code/earnmoves.py`; `--recover` for the
+   model's units). 4,322 dated windows on all 68 names. In yardstick units the two-session
+   move has mean |s| 2.85, against 1.13 for two sessions of diffusion alone.
+   - **The law** (yardstick units, block-jackknife errors): up with probability
+     0.516 ± 0.017, mean size up 2.36 ± 0.13, down 2.63 ± 0.16, β_E 0.13 ± 0.12. Its tails
+     match the data's: beyond 2, 3, 4, 6 and 8 local sd, 26.8, 18.0, 11.9, 4.9 and 2.0% of
+     windows up against 25.4, 16.9, 11.1, 5.0 and 2.4% fitted; down 26.1, 18.8, 12.8, 5.6 and
+     2.8% against 25.2, 17.4, 11.9, 5.8 and 2.9%.
+   - **Size barely follows the state.** Mean |s| by tercile of h is 3.49, 2.85 and 2.19 — in
+     local sd, so in log terms an earnings move is nearly the same size in a calm quarter as in
+     a turbulent one. Sizes in units of today's volatility (β_E = 1) are rejected (likelihood
+     ratio 249), and so are the unscheduled jumps' β = 0.58 (65).
+   - **Sector.** Utilities and REITs move about half as much: mean |s| 1.74 and 1.57 against
+     2.94, their law up 0.63, sizes 0.97 ± 0.20 and 1.60 ± 0.27. They are 325 of the 4,322
+     windows, so the pooled law is the others' (2.46 and 2.70). The simulator carries the
+     pooled law; the sector law is a variant.
+   - **No kick.** After an earnings fall beyond 6 local sd, log volatility rises 0.16, against
+     0.54 after an ordinary fall that size; after an earnings rise it moves −0.04 to +0.06,
+     where ordinary rises raise it 0.14 to 0.42. The fitted model with the earnings jump kept
+     out of h gives +0.12 and +0.06 on fake dates, within about 0.05 of the data at every band
+     (the data lower after rises: a mild crush the model lacks). The earnings jump does not
+     enter h; the resolution of the news is why.
+   - **In the model's units** (a jump e^(β_E·H)·Y, H the model's log volatility, σ̄ at H = 0):
+     up 0.523, sizes 4.73 and 5.22, β_E 0.25. Its fake fits on the data's mask and dates
+     reproduce the data's estimates (2.31 and 2.59 against 2.36 and 2.63, β_E 0.13 against
+     0.13). The sizes double because H = 0 is not the typical state: the fitted model's median
+     H is 0.81 (5–95%: 0.30 to 1.58), and the yardstick's noise attenuates β_E from 0.25 to
+     the measured 0.13, as an error in h must.
+
+   **(b) and (c), built 2026-11-22.** `code/volprocess.py` pins the fitted process and the
+   earnings law (stdlib) and steps it a session at a time; `code/fairprice.py` builds the
+   fair-price tables (numpy, cached under `data/fair/`); `wheel_sim.py --scenario fittedvol`
+   carries both.
+   - **The scale.** σ̄ is set so that the year's variance averages σ²: at σ = 20%, 0.0039 a
+     session. Of the variance, diffusion is 81%, unscheduled jumps 7% and earnings 12%, and
+     the diffusive volatility at the median state is 14.2% a year. A simulated six years
+     on 400 paths give 0.1994.
+   - **The pricing measure.** With no volatility shocks of its own, the change of measure is
+     one shift of z, κ_t = (μ − r)·Δt/σ_t, and h follows the shifted shocks.
+   - **The tables.** 13 × 11 nodes of (h_fast, h_slow), 200,000 paths each, one set of draws
+     for every node. Puts at the dial, calls at 111 depths and four tenors (20 sessions left
+     for the premium, 15, 10 and 5 for an open call's delta and mark), every phase of the
+     earnings cycle. The accuracy was found the hard way:
+     - Plain draws left about 0.3% in implied volatility. One set of draws for every node
+       makes that error a level common to the whole table rather than noise, so it would
+       have been a few basis points of premium a year. Two changes took it to about 0.1%
+       for a put and a near-the-money call (0.2% with earnings in the window):
+       stratifying each path's total shock (a Brownian bridge), and the terminal price as
+       a control variate with its regression coefficient. A control on realized variance
+       gained nothing.
+     - Linear interpolation in the state priced every option about 0.1% high, because log
+       implied volatility is convex in the state; cubic takes that to 0.01% or less for
+       puts and near calls (`fairprice --check`).
+   - **The pricing-measure test passes.** At μ = r the excess plus the leak is
+     −0.001% ± 0.012% on the fitted process, against +0.003% ± 0.013% at constant σ (640
+     paths × 30 years each).
+   - **First readings, real world** (640 × 30 years, against constant σ):
+
+     | | constant σ | fitted process |
+     |---|---|---|
+     | economic excess | 1.493% | 1.493% |
+     | E[I], lots | 11.4 | 10.8 |
+     | up-beta / down-beta | 0.829 / 1.000 | 0.834 / 0.993 |
+     | lots leaving at the first call expiry | 40.9% | 43.1% |
+     | gap at assignment, mean / median | 1.26 | 1.54 |
+     | gaps beyond 5% / 10% | 1.75% / 0.001% | 5.4% / 0.64% |
+
+     The fitted process takes d's tail about as far as the borrowed index volatility with
+     ρ = −0.9 did (1.52, 5.0%, 0.5%): about a quarter of the way to the live 2.3, with
+     step 5's two cautions on that comparison still standing.
+
+   **(d) Both exact tests pass on the fitted process** (`--scenario fittedvol`, 640 paths ×
+   30 years a run):
+   - **Pricing measure.** At μ = r, excess plus leak is −0.001% ± 0.012%.
+   - **Real world.** Excess − (Δ̄·(μ − r) − leak) is −0.008% ± 0.017%, with Δ̄ = 0.934;
+     constant σ gives −0.004% ± 0.016% at Δ̄ = 0.933.
+   - **The delta on the session lattice.** An option's exposure to the shifted shock is
+     ∂V/∂S + (share·θ·∂V/∂h_fast + share′·θ·∂V/∂h_slow)/(σ_t·S): the price's channel (with the
+     smile, since depth moves with the price) plus the vega's, weighted by how far one sd of
+     diffusive shock moves each factor per unit of the move it makes in the price. It is exact
+     to first order in κ, about 0.009 a session at the median state. The test resolves 1.7bp,
+     and the volatility channel's share of Δ̄ has not been split out.
+   - **Nothing else moved.** `--scenario dollars` and `stochvol` are byte-identical with the
+     committed simulator, and `verify_examples.py` passes.
+
+   **Where step 5 leaves the plan.** The simulator carries the fitted process with fair prices,
+   so II-39's question can now be answered, and the magnitudes are step 7's. For the article's
+   method section, one source to read and add: Glasserman (2003), *Monte Carlo Methods in
+   Financial Engineering*, for stratification and control variates (not yet opened).
 6. **The overlay**, from the trade-log panel against the fair layer at the same state; the IBKR
    implied-volatility series if it can be had.
 7. **Magnitudes**, result by result, from the simulator; then `model.py` (h on 10–15 nodes, the

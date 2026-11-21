@@ -52,14 +52,21 @@ COJUMP = 5
 TOP = 10
 
 
-def name_returns(n):
-    """(days, r) for an `earnings.Name`: clean log returns, NaN elsewhere."""
+def log_returns(n):
+    """(days, r) for an `earnings.Name`: every daily log return, the dividend added back
+    on its ex-date, NaN on the first day."""
     days = n.series.days
     px = np.array([n.series.adj_close(d) for d in days], dtype=float)
     div = dict(n.series.divs)
     add = np.array([div.get(d, 0.0) for d in days])
     r = np.full(len(days), np.nan)
     r[1:] = np.log((px[1:] + add[1:]) / px[:-1])
+    return days, r
+
+
+def name_returns(n):
+    """(days, r) for an `earnings.Name`: clean log returns, NaN elsewhere."""
+    days, r = log_returns(n)
     window = set()
     for d in n.dates:
         i = bisect_left(days, d)

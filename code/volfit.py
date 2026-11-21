@@ -152,10 +152,11 @@ def _jumps(p, d):
             np.where(dn, p["a down"] * d.w ** (1 / p["k down"]), 0.0))
 
 
-def simulate_loop(p, d):
+def simulate_loop(p, d, states=False):
     """The model stepped day by day. It is the reference `simulate` is checked against,
     and the implementation whenever the feedback is on, which makes the fast factor
-    nonlinear in itself."""
+    nonlinear in itself. With `states`, (R, H): H each day's log volatility, the one its
+    return was drawn at."""
     (pf, af, bf, ef), (ps, as_, bs, es) = _factors(p)
     up, dn, su, sd = _jumps(p, d)
     bu, bd = p["beta up"] - 1, p["beta down"] - 1
@@ -164,8 +165,11 @@ def simulate_loop(p, d):
     rows, n = d.z.shape
     hf, hs = np.zeros(rows), np.zeros(rows)
     R = np.empty((rows, n))
+    H = np.empty((rows, n)) if states else None
     for t in range(n):
         hc = np.clip(hf + hs, -H_CLIP, H_CLIP)
+        if states:
+            H[:, t] = hc
         x = d.z[:, t] + su[:, t] * np.exp(bu * hc) - sd[:, t] * np.exp(bd * hc)
         R[:, t] = np.exp(hc) * x
         a = th * x
@@ -175,7 +179,7 @@ def simulate_loop(p, d):
             noise = noise * np.exp(zeta * np.clip(hf, -H_CLIP, H_CLIP))
         hf = pf * hf + af * a + bf * b + noise
         hs = ps * hs + as_ * a + bs * b + es * d.eps[:, t]
-    return R[:, BURN:]
+    return (R[:, BURN:], H[:, BURN:]) if states else R[:, BURN:]
 
 
 def _simulate_feedback(p, d):

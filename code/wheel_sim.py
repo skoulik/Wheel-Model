@@ -51,6 +51,17 @@ the same run at constant sigma, which must agree with model.py.  The default
 sv_eta = 0 keeps no state and draws nothing, so every other scenario is
 byte-identical with it present.
 
+`--scenario fittedvol` runs the process fitted on the Aristocrats instead (TODO
+II-40, step 5; volprocess.py): two factors of log volatility moved only by the
+stock's own moves, a kick on down jumps, Kou jumps and an earnings jump every
+13 weeks, stepped a session at a time.  Puts are struck at the dial as a
+real-world probability at the state and every option is priced fair there,
+from fairprice.py's tables, so both exact tests hold with the volatility
+moving: at the pricing drift the excess is minus the leak, and in the real
+world it is the book's delta times mu - r less the leak, each option's delta
+taken through the price and through the volatility the price moves.  Off
+(Params.vol_fitted False), nothing is kept and nothing is drawn.
+
 Dividends under the total-return convention: mu is the asset's TOTAL expected
 return, the price drifts at mu - delta, held lots accrue delta_net =
 delta*(1 - withholding) per year of holding (reported as a separate Track A
@@ -63,8 +74,10 @@ inventory grows; nu > 0 is the stability boundary.
 The cadence/tenor split is built in: cadence T >= tau_p, defaulting to
 T = tau_p, the article's running example.
 
-Stdlib only.  Run:  python code/wheel_sim.py
-    [--scenario base|dividends|stress|sweep|validate|dollars|constrained|stochvol|all]
+Stdlib only, but for fittedvol's tables, which fairprice.py builds with numpy.
+Run:  python code/wheel_sim.py
+    [--scenario base|dividends|stress|sweep|validate|dollars|constrained|stochvol|
+                fittedvol|all]
 """
 
 import argparse
@@ -72,11 +85,12 @@ import heapq
 from bisect import bisect_right
 from collections import Counter
 from dataclasses import dataclass
-from math import exp, log, sqrt
+from math import exp, log, pi, sqrt
 
 from model import (Config, N, bs_call, bs_put, entry_law, expected_drop,
                    k_star_drift, pmap)
 import random
+import volprocess as VP
 
 # Event priorities at equal timestamps: settle expiring options first, then
 # sample state and sell the next put.
@@ -149,6 +163,14 @@ class Params:
     sv_half_life: float = 1.9 / 12   # years for a log-vol deviation to halve
     sv_rho: float = 0.0        # correlation of the price's and the log-vol's shocks
     sv_step: float = 1 / 252   # largest step the joint path is advanced by
+    # -- the fitted process (--scenario fittedvol, TODO II-40 step 5): two factors of
+    # log volatility moved by the stock's own moves, jumps and earnings, from
+    # volprocess.py, stepped a session at a time; options struck and priced fair at the
+    # state, from fairprice.py's tables.  Off, nothing is kept and nothing is drawn.
+    vol_fitted: bool = False
+    vol_jumps: bool = True     # the unscheduled jumps (and so the down-jump kick)
+    vol_earnings: bool = True  # the earnings jump, every 13 weeks
+    record_gaps: bool = False  # keep each assignment's gap 1 - S/K (d's tail)
 
     def __post_init__(self):
         if self.cadence is None:
@@ -165,6 +187,13 @@ class Params:
         self.sv_var = self.sv_eta**2 / (2 * self.sv_kappa)   # stationary var of log-vol
         if self.sv_eta > 0 and (len(self.regimes) > 1 or self.equity != float("inf")):
             raise ValueError("changing volatility is single-regime and unconstrained only")
+        if self.vol_fitted:
+            if len(self.regimes) > 1 or self.equity != float("inf") or self.sv_eta > 0:
+                raise ValueError("the fitted process is single-regime and unconstrained")
+            if (round(self.tau_p * VP.SESSIONS) != 5 or self.n != 4
+                    or abs(self.cadence - self.tau_p) > 1e-12):
+                raise ValueError("the fitted process's tables are for a weekly put sold "
+                                 "every week and a four-week call")
 
     def nominal_g(self):
         """The debit growth rate the closed forms would be told to assume.
@@ -236,6 +265,10 @@ class Agg:
         # The book's delta in shares, summed over the same dates as the
         # capital; only with Params.book_delta, since it prices every lot's call.
         self.delta_sum = 0.0
+        # The put's strike over spot, summed over put sales: its margin's average when
+        # the strike moves with the state (the fitted process).
+        self.kf_sum = 0.0
+        self.gaps = []             # 1 - S/K at each assignment, with Params.record_gaps
         # Why a lot leaves when it does, under a changing volatility: the
         # volatility at its assignment over that at its put's sale, summed
         # over assignments, and how many lots reached their first call
@@ -317,14 +350,15 @@ class Agg:
     _SCALARS = ("puts", "assigned", "d_sum", "exits", "prem_put", "prem_call",
                 "dividends", "cap_sum", "cap_n", "mvcap_sum", "acq_loss",
                 "giveaway", "acq_loss_d", "giveaway_d", "prem_float", "coll_int", "lot_time",
-                "open_put", "open_call", "delta_sum", "vol_rise", "first_n", "first_exit",
+                "open_put", "open_call", "delta_sum", "kf_sum", "vol_rise", "first_n",
+                "first_exit",
                 "paths", "sales", "blocked", "withdrawn", "ps_t",
                 "ps_inv", "ps_lev", "ps_eq", "ps_eqt", "ps_income", "ps_sales",
                 "ps_blocked")
     _COUNTERS = ("inv_hist", "inv_by_idx", "eq_by_idx", "eqn_by_idx",
                  "cap_by_idx", "mvcap_by_idx", "n_by_idx", "period_hist",
                  "batch_hist")
-    _LISTS = ("durations", "t_liq", "sat_times", "a_sat", "window", "liq_dyn",
+    _LISTS = ("durations", "gaps", "t_liq", "sat_times", "a_sat", "window", "liq_dyn",
               "liq_stat", "g_real", "r_drift", "e_drift")
 
     def merge(self, o):
@@ -391,6 +425,24 @@ def advance_sv(S, h, t0, t1, P, rng):
     return S, h
 
 
+_FITTED = {}
+
+
+def fitted_parts(P):
+    """(volprocess.Process, volprocess.Tables) for a fitted-process run, built or loaded
+    once per process.  Build them in the parent before a pool runs (fittedvol does), or
+    every worker would build the same tables at once."""
+    key = (P.sigma, P.mu, P.r, P.delta, P.p_star, P.vol_jumps, P.vol_earnings)
+    if key not in _FITTED:
+        import fairprice
+        data = fairprice.load({"sigma": P.sigma, "mu": P.mu, "r": P.r, "delta": P.delta,
+                               "p_star": P.p_star, "jumps": P.vol_jumps,
+                               "earnings": P.vol_earnings})
+        T = VP.Tables(data)
+        _FITTED[key] = (VP.Process(T.sig_bar, P.vol_jumps, P.vol_earnings), T)
+    return _FITTED[key]
+
+
 def bridge_hit(s_a, s_b, b_a, b_b, var, u):
     """Did the price touch the barrier between two samples?
 
@@ -450,6 +502,42 @@ def run_path(P, rng, agg):
     sv = P.sv_eta > 0
     h = rng.gauss(0.0, sqrt(P.sv_var)) if sv else 0.0   # started stationary
     sig_now = P.regimes[0].sigma * exp(h - P.sv_var) if sv else P.regimes[0].sigma
+    # ---- the fitted process.  Off, nothing is kept and nothing is drawn.
+    fv = P.vol_fitted
+    if fv:
+        proc, tables = fitted_parts(P)
+        m_real = P.mu - P.delta
+        hf = hs = 0.0
+        for _ in range(VP.BURN):            # started from the stationary state
+            _, hf, hs = proc.step(0.0, hf, hs, m_real, 0.0, False, rng)
+        e0 = rng.randrange(VP.EARNINGS_EVERY)   # this path's earnings calendar
+        n_now = 0                           # sessions stepped so far
+        sig_now = proc.annual_vol(hf, hs)
+
+        def phase(sessions):
+            """The session of an option's life its earnings date falls on, or 0."""
+            j = (e0 - n_now) % VP.EARNINGS_EVERY + 1
+            return j if j <= sessions else 0
+
+        def eff_delta(strike, sessions):
+            """A call's delta through both of its channels, in shares: the price's own
+            (with the smile, since the depth moves with the price) and the volatility's,
+            the vega times how far a one-sd diffusive shock moves each factor, per unit of
+            the move it makes in the price.  The pricing measure shifts exactly that
+            shock, so this is the exposure mu - r is earned on (decision 4); a put's is
+            the call's less e^(-delta tau), by parity."""
+            tau = sessions * VP.DT
+            iv, d_f, d_s, d_x = tables.call_iv_grad(hf, hs, phase(sessions),
+                                                    log(strike / S), sessions)
+            iv += P.iv_spread
+            sq = iv * sqrt(tau)
+            d1 = (log(S / strike) + (P.r - P.delta + iv * iv / 2) * tau) / sq
+            carry = exp(-P.delta * tau)
+            vega = S * carry * exp(-d1 * d1 / 2) / sqrt(2 * pi) * sqrt(tau)
+            H = max(-VP.H_CLIP, min(VP.H_CLIP, hf + hs))
+            sd = proc.sig_bar * exp(H)
+            return (carry * N(d1) - vega * d_x / S
+                    + (proc.th_f * d_f + proc.th_s * d_s) * vega / (sd * S))
 
     # ---- the account.  `ledger` off is Parts I and II verbatim.
     ledger = P.equity != float("inf")
@@ -547,6 +635,13 @@ def run_path(P, rng, agg):
         sig_step = regime_at(P, t).sigma       # constrained runs are single-regime
         if sv:
             S, h = advance_sv(S, h, t, te, P, rng)
+        elif fv:
+            n_to = round(te * VP.SESSIONS)
+            logS = log(S)
+            for n_ in range(n_now, n_to):
+                logS, hf, hs = proc.step(logS, hf, hs, m_real, 0.0,
+                                         (n_ - e0) % VP.EARNINGS_EVERY == 0, rng)
+            S, n_now = exp(logS), n_to
         else:
             S = advance(S, t, te, P, rng)
         t = te
@@ -579,7 +674,8 @@ def run_path(P, rng, agg):
         # The volatility ruling now: the regime's, or the path's own when it
         # moves.  Strikes and premiums are both set at it, as an operator
         # quoting the day's volatility would.
-        sig_now = P.regimes[0].sigma * exp(h - P.sv_var) if sv else rg.sigma
+        sig_now = (P.regimes[0].sigma * exp(h - P.sv_var) if sv
+                   else proc.annual_vol(hf, hs) if fv else rg.sigma)
         sig_iv = sig_now + P.iv_spread
 
         if prio == SALE:
@@ -603,7 +699,13 @@ def run_path(P, rng, agg):
             # Sell the put.  The strike dial is a real-world assignment
             # probability (the model's one measure), so k* inverts the
             # P-world probability; the premium is a quote, priced at IV.
-            kf = k_star_drift(P.p_star, P.tau_p, sig_now, rg.mu - P.delta)
+            if fv:
+                # The dial is a real-world probability at the state, and the premium
+                # the fair price there: both from the tables.
+                kf, iv = tables.put(hf, hs, phase(5))
+                sig_iv = iv + P.iv_spread
+            else:
+                kf = k_star_drift(P.p_star, P.tau_p, sig_now, rg.mu - P.delta)
             K = kf * S
             # Blocked means skip the put: the operator does not sell what they
             # could not cover.  Equity is marked to market, so capacity in lots
@@ -635,6 +737,7 @@ def run_path(P, rng, agg):
             else:
                 c_p = S * bs_put(kf, P.tau_p, sig_iv, P.r, P.delta)
                 agg.puts += 1
+                agg.kf_sum += kf
                 agg.prem_put += c_p / S
                 live = min(t + P.tau_p, P.years) - t
                 agg.prem_float += c_p / S * (exp(P.r * live) - 1)
@@ -654,7 +757,18 @@ def run_path(P, rng, agg):
                 agg.cap_n += 1
                 agg.cap_by_idx[idx] += cost_cap / S
                 agg.mvcap_by_idx[idx] += mv_cap
-                if P.book_delta:
+                if P.book_delta and fv:
+                    # The same book, each option's delta through both channels.
+                    book = 0.0
+                    for lot in lots:
+                        ell = round((lot.t_exp - t) * VP.SESSIONS)
+                        if ell > 0:
+                            book += 1.0 - eff_delta(lot.strike, ell)
+                        else:
+                            book += 0.0 if S >= lot.strike else 1.0
+                    book -= eff_delta(K, 5) - exp(-P.delta * P.tau_p)
+                    agg.delta_sum += book
+                elif P.book_delta:
                     # Shares, each less its call's spot delta at the call's
                     # remaining tenor, plus the short put just sold.
                     book = 0.0
@@ -685,11 +799,15 @@ def run_path(P, rng, agg):
                 agg.d_sum += 1 - S / S_sale
                 agg.acq_loss += (K - S) / S      # paid K for something worth S
                 agg.acq_loss_d += (K - S) / S_sale   # ...per unit of the sale price
+                if P.record_gaps:
+                    agg.gaps.append(1 - S / K)
                 lot = Lot(entry=t, strike=K, basis=K - c_p)
                 lots.append(lot)
                 if ledger:
                     cash -= K                    # this is what grows the debit
                 # Sell the first covered call at the frozen strike.
+                if fv:
+                    sig_iv = tables.call_iv(hf, hs, phase(20), log(K / S)) + P.iv_spread
                 c_c = bs_call(S, K, P.tau_c, sig_iv, P.r, P.delta)
                 agg.prem_call += c_c / S
                 agg.prem_float += c_c / S * (exp(P.r * (min(t + P.tau_c, P.years) - t)) - 1)
@@ -723,6 +841,9 @@ def run_path(P, rng, agg):
                 agg.period_hist[lot.periods] += 1
                 exits_at[round(t, 9)] += 1
             else:
+                if fv:
+                    sig_iv = (tables.call_iv(hf, hs, phase(20), log(lot.strike / S))
+                              + P.iv_spread)
                 c_c = bs_call(S, lot.strike, P.tau_c, sig_iv, P.r, P.delta)
                 agg.prem_call += c_c / S
                 agg.prem_float += c_c / S * (exp(P.r * (min(t + P.tau_c, P.years) - t)) - 1)
@@ -738,16 +859,41 @@ def run_path(P, rng, agg):
         # the price it was sold at as its exit would have been.  No random
         # draw: every other scenario runs the same stream as before.
         sig_end = (sig_now if sv else regime_at(P, t).sigma) + P.iv_spread
+
+        def mark_iv(strike, left):
+            """The fitted process's volatility for an option with `left` years to run:
+            the tables' call with that much of its life left, at its depth -- a put's by
+            parity.  A window that does not end on a put sale leaves other remainders,
+            and those take the four-week call with the earnings variance, if its date
+            falls inside, spread over the time left: an approximation."""
+            if not fv:
+                return sig_end
+            x = log(strike / S)
+            ell = max(1, round(left * VP.SESSIONS))
+            if ell in tables.call_lniv:
+                return tables.call_iv(hf, hs, phase(ell), x, ell) + P.iv_spread
+            iv0 = tables.call_iv(hf, hs, 0, x)
+            j = phase(ell)
+            if not j:
+                return iv0 + P.iv_spread
+            ivj = tables.call_iv(hf, hs, j, x)
+            return (sqrt(max(iv0 * iv0 + (ivj * ivj - iv0 * iv0) * 20 / ell, 1e-8))
+                    + P.iv_spread)
+
         for te, prio, _, data in heap:
             left = te - t
             if prio == PUTEXP:
-                K, S_sale, _, _ = data
-                v = S * bs_put(K / S, left, sig_end, P.r, P.delta)
+                K, S_sale, c_sold, _ = data
+                if fv and abs(left - P.tau_p) < 1e-9:
+                    v = c_sold * S / S_sale      # sold at this close: worth its premium
+                else:
+                    v = S * bs_put(K / S, left, mark_iv(K, left), P.r, P.delta)
                 agg.open_put += v / S_sale
                 agg.acq_loss += v / S
                 agg.acq_loss_d += v / S_sale
             elif prio == CALLEXP:
-                v = bs_call(S, data.strike, left, sig_end, P.r, P.delta)
+                v = bs_call(S, data.strike, left, mark_iv(data.strike, left), P.r,
+                            P.delta)
                 agg.open_call += v / data.s_sale
                 agg.giveaway += v / S
                 agg.giveaway_d += v / data.s_sale
@@ -1540,7 +1686,9 @@ def _dollar_row(P, g):
     per_yr = 1.0 / (g.paths * P.years)           # the window, as in validate()
     n = sum(g.inv_hist.values())
     inv = g.lot_time * per_yr                    # time-averaged, as model.py's
-    cap = P.gamma_p * k_star_drift(P.p_star, P.tau_p, P.sigma, m) + inv
+    kf = (g.kf_sum / g.puts if P.vol_fitted     # the strike moves with the state
+          else k_star_drift(P.p_star, P.tau_p, P.sigma, m))
+    cap = P.gamma_p * kf + inv
     income = (g.prem_put + g.prem_call + g.prem_float + g.coll_int
               + g.dividends) * per_yr
     base = income + inv * m - P.r * cap
@@ -1705,6 +1853,81 @@ def stochvol(args):
         print(f"  median holding time  {med:.2f} months")
 
 
+def _fv_row(P, g):
+    """One run's figures for --scenario fittedvol, from an Agg.
+
+    The economic excess in dollars per period, as _dollar_row books it, with the put's
+    margin at its average strike when the strike moves with the state; the leak; and
+    their sum, which no-arbitrage makes zero at the pricing drift whatever the
+    volatility does, provided every option is priced fair -- the test of the tables.
+    Then _sv_row's betas and inventory, and d's tail: the gap 1 - S/K at assignment,
+    whose mean has run about 2.3 times its median in the live account."""
+    m = P.mu - P.delta
+    per_yr = 1.0 / (g.paths * P.years)
+    inv = g.lot_time * per_yr
+    kf = (g.kf_sum / g.puts if P.vol_fitted
+          else k_star_drift(P.p_star, P.tau_p, P.sigma, m))
+    cap = P.gamma_p * kf + inv
+    income = (g.prem_put + g.prem_call + g.prem_float + g.coll_int
+              + g.dividends) * per_yr
+    dollar = (income + inv * m - P.r * cap - (g.acq_loss_d + g.giveaway_d) * per_yr) / cap
+    leak = inv * P.delta * P.withhold / cap
+    row = {"excess": dollar, "minus the leak": -leak, "excess + leak": dollar + leak}
+    if g.delta_sum:
+        d = _dollar_row(P, g)
+        row.update({"delta x (mu - r) - leak": d["theory"],
+                    "excess - that": d["dollar - theory"], "book delta": d["delta"]})
+    row.update(_sv_row(P, g))
+    gaps = sorted(g.gaps)
+    if gaps:
+        n = len(gaps)
+        mean, med = sum(gaps) / n, gaps[n // 2]
+        row.update({"gap: mean": mean, "gap: median": med, "gap: mean/median": mean / med,
+                    "gap > 5%": sum(1 for x in gaps if x > 0.05) / n,
+                    "gap > 10%": sum(1 for x in gaps if x > 0.10) / n})
+    return row
+
+
+def fittedvol(args):
+    """The wheel on the fitted process (TODO II-40, step 5), against constant sigma.
+
+    Four runs through one pool, the Standard regime at thirty years: constant sigma and
+    the fitted process, each at the real-world drift and at the pricing drift mu = r.
+    At the pricing drift the excess plus the leak must be zero -- at constant sigma
+    because Black-Scholes is exact there, on the fitted process only if the tables price
+    every option fair, so that row is their test.  Standard errors are across batches.
+    """
+    runs = (("constant volatility, real world", dict(book_delta=True)),
+            ("constant volatility, pricing drift mu = r", dict(mu=0.05)),
+            ("fitted process, pricing drift mu = r", dict(mu=0.05, vol_fitted=True)),
+            ("fitted process, real world", dict(vol_fitted=True, book_delta=True)))
+    paths = args.paths or 640
+    jobs, spans = [], []
+    for label, kw in runs:
+        P = Params(delta=0.025, years=args.years or 30.0, paths=paths, seed=args.seed,
+                   record_gaps=True, **kw)
+        if P.vol_fitted:
+            fitted_parts(P)                  # build or load the tables before the pool
+        js = batch_jobs(P)
+        spans.append((label, P, len(jobs), len(jobs) + len(js)))
+        jobs += js
+    aggs = pmap(_batch, jobs)
+    print(f"\n{'=' * 72}\nTHE FITTED PROCESS  ({paths} paths x {spans[0][1].years:g}y per "
+          f"run, seed {spans[0][1].seed})\n{'=' * 72}")
+    for label, P, i, j in spans:
+        rows = [_fv_row(P, g) for g in aggs[i:j]]
+        whole = _fv_row(P, merge_all(aggs[i:j]))
+        nb = len(rows)
+        print(f"\n-- {label} --")
+        for key in whole:
+            vals = [r[key] for r in rows if key in r]
+            mean = sum(vals) / len(vals)
+            se = sqrt(sum((v - mean) ** 2 for v in vals) / (len(vals) - 1) / len(vals))
+            pct = key.startswith(("excess", "minus", "gap", "delta x"))
+            fmt = (lambda v: f"{v:>+9.3%}") if pct else (lambda v: f"{v:>9.3f}")
+            print(f"  {key:>24} {fmt(whole[key])}  s.e. {fmt(se).strip()}")
+
+
 def _km_curve(durations):
     """The Kaplan-Meier curve as (event times in months, survival after each)."""
     ds = sorted(durations)
@@ -1728,7 +1951,7 @@ def main():
     ap.add_argument("--scenario", default="all",
                     choices=["base", "dividends", "stress", "sweep",
                              "validate", "dollars", "constrained", "stochvol",
-                             "all"])
+                             "fittedvol", "all"])
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     ap.add_argument("--years", type=float, default=None,
@@ -1754,6 +1977,10 @@ def main():
 
     if args.scenario == "stochvol":
         stochvol(args)
+        return
+
+    if args.scenario == "fittedvol":
+        fittedvol(args)
         return
 
     if args.scenario in ("base", "all"):
