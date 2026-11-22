@@ -42,7 +42,7 @@ them they are still the bulk of what is left besides those stubs and the assembl
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-38 and II-39, the follow-ups to §09's published betas, now steps of II-40's plan; II-40, changing volatility and jumps in the model, under way (`drafts/2026-11-21-moving-volatility-plan.md`); II-41, the index's removals from S&P's own record, for II-40's step 2. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-38 and II-39, the follow-ups to §09's published betas, now steps of II-40's plan; II-40, changing volatility and jumps in the model, now carried by `model.py` with the sections to revise (`drafts/2026-11-21-moving-volatility-plan.md`, `drafts/2026-11-22-model-moving-volatility-plan.md`); II-41, the index's removals from S&P's own record, for II-40's step 2. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -614,7 +614,7 @@ a convexity term), so the ledger would book mispricing as return. It needs prope
 the exact test excess = Δ̄·(μ − r) − leak gains a vega term. The pricing is step 5 of II-40's
 plan, which settles what "fair" means (its decision 4).
 
-**II-40. Changing volatility in the analytic model — planned.** (Opened 2026-11-20,
+**II-40. Changing volatility in the analytic model — in `model.py`; the sections next.** (Opened 2026-11-20,
 Sergei: "Perhaps we still need to incorporate sigma change with the stock movement into the base
 model … This would involve reviewing all previous results but might be worth doing to better
 model the reality.") The simulator shows what the constant σ hides: with the S&P 500's swings
@@ -631,9 +631,17 @@ The representation was agreed on 2026-11-21 and is in
 [`drafts/2026-11-21-moving-volatility-plan.md`](drafts/2026-11-21-moving-volatility-plan.md): one
 volatility state drives the price and σ_IV is derived from it; jumps up and down, and earnings
 as scheduled jumps; fair prices only the stock's own diffusive risk; takeovers not modelled.
-Its sequence calibrates, then measures in the simulator which results move. Where it lives — a
-revision of Part II, or the model kept and the difference reported where the assumption bites —
-is decided on those measurements.
+Its sequence calibrated the process and measured in the simulator which results move; on those
+measurements Sergei chose (2026-11-22) to revise Part II, carrying the fitted process's figures
+beside the constant-σ model's, and to extend `model.py` rather than quote the simulator. That is
+done ([`drafts/2026-11-22-model-moving-volatility-plan.md`](drafts/2026-11-22-model-moving-volatility-plan.md)):
+`Config.vol` runs the walk on a lattice of depth, both volatility factors and the earnings week
+(`code/lattice.py`), the sale and the first call period simulated exactly, and agrees with the
+simulator within its errors on everything Part II quotes but the down-beta (5% of the effect).
+What remains: the section revisions with both models side by side — the plan's *Part II side by
+side* is their material, and II-32 is best settled first, since the constant column carries its
+near-grid entry — the estimation appendix (`96-volatility.md`), the formula fixes the plan's
+owed list names, three sources to fetch, and a full re-read of every section.
 
 **II-41. The index's removals, from S&P's own record.** (Opened 2026-11-21, Sergei: "let's go
 with the simpler option (lower bound) for now and write a todo item to download the full data

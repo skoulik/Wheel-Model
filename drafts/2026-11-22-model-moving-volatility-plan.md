@@ -704,11 +704,12 @@ Two cautions for whoever writes from it:
   the exact entry and carries no grid. So the fair side by side is still against fitted, and
   II-32 is best settled before the sections quote both: either the constant model moves to
   h = 0.0025 (II-32's own proposal) or Part II quotes the still lattice's continuum figures.
-- **Track A's excess under the moving volatility is approximate** (not in the table): its
-  capital takes each lot's basis as e^x(1 − c_p/k) with c_p/k averaged over the sales,
-  where under moving volatility each lot's ratio is its own sale's. The true excess is
-  exact; Track A should be measured from the exact entry's per-lot basis before it is
-  quoted.
+- **Track A's capital under the moving volatility averages one small ratio** (Track A is not
+  in the table): each lot's basis is e^x(1 − c_p/k), and the lattice takes c_p/k averaged
+  over the sales where each lot's is its own sale's. The ratio is a few tenths of a percent
+  and varies little across states, so this costs well under 0.1% of the capital; Track A's
+  larger fall at 30 years (−101 against −69bp, Standard) is the fitted process's, its deeper
+  lots held at cost. The true excess carries no such average.
 
 **Decision 2's fallback, measured** (h_slow at 0.05, 799 nodes, the fitted process, Standard):
 against 0.1, inventory at 5, 10 and 30 years moves by +0.0001, +0.0001 and −0.005 lots, the
