@@ -1257,3 +1257,7 @@ parameter drop lands in the article's prose"). Each item points to where its num
    Step 7's figures, in this plan and in `data/magnitudes.json`, are the targets. The section
    revisions (the structure subsection near §06, the appendix `96-volatility.md`, figures
    side by side) and the full re-read follow, with *Owed to the article* as the checklist.
+8. **`model.py` carries the process**: planned and agreed 2026-11-22 in
+   [its own plan](2026-11-22-model-moving-volatility-plan.md) — a lattice in depth, both
+   volatility factors and the earnings week, its transitions and prices simulated from
+   every volatility node.
