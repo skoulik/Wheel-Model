@@ -243,6 +243,37 @@ Ornthanalai 2012; Aït-Sahalia, Cacho-Diaz & Laeven 2015), the next remedy if th
 falls short; single stocks' "rough" volatility (Zarhali et al. 2025; Bennedsen, Lunde &
 Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for step 7.
 
+## Where it lives in the article (settled 2026-11-22)
+
+Sergei proposed an independent appendix, because the parameters come from fitting real-world
+data and so should not be developed in Parts I and II. Claude agreed and proposed splitting
+the material, which Sergei accepted ("Good, let's settle the plan this way"):
+- **The model's structure goes in Part II**, a short section or subsection near §06, where the
+  constant-σ assumption is stated. It covers what the process is and why: two volatility
+  factors moved only by the stock's own moves, the kick after a down jump, jumps both ways,
+  earnings as scheduled jumps, fair prices at the day's state. It is theory and intuition
+  only, its numbers cited from the appendix as the running example's σ, μ and δ are cited.
+- **The estimation goes in an appendix**, a new file before the derivations (e.g.
+  `sections/96-volatility.md`, its anchor registered in §00). It covers the universe and the
+  EDGAR dates, the statistics, weights, fit and tests, the earnings law, the Ederington–Lee
+  result, and the literature: everything under *Owed to the article*. It is written as a
+  self-contained unit, its own introduction, motivation and sources, relying on nothing but
+  §00's notation, so that it can be lifted out as a standalone article (Sergei, 2026-11-22:
+  "worth a big section in the article or even a standalone article"). Its numbers get checks
+  in `verify_examples.py` and rows in the reproduction appendix, like everything else.
+- **Not in Part IV.** Developing the process there would leave Part II's results resting on
+  a later section, the forward conclusion CLAUDE.md rules out. An appendix is reference
+  material any section may cite. Part IV still uses the process: the overlay (step 6) and the
+  live-account comparison.
+- **Then a full re-read.** Once the corrections are integrated, every section is re-read
+  paragraph by paragraph (Sergei: "besides the individual corrections, we'll need to re-read
+  all prior sections in full"). One section per session, as with §09's review. The signed
+  claims flag what cites a changed formula or figure; sentences that assume constant σ
+  without citing anything are found only by reading.
+- **Still open, decided on step 7's numbers:** whether Part II's results are revised to the
+  moving process (`model.py` carrying h), or Part II keeps constant σ and reports the
+  difference where the assumption bites. The appendix plan holds either way.
+
 ## Owed to the article
 
 What the prose must carry when Part II is revised or the difference is reported (Sergei,
@@ -1045,7 +1076,7 @@ parameter drop lands in the article's prose"). Each item points to where its num
    the model kept and the difference reported where the assumption bites. Decided then, on the
    measurements.
 
-   **Design, proposed 2026-11-22** (awaiting Sergei's go-ahead):
+   **Design, agreed 2026-11-22** (Sergei: "yes, please start the step 7 runs"):
    - **Four processes, each at total variance σ²:**
      - constant σ;
      - the fitted factors without jumps or earnings (θ alone moves h);
