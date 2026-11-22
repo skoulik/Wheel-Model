@@ -1233,3 +1233,27 @@ parameter drop lands in the article's prose"). Each item points to where its num
 
    What stays: the excess return, the assignment rate, the median holding, the lots'
    boundary, §11's sixty-year risk.
+
+   **Decided (Sergei, 2026-11-22): `model.py` carries the moving volatility.** "I'd extend the
+   model, to be consistent and support less implementations." Claude had proposed taking the
+   variable-σ figures from the simulator and keeping `model.py` as the simple model; Sergei
+   chose one analytic core for both. To be started in a new session.
+
+   **Handoff for that session.** The plan's representation section sketched it: h on 10–15
+   nodes, the depth walk modulated by them. The fitted process has two factors and jumps,
+   so the design must settle these:
+   - **The state.** Both factors, or the slow one alone with the fast factor and the jumps
+     folded into a fatter-tailed period return over the call period (the question step 4
+     left open)?
+   - **The grid.** Depth × the volatility nodes, the transition per call period built from
+     the fitted process. The simulator's `volprocess` is the reference, and its session
+     stepping could tabulate the transitions.
+   - **Pricing.** Fair prices at the state, consistent with `fairprice`'s tables; ideally
+     from the same lattice.
+   - **The checks.** The new core at constant σ must reproduce every present figure exactly
+     (verify_examples), and with h on must agree with step 7's simulator figures within
+     their errors. The exact tests must hold.
+
+   Step 7's figures, in this plan and in `data/magnitudes.json`, are the targets. The section
+   revisions (the structure subsection near §06, the appendix `96-volatility.md`, figures
+   side by side) and the full re-read follow, with *Owed to the article* as the checklist.
