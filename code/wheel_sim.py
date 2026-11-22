@@ -77,7 +77,7 @@ T = tau_p, the article's running example.
 Stdlib only, but for fittedvol's tables, which fairprice.py builds with numpy.
 Run:  python code/wheel_sim.py
     [--scenario base|dividends|stress|sweep|validate|dollars|constrained|stochvol|
-                fittedvol|earnterm|all]
+                fittedvol|earnterm|magnitudes|all]
 """
 
 import argparse
@@ -2079,6 +2079,96 @@ def earnterm(args):
           f"on - off {d:+.3%} ± {se:.3%}")
 
 
+MAG_PROCESSES = (("constant", dict()),
+                 ("factors", dict(vol_fitted=True, vol_jumps=False, vol_earnings=False)),
+                 ("+jumps", dict(vol_fitted=True, vol_earnings=False)),
+                 ("full", dict(vol_fitted=True)))
+
+
+def _mag_row(P, g):
+    """_fv_row plus what step 7 also reads: the assignment rate, the holding time (median
+    and Kaplan-Meier survival), the two capitals."""
+    row = _fv_row(P, g)
+    times, survs = _km_curve(g.durations)
+    row["assignment rate"] = g.assigned / g.puts
+    row["median holding, months"] = next((h for h, s in zip(times, survs) if s <= 0.5),
+                                         float("nan"))
+    for h, s in zip(KM_HORIZONS_M, km_survival(g.durations, KM_HORIZONS_M)):
+        row[f"survival {h} mo"] = s
+    row["cost capital"] = g.cap_sum / g.cap_n
+    row["market capital"] = g.mvcap_sum / g.cap_n
+    return row
+
+
+def magnitudes(args):
+    """Step 7 of the moving-volatility plan: Part II's results under four processes, each at
+    total variance sigma^2 with its own tables -- constant sigma; the fitted factors alone;
+    with the unscheduled jumps and their kick; the full fitted process with earnings -- in
+    both regimes, at 30 years (and 5 and 10 for the excess and the inventory), each
+    real-world run beside its pricing-drift twin on the same draws, and at 30 years again
+    with a volatility point of spread. Every figure is written, with its error across
+    batches, to data/magnitudes.json; the excess is also read against its twin."""
+    import json
+    import os
+    paths = args.paths or 5120
+    cases = []
+    for proc, kw in MAG_PROCESSES:
+        for regime, ps in (("Standard", 0.20), ("Conservative", 0.10)):
+            for years, spread in ((30.0, 0.0), (30.0, 0.01), (10.0, 0.0), (5.0, 0.0)):
+                for drift, mu in (("real", 0.07), ("twin", 0.05)):
+                    cases.append((proc, regime, years, spread, drift, Params(
+                        p_star=ps, delta=0.025, mu=mu, years=years, paths=paths,
+                        seed=args.seed, iv_spread=spread, record_gaps=True,
+                        book_delta=(drift == "real" and years == 30.0 and spread == 0.0),
+                        **kw)))
+    for *_, P in cases:
+        if P.vol_fitted:
+            fitted_parts(P)                 # tables built in the parent, once per key
+    jobs, spans = [], []
+    for c in cases:
+        js = batch_jobs(c[-1])
+        spans.append((c, len(jobs), len(jobs) + len(js)))
+        jobs += js
+    aggs = pmap(_batch, jobs)
+    out = {}
+
+    def mean_se(vals):
+        m = sum(vals) / len(vals)
+        return m, sqrt(sum((v - m) ** 2 for v in vals) / (len(vals) - 1) / len(vals))
+
+    rows = {}
+    for (proc, regime, years, spread, drift, P), i, j in spans:
+        rs = [_mag_row(P, g) for g in aggs[i:j]]
+        rows[(proc, regime, years, spread, drift)] = rs
+        name = f"{proc} | {regime} | {years:g}y | spread {spread:g} | {drift}"
+        out[name] = {k: mean_se([r[k] for r in rs if k in r]) for k in rs[0]}
+    for (proc, regime, years, spread, drift), rs in rows.items():
+        if drift == "real":
+            twin = rows[(proc, regime, years, spread, "twin")]
+            d = mean_se([a["excess + leak"] - b["excess + leak"] for a, b in zip(rs, twin)])
+            name = f"{proc} | {regime} | {years:g}y | spread {spread:g} | real"
+            out[name]["excess + leak, against its twin"] = d
+    os.makedirs("data", exist_ok=True)
+    with open(os.path.join("data", "magnitudes.json"), "w") as f:
+        json.dump(out, f, indent=1)
+    keys = ("excess + leak, against its twin", "book delta", "book delta, price only",
+            "up-beta", "down-beta", "assignment rate", "gap: mean", "gap: mean/median",
+            "gap > 5%", "median holding, months", "left at first expiry", "E[I], lots",
+            "E[I]/lambda, years", "market capital")
+    for regime in ("Standard", "Conservative"):
+        for years, spread in ((30.0, 0.0), (30.0, 0.01), (10.0, 0.0), (5.0, 0.0)):
+            print(f"\n== {regime}, {years:g} years, spread {spread:g} "
+                  f"({paths} paths, seed {args.seed}) ==")
+            print(f"  {'':>32}" + "".join(f"{p:>16}" for p, _ in MAG_PROCESSES))
+            for k in keys:
+                cells = []
+                for p, _ in MAG_PROCESSES:
+                    v = out[f"{p} | {regime} | {years:g}y | spread {spread:g} | real"].get(k)
+                    cells.append(f"{v[0]:>9.4f}±{v[1]:.4f}" if v else f"{'-':>16}")
+                print(f"  {k:>32}" + "".join(f"{c:>16}" for c in cells))
+    print("\nwritten data/magnitudes.json")
+
+
 def _km_curve(durations):
     """The Kaplan-Meier curve as (event times in months, survival after each)."""
     ds = sorted(durations)
@@ -2102,7 +2192,7 @@ def main():
     ap.add_argument("--scenario", default="all",
                     choices=["base", "dividends", "stress", "sweep",
                              "validate", "dollars", "constrained", "stochvol",
-                             "fittedvol", "earnterm", "all"])
+                             "fittedvol", "earnterm", "magnitudes", "all"])
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     ap.add_argument("--years", type=float, default=None,
@@ -2132,6 +2222,10 @@ def main():
 
     if args.scenario == "earnterm":
         earnterm(args)
+        return
+
+    if args.scenario == "magnitudes":
+        magnitudes(args)
         return
 
     if args.scenario == "fittedvol":

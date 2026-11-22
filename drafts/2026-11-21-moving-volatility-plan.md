@@ -1112,3 +1112,12 @@ parameter drop lands in the article's prose"). Each item points to where its num
      on `model.py` and where the change lives.
    - **Cost:** 16 sets of tables (four processes, two regimes, two drifts), about five
      minutes each in parallel. Then about 40 runs, a few hours in the background in all.
+
+   **Started 2026-11-22** as `python code/wheel_sim.py --scenario magnitudes`: 64 runs at
+   5,120 paths, and 12 new sets of tables (the constant-σ runs need none). Results go to
+   `data/magnitudes.json`, each figure with its error across batches, and the log to
+   `data/magnitudes.log`; both are gitignored and rebuilt by rerunning. **To pick up:** read
+   the log's tables, which give each regime and horizon across the four processes, and
+   record them here result by result. Then decide where the change lives, and carry the
+   §10 boundaries (not in this scenario: the long-run growth of log S and of 1/S under each
+   process, by simulation) and §11 as the design says.
