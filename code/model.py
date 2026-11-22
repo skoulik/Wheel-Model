@@ -2281,6 +2281,21 @@ def _vol_book_delta_life(C, horizon, channel="both"):
     return inv, put * C.tau_p / C.cadence
 
 
+def vol_boundaries(C):
+    """Section 10's two boundaries under the moving volatility: lots come back iff
+    mu - delta > c1, their capital iff mu - delta > c2 -- sigma^2/2 and sigma^2 at constant
+    sigma (criteria).  From the lattice read as a Markov additive process (lattice.long_run):
+    c1 = m - kappa'(0), the long-run drag of log S, and c2 = m + kappa(-1), the long-run growth
+    of E[S0/S_t], which is (1/T) log of the tilted path's E[exp(sum K)] and not the time-
+    average of K, Jensen's inequality putting the second below it (test 10).  Also the
+    long-run variance of log S, kappa''(0), which exceeds sigma^2: a move and the drag it
+    later causes are correlated."""
+    import lattice
+    lr = lattice.long_run(_vol_run(C))
+    m = C.mu - C.delta
+    return dict(lr, count_ok=m > lr["c1"], capital_ok=m > lr["c2"])
+
+
 # ----------------------------------------------------------------------
 # Working capital: leverage, the liquidation barrier and survival
 #

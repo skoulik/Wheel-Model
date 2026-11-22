@@ -89,6 +89,68 @@ def _stationary_job(job):
     return occ, economics(cfg, measure, occ), time_to_fraction(cfg, occ, 0.9)
 
 
+def _check_moving_volatility():
+    """The lattice behind Config.vol, on what the cache holds (see main()).
+
+    With the volatility held still the lattice is constant sigma simulated, and must
+    read as the constant walk's continuum does -- the near grid at h = 0.0025, since the
+    lattice's first period runs from the exact entry and carries no grid (decision 10).
+    Under the fitted process both exact tests must hold to floating point: each premium
+    is priced on the paths that book its payout, so at the pricing drift the excess is
+    minus the leak, and the excess is the book's exact life delta times mu - r less the
+    leak.  By channel -- the price's and the volatility's, first order -- the real-world
+    test is decision 8's, to half a basis point.  The dial must assign exactly p*."""
+    try:
+        import numpy  # noqa: F401
+        import lattice
+        import model as mo
+    except ImportError:
+        print("  skipped: the moving volatility needs numpy")
+        return
+
+    def have(cfg):
+        return lattice.cached(mo._vol_run(cfg))
+
+    still, still_q = Config(vol="still"), Config(vol="still", mu=0.05)
+    if have(still) and have(still_q):
+        occ = occupation(still, "P")
+        ref = occupation(Config(), "P", h=0.0025, j_max=1600)
+        check("still lattice: left at first expiry, against the continuum (h = 0.0025)",
+              occ["q(x0)"], ref["q(x0)"], 0.002)
+        check("still lattice: inventory at 30 years, against the same",
+              economics(still, "P", occ, horizon=30.0)["I"],
+              economics(Config(), "P", ref, horizon=30.0)["I"], 0.05)
+        occ_q = occupation(still_q, "P")
+        for H in (1.0, 5.0, 10.0, 30.0):
+            x = economics(still_q, "P", occ_q, horizon=H)
+            check(f"still lattice @ {H:.0f}y: pricing-drift excess = -leak",
+                  x["econ_excess"] + x["leak"] / x["mv_capital"], 0.0, 1e-9)
+    else:
+        print("  skipped: the still lattices are not built")
+    fit, fit_q = Config(vol="fitted"), Config(vol="fitted", mu=0.05)
+    if have(fit):
+        occ = occupation(fit, "P")
+        check("fitted lattice: the dial assigns p*", occ["entry"]["p"], fit.p_star, 1e-5)
+        for H in (5.0, 10.0, 30.0):
+            x = economics(fit, "P", occ, horizon=H)
+            leak = x["leak"] / x["mv_capital"]
+            for channel, tol in (("exact", 1e-9), ("both", 5e-5)):
+                inv, put = book_delta_life(fit, "P", horizon=H, channel=channel)
+                dbar = (x["I"] * inv + put) / x["mv_capital"]
+                check(f"fitted lattice @ {H:.0f}y: excess = delta*(mu - r) - leak, {channel}",
+                      x["econ_excess"] - (dbar * (fit.mu - fit.r) - leak), 0.0, tol)
+    else:
+        print("  skipped: the fitted lattice is not built (python code/lattice.py)")
+    if have(fit_q):
+        occ_q = occupation(fit_q, "P")
+        for H in (5.0, 10.0, 30.0):
+            x = economics(fit_q, "P", occ_q, horizon=H)
+            check(f"fitted lattice @ {H:.0f}y: pricing-drift excess = -leak",
+                  x["econ_excess"] + x["leak"] / x["mv_capital"], 0.0, 1e-9)
+    else:
+        print("  skipped: the fitted lattice at mu = r is not built")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--full", action="store_true",
@@ -1302,6 +1364,15 @@ def main():
         # tolerances here are what the article actually claims, not more.
         check("stationary E[T] (Standard, Q), years", g["E[T]"], 9.0, 0.4)
         check("stationary E[I] (Standard, Q)", g["I"], 93.7, 4.0)
+
+    # ------------------------------------------------------------------
+    # The moving volatility (drafts/2026-11-22-model-moving-volatility-plan.md):
+    # the lattice walk behind Config.vol.  Its lattices take ten to twenty-five
+    # minutes each to build, so this reads them from the cache and says so when
+    # one is missing (python code/lattice.py builds the running example's) rather
+    # than building it here; the walks themselves are cached once run.
+    print("--- Structural: the moving volatility's lattice ---")
+    _check_moving_volatility()
 
     # ------------------------------------------------------------------
     # The worked examples: one runnable script per numbered formula, each

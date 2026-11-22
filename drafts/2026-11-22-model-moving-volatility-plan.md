@@ -425,6 +425,15 @@ formulas, if we show them in the article"):
   Markov additive process's eigenvalue, m + κ(−1) — and never the time-average of the
   tilted cumulant, which Jensen's inequality puts below it; the lots' boundary is the
   long-run drift m − κ′(0), where no such term arises;
+- **sources not yet held**, wanted only when the prose is written: Asmussen, *Applied
+  Probability and Queues* (2nd ed., Springer 2003), ch. XI, for the Markov additive
+  process's eigenvalue and its derivatives (test 10, the boundaries, the long-run variance;
+  cited above from memory, to be opened first); Ney & Nummelin (1987), *Annals of
+  Probability* 15(2), for the same on a general state space, the continuous process the
+  lattice approximates (optional); Tauchen (1986), *Economics Letters* 20, the standard
+  reference for carrying a continuous-state Markov process on a finite grid, the lattice's
+  construction (or Kushner & Dupuis, *Numerical Methods for Stochastic Control Problems in
+  Continuous Time*, for the Markov chain approximation method);
 - **the exact entry** (decision 10), once built: where the article describes how the model
   treats the sale and the first call period, it says they are simulated from the
   stationary state and the grid carries lots from the second period on.
@@ -582,3 +591,49 @@ What remains past two errors, each small against what it measures:
   figures), with jumps only: periods after the first ride the grid, whose spread is a little
   wide (decision 2).
 - **Gaps beyond 10% under jumps alone**, 0.617% against 0.630%, three errors.
+
+**Both regimes, both models' errors** (2026-11-22). The exact entry is itself a simulation
+— 1.6 million lots at p\* = 20%, 0.8 million at 10% — so its own sampling error belongs in
+the comparison beside the simulator's (it had been left out above). The z of every figure,
+pooled over seeds 1 and 2:
+
+| | fit/Std | jmp/Std | fac/Std | fit/Con | jmp/Con | fac/Con |
+|---|---|---|---|---|---|---|
+| left at first expiry | −0.8 | −0.6 | −0.2 | −1.0 | −0.3 | −0.2 |
+| assignment rate | +1.2 | +0.6 | +5.4 | −0.4 | +0.5 | +6.4 |
+| E[I] 5 / 10 / 30 years | +0.5 / −2.1 / −0.1 | +0.1 / −0.8 / −0.5 | +0.3 / −0.6 / +0.4 | +0.6 / −2.1 / −0.4 | 0.0 / −0.7 / −0.6 | +0.4 / −0.4 / +0.7 |
+| excess + leak, paired | 0.0 | 0.0 | −0.7 | +0.1 | +0.1 | −0.4 |
+| book delta, both / price | −2.9 / −0.3 | −2.8 / −0.5 | −2.4 / +0.1 | −2.6 / −0.4 | −2.6 / −0.5 | −1.9 / +0.3 |
+| up-beta / down-beta | +0.5 / −3.3 | +0.3 / −3.1 | +0.4 / −0.2 | +0.8 / −1.4 | +0.8 / −1.8 | +0.6 / −1.6 |
+| gap mean / median / ratio | −0.8 / −1.4 / +0.8 | −1.3 / −0.7 / −0.4 | +0.4 / 0.0 / +0.3 | −0.6 / +0.4 / −0.7 | −2.0 / −0.3 / −1.1 | +0.7 / +0.9 / −0.4 |
+| gaps beyond 5% / 10% | −0.5 / −1.2 | −1.2 / −1.9 | +0.2 / −0.8 | −0.4 / −1.2 | −2.3 / −2.1 | +0.1 / −0.5 |
+
+**§10's boundaries in `model.py`** (`vol_boundaries`, from `lattice.long_run`: the tilted
+transition on h_slow 0.05, 200,000 paths a node, the earnings calendar as the cycle of
+thirteen periods' product). Common draws across nodes left c2 moving 0.03 between seeds —
+their errors common, not averaging — so each node draws its own; then two seeds agree to
+0.0001:
+
+| | c1 | c2 | long-run variance of log S |
+|---|---|---|---|
+| jumps, eigenvalue | 2.004% | 4.380% | 0.0431 |
+| jumps, simulated (`boundaries`, Jensen's term in) | 1.995 ± 0.006% | 4.363% (4.367% by log-mean-exp) | |
+| fitted, eigenvalue | 2.003% | 4.320% | 0.0427 |
+| fitted, simulated | 1.995 ± 0.005% | 4.307% (4.309%) | |
+
+Within about one and a half of the simulation's errors. The running example's μ − δ = 4.5%
+sits 0.18 points inside the capital boundary under the fitted process.
+
+**Step 5's checks, in `verify_examples.py`** ("the moving volatility's lattice", reading the
+cache and reporting a missing lattice as skipped): the still lattice against the continuum
+(h = 0.0025) on the first expiry and inventory at 30 years; the pricing-drift test on the
+still and the fitted lattices at μ = r, to 1e-9; under the fitted process the real-world
+test exactly (1e-9) and by channel (decision 8's 0.5bp), and the dial at p\*. All pass. The
+README and CLAUDE.md describe the lattice, its caches and their costs. **Stationary**, the
+still lattice reads E[T] = 2.0996 years, E[I(∞)] = 21.84 lots and 90% of it in 90.2 years,
+against the constant model's 2.0985, 21.83 and the article's 90.
+
+Decision 8's test passes but for two of the simulator's own figures — the volatility channel
+of its delta, every process, and its tables' strike under the factors alone — and the
+down-beta in the Standard regime (5% of the effect); four other figures sit between 2.0 and
+2.3, about what chance puts among ninety-six.

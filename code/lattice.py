@@ -576,6 +576,99 @@ def _exact_chunk(job):
             "entry2": entry2}
 
 
+# ---------------------------------------------------------------------------- the long run
+
+LONG_RUN_PATHS = 200_000
+LONG_RUN_HS = 0.05                    # h_slow's spacing for the eigenvalues (test 10)
+LONG_RUN_THETAS = (-0.02, 0.0, 0.02, -1.0)
+
+
+def _long_run_row(job):
+    """One row of nodes' tilted transitions over a call period, F(theta)_ab =
+    E[e^(theta*R); next node b | node a], for each theta and kind of period: a pmap worker."""
+    run, sig_bar, i, seed = job
+    HF, HS = long_run_grid(run)
+    proc = process(run, sig_bar)
+    m, tc = run["mu"] - run["delta"], TC * VP.DT
+    nodes = HF.size * HS.size
+    out = np.zeros((len(LONG_RUN_THETAS), CALL_KINDS, HS.size, nodes))
+    for j in range(HS.size):
+        # Draws of each node's own: an eigenvalue needs no smoothness across nodes, and on
+        # draws every node shares their errors are common and c2 moved 0.03 between seeds.
+        d = FP.draws(TC, LONG_RUN_PATHS, seed + 1009 * (i * HS.size + j))
+        L, Hs, hf, hs = FP.simulate(proc, HF[i], HS[j], m, 0.0, d, final=True)
+        idx, w = split(HF, HS, hf, hs)
+        R0 = L[-1]
+        variants = [R0]
+        if proc.earnings:
+            variants += [R0 + _earn(proc, Hs[s], d["ue"], d["we"])[0] for s in range(TC)]
+        kinds = ([[0]] + [[1 + 5 * wk + o for o in range(5)] for wk in range(4)]
+                 if proc.earnings else [[0]] * CALL_KINDS)
+        for kd, vs in enumerate(kinds):
+            for v in vs:
+                R = pin(variants[v], m, tc)
+                for t, th in enumerate(LONG_RUN_THETAS):
+                    e = np.exp(th * R)
+                    out[t, kd, j] += np.bincount(idx.ravel(), (w * e[None, :]).ravel(),
+                                                 nodes) / (LONG_RUN_PATHS * len(vs))
+    return out
+
+
+def long_run_grid(run):
+    """The eigenvalues' grid: h_slow at LONG_RUN_HS where the process has jumps (test 10:
+    the boundary c2 is the figure most sensitive to h_slow's spread), the process's own
+    grid otherwise."""
+    if run.get("still") or not run["jumps"]:
+        return grid(run)
+    return grid(dict(run, **{"hs step": LONG_RUN_HS}))
+
+
+def long_run(run, verbose=True, seed=SEED + 7):
+    """Section 10's boundaries under the fitted process, from the lattice read as a Markov
+    additive process (test 10): kappa(theta), the log of the largest eigenvalue of the tilted
+    transition over the thirteen-period earnings cycle, a year.  c1 = m - kappa'(0), the
+    lots' boundary, the long-run drag of log S; c2 = m + kappa(-1), the capital's, the
+    growth of E[S0/S_t]; kappa''(0) the long-run variance of log S.  Cached."""
+    key = {"lattice": _key(run)[1], "paths": LONG_RUN_PATHS, "hs": LONG_RUN_HS,
+           "thetas": LONG_RUN_THETAS, "version": 2, "seed": seed}
+    path = os.path.join(CACHE, "longrun-" + hashlib.sha1(
+        json.dumps(key, sort_keys=True).encode()).hexdigest()[:12] + ".json")
+    if os.path.exists(path):
+        with open(path) as f:
+            return json.load(f)
+    from model import pmap
+    t0 = time.time()
+    data = load(run, verbose)
+    sig_bar = float(data["sig bar"])
+    HF, HS = long_run_grid(run)
+    rows = pmap(_long_run_row, [(run, sig_bar, i, seed) for i in range(HF.size)],
+                workers=min(BUILD_WORKERS, os.cpu_count() or 1, HF.size))
+    F = np.concatenate(rows, axis=2)             # (theta, kind, node a, node b)
+    tc = TC * VP.DT
+    # The cycle: a lot's phase falls 4 weeks a period, mod 13, so over 13 periods it meets
+    # every phase once; the spectral radius of the product is the cycle's growth.
+    order = [(-4 * j) % EARN_WEEKS for j in range(EARN_WEEKS)]
+    kap = []
+    for t in range(len(LONG_RUN_THETAS)):
+        M = np.eye(F.shape[2])
+        for p in order:
+            M = M @ F[t, 1 + p if p < 4 else 0]
+        kap.append(float(np.log(np.max(np.abs(np.linalg.eigvals(M))))) / (EARN_WEEKS * tc))
+    (km, k0, kp, k1), eps = kap, LONG_RUN_THETAS[2]
+    m = run["mu"] - run["delta"]
+    out = {"c1": m - (kp - km) / (2 * eps), "c2": m + k1,
+           "long-run variance": (kp - 2 * k0 + km) / eps ** 2, "kappa(0)": k0,
+           "nodes": int(F.shape[2])}
+    os.makedirs(CACHE, exist_ok=True)
+    with open(path + ".tmp", "w") as f:
+        json.dump(out, f)
+    os.replace(path + ".tmp", path)
+    if verbose:
+        print(f"  lattice: long run on {out['nodes']} nodes [{time.time() - t0:.0f}s]",
+              file=sys.stderr, flush=True)
+    return out
+
+
 # ---------------------------------------------------------------------------- build and cache
 
 def _key(run):
@@ -664,6 +757,13 @@ def _cached(path, key, make):
     np.savez_compressed(tmp, key=np.array(json.dumps(key, sort_keys=True)), **data)
     os.replace(tmp, path)
     return data
+
+
+def cached(run):
+    """Whether `run`'s lattice -- tables and exact entry -- is in the cache, so that a check
+    can read it without building it."""
+    return (os.path.exists(os.path.join(CACHE, f"lattice-{_key(run)[1]}.npz"))
+            and os.path.exists(os.path.join(CACHE, f"exact-{_exact_key(run)[1]}.npz")))
 
 
 def load(run, verbose=True):
