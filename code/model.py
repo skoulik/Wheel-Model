@@ -228,6 +228,7 @@ class Config:
                                # their kick), "fitted" (with earnings too) -- the lattice
                                # walk (code/lattice.py), numpy only
     vol_hs: float = 0.1        # the lattice's h_slow spacing (decision 2; 0.05 its fallback)
+    vol_hf: float = 0.1        # ... and h_fast's
     gamma_p: float = 0.20      # margin fraction required against a short put
     # -- working capital.  Initial and maintenance requirements are one
     # parameter each, deliberately: the difference is small next to the
@@ -1929,6 +1930,8 @@ def _vol_run(C):
     run = dict(run, jumps=jumps, earnings=earnings)
     if abs(C.vol_hs - 0.1) > 1e-12:
         run["hs step"] = C.vol_hs
+    if abs(C.vol_hf - 0.1) > 1e-12:
+        run["hf step"] = C.vol_hf
     return run
 
 

@@ -122,10 +122,11 @@ def grid(run):
         # stationary sd as the jumps' grid, about a third of h_slow's, over +-4.5 sd.
         return (np.round(np.arange(-0.2, 0.2 + 1e-9, 0.025), 10),
                 np.round(np.arange(-0.35, 0.35 + 1e-9, 0.025), 10))
-    if run.get("hs step"):
-        step = run["hs step"]
-        return np.array(HF_GRID), np.round(np.arange(0.0, HS_GRID[-1] + 1e-9, step), 10)
-    return np.array(HF_GRID), np.array(HS_GRID)
+    HF = (np.round(np.arange(HF_GRID[0], HF_GRID[-1] + 1e-9, run["hf step"]), 10)
+          if run.get("hf step") else np.array(HF_GRID))
+    HS = (np.round(np.arange(0.0, HS_GRID[-1] + 1e-9, run["hs step"]), 10)
+          if run.get("hs step") else np.array(HS_GRID))
+    return HF, HS
 
 
 def split(HF, HS, hf, hs):

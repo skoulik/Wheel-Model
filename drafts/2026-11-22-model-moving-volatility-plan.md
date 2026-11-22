@@ -663,6 +663,13 @@ volatility point at 30 years:
 Step 7's +48.1bp was on the old σ̄; on the measured one a volatility point is worth about 4%
 more under the fitted process than at constant σ, not 6%.
 
+**Decision 2's fallback, measured** (h_slow at 0.05, 799 nodes, the fitted process, Standard):
+against 0.1, inventory at 5, 10 and 30 years moves by +0.0001, +0.0001 and −0.005 lots, the
+first expiry by −0.0002, the excess by −0.005bp, the book's delta by −0.00003, the up-beta
+by −0.0005, the down-beta by less than 0.00001, the gaps not at all. With σ̄ shared
+(decision 9) and the entry exact (decision 10), h_slow's spread at 0.1 costs nothing the
+article quotes; the down-beta's residual is not its doing.
+
 Decision 8's test passes but for two of the simulator's own figures — the volatility channel
 of its delta, every process, and its tables' strike under the factors alone — and the
 down-beta in the Standard regime (5% of the effect); four other figures sit between 2.0 and
