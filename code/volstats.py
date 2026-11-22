@@ -206,6 +206,37 @@ def _ahead_mean(sums, lo, hi):
         return np.where(C >= (hi - lo + 1) / 2, S / C, np.nan)
 
 
+CLUSTER_AHEAD = 20
+
+
+def clustering(R, c, sign, blocks=None):
+    """Whether tail moves cluster: the mean count of moves beyond c local sd in the
+    CLUSTER_AHEAD sessions after a move beyond c of the given sign, over the same mean after
+    any clean day -- 1 if they do not. With `blocks` (each cell's calendar block), also the
+    delete-a-block jackknife standard error. Not one of the fitted statistics: the check
+    that a model with a constant jump rate is not missing the clustering Maheu and McCurdy
+    (2004) found (`volfit.py --clustering`)."""
+    s = standardize(R)[0]
+    ok = np.isfinite(s)
+    ev = np.where(ok, np.abs(s) > c, False).astype(float)
+    cs = np.concatenate([np.zeros((s.shape[0], 1)), np.cumsum(ev, axis=1)], axis=1)
+    T = s.shape[1]
+    t = np.arange(T)
+    after = cs[:, np.minimum(t + 1 + CLUSTER_AHEAD, T)] - cs[:, t + 1]
+    trig = ok & (sign * s > c)
+
+    def ratio(keep):
+        return after[trig & keep].mean() / after[ok & keep].mean()
+
+    whole = ratio(np.ones_like(ok))
+    if blocks is None:
+        return whole, None
+    ids = np.unique(blocks[blocks >= 0])
+    reps = np.array([ratio(blocks != k) for k in ids])
+    K = len(ids)
+    return whole, float(np.sqrt((K - 1) / K * ((reps - reps.mean()) ** 2).sum()))
+
+
 def pad(rows):
     """Stack 1-D arrays of unequal length into a 2-D array, NaN past each end."""
     T = max(len(r) for r in rows)

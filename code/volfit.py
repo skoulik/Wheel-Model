@@ -64,6 +64,7 @@ standard errors at a saved fit.
     python code/volfit.py --recover --start FILE --seed-fake 3
                                            # simulate from FILE's parameters, fit, compare
     python code/volfit.py --se FILE        # standard errors at a saved fit
+    python code/volfit.py --clustering FILE  # tail moves' clustering, data against the fit
     python code/volfit.py --variance names # the old weights, resampling names alone
     python code/volfit.py --tag NAME       # names the result file
 
@@ -630,6 +631,29 @@ def main():
     seed_fake = int(args[args.index("--seed-fake") + 1]) if "--seed-fake" in args else SEED_FAKE
     R, blocks = data_returns(group)
     blocks = None if by_names else blocks
+    if "--clustering" in args:
+        # tail moves' clustering, on the data and on replicas of a saved fit: the check that
+        # its constant jump rate does not miss what Maheu and McCurdy's autoregressive
+        # intensity found (2026-11-22)
+        path = args[args.index("--clustering") + 1]
+        with open(path) as f:
+            p = dict(START, **json.load(f)["params"])
+        mask = ~np.isnan(R)
+        sims = [np.where(mask, simulate(p, Draws(R.shape[0], R.shape[1], 101 + i)), np.nan)
+                for i in range(REPLICAS)]
+        print(f"tail moves beyond c in the {V.CLUSTER_AHEAD} sessions after one, over the same "
+              f"after any day (1 = no clustering); data with its calendar-block error, and "
+              f"{REPLICAS} replicas of {path}:")
+        chi2 = 0.0
+        for c in (3.0, 4.0, 5.0):
+            for side, sign in (("down", -1), ("up", 1)):
+                d, se = V.clustering(R, c, sign, blocks)
+                m = np.array([V.clustering(x, c, sign)[0] for x in sims])
+                chi2 += (d - m.mean()) ** 2 / (se ** 2 + m.var(ddof=1) / REPLICAS)
+                print(f"  beyond {c:g}, after a {side:4} move: data {d:.2f} ± {se:.2f}   "
+                      f"model {m.mean():.2f} (replicas {m.min():.2f} to {m.max():.2f})")
+        print(f"  sum of squared standardized gaps over the six: {chi2:.1f}")
+        return
     if "--se" in args:
         # standard errors at a saved fit, on the data and weights it was fitted with
         path = args[args.index("--se") + 1]

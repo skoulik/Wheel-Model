@@ -617,15 +617,34 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
        occurs. Their worked jumps are earnings surprises. What they do show is jump
        clustering, which the fitted model leaves out (a constant jump rate): a limitation to
        state.
-     - **Possibly new: earnings jumps and unscheduled jumps feed back differently.** Earnings
-       gaps leave volatility where the model without them would (step 5(a)), while an
-       unscheduled down jump nearly doubles it. Maheu and McCurdy pool the two, and Patton
-       and Sheppard's intraday data exclude the overnight returns where most earnings gaps
-       fall. One search found no study comparing them directly. Before the article claims
-       it, read Dubinsky, Johannes, Kaeck and Seeger (2019, *RFS* 32:646), which prices
-       earnings announcements as scheduled jumps (a free 2006 working paper exists). The
-       claim's reason is plain: scheduled news resolves the uncertainty that was waiting for
-       it, and unscheduled bad news creates some.
+     - **Earnings and unscheduled jumps: Ederington and Lee's decomposition, replicated —
+       not a difference of kind** (searched three ways, then read, 2026-11-22; this bullet
+       first said they "feed back differently", which the surprise-scaled test below
+       withdraws). [`ederington-lee-1996`] showed scheduled releases resolve uncertainty and
+       unscheduled ones create it, in implied volatility around macroeconomic news. Their
+       decisive result is that implied volatility answers the day's *unexpected* volatility
+       the same way whichever kind of day brought it. Measured against its kind's typical
+       size, an earnings move here raises realized volatility as an ordinary move of the
+       same surprise does (`earnmoves.kick_by_surprise`, under (C) below).
+       Patell and Wolfson (1979, 1981) showed implied volatility rising into earnings and
+       falling after [`patell-wolfson-1981`, read 2026-11-22]. Their realized variance is
+       back near normal two days after the announcement (variance ratios 3.34 on the day,
+       2.01 the day after, 1.24 the day after that, not significant). That is a partial
+       precedent for the earnings jump leaving volatility where it was, over two days and on
+       1976–77 data, with no comparison to unscheduled moves. [`dubinsky-et-al-2019`] model
+       earnings as jumps at known dates whose
+       variance leaves the options once the date passes, with the diffusive volatility
+       unmoved. No study found compares the *realized* volatility after an earnings jump
+       with that after an unscheduled jump of the same size in a single stock:
+       - Maheu and McCurdy pool the two.
+       - Patton and Sheppard's intraday data leave out the overnight returns, where
+         [`christensen-timmermann-veliyev-2024`] put most earnings jumps.
+
+       So the claim: Ederington and Lee's decomposition holds in single stocks' realized
+       volatility, with the same answer — the expected part of a scheduled move leaves
+       volatility alone, and the surprise raises it as any surprise does — measured with
+       calendar-block errors and carried into the model. The principle and the decomposition
+       are theirs.
      - **The weighting finding** is Petersen's panel lesson [`petersen-2009`] carried to
        simulated-moment weights. His bootstrap of firm clusters is our name bootstrap,
        and it assumes no correlation across firms. His clustering by time needs enough
@@ -730,7 +749,11 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
      where ordinary rises raise it 0.14 to 0.42. The fitted model with the earnings jump kept
      out of h gives +0.12 and +0.06 on fake dates, within about 0.05 of the data at every band
      (the data lower after rises: a mild crush the model lacks). The earnings jump does not
-     enter h; the resolution of the news is why.
+     enter h; the resolution of the news is why. *Refined the same day under (C) of "Acting
+     on the reading" below:* measured against an earnings day's typical move, the surprise
+     raises volatility as an ordinary surprise does, and it is the expected part that leaves
+     it alone; the model, leaving both out, misses a small crush and a small surprise
+     response, each worth about 0.05 in log volatility.
    - **In the model's units** (a jump e^(β_E·H)·Y, H the model's log volatility, σ̄ at H = 0):
      up 0.523, sizes 4.73 and 5.22, β_E 0.25. Its fake fits on the data's mask and dates
      reproduce the data's estimates (2.31 and 2.59 against 2.36 and 2.63, β_E 0.13 against
@@ -842,7 +865,106 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
    **Where step 5 leaves the plan.** The simulator carries the fitted process with fair prices,
    so II-39's question can now be answered, and the magnitudes are step 7's. For the article's
    method section, one source to read and add: Glasserman (2003), *Monte Carlo Methods in
-   Financial Engineering*, for stratification and control variates (not yet opened).
+   Financial Engineering*, for stratification and control variates (not yet opened). (Since
+   read; see the bibliography.)
+
+   **Acting on the reading (2026-11-22).** Sergei: "Are we going to take action on the new
+   findings? I think we should, rather than dismiss them." Three checks, each now in the
+   code:
+   - **(A) Jump clustering** (`volfit.py --clustering`, `volstats.clustering`). Maheu and
+     McCurdy find jumps cluster, and the fitted model's jump rate is constant. The statistic
+     is the count of moves beyond c local sd in the 20 sessions after one, over the same
+     count after any day:
+
+     | beyond | after a fall: data | model | after a rise: data | model |
+     |---|---|---|---|---|
+     | 3 sd | 2.80 ± 0.90 | 2.59 | 2.03 ± 0.70 | 1.68 |
+     | 4 sd | 4.93 ± 2.47 | 3.54 | 3.14 ± 1.51 | 2.01 |
+     | 5 sd | 6.17 ± 3.87 | 4.51 | 5.38 ± 2.16 | 2.02 |
+
+     The data's errors are calendar-block jackknife; the model's figure is the mean of 8
+     replicas. Tail moves do cluster, three to six times over. The model reproduces most of
+     it through the volatility its kicks raise. The data sit above it at every threshold,
+     within 1–1.6 errors each, and the six together add 3.7 to the distance, about what six
+     well-fitted statistics should. So the data do not call for a self-exciting jump rate.
+     The loosest point is after rises beyond 5 sd. The article states the constant rate as
+     a choice the data allow, with this table, not as an omission.
+   - **(B) The block length** (scratch `blocks_sensitivity.py`; the code's `BLOCK_YEARS`).
+     Künsch and Petersen both say eleven blocks is few. Refitting nothing, the final model's
+     distance and sandwich errors under each length:
+
+     | blocks | distance over 48 | errors against two-year blocks |
+     |---|---|---|
+     | one-year, 22 of them | 9.8 | 1.08 to 1.20 times |
+     | two-year, 11 | 13.5 | — |
+     | three-year, 8 | 11.3 | 0.94 to 1.08 times |
+
+     The fit holds at every length, and every parameter stays determined. The standard
+     errors are uncertain by about a fifth, as Künsch's Theorem 3.3 says a jackknife on
+     this few blocks must be. The article quotes the one-year errors, the larger, or states
+     the fifth.
+   - **(C) The earnings split, with errors** (`earnmoves.kick_split`): the kick after an
+     earnings move beyond c against an ordinary day's, both sets' days in a calendar block
+     deleted together.
+
+     | | earnings | ordinary days | difference |
+     |---|---|---|---|
+     | fall beyond 3 sd | +0.087 ± 0.029 | +0.313 ± 0.077 | −0.226 ± 0.056 |
+     | fall beyond 4 sd | +0.112 ± 0.029 | +0.431 ± 0.115 | −0.320 ± 0.096 |
+     | fall beyond 6 sd | +0.158 ± 0.039 | +0.538 ± 0.153 | −0.380 ± 0.128 |
+     | rise beyond 6 sd | +0.056 ± 0.034 | +0.418 ± 0.149 | −0.362 ± 0.123 |
+
+     Three to four errors apart at every size and on both sides. The model with no
+     earnings term gives +0.073, +0.088 and +0.122 for the falls on fake dates, within an
+     error of the data.
+   - **Earnings surprises** (Sergei: "What about earnings surprises?"). The first answer, that
+     even a 6-sd earnings fall raises volatility only 0.16 against 0.54, measured both kinds
+     of move in local sd. That is the wrong unit for a surprise: a typical earnings window
+     moves 2.84 local sd against 0.81 on an ordinary day, so a 6-sd earnings move is a
+     modest surprise for an earnings day. [`ederington-lee-1996`]'s test measures each move
+     against what its kind of day was expected to bring. Run that way
+     (`earnmoves.kick_by_surprise`; u is the move over its kind's mean |s|; calendar-block
+     errors):
+
+     | fall, u | earnings | ordinary | difference | model, fake dates |
+     |---|---|---|---|---|
+     | 1–1.5 | +0.013 ± 0.032 | +0.029 ± 0.007 | −0.016 ± 0.032 | +0.034 |
+     | 1.5–2 | +0.077 ± 0.018 | +0.065 ± 0.010 | +0.011 ± 0.015 | +0.063 |
+     | 2–3 | +0.162 ± 0.047 | +0.108 ± 0.016 | +0.054 ± 0.042 | +0.105 |
+     | 3–5 | +0.200 ± 0.064 | +0.214 ± 0.045 | −0.014 ± 0.040 | +0.134 |
+
+     | rise, u | earnings | ordinary | difference | model, fake dates |
+     |---|---|---|---|---|
+     | 0–1 | −0.061 ± 0.017 | −0.030 ± 0.008 | −0.030 ± 0.022 | −0.031 |
+     | 1–1.5 | −0.051 ± 0.014 | −0.017 ± 0.009 | −0.034 ± 0.018 | −0.003 |
+     | 3–5 | +0.156 ± 0.040 | +0.086 ± 0.031 | +0.069 ± 0.039 | +0.051 |
+
+     Earnings and ordinary agree within an error at every band with enough events; only
+     beyond five times (12 earnings falls) does a gap appear, at 1.7 errors. So Ederington
+     and Lee hold here. The split in local sd is the expected part of a scheduled move,
+     which leaves volatility alone; the surprise raises it as any surprise does. The model
+     with no earnings term has neither part. It misses a small crush after mild earnings
+     moves (−0.051 ± 0.014 against −0.003) and a small rise after big ones (+0.156 ± 0.040
+     against +0.051), each about 0.05 in log volatility. A surprise against analysts'
+     consensus would need I/B/E/S-type data, which EDGAR does not carry; the price's
+     reaction is the measure used here.
+   - **Open, for Sergei: an earnings term in h.** Feeding an earnings move to the factors
+     at its surprise size would close the gap: as an ordinary move scaled by the ratio of
+     typical sizes, with a small fall for the expected part. One or two parameters, fitted
+     directly on the kick table as the earnings law was. It would mean rebuilding the
+     tables. The effect is a few weeks of volatility about 5% off, four times a year:
+     probably small for the wheel, which step 7 would measure. **Decided** (Sergei,
+     2026-11-22): "if the contribution of the earnings to the wheel is small, to not include
+     the parameter into the model, but explain why we simplify it in the article. We need to
+     measure the effect first." So the term is measured before it is adopted, and left out
+     with the reason stated if its effect on the wheel is small.
+   - **To read when Sergei can get them:**
+     - the published Petersen (2009), to check the draft's figures;
+     - optionally Cornell (1978, *Financial Management* 7(1):54–59), events of predictable
+       and unpredictable timing.
+
+     Arrived the same day: Patell and Wolfson (1981) and Ederington and Lee (1996), as page
+     images assembled into PDFs; the published Dubinsky et al. (2019), pp. 646–654 only.
 6. **The overlay**, from the trade-log panel against the fair layer at the same state; the IBKR
    implied-volatility series if it can be had.
 7. **Magnitudes**, result by result, from the simulator. Every excess return is read against

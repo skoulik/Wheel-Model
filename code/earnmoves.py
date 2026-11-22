@@ -51,6 +51,7 @@ import numpy as np
 import earnings
 import jumps
 import volfit as F
+import volprocess as VP
 import volstats as V
 
 RESULTS = os.path.join("data", "aristocrats", "earnmoves.json")
@@ -117,13 +118,14 @@ def measure(R, raw, rows, cols):
     return {k: v[good] for k, v in out.items()}
 
 
-def ordinary_kicks(R):
-    """(s, kick) on every clean day: the standardized move and the kick after it."""
+def ordinary_kicks(R, blocks):
+    """(s, kick, calendar block) on every clean day: the standardized move, the kick after
+    it, and the block it falls in."""
     pairs = V._pairs(R)
     s, _, _ = V.standardize(R, pairs)
     k = V.kicks(R, pairs)
     good = np.isfinite(s) & np.isfinite(k)
-    return s[good], k[good]
+    return s[good], k[good], blocks[good]
 
 
 # ---------------------------------------------------------------------------- the law
@@ -214,6 +216,79 @@ def _law_line(q, se=None):
             v += f" ± {se[k]:.3f}"
         parts.append(v)
     return ", ".join(parts)
+
+
+def kick_split(ev, ev_blocks, s_ord, k_ord, b_ord):
+    """The kick after an earnings move beyond c local sd against the kick after an ordinary
+    day's move beyond c, and their difference, each with its calendar-block jackknife error
+    (both sets' days in a block deleted together). Earnings scheduled, ordinary moves not:
+    the split that says scheduled news resolves uncertainty and unscheduled bad news creates
+    it."""
+    ids = np.unique(np.concatenate([ev_blocks[ev_blocks >= 0], b_ord[b_ord >= 0]]))
+    K = len(ids)
+    print("\n  kick after a move beyond c, earnings | ordinary days | difference "
+          "(calendar-block errors)")
+    for side, sign in V.SIDES:
+        for c in (3.0, 4.0, 6.0):
+            ke = np.isfinite(ev["kick"]) & (sign * ev["s"] > c)
+            ko = sign * s_ord > c
+
+            def means(drop=None):
+                a = ke if drop is None else ke & (ev_blocks != drop)
+                b = ko if drop is None else ko & (b_ord != drop)
+                e, o = ev["kick"][a].mean(), k_ord[b].mean()
+                return np.array([e, o, e - o])
+
+            whole = means()
+            reps = np.array([means(k) for k in ids])
+            se = np.sqrt((K - 1) / K * ((reps - reps.mean(axis=0)) ** 2).sum(axis=0))
+            print(f"    {side:4} beyond {c:g}: {whole[0]:+.3f} ± {se[0]:.3f} ({ke.sum()}) | "
+                  f"{whole[1]:+.3f} ± {se[1]:.3f} ({ko.sum()}) | {whole[2]:+.3f} ± {se[2]:.3f}")
+
+
+SURPRISE_BANDS = ((0, 1), (1, 1.5), (1.5, 2), (2, 3), (3, 5), (5, np.inf))
+
+
+def kick_by_surprise(ev, ev_blocks, s_ord, k_ord, b_ord, model=None):
+    """Ederington and Lee's (1996) test on realized volatility: the kick after a move
+    measured in units of its own kind's typical size -- |s| over the mean |s| of earnings
+    windows, or of ordinary days -- so that what is compared is the surprise beyond what that
+    kind of day was expected to bring. Earnings against ordinary days, with calendar-block
+    errors; `model`, the (kick, s) of fake earnings windows from the fitted model, beside.
+    Measured 2026-11-22: within an error of each other at every band with enough events, so
+    the earnings split in local sd (`kick_split`) is the expected part of a scheduled move,
+    which leaves volatility alone, and the surprise raises it as any surprise does."""
+    me, mo = np.abs(ev["s"]).mean(), np.abs(s_ord).mean()
+    ue, uo = np.abs(ev["s"]) / me, np.abs(s_ord) / mo
+    ids = np.unique(np.concatenate([ev_blocks[ev_blocks >= 0], b_ord[b_ord >= 0]]))
+    K = len(ids)
+    print(f"\n  kick after a move of u times its kind's typical size (earnings {me:.2f} local "
+          f"sd, ordinary days {mo:.2f}): earnings | ordinary | difference"
+          + (" | model, fake dates" if model is not None else ""))
+    for side, sign in V.SIDES:
+        for lo, hi in SURPRISE_BANDS:
+            ke = (np.isfinite(ev["kick"]) & (np.sign(ev["s"]) == sign)
+                  & (ue >= lo) & (ue < hi))
+            ko = (np.sign(s_ord) == sign) & (uo >= lo) & (uo < hi)
+
+            def means(drop=None):
+                a = ke if drop is None else ke & (ev_blocks != drop)
+                b = ko if drop is None else ko & (b_ord != drop)
+                e, o = ev["kick"][a].mean(), k_ord[b].mean()
+                return np.array([e, o, e - o])
+
+            w = means()
+            reps = np.array([means(k) for k in ids])
+            se = np.sqrt((K - 1) / K * ((reps - reps.mean(axis=0)) ** 2).sum(axis=0))
+            extra = ""
+            if model is not None:
+                fk, fs = model
+                fu = np.abs(fs) / np.abs(fs).mean()
+                km = np.isfinite(fk) & (np.sign(fs) == sign) & (fu >= lo) & (fu < hi)
+                extra = f" | {fk[km].mean():+.3f}"
+            print(f"    {side:4} u {lo:g}-{hi:g}: {w[0]:+.3f} ± {se[0]:.3f} ({ke.sum():4}) | "
+                  f"{w[1]:+.3f} ± {se[1]:.3f} ({ko.sum():6}) | {w[2]:+.3f} ± {se[2]:.3f}"
+                  + extra)
 
 
 def report_moves(ev, sectors_of_row, s_ord, k_ord):
@@ -332,10 +407,18 @@ def main():
     names, syms, days, R, raw, ok = universe()
     rows, cols = event_cells(names, syms, days, raw, ok)
     ev = measure(R, raw, rows, cols)
-    blocks = F.calendar_blocks(days, R.shape)[ev["row"], ev["col"]]
+    all_blocks = F.calendar_blocks(days, R.shape)
+    blocks = all_blocks[ev["row"], ev["col"]]
     sector = np.array([next(n for n, test in SECTORS if test(sic(s))) for s in syms])
-    s_ord, k_ord = ordinary_kicks(R)
+    s_ord, k_ord, b_ord = ordinary_kicks(R, all_blocks)
     report_moves(ev, sector, s_ord, k_ord)
+    kick_split(ev, blocks, s_ord, k_ord, b_ord)
+    p_vol = dict(F.START)
+    p_vol.update(json.load(open(VOL_FIT))["params"])
+    fakes = [fake_fit(p_vol, VP.EARN, R, ev, sd)[1] for sd in FAKE_SEEDS[:4]]
+    kick_by_surprise(ev, blocks, s_ord, k_ord, b_ord,
+                     model=(np.concatenate([f["kick"] for f in fakes]),
+                            np.concatenate([f["s"] for f in fakes])))
     result, q = report_fit(ev, blocks)
     for group in (("utilities", "REITs"), ("others",)):
         keep = np.isin(sector[ev["row"]], group)
