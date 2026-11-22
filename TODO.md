@@ -1907,3 +1907,25 @@ read per open lot per week.
   standing regression guard; diff `dollars` and `stochvol` against the committed version.
 - **When:** before the next large batch, such as §11's constrained account under the fitted
   process or a rerun of step 7, not in the middle of one.
+
+**Done the same day, and measured** (before restarting step 7, at Sergei's request).
+- **The paths are stepped beforehand** (`fairprice.path_states`), a batch at a time in
+  numpy, and the event loop reads them at the weekly events.
+- **The state's interpolation weights are cached per event** (`volprocess.Tables._weights`).
+  That is exact, and gains little: in a typical week only one or two lots' calls expire.
+- **Single-process, the gain was only about 10%.** The profile puts the time in the weekly
+  bookkeeping, not the stepping: `run_path` 4.1s, the call reads 3.7s and Black–Scholes 1.2s,
+  of 17s profiled. So this item's "two to three times" was wrong for one process.
+- **In the pool the gain was large:** `--scenario fittedvol` at 640 paths, four runs, took
+  31 seconds against several minutes before.
+- **The checks passed.** At 640 paths, the fitted μ = r excess plus leak is −1.3 ± 1.0bp.
+  Paired, the fitted real-world test reads −1.1 ± 0.4bp against constant σ's −0.8 ± 0.5bp.
+  Inventory and the gap ratio agree with the old stepping within errors. `dollars` and
+  `stochvol` are byte-identical.
+- **Two memory fixes made at the same time,** after step 7's first run was stopped for want
+  of memory:
+  - a pool worker keeps one table set at a time (`wheel_sim.fitted_parts`);
+  - `magnitudes` writes each process and regime as it finishes, and resumes from what is
+    written.
+- **What would still pay:** vectorizing the wheel's per-lot bookkeeping across paths, a
+  rewrite. Left open, to be weighed if a batch ever needs it.

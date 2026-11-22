@@ -125,6 +125,56 @@ def simulate(proc, hf0, hs0, m, excess, draws, final=False):
     return (L, Hs, hf, hs) if final else (L, Hs)
 
 
+def path_states(proc, n, years, m, seed):
+    """`volprocess.Process.step` on arrays, for the simulator (TODO INF-9): n whole paths of
+    the process at price drift m, each from the stationary state (BURN sessions from h = 0)
+    with its own earnings calendar, the earnings term too when `proc` carries one. Kept at
+    every fifth session, the simulator's weekly events: {"logS", "hf", "hs"} of shape
+    (weeks + 1, n), and "e0", each path's earnings phase. The wheel never feeds back into
+    the price, so a batch's paths can be stepped together before its event loop runs, which
+    then reads them at the events alone; the draws are numpy's, so the results match the
+    session-by-session stepping in distribution, not draw for draw."""
+    g = np.random.default_rng(seed)
+    T = int(round(years * VP.SESSIONS))
+    if T % 5:
+        raise ValueError("the simulator's events fall every five sessions")
+    hf, hs, logS = np.zeros(n), np.zeros(n), np.zeros(n)
+    e0 = g.integers(0, VP.EARNINGS_EVERY, n)
+    out = {k: np.empty((T // 5 + 1, n)) for k in ("logS", "hf", "hs")}
+    for t in range(-VP.BURN, T):
+        if t >= 0 and t % 5 == 0:
+            out["logS"][t // 5], out["hf"][t // 5], out["hs"][t // 5] = logS, hf, hs
+        H = np.clip(hf + hs, -VP.H_CLIP, VP.H_CLIP)
+        sd = proc.sig_bar * np.exp(H)
+        z, u, w = g.standard_normal(n), g.random(n), g.exponential(size=n)
+        ret = m * VP.DT - 0.5 * sd * sd + sd * z
+        x = z
+        down = 0.0
+        if proc.jumps:
+            comp, jump, down = _jump_parts(proc, H, u, w)
+            ret = ret - comp + jump
+            x = x + jump / sd
+        nf = proc.phi_f * hf + proc.th_f * x + proc.k_f * down
+        ns = proc.phi_s * hs + proc.th_s * x + proc.k_s * down
+        if proc.earnings and t >= 0:
+            earn = (t - e0) % VP.EARNINGS_EVERY == 0
+            if earn.any():
+                ue, we = g.random(n), g.exponential(size=n)
+                ret = np.where(earn, ret + earnings_factor(proc, H, ue, we), ret)
+                if proc.efb:
+                    Y = np.where(ue < proc.pe, proc.aeu, -proc.aed) * we
+                    dh = np.where(earn, -proc.efb[0] + proc.efb[1]
+                                  * np.maximum(np.abs(Y) / proc.ey - 1.0, 0.0), 0.0)
+                    nf = nf + proc.kf_share * dh
+                    ns = ns + (1.0 - proc.kf_share) * dh
+        hf, hs = nf, ns
+        if t >= 0:
+            logS = logS + ret
+    out["logS"][T // 5], out["hf"][T // 5], out["hs"][T // 5] = logS, hf, hs
+    out["e0"] = e0
+    return out
+
+
 def earnings_factor(proc, H, ue, we):
     """Log of the earnings session's gross return beyond its diffusion, at state H."""
     if not proc.earnings:

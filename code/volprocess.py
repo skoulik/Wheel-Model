@@ -185,6 +185,10 @@ class Tables:
         # ...each [phase][i][j][k], by the sessions of the call's life left
         self.u_scale = data["u scale"]              # x / u: the run's sigma * sqrt(tau_c)
         self.sig_bar = data["sig bar"]
+        # The state's interpolation weights, for the last (h_fast, h_slow) asked: every lot
+        # read at one event shares them, and recomputing them per lot was two-thirds of a
+        # read's cost (TODO INF-9).
+        self._w = self._g = None
 
     @staticmethod
     def _axis(v, v0, dv, n):
@@ -209,9 +213,15 @@ class Tables:
         return i, (-(t - 1) * (t - 2) * (t - 3) / 6, t * (t - 2) * (t - 3) / 2,
                    -t * (t - 1) * (t - 3) / 2, t * (t - 1) * (t - 2) / 6)
 
+    def _weights(self, hf, hs):
+        w = self._w
+        if w is None or w[0] != hf or w[1] != hs:
+            w = self._w = (hf, hs, self._cubic(hf, self.hf0, self.dhf, self.nf),
+                           self._cubic(hs, self.hs0, self.dhs, self.ns))
+        return w[2], w[3]
+
     def _bicubic(self, grid, hf, hs):
-        i, wi = self._cubic(hf, self.hf0, self.dhf, self.nf)
-        j, wj = self._cubic(hs, self.hs0, self.dhs, self.ns)
+        (i, wi), (j, wj) = self._weights(hf, hs)
         v = 0.0
         for a in range(4):
             row = grid[i + a]
@@ -227,8 +237,7 @@ class Tables:
     def call_iv(self, hf, hs, phase, x, sessions=20):
         """Implied volatility of the call at depth x = ln(K/S) with `sessions` of its life
         left (20 is tau_c): cubic in the state, linear in the standardized depth."""
-        i, wi = self._cubic(hf, self.hf0, self.dhf, self.nf)
-        j, wj = self._cubic(hs, self.hs0, self.dhs, self.ns)
+        (i, wi), (j, wj) = self._weights(hf, hs)
         k, c = self._axis(x / self.u_scale, self.u0, self.du, self.nu)
         g = self.call_lniv[sessions][phase]
         v = 0.0
@@ -253,10 +262,12 @@ class Tables:
     def call_iv_grad(self, hf, hs, phase, x, sessions=20):
         """(iv, d iv/d h_fast, d iv/d h_slow, d iv/d x) of `call_iv`, for an option's
         delta through both its channels."""
-        i, wi = self._cubic(hf, self.hf0, self.dhf, self.nf)
-        _, di = self._cubic_slope(hf, self.hf0, self.dhf, self.nf)
-        j, wj = self._cubic(hs, self.hs0, self.dhs, self.ns)
-        _, dj = self._cubic_slope(hs, self.hs0, self.dhs, self.ns)
+        (i, wi), (j, wj) = self._weights(hf, hs)
+        gw = self._g
+        if gw is None or gw[0] != hf or gw[1] != hs:
+            gw = self._g = (hf, hs, self._cubic_slope(hf, self.hf0, self.dhf, self.nf)[1],
+                            self._cubic_slope(hs, self.hs0, self.dhs, self.ns)[1])
+        di, dj = gw[2], gw[3]
         k, c = self._axis(x / self.u_scale, self.u0, self.du, self.nu)
         g = self.call_lniv[sessions][phase]
         v = vf = vs = vx = 0.0

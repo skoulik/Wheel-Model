@@ -441,6 +441,10 @@ def fitted_parts(P):
     key = (P.sigma, P.mu, P.r, P.delta, P.p_star, P.vol_jumps, P.vol_earnings,
            P.vol_earn_feedback)
     if key not in _FITTED:
+        # One set at a time: a pool worker running many cases would otherwise hold every
+        # set it met, about a hundred megabytes each as Python lists, and step 7's run was
+        # stopped for want of memory that way (2026-11-22). A reload is a second or two.
+        _FITTED.clear()
         import fairprice
         data = fairprice.load({"sigma": P.sigma, "mu": P.mu, "r": P.r, "delta": P.delta,
                                "p_star": P.p_star, "jumps": P.vol_jumps,
@@ -494,7 +498,7 @@ def bridge_hit(s_a, s_b, b_a, b_b, var, u):
     return u < exp(-2.0 * log(s_a / b_a) * log(s_b / b_b) / var)
 
 
-def run_path(P, rng, agg):
+def run_path(P, rng, agg, states=None):
     S, t = 1.0, 0.0
     heap = []
     seq = 0
@@ -516,11 +520,12 @@ def run_path(P, rng, agg):
     fv = P.vol_fitted
     if fv:
         proc, tables = fitted_parts(P)
-        m_real = P.mu - P.delta
-        hf = hs = 0.0
-        for _ in range(VP.BURN):            # started from the stationary state
-            _, hf, hs = proc.step(0.0, hf, hs, m_real, 0.0, False, rng)
-        e0 = rng.randrange(VP.EARNINGS_EVERY)   # this path's earnings calendar
+        # The path, stepped beforehand with its batch (fairprice.path_states, TODO INF-9):
+        # read at the weekly events, from the stationary state, with its earnings calendar.
+        st, i_ = states
+        w_logS, w_hf, w_hs = (st[k][:, i_].tolist() for k in ("logS", "hf", "hs"))
+        e0 = int(st["e0"][i_])
+        hf, hs = w_hf[0], w_hs[0]
         n_now = 0                           # sessions stepped so far
         sig_now = proc.annual_vol(hf, hs)
 
@@ -647,12 +652,9 @@ def run_path(P, rng, agg):
         if sv:
             S, h = advance_sv(S, h, t, te, P, rng)
         elif fv:
-            n_to = round(te * VP.SESSIONS)
-            logS = log(S)
-            for n_ in range(n_now, n_to):
-                logS, hf, hs = proc.step(logS, hf, hs, m_real, 0.0,
-                                         (n_ - e0) % VP.EARNINGS_EVERY == 0, rng)
-            S, n_now = exp(logS), n_to
+            n_now = round(te * VP.SESSIONS)
+            k_ = n_now // 5
+            S, hf, hs = exp(w_logS[k_]), w_hf[k_], w_hs[k_]
         else:
             S = advance(S, t, te, P, rng)
         t = te
@@ -958,10 +960,19 @@ def run_path(P, rng, agg):
 
 
 def simulate(P, seed=None, paths=None):
-    rng = random.Random(P.seed if seed is None else seed)
+    seed = P.seed if seed is None else seed
+    rng = random.Random(seed)
     agg = Agg()
-    for _ in range(P.paths if paths is None else paths):
-        run_path(P, rng, agg)
+    n = P.paths if paths is None else paths
+    states = None
+    if P.vol_fitted:
+        # The fitted process is stepped for the whole batch at once, in numpy: the wheel
+        # never feeds back into the price (TODO INF-9).
+        import fairprice
+        proc, _ = fitted_parts(P)
+        states = fairprice.path_states(proc, n, P.years, P.mu - P.delta, seed)
+    for i in range(n):
+        run_path(P, rng, agg, None if states is None else (states, i))
     return agg
 
 
@@ -2121,36 +2132,51 @@ def magnitudes(args):
                         seed=args.seed, iv_spread=spread, record_gaps=True,
                         book_delta=(drift == "real" and years == 30.0 and spread == 0.0),
                         **kw)))
-    for *_, P in cases:
-        if P.vol_fitted:
-            fitted_parts(P)                 # tables built in the parent, once per key
-    jobs, spans = [], []
-    for c in cases:
-        js = batch_jobs(c[-1])
-        spans.append((c, len(jobs), len(jobs) + len(js)))
-        jobs += js
-    aggs = pmap(_batch, jobs)
+    path = os.path.join("data", "magnitudes.json")
     out = {}
+    if os.path.exists(path):              # resume: a group already written is not rerun
+        with open(path) as f:
+            out = json.load(f)
 
     def mean_se(vals):
         m = sum(vals) / len(vals)
         return m, sqrt(sum((v - m) ** 2 for v in vals) / (len(vals) - 1) / len(vals))
 
-    rows = {}
-    for (proc, regime, years, spread, drift, P), i, j in spans:
-        rs = [_mag_row(P, g) for g in aggs[i:j]]
-        rows[(proc, regime, years, spread, drift)] = rs
-        name = f"{proc} | {regime} | {years:g}y | spread {spread:g} | {drift}"
-        out[name] = {k: mean_se([r[k] for r in rs if k in r]) for k in rs[0]}
-    for (proc, regime, years, spread, drift), rs in rows.items():
-        if drift == "real":
-            twin = rows[(proc, regime, years, spread, "twin")]
-            d = mean_se([a["excess + leak"] - b["excess + leak"] for a, b in zip(rs, twin)])
-            name = f"{proc} | {regime} | {years:g}y | spread {spread:g} | real"
-            out[name]["excess + leak, against its twin"] = d
-    os.makedirs("data", exist_ok=True)
-    with open(os.path.join("data", "magnitudes.json"), "w") as f:
-        json.dump(out, f, indent=1)
+    def name(proc, regime, years, spread, drift):
+        return f"{proc} | {regime} | {years:g}y | spread {spread:g} | {drift}"
+
+    # One process and regime at a time -- its eight cases, real runs beside their twins --
+    # each group written as it finishes, so an interruption costs one group at most.
+    groups = {}
+    for c in cases:
+        groups.setdefault(c[:2], []).append(c)
+    for (proc, regime), group in groups.items():
+        if all(name(*c[:5]) in out for c in group):
+            continue
+        for c in group:
+            if c[-1].vol_fitted:
+                fitted_parts(c[-1])         # tables built in the parent, once per key
+        jobs, spans = [], []
+        for c in group:
+            js = batch_jobs(c[-1])
+            spans.append((c, len(jobs), len(jobs) + len(js)))
+            jobs += js
+        aggs = pmap(_batch, jobs)
+        rows = {}
+        for c, i, j in spans:
+            rs = [_mag_row(c[-1], g) for g in aggs[i:j]]
+            rows[c[:5]] = rs
+            out[name(*c[:5])] = {k: mean_se([r[k] for r in rs if k in r]) for k in rs[0]}
+        for key, rs in rows.items():
+            if key[4] == "real":
+                twin = rows[key[:4] + ("twin",)]
+                out[name(*key)]["excess + leak, against its twin"] = mean_se(
+                    [a["excess + leak"] - b["excess + leak"] for a, b in zip(rs, twin)])
+        os.makedirs("data", exist_ok=True)
+        with open(path + ".tmp", "w") as f:
+            json.dump(out, f, indent=1)
+        os.replace(path + ".tmp", path)
+        print(f"  {proc}, {regime}: written", flush=True)
     keys = ("excess + leak, against its twin", "book delta", "book delta, price only",
             "up-beta", "down-beta", "assignment rate", "gap: mean", "gap: mean/median",
             "gap > 5%", "median holding, months", "left at first expiry", "E[I], lots",
