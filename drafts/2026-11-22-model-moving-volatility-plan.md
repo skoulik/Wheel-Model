@@ -659,6 +659,10 @@ volatility point at 30 years:
 | simulator, constant (seeds 1, 2) | 45.37, 45.61bp | 50.70, 51.12bp |
 | fitted lattice | **47.03bp** | **52.75bp** |
 | simulator, full process (seeds 1, 2) | 47.04, 47.20bp | 52.72, 52.81bp |
+| jumps lattice / simulator | 47.23 / 47.62, 46.85bp | 52.86 / 53.25, 52.37bp |
+| factors lattice / simulator | 44.55 / 45.45, 44.28bp | 49.91 / 50.92, 49.74bp |
+
+The volatility's moving alone lowers a point's worth a little; the jumps are what raise it.
 
 Step 7's +48.1bp was on the old σ̄; on the measured one a volatility point is worth about 4%
 more under the fitted process than at constant σ, not 6%.
