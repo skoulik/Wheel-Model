@@ -243,6 +243,51 @@ Ornthanalai 2012; Aït-Sahalia, Cacho-Diaz & Laeven 2015), the next remedy if th
 falls short; single stocks' "rough" volatility (Zarhali et al. 2025; Bennedsen, Lunde &
 Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for step 7.
 
+## Owed to the article
+
+What the prose must carry when Part II is revised or the difference is reported (Sergei,
+2026-11-21: "we will need to thoroughly describe and explain our methodology in the article's
+prose"; 2026-11-22, on the dropped earnings term: "make sure that the justification for the
+parameter drop lands in the article's prose"). Each item points to where its numbers are.
+1. **The method**, in full (decision 8; *The volatility fit — method*):
+   - the 48 statistics, computed the same way on the data and the simulation;
+   - the replicas on the data's own mask, and the fixed draws;
+   - the weights: names share episodes, so resampling names understated the variance 13
+     times. A calendar-block jackknife instead, after `kunsch-1989` and `petersen-2009`,
+     with its floor. Eleven blocks is few: the errors move by about a fifth across 1-, 2-
+     and 3-year blocks (step 5, (B));
+   - the search, the at-truth recoveries, and the sandwich errors with their diagonal
+     caveat.
+2. **The model, and why each part** (step 4):
+   - two factors, one rejected;
+   - no shocks of the volatility's own;
+   - θ, and the down-jump kick, whose precedent is `patton-sheppard-2015`;
+   - Kou jumps in units of volatility^β;
+   - γ and feedback dropped as undetermined.
+3. **A constant jump rate**, a choice the data allow. Tail moves cluster, and the kicks
+   reproduce it (step 5, (A), table). Maheu–McCurdy's clustering is the precedent.
+4. **Earnings** (step 5(a), (C), the surprise table, and the dropped term):
+   - the law: Kou, sizes nearly state-free, utilities and REITs half;
+   - [`ederington-lee-1996`]'s decomposition holding in single stocks' realized
+     volatility: the expected part of an earnings move leaves volatility alone, and the
+     surprise raises it as any surprise does;
+   - **the earnings term in h, measured and left out with its numbers**: excess 0.4bp,
+     inventory 0.07%, betas 0.001. The expected part's fall and the surprise's rise offset
+     for an option held for weeks;
+   - `patell-wolfson-1981` and `dubinsky-et-al-2019` for scheduled jumps and the implied
+     volatility's build-up and crush; their earnings premium is for the overlay;
+   - `christensen-timmermann-veliyev-2024`: another firm's earnings can jump a name that
+     announced nothing.
+5. **Fair prices** (step 5(c)–(d)):
+   - with no volatility shocks of its own, the pricing measure is one shift;
+   - the tables and their accuracy (`glasserman-2003`);
+   - both exact tests, with the vega channel: +0.006 on Δ̄, confirmed paired;
+   - every excess read against its pricing-drift twin.
+6. **II-38's answer and Merton's caveat**: a single stock's volatility against the index's
+   (step 4); half the down jumps fall on market-wide days.
+7. **What is left out, and why:** takeovers (decision 5), the index's leavers (step 2's
+   lower bound), the constant jump rate (3), the earnings term (4).
+
 ## Sequence
 
 1. **Earnings dates** (decision 6). `code/earnings.py`, in `prices.py`'s shape, with the
@@ -999,3 +1044,40 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
    depth walk modulated by them) and where in the article it lives — a revision of Part II, or
    the model kept and the difference reported where the assumption bites. Decided then, on the
    measurements.
+
+   **Design, proposed 2026-11-22** (awaiting Sergei's go-ahead):
+   - **Four processes, each at total variance σ²:**
+     - constant σ;
+     - the fitted factors without jumps or earnings (θ alone moves h);
+     - with the unscheduled jumps and their kick;
+     - the full fitted process with earnings.
+     Each step attributes its part of the difference, and each gets its own tables at its
+     own σ̄ (the earnings-term lesson: tables must match the process's variance).
+   - **Both regimes:** Standard p\* = 20% and Conservative 10%.
+   - **Horizons:** 30 years for every result, and 5 and 10 years for inventory and the
+     excess, which Part II quotes at those horizons. 5,120 paths each.
+   - **The results, by section:**
+     - **§05:** the assignment rate, and E[d] with its tail (mean/median, beyond 5% and
+       10%).
+     - **§07:** the median and mean holding time, the survival curve, the share leaving at
+       the first expiry.
+     - **§08:** E[I] at 5, 10 and 30 years, the census by depth, both capitals.
+     - **§09:**
+       - the economic excess, paired with its twin;
+       - the book's delta, split by channel;
+       - the up- and down-betas;
+       - the excess's sensitivity to a volatility point of spread (σ_IV + 1 point,
+         paired), the article's 45bp;
+       - the Conservative regime's figures.
+     - **§10:** the two boundaries. Where lots stop returning and capital stops returning,
+       from the fitted process's long-run growth of log S and of 1/S, measured by
+       simulation, set against μ − δ > σ²/2 and μ − δ > σ².
+   - **Deferred: §11, the constrained account.** Its simulator monitors a barrier by
+     Brownian bridge, which jumps break, and `wheel_sim` refuses the fitted process there.
+     Carrying it means checking the barrier session by session. Taken up after these
+     numbers, if they say Part II is revised.
+   - **Output:** a `--scenario magnitudes` printing each result for the four processes and
+     both regimes, with errors. The plan records the tables, and from them, the decision
+     on `model.py` and where the change lives.
+   - **Cost:** 16 sets of tables (four processes, two regimes, two drifts), about five
+     minutes each in parallel. Then about 40 runs, a few hours in the background in all.
