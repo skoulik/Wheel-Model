@@ -359,7 +359,8 @@ def name_bootstrap_var(R):
 
 def block_jackknife_var(R, blocks):
     """Each statistic's variance by the delete-a-block jackknife over calendar periods,
-    every name's returns in the period deleted together (Künsch 1989).
+    every name's returns in the period deleted together: Künsch's (1989) deletion, on
+    non-overlapping blocks as Carlstein (1986) took them, carried to a panel.
 
     Resampling names treats them as independent; they are not -- 2008 and 2020 reached
     every one of them at once, and the persistence and leverage statistics at long lags

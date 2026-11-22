@@ -230,7 +230,10 @@ An [A] source is opened before the prose quotes a number from it.
 | jump risk unpriced in the fair layer | Merton 1976 (`merton-1976`) | defines the fair layer |
 | the jump test at daily frequency | Lee & Mykland 2008; Barndorff-Nielsen & Shephard 2004 | describes the jump measurement |
 | the joint fit by simulated moments, searched by Nelder–Mead | Duffie & Singleton 1993; Nelder & Mead 1965; Gao & Han 2012 | describes the fit |
-| the fit's weights: a calendar-block jackknife, since the names share episodes | Künsch 1989 (`kunsch-1989`) | describes how the distance is weighted |
+| the fit's weights: a calendar-block jackknife, since the names share episodes | Künsch 1989 (`kunsch-1989`), Petersen 2009 (`petersen-2009`) | describes how the distance is weighted |
+| the down-jump kick, and none after up jumps | Patton & Sheppard 2015 (`patton-sheppard-2015`) | describes the kick |
+| jump clustering, left out; jumps on earnings news | Maheu & McCurdy 2004 (`maheu-mccurdy-2004`) | states the constant jump rate as a limitation |
+| the pricing tables' stratified draws and control variate | Glasserman 2003 (`glasserman-2003`) | describes the fair-price tables |
 | the calibration universe and how members leave | ProShares holdings; S&P DJI methodology; SEC EDGAR; Yahoo prices | describes the universe |
 | the takeover rate's lower bound | Valantasis & Watts 2025 (member-years); Wikipedia (the six exits, until II-41) | introduces jumps |
 
@@ -602,19 +605,45 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
    - **The article** owes the reader the whole method (decision 8), the weighting finding
      with it, and its sources as the *Sources* table assigns them. Sergei (2026-11-22): the
      method is worth a big section of the article, or an article of its own.
-   - **What is new, and what is not** (2026-11-22, from a search only: none of these papers
-     opened yet, so each is read before it is cited). The down-jump kick has precedents:
-     Maheu and McCurdy (2004, *JF* 59:755) let jump and normal innovations feed back
-     asymmetrically into individual stocks' volatility, and Patton and Sheppard (2015,
-     *REStat* 97:683) find negative jumps raise future volatility and positive ones lower it,
-     on 105 stocks. The weighting finding is the panel-regression lesson of Petersen (2009,
-     *RFS* 22:435) carried to simulated-moment weights. Two factors are Chernov et al.'s;
-     single stocks' weaker leverage is Bouchaud, Matacz and Potters'. What the article can
-     claim as its own is the population (the live account's universe, by date), the numbers,
-     and the consequence for the wheel: §09's correlation of −1.0 is the down-jump kick, not a
-     size effect. Open: whether volatility needing no shocks of its own is new. It is a
-     statement about what these 48 statistics can see, and Maheu and McCurdy's model is
-     driven by the returns alone too.
+   - **What is new, and what is not** (2026-11-22: first from a search, then corrected on
+     reading the papers Sergei supplied the same day; the bibliography entries carry the
+     pages).
+     - **The down-jump kick** has one precedent, [`patton-sheppard-2015`]. On five-minute
+       prices for 105 stocks they find negative jumps raise future volatility and positive
+       ones lower it. Here the same holds in daily data, parametrically.
+     - **Maheu and McCurdy are not that precedent**, as the first version of this bullet said
+       [`maheu-mccurdy-2004`]. In their GARCH-jump model a jump feeds back into volatility
+       *less* than an ordinary move, and the bad-news asymmetry mostly vanishes when a jump
+       occurs. Their worked jumps are earnings surprises. What they do show is jump
+       clustering, which the fitted model leaves out (a constant jump rate): a limitation to
+       state.
+     - **Possibly new: earnings jumps and unscheduled jumps feed back differently.** Earnings
+       gaps leave volatility where the model without them would (step 5(a)), while an
+       unscheduled down jump nearly doubles it. Maheu and McCurdy pool the two, and Patton
+       and Sheppard's intraday data exclude the overnight returns where most earnings gaps
+       fall. One search found no study comparing them directly. Before the article claims
+       it, read Dubinsky, Johannes, Kaeck and Seeger (2019, *RFS* 32:646), which prices
+       earnings announcements as scheduled jumps (a free 2006 working paper exists). The
+       claim's reason is plain: scheduled news resolves the uncertainty that was waiting for
+       it, and unscheduled bad news creates some.
+     - **The weighting finding** is Petersen's panel lesson [`petersen-2009`] carried to
+       simulated-moment weights. His bootstrap of firm clusters is our name bootstrap,
+       and it assumes no correlation across firms. His clustering by time needs enough
+       periods, and our eleven blocks are at the low end of that (13–19% understated at ten,
+       in his simulations). The jackknife itself is [`kunsch-1989`]'s deletion on
+       non-overlapping blocks (Carlstein's arrangement), carried to a panel.
+     - **The rest:** two factors are Chernov et al.'s; single stocks' weaker leverage is
+       Bouchaud, Matacz and Potters'; the tables' variance reductions are textbook
+       [`glasserman-2003`].
+     - **What the article can claim as its own:**
+       - the population: the live account's universe, admitted by date;
+       - the numbers;
+       - the consequence for the wheel: §09's correlation of −1.0 is the down-jump kick,
+         not a size effect;
+       - the earnings split above, once checked.
+
+       Open: whether volatility needing no shocks of its own is new. It is a statement about
+       what these 48 statistics can see.
    - **Shared episodes** — half the down jumps on market-wide days, and the weights' factor of
      thirteen — are the account-level effect step 7 has to carry; one stock's model does not.
 5. **The simulator.** `wheel_sim.py` carries the process — jumps and earnings included — and
