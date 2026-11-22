@@ -1182,4 +1182,22 @@ parameter drop lands in the article's prose"). Each item points to where its num
      where one figure is enough; and whether `model.py` carries h (the plan's step 7) or the
      variable-σ figures come from the simulator alone.
 
-   §10's boundaries and §11 are not yet measured.
+   **§10's boundaries, measured 2026-11-22** (`fairprice.py --boundaries`, 400 paths × 200
+   years each). Each boundary is a convexity cost a year:
+   - lots return iff μ − δ > c1, the long-run drag of log S;
+   - their capital returns iff μ − δ > c2, the long-run growth of E[S₀/S_T].
+
+   The second is computed along the path tilted by e^(−log S), exact by change of measure.
+
+   | boundary | constant σ | factors | +jumps | full |
+   |---|---|---|---|---|
+   | c1: lots return | 2.00% | 2.00% | 2.03% | 2.02% |
+   | c2: capital returns | 4.00% | 4.15% | 4.36% | 4.31% |
+
+   The first boundary does not move. The second rises 0.31 points: the leverage effect alone
+   gives 0.15 (the tilt toward falls raises the volatility), and the jumps the rest. **For
+   the running example that matters.** Its μ − δ = 4.5% sat 0.5 points inside the capital
+   boundary and now sits 0.19 inside, so §10's "how close to the edge" story tightens. The
+   side-by-side form fits §10 well: both boundaries, both models.
+
+   §11 is not yet measured.

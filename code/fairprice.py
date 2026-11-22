@@ -175,6 +175,64 @@ def path_states(proc, n, years, m, seed):
     return out
 
 
+def boundaries(proc, n=400, years=200, seed=SEED):
+    """§10's two boundaries under `proc`, as convexity costs a year (step 7 of the plan): lots
+    return iff mu - delta > c1, and their capital iff mu - delta > c2 -- sigma^2/2 and sigma^2
+    at constant sigma. With the price drift compensated, c1 is the long-run drag of log S,
+    the mean over the state of K+(H) - E[noise] a session; c2 is the long-run growth of
+    E[S_0/S_T], the mean of K+(H) + K-(H), K the noise's log moment generating function at
+    +1 and -1. The second mean is taken along the path tilted by e^(-log S), z shifted by
+    -sigma_t and the jumps tilted, which by the change of measure makes it exact. Earnings
+    sessions add their own cumulants; they do not move h, so the tilt leaves them be."""
+    g = np.random.default_rng(seed)
+    T = int(years * VP.SESSIONS)
+    p = proc
+    out = {}
+    for tilt in (False, True):
+        hf, hs = np.zeros(n), np.zeros(n)
+        acc = np.zeros(n)
+        cnt = 0
+        for t in range(-VP.BURN, T):
+            H = np.clip(hf + hs, -VP.H_CLIP, VP.H_CLIP)
+            sd = p.sig_bar * np.exp(H)
+            s = p.sig_bar * np.exp(p.beta * H)
+            nj = 1.0 - p.pu - p.pd
+            kp = 0.5 * sd * sd + (np.log(nj + p.pu / (1 - s * p.au) + p.pd / (1 + s * p.ad))
+                                  if p.jumps else 0.0)
+            km = 0.5 * sd * sd + (np.log(nj + p.pu / (1 + s * p.au) + p.pd / (1 - s * p.ad))
+                                  if p.jumps else 0.0)
+            mean = s * (p.pu * p.au - p.pd * p.ad) if p.jumps else 0.0
+            if t >= 0:
+                acc += (kp + km) if tilt else (kp - mean)
+                if p.earnings and t % VP.EARNINGS_EVERY == 0:
+                    se = p.sig_bar * np.exp(p.be * H)
+                    ep = np.log(p.pe / (1 - se * p.aeu) + (1 - p.pe) / (1 + se * p.aed))
+                    em = np.log(p.pe / (1 + se * p.aeu) + (1 - p.pe) / (1 - se * p.aed))
+                    emean = se * (p.pe * p.aeu - (1 - p.pe) * p.aed)
+                    acc += (ep + em) if tilt else (ep - emean)
+                cnt += 1
+            z = g.standard_normal(n) - (sd if tilt else 0.0)
+            u, w = g.random(n), g.exponential(size=n)
+            x = z
+            down = 0.0
+            if p.jumps:
+                if tilt:
+                    a_u, a_d = p.pu / (1 + s * p.au), p.pd / (1 - s * p.ad)
+                    D = nj + a_u + a_d
+                    up, down = u < a_u / D, (u >= a_u / D) & (u < (a_u + a_d) / D)
+                    J = np.where(up, p.au / (1 + s * p.au) * w,
+                                 np.where(down, -p.ad / (1 - s * p.ad) * w, 0.0))
+                else:
+                    up, down = u < p.pu, (u >= p.pu) & (u < p.pu + p.pd)
+                    J = np.where(up, p.au * w, np.where(down, -p.ad * w, 0.0))
+                x = x + s * J / sd
+            hf = p.phi_f * hf + p.th_f * x + p.k_f * down
+            hs = p.phi_s * hs + p.th_s * x + p.k_s * down
+        rate = acc / cnt * VP.SESSIONS
+        out["c2" if tilt else "c1"] = (float(rate.mean()), float(rate.std(ddof=1) / sqrt(n)))
+    return out
+
+
 def earnings_factor(proc, H, ue, we):
     """Log of the earnings session's gross return beyond its diffusion, at state H."""
     if not proc.earnings:
@@ -567,6 +625,21 @@ def check(run=RUNNING):
               *(rows.std(axis=0, ddof=1) / rows.mean(axis=0))))
 
 
+def report_boundaries(sigma=0.20):
+    """§10's boundaries for the four processes of step 7, each at total variance sigma^2."""
+    print(f"§10's boundaries at sigma = {sigma:.2f}: lots return iff mu - delta > c1, their "
+          f"capital iff mu - delta > c2 (a year)")
+    print(f"  constant sigma: c1 {sigma ** 2 / 2:.4f}, c2 {sigma ** 2:.4f}")
+    for name, jumps, earnings in (("factors", False, False), ("+jumps", True, False),
+                                  ("full", True, True)):
+        sb = sig_bar(sigma, moments(jumps, earnings), jumps, earnings)
+        b = boundaries(VP.Process(sb, jumps, earnings))
+        print(f"  {name:8}: c1 {b['c1'][0]:.4f} ± {b['c1'][1]:.4f}, "
+              f"c2 {b['c2'][0]:.4f} ± {b['c2'][1]:.4f}", flush=True)
+
+
 if __name__ == "__main__":
     if "--check" in sys.argv:
         check()
+    if "--boundaries" in sys.argv:
+        report_boundaries()
