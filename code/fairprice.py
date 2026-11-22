@@ -125,7 +125,7 @@ def simulate(proc, hf0, hs0, m, excess, draws, final=False):
     return (L, Hs, hf, hs) if final else (L, Hs)
 
 
-def path_states(proc, n, years, m, seed):
+def path_states(proc, n, years, m, seed, daily=False):
     """`volprocess.Process.step` on arrays, for the simulator (TODO INF-9): n whole paths of
     the process at price drift m, each from the stationary state (BURN sessions from h = 0)
     with its own earnings calendar, the earnings term too when `proc` carries one. Kept at
@@ -141,9 +141,13 @@ def path_states(proc, n, years, m, seed):
     hf, hs, logS = np.zeros(n), np.zeros(n), np.zeros(n)
     e0 = g.integers(0, VP.EARNINGS_EVERY, n)
     out = {k: np.empty((T // 5 + 1, n)) for k in ("logS", "hf", "hs")}
+    if daily:                       # every close too, for a barrier checked daily
+        out["daily"] = np.empty((T + 1, n))
     for t in range(-VP.BURN, T):
         if t >= 0 and t % 5 == 0:
             out["logS"][t // 5], out["hf"][t // 5], out["hs"][t // 5] = logS, hf, hs
+        if daily and t >= 0:
+            out["daily"][t] = logS
         H = np.clip(hf + hs, -VP.H_CLIP, VP.H_CLIP)
         sd = proc.sig_bar * np.exp(H)
         z, u, w = g.standard_normal(n), g.random(n), g.exponential(size=n)
@@ -171,6 +175,8 @@ def path_states(proc, n, years, m, seed):
         if t >= 0:
             logS = logS + ret
     out["logS"][T // 5], out["hf"][T // 5], out["hs"][T // 5] = logS, hf, hs
+    if daily:
+        out["daily"][T] = logS
     out["e0"] = e0
     return out
 

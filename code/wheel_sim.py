@@ -77,7 +77,8 @@ T = tau_p, the article's running example.
 Stdlib only, but for fittedvol's tables, which fairprice.py builds with numpy.
 Run:  python code/wheel_sim.py
     [--scenario base|dividends|stress|sweep|validate|dollars|constrained|stochvol|
-                fittedvol|earnterm|magnitudes|all]
+                fittedvol|earnterm|magnitudes|
+                constrainedvol|all]
 """
 
 import argparse
@@ -171,6 +172,10 @@ class Params:
     vol_jumps: bool = True     # the unscheduled jumps (and so the down-jump kick)
     vol_earnings: bool = True  # the earnings jump, every 13 weeks
     vol_earn_feedback: tuple = None  # (c0, c1): an earnings term in h, to measure its cost
+    # -- the barrier checked at every daily close instead of by Brownian bridge: jumps break
+    # the bridge, so the fitted process needs it, and constant sigma takes it too when the
+    # two are compared like with like (Sergei, 2026-11-22: option b).  Off, nothing changes.
+    daily_barrier: bool = False
     record_gaps: bool = False  # keep each assignment's gap 1 - S/K (d's tail)
 
     def __post_init__(self):
@@ -189,8 +194,11 @@ class Params:
         if self.sv_eta > 0 and (len(self.regimes) > 1 or self.equity != float("inf")):
             raise ValueError("changing volatility is single-regime and unconstrained only")
         if self.vol_fitted:
-            if len(self.regimes) > 1 or self.equity != float("inf") or self.sv_eta > 0:
-                raise ValueError("the fitted process is single-regime and unconstrained")
+            if len(self.regimes) > 1 or self.sv_eta > 0:
+                raise ValueError("the fitted process is single-regime")
+            if self.equity != float("inf") and not self.daily_barrier:
+                raise ValueError("a finite account on the fitted process needs daily_barrier: "
+                                 "its jumps break the Brownian bridge")
             if (round(self.tau_p * VP.SESSIONS) != 5 or self.n != 4
                     or abs(self.cadence - self.tau_p) > 1e-12):
                 raise ValueError("the fitted process's tables are for a weekly put sold "
@@ -457,6 +465,22 @@ def fitted_parts(P):
     return _FITTED[key]
 
 
+def daily_hit(closes, b_a, b_b):
+    """Did a daily close touch the barrier? `closes` are the interval's closes after its
+    start, its last the end; the barrier runs linearly from b_a to b_b across them, as the
+    debit accrues between events.  Jumps make the Brownian bridge below wrong, so the
+    fitted process is monitored this way, and constant sigma too when the two are compared
+    (Params.daily_barrier)."""
+    if b_a <= 0.0 and b_b <= 0.0:
+        return False
+    k = len(closes)
+    for i, c in enumerate(closes, 1):
+        bar = b_a + (b_b - b_a) * i / k
+        if bar > 0.0 and c <= bar:
+            return True
+    return False
+
+
 def bridge_hit(s_a, s_b, b_a, b_b, var, u):
     """Did the price touch the barrier between two samples?
 
@@ -524,6 +548,7 @@ def run_path(P, rng, agg, states=None):
         # read at the weekly events, from the stationary state, with its earnings calendar.
         st, i_ = states
         w_logS, w_hf, w_hs = (st[k][:, i_].tolist() for k in ("logS", "hf", "hs"))
+        d_logS = st["daily"][:, i_].tolist() if "daily" in st else None
         e0 = int(st["e0"][i_])
         hf, hs = w_hf[0], w_hs[0]
         n_now = 0                           # sessions stepped so far
@@ -649,12 +674,25 @@ def run_path(P, rng, agg, states=None):
             break
         s_a = S
         sig_step = regime_at(P, t).sigma       # constrained runs are single-regime
+        closes = None
         if sv:
             S, h = advance_sv(S, h, t, te, P, rng)
         elif fv:
-            n_now = round(te * VP.SESSIONS)
+            n_prev, n_now = n_now, round(te * VP.SESSIONS)
             k_ = n_now // 5
             S, hf, hs = exp(w_logS[k_]), w_hf[k_], w_hs[k_]
+            if d_logS is not None:
+                closes = [exp(d_logS[n_]) for n_ in range(n_prev + 1, n_now + 1)]
+        elif P.daily_barrier:
+            # constant sigma closed day by day, for the barrier's daily check
+            rg_ = regime_at(P, t)
+            k_d = max(1, round((te - t) * VP.SESSIONS))
+            dd = (te - t) / k_d
+            closes = []
+            for _ in range(k_d):
+                S *= exp((rg_.mu - P.delta - rg_.sigma ** 2 / 2) * dd
+                         + rg_.sigma * sqrt(dd) * rng.gauss(0.0, 1.0))
+                closes.append(S)
         else:
             S = advance(S, t, te, P, rng)
         t = te
@@ -667,7 +705,8 @@ def run_path(P, rng, agg, states=None):
                 var = sig_step**2 * dt
                 if operating:
                     den = (1.0 - P.gamma_s) * len(lots)
-                    if bridge_hit(s_a, S, d_a / den, d_b / den, var, u):
+                    if (daily_hit(closes, d_a / den, d_b / den) if P.daily_barrier
+                            else bridge_hit(s_a, S, d_a / den, d_b / den, var, u)):
                         dead, t_liq, t_end = True, t, t
                         for lot in lots:       # sold out from under the operator
                             agg.durations.append(
@@ -675,7 +714,8 @@ def run_path(P, rng, agg, states=None):
                         lots = []
                         cash = 0.0
                         pending.clear()          # sold out with the rest
-                if shadow and bridge_hit(s_a, S, b_frozen, b_frozen, var, u):
+                if shadow and (daily_hit(closes, b_frozen, b_frozen) if P.daily_barrier
+                               else bridge_hit(s_a, S, b_frozen, b_frozen, var, u)):
                     t_stat = t
             # Nothing is left to learn from a dead path once its shadow has
             # resolved; until then the price alone is stepped on, which is all
@@ -970,7 +1010,8 @@ def simulate(P, seed=None, paths=None):
         # never feeds back into the price (TODO INF-9).
         import fairprice
         proc, _ = fitted_parts(P)
-        states = fairprice.path_states(proc, n, P.years, P.mu - P.delta, seed)
+        states = fairprice.path_states(proc, n, P.years, P.mu - P.delta, seed,
+                                       daily=P.daily_barrier and P.equity != float("inf"))
     for i in range(n):
         run_path(P, rng, agg, None if states is None else (states, i))
     return agg
@@ -2195,6 +2236,52 @@ def magnitudes(args):
     print("\nwritten data/magnitudes.json")
 
 
+def constrainedvol(args):
+    """§11's finite account under the fitted process (step 7 of the moving-volatility plan).
+
+    The two accounts `constrained` runs -- the article's own at the survivable stopping
+    rule, and A = 5 at L = 2, which uses its margin -- each three ways: constant sigma with
+    the Brownian bridge (§11's figures), constant sigma checked at every daily close, and
+    the fitted process checked at every daily close (Sergei, 2026-11-22: "Let's take the b
+    option", so that the side by side shows the process alone). Reported: the share of paths
+    sold out by 10, 30 and 60 years; the share that ever filled; and, after filling, the
+    share whose barrier frozen at that moment -- model.py's static assumption -- was touched.
+    """
+    import model
+    eps, gs = args.eps, args.gamma_s
+    C0 = model.Config(p_star=0.20, gamma_s=gs, label="Standard")
+    far = model.stationary(C0, "P")
+    econ = model.economics(C0, "P", far)
+    L_max = model.max_leverage(C0, "P", eps)
+    years = args.years or 60.0
+    paths = args.paths or 2000
+    w_stat = C0.r + econ["econ_excess"] - (C0.mu - C0.delta)
+    A_30 = model.economics(C0, "P", model.occupation(C0, "P"), horizon=30.0)["mv_capital"]
+    ways = (("constant, bridge", dict()), ("constant, daily", dict(daily_barrier=True)),
+            ("fitted, daily", dict(daily_barrier=True, vol_fitted=True)))
+    print(f"\n{'=' * 72}\n§11 UNDER THE FITTED PROCESS  ({paths} paths x {years:g}y, "
+          f"seed {args.seed})\n{'=' * 72}")
+    for A, L, label in ((A_30, L_max, f"A = {A_30:.2f} lots at the survivable rule "
+                                      f"L = {L_max:.4f}"),
+                        (5.0, 2.0, "A = 5.00 lots, levered L = 2.00")):
+        print(f"\n-- {label} --")
+        print(f"  {'':>18} {'sold 10y':>9} {'30y':>7} {'60y':>7} {'filled':>7} "
+              f"{'frozen hit 30y':>15}")
+        for name, kw in ways:
+            P = Params(delta=0.025, years=years, paths=paths, seed=args.seed, gamma_s=gs,
+                       equity=A, u_star=gs * L, draw="stationary", draw_frac=w_stat, **kw)
+            if P.vol_fitted:
+                fitted_parts(P)
+            g = simulate_batched(P)
+            n = len(g.t_liq)
+            sold = [sum(1 for x in g.t_liq if x <= h) / n for h in (10, 30, 60)]
+            filled = len(g.sat_times) / n
+            frozen = (sum(1 for x in g.liq_stat if x <= 30) / len(g.liq_stat)
+                      if g.liq_stat else float("nan"))
+            print(f"  {name:>18} {sold[0]:>9.1%} {sold[1]:>7.1%} {sold[2]:>7.1%} "
+                  f"{filled:>7.1%} {frozen:>15.1%}", flush=True)
+
+
 def _km_curve(durations):
     """The Kaplan-Meier curve as (event times in months, survival after each)."""
     ds = sorted(durations)
@@ -2218,7 +2305,7 @@ def main():
     ap.add_argument("--scenario", default="all",
                     choices=["base", "dividends", "stress", "sweep",
                              "validate", "dollars", "constrained", "stochvol",
-                             "fittedvol", "earnterm", "magnitudes", "all"])
+                             "fittedvol", "earnterm", "magnitudes", "constrainedvol", "all"])
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     ap.add_argument("--years", type=float, default=None,
@@ -2252,6 +2339,10 @@ def main():
 
     if args.scenario == "magnitudes":
         magnitudes(args)
+        return
+
+    if args.scenario == "constrainedvol":
+        constrainedvol(args)
         return
 
     if args.scenario == "fittedvol":
