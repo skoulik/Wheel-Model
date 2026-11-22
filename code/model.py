@@ -1952,14 +1952,47 @@ def _vol_lattice(C):
     return _LATTICE["data"], key
 
 
+_SPREAD = {}
+
+
+def _vol_spread(C, L):
+    """A volatility spread under the moving volatility: every option sold at its fair
+    implied volatility plus C.iv_spread, as `wheel_sim.py` sells it.  Kept as increments
+    on the fair prices, BS(iv + spread) - BS(iv), so that at no spread nothing moves:
+    "call" (nodes, kinds, cells) on the near grid; "first", the first call period's per
+    lot, over the exact entry's lots by node, kind and depth; "put", per put sold, over
+    the nodes' sales weighted by the stationary law and the calendar (the increment is
+    smooth in the state, so the nodes carry it as well as the exact sales would)."""
+    import fairprice as FP
+    import lattice
+    key = (_LATTICE.get("key"), C.iv_spread, C.r, C.delta)
+    if _SPREAD.get("key") == key:
+        return _SPREAD["value"]
+    sp = lattice.spread_tables(_vol_run(C), L)
+    h, xmax = lattice.GRIDS["near"]
+    x = (_np.arange(int(round(xmax / h))) + 0.5) * h
+    iv = sp["call iv near"]
+    k = _np.broadcast_to(_np.exp(x), iv.shape)
+    dcall = (FP.bs("call", k, C.tau_c, iv + C.iv_spread, C.r, C.delta)
+             - FP.bs("call", k, C.tau_c, iv, C.r, C.delta))
+    col = {c: i for i, c in enumerate(lattice.PUT_COLS)}
+    kp, ivp = _np.exp(L["put"][..., col["log k"]]), L["put"][..., col["iv"]]
+    w = L["pi"][:, None] * _np.array(_PUT_KIND_W)[None, :]
+    dput = float((w * (FP.bs("put", kp, C.tau_p, ivp + C.iv_spread, C.r, C.delta)
+                       - FP.bs("put", kp, C.tau_p, ivp, C.r, C.delta))).sum())
+    first = float((sp["first census"] * dcall).sum()) / float(L["first"][0])
+    _SPREAD.update(key=key, value={"call": dcall, "put": dput, "first": first})
+    return _SPREAD["value"]
+
+
 def _vol_entry(C, L):
     """The put's figures over its sales, from the exact entry (decision 10): sales from
-    exact stationary states across the earnings calendar.  Per put sold unless per lot."""
+    exact stationary states across the earnings calendar.  Per put sold unless per lot.
+    With a volatility spread the premium carries _vol_spread's increment."""
     import lattice
-    if C.iv_spread:
-        raise NotImplementedError("a volatility spread under the moving volatility needs each "
-                                  "sale's implied volatility, which the lattice does not yet hold")
     p = dict(zip(lattice.EXACT_PUT_COLS, (float(v) for v in L["exact put"])))
+    if C.iv_spread:
+        p["prem"] += _vol_spread(C, L)["put"] * p["sales"]
     N, A = p["sales"], p["assigned"]
     tp, dmu = C.tau_p, C.mu - C.r
     edge = (exp(C.r * tp) * p["prem"] - p["mark"]) / N     # E_Q - E_P of the payoff, a sale
@@ -2013,11 +2046,14 @@ def _vol_cells(C, L, g, n, h):
         cntP, s1P, s2P, sRP, sgP, cntQ, s1Q, sgQ = call
     else:
         cntP, s1P, s2P, sRP, cntQ, s1Q = call
+    prem = exp(-C.r * C.tau_c) * (s1Q - ex * cntQ)
     if C.iv_spread:
-        raise NotImplementedError("a volatility spread under the moving volatility needs each "
-                                  "cell's implied volatility, which the lattice does not yet hold")
-    cells = {"prem": exp(-C.r * C.tau_c) * (s1Q - ex * cntQ), "cost": s1P - ex * cntP,
-             "exits": cntP, "exitdepth": x * cntP - sRP}
+        if g != "near":
+            raise NotImplementedError("a volatility spread is kept on the near grid only: the "
+                                      "article reads it over finite horizons")
+        prem = prem + _vol_spread(C, L)["call"]
+    cells = {"prem": prem, "cost": s1P - ex * cntP, "exits": cntP,
+             "exitdepth": x * cntP - sRP}
 
     def by_phase(F):
         return _np.ascontiguousarray(_np.moveaxis(F[:, list(_PHASE_KIND), :], 1, 0))
@@ -2154,6 +2190,8 @@ def _vol_walk_run(C, L, g, h, x_max, j_max, eps, min_steps, census_h):
     # start of their second period, from U.  The census below is the grid's, from j = 1;
     # the census functions add the first period's from the same lots.
     f = _vol_first(L)
+    if C.iv_spread:
+        f["prem"] += _vol_spread(C, L)["first"]
     U = L[f"entry2 {g}"].astype(_np.float64) / float(L["first"][0])
     nxt = [(q + 4) % EARN_WEEKS for q in range(EARN_WEEKS)]   # U'[q] comes from U[q + 4]
     census = {H: _np.zeros((EARN_WEEKS, nodes, n)) for H in census_h}

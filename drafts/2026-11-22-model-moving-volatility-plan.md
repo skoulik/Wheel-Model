@@ -629,9 +629,39 @@ cache and reporting a missing lattice as skipped): the still lattice against the
 (h = 0.0025) on the first expiry and inventory at 30 years; the pricing-drift test on the
 still and the fitted lattices at μ = r, to 1e-9; under the fitted process the real-world
 test exactly (1e-9) and by channel (decision 8's 0.5bp), and the dial at p\*. All pass. The
-README and CLAUDE.md describe the lattice, its caches and their costs. **Stationary**, the
-still lattice reads E[T] = 2.0996 years, E[I(∞)] = 21.84 lots and 90% of it in 90.2 years,
-against the constant model's 2.0985, 21.83 and the article's 90.
+README and CLAUDE.md describe the lattice, its caches and their costs.
+
+**Stationary, decision 6** (4,000 periods on the coarse and fine grids, Richardson; about 70
+minutes for the fitted process):
+
+| | still lattice | constant model | fitted |
+|---|---|---|---|
+| E[T], years (Standard) | 2.0996 | 2.0985 | 2.1100 |
+| E[I(∞)], lots (Standard) | 21.84 | 21.83 | 21.94 |
+| 90% of E[I(∞)] reached in, years (Standard) | 90.2 | 90 (the article) | **103.4** |
+| E[T] / E[I(∞)] (Conservative) | 2.019 / 10.50 | | |
+
+The still lattice is the constant model. Under the fitted process the stationary means barely
+move (+0.5%) while inventory at 30 years falls 4%: lots leave sooner at first, but the deep
+ones linger — the long-run variance of log S is 7.5% above σ² — so equilibrium is approached
+more slowly, and §08's "90 years" becomes about 103. A side-by-side figure for §08.
+
+**A volatility spread on the moving path** (2026-11-23, `model._vol_spread`): every option
+sold at its fair implied volatility plus the spread, as the simulator sells it, kept as
+increments BS(iv + spread) − BS(iv) on the fair prices — the cells' from their premiums'
+implied volatilities (`lattice.spread_tables`, cached; no simulation), the first call
+period's over the exact entry's lots by node, kind and depth, the put's over the nodes. A
+volatility point at 30 years:
+
+| | Standard | Conservative |
+|---|---|---|
+| constant model / still lattice | 45.14 / 45.26bp | 50.46 / 50.65bp |
+| simulator, constant (seeds 1, 2) | 45.37, 45.61bp | 50.70, 51.12bp |
+| fitted lattice | **47.03bp** | **52.75bp** |
+| simulator, full process (seeds 1, 2) | 47.04, 47.20bp | 52.72, 52.81bp |
+
+Step 7's +48.1bp was on the old σ̄; on the measured one a volatility point is worth about 4%
+more under the fitted process than at constant σ, not 6%.
 
 Decision 8's test passes but for two of the simulator's own figures — the volatility channel
 of its delta, every process, and its tables' strike under the factors alone — and the

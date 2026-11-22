@@ -553,6 +553,13 @@ def _exact_chunk(job):
                       f"{side} uu": (u[sel] ** 2).sum(), f"{side} p0": p0[sel].sum(),
                       f"{side} p0u": (p0[sel] * u[sel]).sum(), f"{side} c": c[sel].sum(),
                       f"{side} cu": (c[sel] * u[sel]).sum()})
+    # the first period's lots by node, call kind and depth cell on the near grid, which a
+    # volatility spread reprices (model._vol_spread)
+    idx0, w0 = split(HF, HS, hf1, hs1)
+    cellN = np.minimum((x0 / h).astype(int), n_near - 1)
+    flat0 = ((idx0 * CALL_KINDS + ck[None, :]) * n_near + cellN[None, :]).ravel()
+    first_census = np.bincount(flat0, w0.ravel(), nodes * CALL_KINDS * n_near).reshape(
+        nodes, CALL_KINDS, n_near).astype(np.float32)
     # the depth census of the first period, and its exits, on each grid
     first_cells = {}
     for gname, (hg, xmax) in GRIDS.items():
@@ -573,7 +580,7 @@ def _exact_chunk(job):
         entry2[gname] = np.bincount(flat, w.ravel(), EARN_WEEKS * nodes * n).reshape(
             EARN_WEEKS, nodes, n).astype(np.float32)
     return {"put": put, "gaps": gaps, "first": first, "first cells": first_cells,
-            "entry2": entry2}
+            "first census": first_census, "entry2": entry2}
 
 
 # ---------------------------------------------------------------------------- the long run
@@ -736,7 +743,8 @@ def build_exact(run, data, verbose=True):
     parts = pmap(_exact_chunk, jobs, workers=min(EXACT_CHUNKS, os.cpu_count() or 1))
     out = {"exact put": np.array([sum(p["put"][c] for p in parts) for c in EXACT_PUT_COLS]),
            "exact gaps": np.sum([p["gaps"] for p in parts], axis=0),
-           "first": np.array([sum(p["first"][c] for p in parts) for c in FIRST_COLS])}
+           "first": np.array([sum(p["first"][c] for p in parts) for c in FIRST_COLS]),
+           "first census": np.sum([p["first census"] for p in parts], axis=0)}
     for g in GRIDS:
         out[f"first cells {g}"] = np.sum([p["first cells"][g] for p in parts], axis=0)
         out[f"entry2 {g}"] = np.sum([p["entry2"][g] for p in parts], axis=0)
@@ -757,6 +765,53 @@ def _cached(path, key, make):
     np.savez_compressed(tmp, key=np.array(json.dumps(key, sort_keys=True)), **data)
     os.replace(tmp, path)
     return data
+
+
+def _iv_rows(job):
+    """Implied volatilities of one row of nodes' fair call premiums on the near grid, each
+    kind and depth: a pmap worker.  A premium too small to carry one takes its shallower
+    neighbour's, as fairprice's tables do (`fairprice._fill`)."""
+    prem, x, r, delta = job
+    tc = TC * VP.DT
+    k = np.broadcast_to(np.exp(x), prem.shape)
+    iv = FP.implied("call", prem, k, tc, r, delta)
+    return np.exp(FP._fill(np.log(iv)))
+
+
+def spread_tables(run, data, verbose=True):
+    """What a volatility spread needs on the near grid (model._vol_spread), cached apart:
+    each node's fair call premiums as implied volatilities, (nodes, kinds, cells), and the
+    first call period's lots by node, kind and cell from the exact entry -- which, for a
+    lattice whose entry was built before it kept them, reruns phase C on its own seeds and
+    keeps only that, the rest coming out bit for bit as cached."""
+    ekey, eh = _exact_key(run)
+    key = {"exact": eh, "version": 1}
+
+    def make():
+        from model import pmap
+        t0 = time.time()
+        h, xmax = GRIDS["near"]
+        x = (np.arange(int(round(xmax / h))) + 0.5) * h
+        call = data["call near"]
+        prem = exp(-run["r"] * TC * VP.DT) * (call[:, :, 6, :] - np.exp(x) * call[:, :, 5, :])
+        rows = np.array_split(np.arange(prem.shape[0]), min(BUILD_WORKERS, prem.shape[0]))
+        ivs = pmap(_iv_rows, [(prem[rr], x, run["r"], run["delta"]) for rr in rows],
+                   workers=min(BUILD_WORKERS, os.cpu_count() or 1, len(rows)))
+        out = {"call iv near": np.concatenate(ivs)}
+        if "first census" in data:
+            out["first census"] = data["first census"]
+        else:
+            jobs = [(run, float(data["sig bar"]), SEED + 100 * (c + 1),
+                     EXACT_PATHS // EXACT_CHUNKS, data["put"][:, :, 0], prem)
+                    for c in range(EXACT_CHUNKS)]
+            parts = pmap(_exact_chunk, jobs, workers=min(EXACT_CHUNKS, os.cpu_count() or 1))
+            out["first census"] = np.sum([p["first census"] for p in parts], axis=0)
+        if verbose:
+            print(f"  lattice: spread tables [{time.time() - t0:.0f}s]", file=sys.stderr,
+                  flush=True)
+        return out
+
+    return _cached(os.path.join(CACHE, f"spread-{hashlib.sha1(json.dumps(key, sort_keys=True).encode()).hexdigest()[:12]}.npz"), key, make)
 
 
 def cached(run):
