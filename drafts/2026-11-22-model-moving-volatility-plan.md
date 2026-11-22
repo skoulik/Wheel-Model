@@ -639,12 +639,17 @@ minutes for the fitted process):
 | E[T], years (Standard) | 2.0996 | 2.0985 | 2.1100 |
 | E[I(∞)], lots (Standard) | 21.84 | 21.83 | 21.94 |
 | 90% of E[I(∞)] reached in, years (Standard) | 90.2 | 90 (the article) | **103.4** |
-| E[T] / E[I(∞)] (Conservative) | 2.019 / 10.50 | | |
+| E[T], years (Conservative) | 2.0194 | | **2.1441** |
+| E[I(∞)], lots (Conservative) | 10.50 | | **11.15** |
+| 90% reached in, years (Conservative) | 90.0 | | **103.9** |
 
 The still lattice is the constant model. Under the fitted process the stationary means barely
 move (+0.5%) while inventory at 30 years falls 4%: lots leave sooner at first, but the deep
 ones linger — the long-run variance of log S is 7.5% above σ² — so equilibrium is approached
-more slowly, and §08's "90 years" becomes about 103. A side-by-side figure for §08.
+more slowly, and §08's "90 years" becomes about 103. A side-by-side figure for §08. In the
+Conservative regime the stationary means rise 6% (E[T] 2.14 against 2.02 years) where its
+30-year inventory barely moves: a 10% dial is assigned mostly by large falls — its gaps beyond
+5% are six times the constant model's — so its lots start deeper and linger longer.
 
 **A volatility spread on the moving path** (2026-11-23, `model._vol_spread`): every option
 sold at its fair implied volatility plus the spread, as the simulator sells it, kept as
