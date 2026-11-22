@@ -1883,3 +1883,27 @@ Settle it when §09 is next opened: have `iv_panel.implied_vol` delegate to `mod
 keeping the range-guard wrapper where the data cleaning belongs, and **diff every §09 live
 figure before and after**. If any moves, the two solvers disagreed and that is a finding rather
 than a refactor.
+
+**INF-9. Speed up the simulator's fitted process.** (Raised 2026-11-22, Sergei, while step 7
+of II-40's plan ran for about three hours: "please write down the optimization in todo".)
+`wheel_sim.py --scenario fittedvol`, `earnterm` and `magnitudes` run in parallel already. The
+batches go through one `ProcessPoolExecutor` on every logical CPU, and `fairprice` builds its
+tables eight rows at a time. But the inner loop is plain Python. Every path steps
+`volprocess.Process` one session at a time, 260 a year, and every option sale reads the tables
+through a 16- to 64-term interpolation in Python. The book delta (`eff_delta`) adds a gradient
+read per open lot per week.
+- **The main gain:** the price path does not depend on what the wheel does. So each batch's
+  paths (log S and the two factors at every session, earnings included) can be generated
+  beforehand with numpy, vectorized across paths, and the event loop can then read S and h
+  at the weekly events only. That cuts the Python work about fivefold where it is spent;
+  perhaps two to three times overall.
+- **Then:** the table reads, vectorized over a week's sales across a batch's paths, or the
+  tables resampled onto a finer grid read linearly.
+- **The check:** the new draws differ from `random.Random`'s, so the results match
+  statistically, not byte for byte. The exact tests (`fittedvol`'s twin-paired excess
+  against −leak and against Δ̄·(μ − r) − leak) must still pass, and a 640-path run of each
+  scenario must agree with the old code within errors. Constant σ, and every scenario that
+  does not use the fitted process, must stay byte-identical. That is `wheel_sim.py`'s
+  standing regression guard; diff `dollars` and `stochvol` against the committed version.
+- **When:** before the next large batch, such as §11's constrained account under the fitted
+  process or a rerun of step 7, not in the middle of one.
