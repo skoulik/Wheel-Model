@@ -1121,3 +1121,50 @@ parameter drop lands in the article's prose"). Each item points to where its num
    record them here result by result. Then decide where the change lives, and carry the
    §10 boundaries (not in this scenario: the long-run growth of log S and of 1/S under each
    process, by simulation) and §11 as the design says.
+
+   **Results, 2026-11-22** (rerun after the memory fixes and INF-9; about 15 minutes in all).
+   Standard regime, 30 years, constant σ → the full fitted process, with the two steps
+   between; errors in `data/magnitudes.json`.
+
+   | result | constant | factors | +jumps | full |
+   |---|---|---|---|---|
+   | excess + leak, against its twin | 186.0bp | 186.8 | 186.1 | 186.1 (± 0.2–0.3) |
+   | book delta (price channel alone) | 0.932 | 0.936 (0.931) | 0.934 (0.928) | 0.934 (0.928) |
+   | one volatility point of spread (unpaired, same draws) | +45.4bp | +45.1 | +47.6 | +48.1 |
+   | assignment rate | 0.200 | 0.199 | 0.200 | 0.200 |
+   | gap at assignment: mean | 1.53% | 1.61% | 1.66% | 1.65% |
+   | gap: mean/median | 1.26 | 1.29 | 1.51 | 1.54 |
+   | gaps beyond 5% | 1.8% | 2.8% | 5.3% | 5.5% |
+   | left at the first expiry | 40.7% | 42.0% | 43.3% | 42.8% |
+   | E[I], 30 / 10 / 5 years | 11.34 / 7.29 / 5.26 | 11.03 / 7.11 / 5.19 | 10.64 / 6.82 / 4.99 | 10.66 / 6.92 / 5.11 |
+   | mean holding E[I]/λ, years | 1.09 | 1.06 | 1.02 | 1.03 |
+   | up-beta / down-beta | 0.827 / 1.000 | 0.842 / 1.001 | 0.840 / 0.993 | 0.834 / 0.993 |
+
+   The median holding time is eight weeks in every process (two call periods; the grid sets
+   it). The Conservative regime runs alike:
+   - the excess 182.4 → 183.0bp;
+   - a volatility point 50.7 → 54.0bp;
+   - E[I] at 30 years 5.48 → 5.37;
+   - gaps beyond 5% 0.85% → 5.4%, mean/median 1.29 → 1.61.
+
+   A caution for reading the output: the spread runs' "against its twin" figure is not the
+   spread's worth. The twin is sold at the spread too, so the pairing cancels the edge
+   itself. The spread's worth is the unpaired difference above, same draws, spread against
+   none.
+
+   **What the numbers say.** Moving volatility, jumps and earnings, priced fair, leave Part
+   II's central results standing within a few percent:
+   - **The excess return is unchanged** (186.0 against 186.1bp). The book's delta moves
+     +0.002, the volatility channel included.
+   - **The assignment rate holds at the dial.**
+   - **The median holding time holds at eight weeks.**
+   - **Inventory and mean holding fall 3–6%** (5 to 30 years), as lots leave a little sooner.
+   - **A volatility point is worth 6% more** (48 against 45bp), the jumps' part.
+   - **The up-beta rises 0.007 and the down-beta falls 0.007.**
+
+   What moves a lot is d's tail, the gap at assignment. Its mean/median goes from 1.26 to
+   1.54 and gaps beyond 5% triple, almost all from the jumps; the live account reads 2.3.
+
+   That points to keeping the constant-σ model in Part II and reporting the difference where
+   the assumption bites: §05's gap tail, §07–08's 3–6%, §09's betas and the 48bp. That is
+   Sergei's decision. §10's boundaries and §11 are not yet measured.
