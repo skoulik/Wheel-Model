@@ -792,7 +792,21 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
      the excess return itself, and there it cancels if each excess is read against its own
      pricing-drift twin, as the paired test does. If step 7 needs the excess unpaired at
      the basis point, the remedy is more table paths: four times as many halves the error,
-     for about twenty minutes a parameter set.
+     for about twenty minutes a parameter set. Sergei, 2026-11-22: "Let's do both". So
+     step 7 reads every excess paired, and the tables now pool four chunks of 200,000 draws
+     a node (`fairprice.CHUNKS`). Rerun at 5,120 paths on those tables:
+     - **The bias is gone.** At μ = r the fitted process reads +0.2 ± 0.5bp, against +1.1
+       before. A put's implied volatility is good to 0.07% and a near-the-money call's to
+       0.05%.
+     - **The channel result holds.** Δ̄ is 0.935 with both channels and 0.930 through the
+       price's alone. Paired, the reference reads −0.4 ± 0.2bp, both channels −0.5 ± 0.2bp
+       and the price's alone +0.5 ± 0.2bp: 0.9bp off, about three standard errors.
+     - **The build runs in parallel.** A row of nodes goes to each worker, eight at once.
+       Each worker regenerates the same seeded draws, so the result is bit-identical to the
+       serial build (checked): about five minutes against seventeen. Another session, asked
+       by Sergei to look at the run's utilization, pointed out the idle cores. It also
+       suggested reusing numpy buffers in the hot loop, which might save another 20–30%;
+       that is left until a build is the bottleneck.
    - **Nothing else moved.** `--scenario dollars` and `stochvol` are byte-identical with the
      committed simulator, and `verify_examples.py` passes.
 
@@ -802,7 +816,9 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
    Financial Engineering*, for stratification and control variates (not yet opened).
 6. **The overlay**, from the trade-log panel against the fair layer at the same state; the IBKR
    implied-volatility series if it can be had.
-7. **Magnitudes**, result by result, from the simulator; then `model.py` (h on 10–15 nodes, the
+7. **Magnitudes**, result by result, from the simulator. Every excess return is read against
+   its pricing-drift twin on the same draws, which removes the paths' shared noise and the
+   tables' common pricing error (step 5(d)). Then `model.py` (h on 10–15 nodes, the
    depth walk modulated by them) and where in the article it lives — a revision of Part II, or
    the model kept and the difference reported where the assumption bites. Decided then, on the
    measurements.

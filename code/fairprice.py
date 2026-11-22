@@ -30,20 +30,24 @@ cycle is priced from one set of paths. Phase 0 is a window with no earnings date
 draws serves every node, so the tables are smooth in the state. Each path's total diffusive
 shock is stratified (`draws`). And the terminal price is a control variate, with its
 regression coefficient for each strike: its fair mean is the forward S·e^((r−δ)τ) exactly,
-because each session's drift is compensated exactly. Measured over five sets of draws at a
-typical node (`--check`), a put's implied volatility is then good to about 0.1%, a call's to
-about 0.1% near the money (0.2% with earnings in its window), 0.5% two standard deviations
-out and 2% three out, where the premium is a few thousandths of the money's. Plain draws
+because each session's drift is compensated exactly. Each node pools CHUNKS sets of PATHS
+draws, 800,000 paths. Measured over five sets of draws at a typical node (`--check`), a
+put's implied volatility is then good to about 0.07%, a call's to about 0.05% near the money
+(0.07% with earnings in its window), 0.4% two standard deviations out and 0.9% three out,
+where the premium is a few thousandths of the money's. Plain draws at a quarter of the paths
 left 0.3% at the money; a control on the realized variance was tried and gained nothing.
 The test that matters is the simulator's: at the pricing drift its excess plus the leak
-must be zero (`wheel_sim.py --scenario fittedvol`).
+must be zero (`wheel_sim.py --scenario fittedvol`). With one chunk the tables read 1.1 ±
+0.5bp rich there at 5,120 paths, a level common to the whole table; with four, 0.2 ± 0.5bp.
 
 **σ̄** is set by `moments`: the averages of e^(2H), e^(2βH) and e^(2β_E·H) over the stationary
 state in the real world, from which the year's total variance is σ². They do not depend on σ̄,
 since the state's dynamics are scale-free.
 
-Tables are cached under data/fair/, keyed by everything they depend on; a missing one is built
-(about five minutes on the Windows desktop, 2026-11-22).
+Tables are cached under data/fair/, keyed by everything they depend on. A missing one is built
+a row of nodes per worker, BUILD_WORKERS at a time, each regenerating the same seeded draws,
+so the result is bit-identical to a serial build (checked 2026-11-22): about five minutes on
+the Windows desktop, against seventeen serially.
 
     python code/fairprice.py --check     # the tables' own checks, at the running example
 """
@@ -59,8 +63,10 @@ import numpy as np
 import volprocess as VP
 
 CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "data", "fair")
-VERSION = 4
-PATHS = 200_000
+VERSION = 5
+PATHS = 200_000                 # a chunk of draws
+CHUNKS = 4                      # chunks pooled at every node: 800,000 paths
+BUILD_WORKERS = 8               # rows built at once; each holds its own draws, ~1.6 GB
 SEED = 20261122
 TP, TC = 5, 20                  # sessions: the weekly put, the four-week call
 CALL_TENORS = (5, 10, 15, 20)   # a call's life left at each put sale; the sale is the last
@@ -179,10 +185,13 @@ def draws(T, N, seed):
             "ue": _strata(g, (N,)), "we": -np.log1p(-_strata(g, (N,)))}
 
 
-def draw_sets(seed):
-    """The three sets `node_prices` takes."""
-    return {"strike": draws(TP, PATHS, seed + 1), "put": draws(TP, PATHS, seed + 2),
-            "call": draws(TC, PATHS, seed)}
+def draw_sets(seed, chunks=None):
+    """The draws `node_prices` pools: CHUNKS sets (or `chunks`) of the three it takes,
+    each of PATHS paths. Chunk c's seeds are seed + 10c and the two after it."""
+    return [{"strike": draws(TP, PATHS, seed + 10 * c + 1),
+             "put": draws(TP, PATHS, seed + 10 * c + 2),
+             "call": draws(TC, PATHS, seed + 10 * c)}
+            for c in range(CHUNKS if chunks is None else chunks)]
 
 
 def moments(jumps=True, earnings=True, seed=SEED):
@@ -266,56 +275,79 @@ def _fill(lniv):
     return out
 
 
-def node_prices(proc, hf0, hs0, run, ds, u_grid=U_GRID):
+def node_prices(proc, hf0, hs0, run, chunks, u_grid=U_GRID):
     """At one node: the put's (log k*, ln iv) per phase, and {tenor: the call's ln iv per
-    phase and depth} for each of CALL_TENORS. `ds` holds three sets of draws, each
-    stratified at its own expiry (`draws`): "strike" (the put's tenor, real world), "put"
-    (the put's tenor, pricing measure, which also prices the five-session call), "call"
-    (the call's, pricing measure, which prices the longer ones). The calls at fewer than
-    twenty sessions are for an open call's delta and its mark at the window's end; the
-    premiums are the full-tenor ones."""
+    phase and depth} for each of CALL_TENORS. `chunks` is a list of draw sets (`draw_sets`),
+    pooled: each holds three, stratified at its own expiry (`draws`) -- "strike" (the put's
+    tenor, real world), "put" (the put's tenor, pricing measure, which also prices the
+    five-session call), "call" (the call's, pricing measure, which prices the longer ones).
+    The strike is the quantile of every chunk's paths together, and each price uses every
+    chunk's sums, control variate included, so the pool is one sample of chunks x PATHS.
+    The calls at fewer than twenty sessions are for an open call's delta and its mark at
+    the window's end; the premiums are the full-tenor ones."""
     r, delta, mu, p_star = run["r"], run["delta"], run["mu"], run["p_star"]
     excess = (mu - r) * VP.DT
-    dp, d5, dq = ds["strike"], ds["put"], ds["call"]
-    L5, H5 = simulate(proc, hf0, hs0, r - delta, excess, d5)
-    Lp, Hp = simulate(proc, hf0, hs0, mu - delta, 0.0, dp)
     tp = TP * VP.DT
+    # The strike first: the real-world quantile over the whole pool.
+    RP = [[] for _ in range(TP + 1)]
+    for ds in chunks:
+        dp = ds["strike"]
+        Lp, Hp = simulate(proc, hf0, hs0, mu - delta, 0.0, dp)
+        for phase in range(TP + 1):
+            ep = earnings_factor(proc, Hp[phase - 1], dp["ue"], dp["we"]) if phase else 0.0
+            RP[phase].append(np.exp(Lp[TP - 1] + ep))
+    ks = [float(np.quantile(np.concatenate(x), p_star)) for x in RP]
+    # Then the prices, from sums accumulated chunk by chunk: for each payoff, its sum and
+    # its sum times the terminal price, and the terminal price's first two moments.
+    K = np.exp(np.array(u_grid) * run["u scale"])
+    put_acc = np.zeros((TP + 1, 4))                 # sum pay, sum pay*R, sum R, sum R^2
+    call_acc = {t: [np.zeros((t + 1, len(K))), np.zeros((t + 1, len(K))),
+                    np.zeros(t + 1), np.zeros(t + 1)] for t in CALL_TENORS}
+    n_paths = 0
+    for ds in chunks:
+        d5, dq = ds["put"], ds["call"]
+        L5, H5 = simulate(proc, hf0, hs0, r - delta, excess, d5)
+        Lq, Hq = simulate(proc, hf0, hs0, r - delta, excess, dq)
+        n_paths += d5["z"].shape[1]
+        for phase in range(TP + 1):
+            eq = earnings_factor(proc, H5[phase - 1], d5["ue"], d5["we"]) if phase else 0.0
+            RQ = np.exp(L5[TP - 1] + eq)
+            pay = np.maximum(ks[phase] - RQ, 0.0)
+            put_acc[phase] += (pay.sum(), (pay * RQ).sum(), RQ.sum(), (RQ * RQ).sum())
+        for tenor in CALL_TENORS:
+            Lc, Hc, dc = (L5, H5, d5) if tenor == TP else (Lq, Hq, dq)
+            sp, spr, sr, srr = call_acc[tenor]
+            for phase in range(tenor + 1):
+                eq = earnings_factor(proc, Hc[phase - 1], dc["ue"], dc["we"]) if phase else 0.0
+                R = np.sort(np.exp(Lc[tenor - 1] + eq))
+                t1 = np.concatenate([np.cumsum(R[::-1])[::-1], [0.0]])       # sum of R[i:]
+                t2 = np.concatenate([np.cumsum((R * R)[::-1])[::-1], [0.0]])
+                i = np.searchsorted(R, K, side="right")
+                n, s1, s2 = R.size - i, t1[i], t2[i]
+                sp[phase] += s1 - K * n                  # sum (R - K)+
+                spr[phase] += s2 - K * s1                # sum (R - K)+ * R
+                sr[phase] += t1[0]
+                srr[phase] += t2[0]
+
+    def priced(s_pay, s_payr, s_r, s_rr, tau):
+        """The control-variate price from pooled sums: the payoff's mean less its
+        regression on the terminal price times that price's error against its forward."""
+        pay, payr, m1, m2 = s_pay / n_paths, s_payr / n_paths, s_r / n_paths, s_rr / n_paths
+        b = (payr - pay * m1) / (m2 - m1 * m1)
+        return exp(-r * tau) * (pay - b * (m1 - exp((r - delta) * tau)))
+
     out_put_k, out_put_iv = [], []
     for phase in range(TP + 1):
-        ep = earnings_factor(proc, Hp[phase - 1], dp["ue"], dp["we"]) if phase else 0.0
-        eq = earnings_factor(proc, H5[phase - 1], d5["ue"], d5["we"]) if phase else 0.0
-        RP = np.exp(Lp[TP - 1] + ep)
-        RQ = np.exp(L5[TP - 1] + eq)
-        k = float(np.quantile(RP, p_star))
-        F = exp((r - delta) * tp)
-        pay = np.maximum(k - RQ, 0.0)
-        m1 = RQ.mean()
-        b = ((pay * RQ).mean() - pay.mean() * m1) / ((RQ * RQ).mean() - m1 * m1)
-        price = exp(-r * tp) * (pay.mean() - b * (m1 - F))
-        out_put_k.append(log(k))
-        out_put_iv.append(float(np.log(implied("put", price, k, tp, r, delta))))
-    Lq, Hq = simulate(proc, hf0, hs0, r - delta, excess, dq)
-    K = np.exp(np.array(u_grid) * run["u scale"])
+        price = priced(*put_acc[phase], tp)
+        out_put_k.append(log(ks[phase]))
+        out_put_iv.append(float(np.log(implied("put", price, ks[phase], tp, r, delta))))
     calls = {}
     for tenor in CALL_TENORS:
-        Lc, Hc, dc = (L5, H5, d5) if tenor == TP else (Lq, Hq, dq)
+        sp, spr, sr, srr = call_acc[tenor]
         tau = tenor * VP.DT
-        F = exp((r - delta) * tau)
-        out = []
-        for phase in range(tenor + 1):
-            eq = earnings_factor(proc, Hc[phase - 1], dc["ue"], dc["we"]) if phase else 0.0
-            R = np.sort(np.exp(Lc[tenor - 1] + eq))
-            N = R.size
-            t1 = np.concatenate([np.cumsum(R[::-1])[::-1], [0.0]])       # sum of R[i:]
-            t2 = np.concatenate([np.cumsum((R * R)[::-1])[::-1], [0.0]])
-            i = np.searchsorted(R, K, side="right")
-            n, s1, s2 = N - i, t1[i], t2[i]
-            m1, m2 = R.mean(), (R * R).mean()
-            pay = (s1 - K * n) / N                       # mean (R - K)+
-            b = ((s2 - K * s1) / N - pay * m1) / (m2 - m1 * m1)
-            price = exp(-r * tau) * (pay - b * (m1 - F))
-            out.append(np.log(implied("call", price, K, tau, r, delta)))
-        calls[tenor] = np.array(out)
+        calls[tenor] = np.array([
+            np.log(implied("call", priced(sp[ph], spr[ph], sr[ph], srr[ph], tau), K, tau,
+                           r, delta)) for ph in range(tenor + 1)])
     return out_put_k, out_put_iv, calls
 
 
@@ -326,6 +358,14 @@ def _key(run):
     return k, hashlib.sha1(json.dumps(k, sort_keys=True).encode()).hexdigest()[:12]
 
 
+def _build_row(job):
+    """One row of the tables, every node at h_fast = HF_GRID[i]: a pmap worker."""
+    sb, run, i = job
+    proc = VP.Process(sb, run["jumps"], run["earnings"])
+    ds = draw_sets(SEED)
+    return [node_prices(proc, HF_GRID[i], hs, run, ds) for hs in HS_GRID]
+
+
 def build(run, verbose=True):
     """The tables for one run's parameters (a dict: sigma, mu, r, delta, p_star, jumps,
     earnings), as `volprocess.Tables` reads them."""
@@ -333,19 +373,27 @@ def build(run, verbose=True):
     sb = sig_bar(run["sigma"], mom, run["jumps"], run["earnings"])
     proc = VP.Process(sb, run["jumps"], run["earnings"])
     run = dict(run, **{"u scale": run["sigma"] * sqrt(TC * VP.DT)})
-    ds = draw_sets(SEED)
     nf, ns = len(HF_GRID), len(HS_GRID)
     put_k = np.empty((TP + 1, nf, ns))
     put_iv = np.empty((TP + 1, nf, ns))
     call = {t: np.empty((t + 1, nf, ns, len(U_GRID))) for t in CALL_TENORS}
-    for i, hf in enumerate(HF_GRID):
-        for j, hs in enumerate(HS_GRID):
-            pk, piv, c = node_prices(proc, hf, hs, run, ds)
+    jobs = [(sb, run, i) for i in range(nf)]
+    # A row of nodes a worker: each regenerates the same draws from the same seeds, so the
+    # tables are bit-identical however many workers build them. Inside a worker (a table
+    # missing when a pool's job asks for it) the rows run serially, as pmap requires.
+    from multiprocessing import parent_process
+    if parent_process() is None:
+        from model import pmap
+        rows = pmap(_build_row, jobs, workers=min(BUILD_WORKERS, os.cpu_count() or 1))
+    else:
+        rows = [_build_row(job) for job in jobs]
+    for i, row in enumerate(rows):
+        for j, (pk, piv, c) in enumerate(row):
             put_k[:, i, j], put_iv[:, i, j] = pk, piv
             for t in CALL_TENORS:
                 call[t][:, i, j, :] = c[t]
-        if verbose:
-            print(f"  fairprice: row {i + 1}/{nf}", file=sys.stderr, flush=True)
+    if verbose:
+        print(f"  fairprice: {nf} rows built", file=sys.stderr, flush=True)
     return {"hf": HF_GRID, "hs": HS_GRID, "u": U_GRID, "u scale": run["u scale"],
             "sig bar": sb, "moments": mom,
             "put": {"logk": put_k.tolist(), "lniv": _fill(put_iv).tolist()},
@@ -458,7 +506,7 @@ def check(run=RUNNING):
     # 4. Monte Carlo error: one node priced on five other sets of draws
     rows = []
     for seed in range(5):
-        pk, piv, c = node_prices(proc, 0.1, 0.7, run2, draw_sets(SEED + 1000 + 10 * seed))
+        pk, piv, c = node_prices(proc, 0.1, 0.7, run2, draw_sets(SEED + 1000 + 100 * seed))
         rows.append([exp(pk[0]), exp(piv[0]), exp(piv[3])]
                     + [exp(c[TC][0][_ui(u)]) for u in (0.5, 1, 2, 3)]
                     + [exp(c[TC][3][_ui(1)])])
