@@ -958,6 +958,32 @@ Pakkanen 2022); common jumps across stocks (Bollerslev, Law & Tauchen 2008), for
      the parameter into the model, but explain why we simplify it in the article. We need to
      measure the effect first." So the term is measured before it is adopted, and left out
      with the reason stated if its effect on the wheel is small.
+
+     **Measured the same day; left out.** The term is h falling c0 at each earnings session
+     for the expected part and rising c1 per unit of surprise beyond the typical move.
+     Fitted by indirect inference on the kicks after earnings by surprise band
+     (`earnmoves.py --feedback`): c0 = 0.059 and c1 = 0.064, taking those ten bands'
+     distance from 13.8 to 7.9. It was then run in the wheel, off and on, on the same draws
+     (`wheel_sim.py --scenario earnterm`, 5,120 paths × 30 years):
+
+     | on − off, paired | |
+     |---|---|
+     | excess, read against its μ = r twin | +0.4 ± 0.1bp |
+     | E[I] | −0.008 ± 0.005 lots (−0.07%) |
+     | up-beta, down-beta | −0.001, 0.000 |
+     | gap mean/median | 1.535 → 1.539 |
+     | gaps beyond 5%, 10% | +0.03, +0.015 points |
+
+     For the article: the expected part's fall and the surprise's rise largely offset for
+     the wheel, which holds options for weeks, not days. So the model keeps earnings out of h,
+     and says so with these numbers. Two lessons from getting there:
+     - On balance the term lowers volatility (total variance 4.6% less at the same σ̄). The
+       term-on runs are therefore set at the σ whose tables give σ² a year once the term is
+       in.
+     - Re-matching σ̄ in the process alone, the tables unchanged, was tried first. It read
+       the tables, not the term: options sold about 2.4% cheap in volatility and puts were
+       struck too near. Inventory moved +2.5% that way, and −1.8% with no re-matching at
+       all.
    - **To read when Sergei can get them:**
      - the published Petersen (2009), to check the draft's figures;
      - optionally Cornell (1978, *Financial Management* 7(1):54–59), events of predictable

@@ -402,6 +402,113 @@ def recover(ev, R, q_data):
     return to_law(x_model)
 
 
+# ---------------------------------------------------------------------------- an earnings term
+
+def mean_abs_y(law):
+    """E|Y|, the earnings jump's typical size in the model's units."""
+    return law["p up"] * law["a up"] + (1 - law["p up"]) * law["a down"]
+
+
+def feedback_dh(Y, law, c0, c1):
+    """An earnings term's push to log volatility, after Ederington and Lee: −c0 for the
+    expected part leaving, plus c1 per unit of surprise beyond the typical move (|Y| over
+    E|Y|, less one). `volprocess.Process` carries the same arithmetic when switched on."""
+    return -c0 + c1 * np.maximum(np.abs(Y) / mean_abs_y(law) - 1.0, 0.0)
+
+
+def fake_sample_feedback(p_vol, law, R, ev, seed, c0, c1):
+    """`fake_sample`, with the earnings move fed to the factors: the fitted model stepped
+    day by day, each data window's earnings jump on its first session and `feedback_dh`
+    added to the factors there, split between them as the down-jump kick is. The earnings
+    draws are `fake_sample`'s, so c0 = c1 = 0 reproduces it."""
+    if p_vol["feedback"] or p_vol["eta fast"] or p_vol["eta slow"]:
+        raise ValueError("the loop below assumes the final model: no feedback, no own shocks")
+    d = F.Draws(R.shape[0], R.shape[1], seed)
+    (pf, af, bf, _), (ps, as_, bs, _) = F._factors(p_vol)
+    up, dn, su, sd = F._jumps(p_vol, d)
+    bu, bd = p_vol["beta up"] - 1, p_vol["beta down"] - 1
+    kick = p_vol["kick up"] * up + p_vol["kick down"] * dn
+    th, ga = p_vol["theta"], p_vol["gamma"]
+    g = np.random.default_rng(seed + 1000)
+    rows, cols = ev["row"], ev["col"]
+    u, w = g.random(len(rows)), g.exponential(size=len(rows))
+    Y = np.where(u < law["p up"], law["a up"] * w, -law["a down"] * w)
+    dh = feedback_dh(Y, law, c0, c1)
+    at = {}
+    for r_, c_, y_, d_ in zip(rows, cols, Y, dh):
+        at.setdefault(F.BURN + c_, []).append((r_, y_, d_))
+    at = {t: tuple(np.array(v) for v in zip(*x)) for t, x in at.items()}
+    n_rows, n = d.z.shape
+    hf, hs = np.zeros(n_rows), np.zeros(n_rows)
+    out = np.empty((n_rows, n))
+    for t in range(n):
+        hc = np.clip(hf + hs, -F.H_CLIP, F.H_CLIP)
+        x = d.z[:, t] + su[:, t] * np.exp(bu * hc) - sd[:, t] * np.exp(bd * hc)
+        out[:, t] = np.exp(hc) * x
+        a = th * x
+        b = ga * (np.abs(x) - F.E_ABS) + kick[:, t]
+        hf = pf * hf + af * a + bf * b
+        hs = ps * hs + as_ * a + bs * b
+        if t in at:
+            r_, y_, d_ = at[t]
+            out[r_.astype(int), t] += np.exp(law["beta E"] * hc[r_.astype(int)]) * y_
+            hf[r_.astype(int)] += bf * d_
+            hs[r_.astype(int)] += (1 - bf) * d_
+    raw = out[:, F.BURN:]
+    return np.where(np.isnan(R), np.nan, raw), raw
+
+
+def earnings_kicks(ev):
+    """The mean kick after earnings windows by side and SURPRISE_BANDS band of u, the move
+    over the windows' own mean |s|: (values, counts) in a fixed order, falls then rises."""
+    u = np.abs(ev["s"]) / np.abs(ev["s"]).mean()
+    vals, counts = [], []
+    for sign in (-1, 1):
+        for lo, hi in SURPRISE_BANDS[:-1]:
+            m = np.isfinite(ev["kick"]) & (np.sign(ev["s"]) == sign) & (u >= lo) & (u < hi)
+            vals.append(ev["kick"][m].mean())
+            counts.append(int(m.sum()))
+    return np.array(vals), np.array(counts)
+
+
+def fit_feedback(ev, ev_blocks, R, seeds=FAKE_SEEDS[:4]):
+    """The earnings term (c0, c1) whose fake samples reproduce the data's kicks after
+    earnings windows by surprise band, each band weighted by its calendar-block error; the
+    beyond-five band, with a dozen windows, is left out. Indirect inference, as the
+    earnings law's model units were found."""
+    target, _ = earnings_kicks(ev)
+    ids = np.unique(ev_blocks[ev_blocks >= 0])
+    K = len(ids)
+    reps = np.array([earnings_kicks({k: v[ev_blocks != b] for k, v in ev.items()})[0]
+                     for b in ids])
+    se = np.sqrt((K - 1) / K * ((reps - reps.mean(axis=0)) ** 2).sum(axis=0))
+    p_vol = dict(F.START)
+    p_vol.update(json.load(open(VOL_FIT))["params"])
+
+    def fakes(c0, c1):
+        sims = [measure(*fake_sample_feedback(p_vol, VP.EARN, R, ev, sd, c0, c1),
+                        ev["row"], ev["col"]) for sd in seeds]
+        return np.mean([earnings_kicks(s)[0] for s in sims], axis=0)
+
+    def dist(x):
+        return float(np.sum(((fakes(x[0], x[1]) - target) / se) ** 2))
+
+    base = fakes(0.0, 0.0)
+    x, v, n = F.nelder_mead(dist, np.array([0.05, 0.05]), step=0.05, max_evals=120,
+                            tol=1e-4, stall_evals=40, stall_delta=0.01)
+    fitted = fakes(x[0], x[1])
+    print(f"\n  an earnings term, fitted on the kicks after earnings by surprise band "
+          f"({n} evaluations): c0 {x[0]:+.4f} (the expected part), c1 {x[1]:+.4f} (per "
+          f"unit of surprise beyond the typical move); distance {v:.1f}, against "
+          f"{float(np.sum(((base - target) / se) ** 2)):.1f} without it, over {len(target)}")
+    labels = [f"{side} u {lo:g}-{hi:g}" for side in ("fall", "rise")
+              for lo, hi in SURPRISE_BANDS[:-1]]
+    for lab, d_, s_, b_, f_ in zip(labels, target, se, base, fitted):
+        print(f"    {lab:14} data {d_:+.3f} ± {s_:.3f} | without {b_:+.3f} | with {f_:+.3f}")
+    return {"c0": float(x[0]), "c1": float(x[1]), "distance": v,
+            "distance without": float(np.sum(((base - target) / se) ** 2))}
+
+
 def main():
     args = sys.argv[1:]
     names, syms, days, R, raw, ok = universe()
@@ -429,6 +536,8 @@ def main():
         print(f"  {' & '.join(group):19} ({keep.sum():4}): {_law_line(qg, seg)}")
     if "--recover" in args:
         result["model units"] = recover(ev, R, q)
+    if "--feedback" in args:
+        result["feedback"] = fit_feedback(ev, blocks, R)
     with open(RESULTS, "w") as f:
         json.dump(result, f, indent=1)
     print(f"\nwritten {RESULTS}")

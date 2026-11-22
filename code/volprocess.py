@@ -76,10 +76,18 @@ class Process:
     """The fitted process at one scale. `jumps` and `earnings` switch those parts off, for
     attribution; `sig_bar` is σ̄, set by `fairprice` from the stationary averages."""
 
-    def __init__(self, sig_bar, jumps=True, earnings=True):
+    def __init__(self, sig_bar, jumps=True, earnings=True, earn_feedback=None):
+        """`earn_feedback`, (c0, c1) or None: an earnings term in h, after Ederington and
+        Lee — on an earnings session h falls c0 for the expected part and rises c1 per unit
+        of surprise beyond the typical move, split between the factors as the down-jump
+        kick is (`earnmoves.feedback_dh`, which fits it). Off in the model; on only to
+        measure what leaving it out costs the wheel (`wheel_sim.py --scenario earnterm`)."""
         f = FIT
         self.sig_bar = sig_bar
         self.jumps, self.earnings = jumps, earnings
+        self.efb = earn_feedback
+        self.kf_share = f["kick fast share"]
+        self.ey = EARN["p up"] * EARN["a up"] + (1 - EARN["p up"]) * EARN["a down"]
         self.phi_f = 0.5 ** (1.0 / f["half-life fast"])
         self.phi_s = 0.5 ** (1.0 / (f["half-life fast"] * f["slow/fast"]))
         self.th_f = f["theta fast share"] * f["theta"]
@@ -148,6 +156,10 @@ class Process:
             ret += se * Y - self.log_earn_mgf(H)
         hf = self.phi_f * hf + self.th_f * x + (self.k_f if down else 0.0)
         hs = self.phi_s * hs + self.th_s * x + (self.k_s if down else 0.0)
+        if earn and self.earnings and self.efb:
+            dh = -self.efb[0] + self.efb[1] * max(abs(Y) / self.ey - 1.0, 0.0)
+            hf += self.kf_share * dh
+            hs += (1.0 - self.kf_share) * dh
         return logS + ret, hf, hs
 
     def annual_vol(self, hf, hs):

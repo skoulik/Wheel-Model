@@ -77,7 +77,7 @@ T = tau_p, the article's running example.
 Stdlib only, but for fittedvol's tables, which fairprice.py builds with numpy.
 Run:  python code/wheel_sim.py
     [--scenario base|dividends|stress|sweep|validate|dollars|constrained|stochvol|
-                fittedvol|all]
+                fittedvol|earnterm|all]
 """
 
 import argparse
@@ -170,6 +170,7 @@ class Params:
     vol_fitted: bool = False
     vol_jumps: bool = True     # the unscheduled jumps (and so the down-jump kick)
     vol_earnings: bool = True  # the earnings jump, every 13 weeks
+    vol_earn_feedback: tuple = None  # (c0, c1): an earnings term in h, to measure its cost
     record_gaps: bool = False  # keep each assignment's gap 1 - S/K (d's tail)
 
     def __post_init__(self):
@@ -437,14 +438,18 @@ def fitted_parts(P):
     """(volprocess.Process, volprocess.Tables) for a fitted-process run, built or loaded
     once per process.  Build them in the parent before a pool runs (fittedvol does), or
     every worker would build the same tables at once."""
-    key = (P.sigma, P.mu, P.r, P.delta, P.p_star, P.vol_jumps, P.vol_earnings)
+    key = (P.sigma, P.mu, P.r, P.delta, P.p_star, P.vol_jumps, P.vol_earnings,
+           P.vol_earn_feedback)
     if key not in _FITTED:
         import fairprice
         data = fairprice.load({"sigma": P.sigma, "mu": P.mu, "r": P.r, "delta": P.delta,
                                "p_star": P.p_star, "jumps": P.vol_jumps,
                                "earnings": P.vol_earnings})
         T = VP.Tables(data)
-        _FITTED[key] = (VP.Process(T.sig_bar, P.vol_jumps, P.vol_earnings), T)
+        # The tables do not know the earnings term: with it on, options are priced as if it
+        # were off, which the scenario that switches it on reads paired to cancel.
+        _FITTED[key] = (VP.Process(T.sig_bar, P.vol_jumps, P.vol_earnings,
+                                   earn_feedback=P.vol_earn_feedback), T)
     return _FITTED[key]
 
 
@@ -1970,6 +1975,110 @@ def fittedvol(args):
             print(f"  {key:>26} {mean:>+9.3%}  s.e. {se:.3%}")
 
 
+def _total_variance(proc, paths=300, sessions=26_000, seed=7):
+    """A session's total variance over the stationary state, in units of sigma-bar squared:
+    the diffusion's, the unscheduled jumps' and the earnings jump's (on the earnings sessions
+    it falls on, over the cycle), from a long run of `proc`'s own state. The state ignores
+    the scale, so this is the factor sigma-bar multiplies."""
+    p = proc
+    var_j = p.pu * 2 * p.au ** 2 + p.pd * 2 * p.ad ** 2 - (p.pu * p.au - p.pd * p.ad) ** 2
+    var_e = (p.pe * 2 * p.aeu ** 2 + (1 - p.pe) * 2 * p.aed ** 2
+             - (p.pe * p.aeu - (1 - p.pe) * p.aed) ** 2)
+    rng = random.Random(seed)
+    s2h = s2b = s2e = 0.0
+    n = ne = 0
+    for _ in range(paths):
+        hf = hs = 0.0
+        e0 = rng.randrange(VP.EARNINGS_EVERY)
+        for t in range(VP.BURN + sessions):
+            earn = (t - e0) % VP.EARNINGS_EVERY == 0
+            if t >= VP.BURN:
+                H = max(-VP.H_CLIP, min(VP.H_CLIP, hf + hs))
+                s2h += exp(2 * H)
+                s2b += exp(2 * p.beta * H)
+                n += 1
+                if earn:
+                    s2e += exp(2 * p.be * H)
+                    ne += 1
+            _, hf, hs = p.step(0.0, hf, hs, 0.045, 0.0, earn, rng)
+    return s2h / n + var_j * s2b / n + var_e * (s2e / ne) / VP.EARNINGS_EVERY
+
+
+def earnterm(args):
+    """What leaving the earnings term out of h costs the wheel (Sergei, 2026-11-22: measure
+    it first, and leave it out with the reason stated if it is small).
+
+    The term is Ederington and Lee's: on an earnings session h falls c0 for the expected
+    part and rises c1 per unit of surprise beyond the typical move, with (c0, c1) from
+    `earnmoves.py --feedback`. Four runs of the fitted process on the same draws -- the term
+    off and on, each at the real-world drift and at mu = r -- so every difference is paired,
+    batch by batch. The tables do not know the term, so with it on the options are priced as
+    if it were off; that mismatch is shared with the run's pricing-drift twin, and each
+    excess is read against its twin, which cancels it with the paths' noise.
+
+    On balance the term lowers volatility -- the expected part's fall outweighs the average
+    surprise's rise -- so at the same sigma-bar the run would also carry less variance than
+    sigma^2, and its effect would mix the term's shape with a lower level. So the term-on
+    runs are set at the nominal sigma whose tables' sigma-bar, carried through the term,
+    gives sigma^2 a year (`_total_variance` gives the ratio): the tables then price the
+    term's level -- the strike for the dial included -- and only its shape is left unpriced,
+    shared with the twin. (Re-matching sigma-bar in the process alone, tables unchanged, was
+    tried first: options came out about 2.4% cheap in volatility and puts struck too near,
+    and the comparison read the tables, not the term.)
+    """
+    import json
+    import os
+    path = os.path.join("data", "aristocrats", "earnmoves.json")
+    fb = json.load(open(path))["feedback"]
+    term = (fb["c0"], fb["c1"])
+    base = Params(delta=0.025, vol_fitted=True)
+    proc, _ = fitted_parts(base)
+    v_off = _total_variance(proc)
+    v_on = _total_variance(VP.Process(proc.sig_bar, True, True, earn_feedback=term))
+    scale = sqrt(v_off / v_on)
+    print(f"total variance a session with the term on over off: {v_on / v_off:.4f}; "
+          f"term-on runs at nominal sigma {base.sigma * scale:.5f}")
+    on = dict(vol_earn_feedback=term, sigma=base.sigma * scale)
+    runs = (("off, real world", dict()), ("off, mu = r", dict(mu=0.05)),
+            ("on, real world", dict(on)), ("on, mu = r", dict(on, mu=0.05)))
+    paths = args.paths or 1280
+    jobs, spans = [], []
+    for label, kw in runs:
+        P = Params(delta=0.025, years=args.years or 30.0, paths=paths, seed=args.seed,
+                   record_gaps=True, vol_fitted=True, **kw)
+        fitted_parts(P)
+        js = batch_jobs(P)
+        spans.append((label, P, len(jobs), len(jobs) + len(js)))
+        jobs += js
+    aggs = pmap(_batch, jobs)
+    rows = {label: [_fv_row(P, g) for g in aggs[i:j]] for label, P, i, j in spans}
+    print(f"\n{'=' * 72}\nTHE EARNINGS TERM  c0 {term[0]:+.4f}, c1 {term[1]:+.4f} "
+          f"({paths} paths x {spans[0][1].years:g}y per run, seed {spans[0][1].seed})\n"
+          f"{'=' * 72}")
+
+    def mean_se(vals):
+        m = sum(vals) / len(vals)
+        return m, sqrt(sum((v - m) ** 2 for v in vals) / (len(vals) - 1) / len(vals))
+
+    off, on = rows["off, real world"], rows["on, real world"]
+    print(f"  {'':>24} {'off':>10} {'on':>10} {'on - off':>10} {'s.e.':>8}")
+    for key in off[0]:
+        a = [r[key] for r in off]
+        b = [r[key] for r in on]
+        d, se = mean_se([y - x for x, y in zip(a, b)])
+        pct = key.startswith(("excess", "minus", "gap"))
+        f = (lambda v: f"{v:>+10.3%}") if pct else (lambda v: f"{v:>10.3f}")
+        print(f"  {key:>24} {f(mean_se(a)[0])} {f(mean_se(b)[0])} {f(d)} {f(se).strip():>8}")
+    twin = {}
+    for side in ("off", "on"):
+        real, q = rows[f"{side}, real world"], rows[f"{side}, mu = r"]
+        twin[side] = [r["excess + leak"] - z["excess + leak"] for r, z in zip(real, q)]
+    d, se = mean_se([y - x for x, y in zip(twin["off"], twin["on"])])
+    print(f"\n  excess + leak, each read against its mu = r twin: off "
+          f"{mean_se(twin['off'])[0]:+.3%}, on {mean_se(twin['on'])[0]:+.3%}, "
+          f"on - off {d:+.3%} ± {se:.3%}")
+
+
 def _km_curve(durations):
     """The Kaplan-Meier curve as (event times in months, survival after each)."""
     ds = sorted(durations)
@@ -1993,7 +2102,7 @@ def main():
     ap.add_argument("--scenario", default="all",
                     choices=["base", "dividends", "stress", "sweep",
                              "validate", "dollars", "constrained", "stochvol",
-                             "fittedvol", "all"])
+                             "fittedvol", "earnterm", "all"])
     ap.add_argument("--paths", type=int, default=None)
     ap.add_argument("--seed", type=int, default=20260722)
     ap.add_argument("--years", type=float, default=None,
@@ -2019,6 +2128,10 @@ def main():
 
     if args.scenario == "stochvol":
         stochvol(args)
+        return
+
+    if args.scenario == "earnterm":
+        earnterm(args)
         return
 
     if args.scenario == "fittedvol":
