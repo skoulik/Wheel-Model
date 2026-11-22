@@ -335,6 +335,33 @@ Taken one at a time, in this order; each is recorded here as it is made.
    - **The lattice's own error**: h_slow at 0.05 run once at the running example (decision
      2's fallback, measured); and c2 (test 10) traced before §10 quotes it.
    - Rejected: reading step 7's figures as they stand, whose horizons are one draw.
+9. **σ̄ is the process's, measured once and shared** (Sergei, 2026-11-22: "Option A"),
+   revising decision 2's "σ̄ from the lattice's own stationary law". σ̄ is the scale at
+   which the stock's total variance averages σ², a property of the fitted process and not
+   of either model's grid: `fairprice.moments` measures it from 1.6 million independent
+   stationary reads, good to about 0.05%, and both the simulator's tables and the lattice
+   use it. Found under *Progress*: the simulator's old estimate, 400 correlated paths, read
+   0.6% high at its seed, and the lattice's own law reads 0.65% low at its 0.1 grid. The
+   simulator's tables are rebuilt and step 7's figures move about 0.5%, rerun on fresh
+   seeds as decision 8 already asks. The lattice keeps h_slow at 0.1; its remaining error
+   is the spread's shape (the gap's mean/median about 0.006 high, some four of the
+   simulator's errors), with 0.05 the fallback. Rejected: each model's own σ̄ with the
+   lattice at 0.05, four times the cost of every run; leaving both, which keeps a known 1%
+   offset at the gap's centre.
+10. **The sale, the put's week and the first call period are simulated exactly** (Sergei,
+    2026-11-22: "Yes, I meant A"). Puts are sold from exact stationary
+    states — independent paths, several reads each, as `fairprice.moments` takes them —
+    each at a uniform point of the earnings calendar, its strike interpolated from the
+    nodes' (the dial's exactness becomes the interpolation's, as in the simulator); the put's
+    week and the lot's first call period are stepped from that state, in the real world and
+    under the pricing measure on the same draws, so each premium pairs with its payout path
+    by path and both exact tests stay exact. The grid takes the surviving lots over at the
+    start of their second call period. The gap at assignment, its tail and the first expiry
+    then carry no grid at all (*Progress*: the sale states' snapping to nodes was the gap's
+    tail error). Untested: whether it closes the down-beta and the delta's volatility
+    channel, which also involve later periods. Rejected: the exact sale state alone, which
+    fixes the tail and leaves the first expiry about 0.2 points low; a finer grid in both
+    factors, four to eight times every run; accepting the residuals.
 
 ## Sequence
 
@@ -384,6 +411,174 @@ Each step reviewed with Sergei before it is committed.
    (the moving path's numpy dependency and its cache).
 
 Then the section revisions of the moving-volatility plan, with *Owed to the article* as the
-checklist, now with two more items: §11's statement that `model.py`'s barrier figures are
-the simplified model's (decision 7), and test 9's excess long-run variance, explained by
-test 10.
+checklist, now with these items more (Sergei, 2026-11-22: "make sure the fixes end up in the
+formulas, if we show them in the article"):
+- §11's statement that `model.py`'s barrier figures are the simplified model's (decision 7);
+- test 9's excess long-run variance, explained by test 10;
+- **σ̄'s definition and measurement** (decision 9): wherever the article or the appendix
+  shows how σ̄ is set, the formula is the year's total variance averaged over the
+  stationary law of the volatility state, E[e^(2H)] + Var(J)·E[e^(2βH)] + Var(Y)/65 ·
+  E[e^(2β_E·H)] = σ²/(260·σ̄²), with the averages measured from independent stationary
+  reads, and the appendix says how many and how well they pin σ̄ (0.05%);
+- **§10's capital boundary under the moving volatility**: if the article shows a formula
+  for it, it is the growth rate of E[S₀/S_T], (1/T) log E~[exp Σ K(H_t)] — equivalently the
+  Markov additive process's eigenvalue, m + κ(−1) — and never the time-average of the
+  tilted cumulant, which Jensen's inequality puts below it; the lots' boundary is the
+  long-run drift m − κ′(0), where no such term arises;
+- **the exact entry** (decision 10), once built: where the article describes how the model
+  treats the sale and the first call period, it says they are simulated from the
+  stationary state and the grid carries lots from the second period on.
+
+## Progress
+
+**Steps 1 and 2, 2026-11-22** (uncommitted, for Sergei's review). `code/lattice.py` builds
+the running example's fitted lattice in about ten minutes on sixteen workers (σ̄ = 0.003839 a
+session; stationary mass on 365 of 408 nodes); `model.py` carries `Config.vol` and the walk
+(about 0.4 s a call period, three minutes to 30 years). **The structural check passes**: with
+the volatility held still (one node, no response, jumps or earnings) the lattice against the
+constant-σ model reads
+- strike, put and call premiums, exits, upside surrendered and mark loss to 5–7 digits, the
+  walk's transition to 7e-6, the gap's mean, median and tail to the simulator's constant run;
+- **both exact tests to 1e-12bp** at 1, 5, 10 and 30 years — the pricing-drift test, and the
+  real-world one in its exact form; by channel the real-world test reads +0.001bp;
+- the betas to 1e-4 and the book's life delta to 1e-4;
+- survival 7e-4 higher from the first period on, the entry's discretization: the lattice
+  bins sampled entries into cells, where the constant model takes the density at each
+  cell's centre (II-32's effect, from another side). So the moving lattice is read against
+  the still lattice, never against the constant model, which cancels it.
+
+**First comparison with step 7** (its one seed; the agreed check, on fresh seeds, is to come),
+fitted less still against the simulator's full less constant, Standard, 30 years:
+
+| | lattice | simulator | errors apart |
+|---|---|---|---|
+| excess + leak, paired | +0.3bp | +0.1 ± 0.3bp | 0.5 |
+| book delta, both channels / price's alone | +0.00137 / −0.00236 | +0.00140 / −0.00389 | 0.0 / 1.8 |
+| E[I] at 5 / 10 / 30 years | −0.255 / −0.346 / −0.466 | −0.156 / −0.370 / −0.678 | 1.5 / 0.3 / 1.4 |
+| left at first expiry | +0.0198 | +0.0214 ± 0.0007 | 2.3 |
+| up-beta / down-beta | +0.0091 / −0.0073 | +0.0073 / −0.0070 | 0.9 / 2.3 |
+| gap: mean / median | 1.643% / 1.066% | 1.651% / 1.075% | 3.3 / 4.4 |
+| gap: mean/median, beyond 5%, beyond 10% | 1.542, 5.43%, 0.66% | 1.535, 5.48%, 0.65% | 3.8, 2.4, 1.7 |
+
+Everything the article quotes to two figures agrees. The gap's centre does not, by about 1%:
+**the lattice's σ̄ is 1.25% below the simulator's** (0.003839 against 0.003888), because the
+grid's wider stationary law (decision 2, test 2) has σ̄ calibrated down to keep the year's
+variance at σ², and the diffusion at a typical state is that much calmer. This is decision
+2's untested spread, now measured. A tail closure with the killed walk's j^(−3/2) prefactor
+was tried as a way to cut the stationary runs and rejected: it errs as far the other way and
+is unstable at short runs.
+
+**The σ̄ gap is half the simulator's** (traced 2026-11-22). The fallback, h_slow at 0.05 (799
+nodes, built in twenty minutes), gives σ̄ = 0.003854 and the gap's mean/median 1.538 (the
+simulator's 1.535 ± 0.0015, 1.7 errors; 1.542 at 0.1), but closes only a third of the σ̄
+gap. The rest is the simulator's: σ̄ is set from `fairprice.moments`, and at its seed that
+reads E[e^(2H)] = 8.250, where three other seeds give 8.405, 8.359 and 8.371, and 600,000
+independent stationary paths give 8.366 ± 0.016. A one-second estimate on 400 correlated
+rows; its seed's draw happened to be low. Measured against σ̄ from the 600,000 paths,
+0.003864:
+
+| | σ̄ | against the exact |
+|---|---|---|
+| simulator (`fairprice.moments` at its seed) | 0.003888 | +0.62% |
+| lattice, h_slow 0.1 (its own stationary law) | 0.003839 | −0.65% |
+| lattice, h_slow 0.05 | 0.003854 | −0.26% |
+
+So step 7's fitted runs sit at a total variance about 1.2% above σ² (σ ≈ 20.12%), and the
+lattice at 0.1 about 1.3% below it. Decision 9 below.
+
+**Decision 9 carried out the same day.** `fairprice.moments` now reads 400,000 independent
+paths four times each, 650 sessions apart, in parallel and cached: E[e^(2H)] = 8.384 ±
+0.010 (8.381 on a second seed), σ̄ = 0.003861 at σ = 20%, 0.70% below the simulator's old
+value, in eleven seconds. `fairprice.VERSION` 6 and `lattice.VERSION` 2 retire every table
+and lattice built on the old σ̄; step 7's twelve fitted table sets are rebuilt.
+
+**Test 10's c2 gap, traced: the simulator's estimator omitted Jensen's term.**
+`fairprice.boundaries` read c2 as the time-average of the tilted cumulant along each path,
+E~[Σ K]/T, and called it exact. The growth of E[S₀/S_T] is (1/T) log E~[exp(Σ K)], larger
+by Var(Σ K)/(2T) for the near-Gaussian Σ K, which the paths' own spread measures. On the new
+σ̄ (400 paths × 200 years):
+
+| process | c1 | c2, time-average | Jensen's term | c2 | by log-mean-exp over paths | eigenvalue, h_slow 0.05 |
+|---|---|---|---|---|---|---|
+| jumps, no earnings | 1.995 ± 0.006% | 4.290% | +0.074 | 4.363% | 4.367% | 4.369% (c1 1.997%) |
+| full | 1.995 ± 0.005% | 4.247% | +0.060 | 4.307% | 4.309% | — |
+
+So test 10's 0.08 points were two errors partly cancelling: the old σ̄ 0.6% high, which put
+c2 about 0.05 higher, and Jensen's term missing, which put it about 0.07 lower. The
+eigenvalue is right. Step 7's §10 figures move: **the lots' boundary is 2.00%, not 2.02%;
+the capital boundary under the full process stays 4.31%** — the same figure, by the two
+errors' offset — so the running example still sits 0.19 points inside it. `boundaries`
+now returns c2 with the term and the time-average beside it (uncommitted, for review). The
+long-run variance of log S at the new σ̄ is 0.0430 by the eigenvalue, 7.5% above σ².
+
+**Decision 8's comparison, on the new σ̄** (`wheel_sim.py --scenario magnitudes --seed 1` and
+`--seed 2`, each horizon on its own seed, `MAG_HORIZON_SEED`; pooled), Standard regime, each
+model less its constant-σ reference, z the difference in the simulator's errors:
+
+| | fitted: lattice | simulator | z | jumps: z | factors: z |
+|---|---|---|---|---|---|
+| E[I] at 5 / 10 / 30 years | −0.246 / −0.329 / −0.418 | −0.291 / −0.240 / −0.465 | 1.0 / −1.5 / 0.5 | 0.4 / −0.4 / −0.1 | 0.3 / −0.6 / 0.4 |
+| excess + leak, paired | +0.3bp | +0.2bp | 0.4 | 0.3 | −0.7 |
+| book delta, both channels | +0.00165 | +0.00289 | −2.2 | −2.4 | −2.4 |
+| book delta, the price's alone | −0.00207 | −0.00229 | 0.4 | 0.1 | 0.1 |
+| up-beta / down-beta | +0.0097 / −0.0073 | +0.0091 / −0.0067 | 0.4 / −6.6 | −0.2 / −6.1 | 0.3 / −0.8 |
+| left at first expiry | +0.0197 | +0.0224 | −6.3 | −4.5 | −1.1 |
+| gap: median | −0.00141 | −0.00139 | −1.6 | −0.9 | 0.1 |
+| gap: mean/median | +0.281 | +0.272 | +7.5 | +5.8 | +1.3 |
+| gaps beyond 5% / 10% | +0.0372 / +0.0067 | +0.0361 / +0.0064 | +6.9 / +4.8 | +5.6 / +5.5 | +1.6 / +1.5 |
+| assignment rate | exactly p\* | −0.0002 | 1.2 | 0.6 | 5.4 |
+
+- **The factors alone needed a grid of their own.** With no kick their volatility moves only
+  through θ, a stationary sd of 0.045 in h_fast and 0.073 in h_slow around zero, under the
+  jumps' spacing and partly below its floor: the first build read the gap's median 6% high
+  and inventory moving the wrong way. On a grid with the same spacing per sd (0.025, ±4.5
+  sd; `lattice.grid`) everything agrees but the assignment rate, which is the simulator's:
+  its tables' strike sits 0.0008 off the dial, where the lattice's is the quantile itself.
+  The cache key now names the grid actually built.
+- **With jumps, three things miss**, each a few percent of the effect it measures: the gap's
+  tail (3% heavy), the first expiry (12% short), the down-beta (9% more negative). The
+  volatility channel of the delta is 30% short at 2.2–2.4 errors in all three processes.
+- **The gap's tail is the sale state's snapping to nodes** (tested): puts sold from 600,000
+  exact stationary states, strikes interpolated from the lattice's nodes, give mean/median
+  1.5143, 5.24% beyond 5% and 0.620% beyond 10%, against the simulator's 1.5139, 5.28% and
+  0.630% (jumps), where the lattice reads 1.5206, 5.37% and 0.655%. The first expiry's miss
+  is the same snapping at entry (test 2: −0.002 at this grid).
+- An entry split between the two neighbouring cell centres, to keep each lot's mean depth,
+  was tried and reverted: it read the first expiry further off at constant σ (0.4027
+  against 0.4039 binned; the continuum is about 0.4067), since below the first centre no
+  split is possible.
+
+**Decision 10 built, 2026-11-22** (`lattice._exact_chunk`, phase C, cached apart from the
+tables so that a change to the entry rebuilds only it, about three minutes). Eight million
+sales from two million independent stationary paths, four reads each; the put's week and the
+first call period stepped from each sale's state, both measures on the same draws; each
+kind of sale's interpolated strikes moved by the one shift that assigns exactly p\* of its
+sales — the nodes' strikes are quantiles of draws every node shares, so their errors were
+common, and interpolated they assigned 0.2004. At constant σ the still lattice now reads the
+first expiry 0.40666, the continuum's 0.4067 (the constant model on the near grid reads
+0.4046, II-32), and inventory at 30 years 11.35; both exact tests hold to 1e-13bp. Against
+the simulator, pooled over seeds 1 and 2, z as before:
+
+| | fitted | jumps | factors |
+|---|---|---|---|
+| left at first expiry | −1.3 | −0.9 | −0.3 |
+| assignment rate (the lattice's exactly p\*) | +1.2 | +0.6 | +5.4, the simulator's |
+| E[I] at 5 / 10 / 30 years | +0.5 / −2.1 / −0.1 | +0.1 / −0.8 / −0.5 | +0.3 / −0.6 / +0.4 |
+| excess + leak, paired | 0.0 | 0.0 | −0.7 |
+| book delta, both channels / the price's alone | −2.9 / −0.3 | −2.8 / −0.5 | −2.4 / +0.1 |
+| up-beta / down-beta | +0.5 / −3.3 | +0.3 / −3.1 | +0.4 / −0.2 |
+| gap: mean / median / mean/median | −1.2 / −2.4 / +2.0 | −1.9 / −1.2 / −0.9 | +0.7 / 0.0 / +0.7 |
+| gaps beyond 5% / 10% | −0.8 / −1.9 | −1.9 / −3.2 | +0.3 / −1.3 |
+
+What remains past two errors, each small against what it measures:
+- **The book's delta through the volatility's channel** (0.0037 against the simulator's
+  0.0052 in the fitted process) — **the simulator's estimate, not the lattice's.** The
+  lattice's real-world test by channel holds to 0.001bp at 5, 10 and 30 years. The
+  simulator's paired test leaves −0.38bp at constant σ (its weekly sampling), −0.71bp with
+  both channels and +0.33bp with the price's alone: its own excess implies a channel of
+  about 0.0036 ± 0.0008, the lattice's, while its direct estimate from the tables'
+  gradients sits about two errors above that.
+- **The down-beta**, −0.0070 against −0.0067 (5% of the effect; both 0.993 at three
+  figures), with jumps only: periods after the first ride the grid, whose spread is a little
+  wide (decision 2).
+- **Gaps beyond 10% under jumps alone**, 0.617% against 0.630%, three errors.

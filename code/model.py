@@ -223,6 +223,11 @@ class Config:
     delta: float = 0.025       # gross dividend yield
     withhold: float = 0.15
     iv_spread: float = 0.0     # sigma_IV = sigma + spread (0 = no vol risk premium)
+    vol: str = "constant"      # "constant", or the fitted process: "factors" (the two
+                               # volatility factors alone), "jumps" (with the jumps and
+                               # their kick), "fitted" (with earnings too) -- the lattice
+                               # walk (code/lattice.py), numpy only
+    vol_hs: float = 0.1        # the lattice's h_slow spacing (decision 2; 0.05 its fallback)
     gamma_p: float = 0.20      # margin fraction required against a short put
     # -- working capital.  Initial and maintenance requirements are one
     # parameter each, deliberately: the difference is small next to the
@@ -756,7 +761,7 @@ class DepthWalk:
         return _np.array(w) if _np is not None else w
 
 
-def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
+def occupation(C, measure, h=0.01, x_max=None, j_max=None, eps=1e-9,
                min_steps=40):
     """Per-arrival functionals of the killed walk, summed over its life.
 
@@ -764,7 +769,17 @@ def occupation(C, measure, h=0.01, x_max=4.0, j_max=8000, eps=1e-9,
     basis e^x) and their geometric-tail-closed totals.  Each sequence is
     indexed by j = 0, 1, ... where period j+1 of the lot's life is spent at
     depth x_j; S_0 = 1 and sum_j S_j = E[J].
+
+    The defaults are x_max = 4 and 8,000 periods.  Under the moving volatility
+    (C.vol) the walk is the lattice's, on the grid the lattice holds for h, to its
+    own depth, and VOL_NEAR_PERIODS long -- past every finite horizon the article
+    quotes -- unless j_max says otherwise; stationary() runs it long.
     """
+    if C.vol != "constant":
+        return _vol_walk(C, measure, h, x_max if x_max is not None else
+                         _vol_grid_depth(h), j_max or VOL_NEAR_PERIODS, eps, min_steps)
+    x_max = 4.0 if x_max is None else x_max
+    j_max = 8000 if j_max is None else j_max
     m, s = C.world(measure)
     nu = m - s**2 / 2
     _, _, _, dens = entry_law(C, measure)
@@ -871,6 +886,8 @@ def stationary(C, measure, h=0.025, x_max=20.0, eps=1e-7, **kw):
     sweep in convergence_check(), which is where its divergence is the
     finding rather than an error.
     """
+    if C.vol != "constant":             # decision 6: run long, on the lattice's pair
+        kw.setdefault("j_max", VOL_STATIONARY_PERIODS)
     coarse = occupation(C, measure, h=h, x_max=x_max, eps=eps, **kw)
     fine = occupation(C, measure, h=h / 2, x_max=x_max, eps=eps, **kw)
 
@@ -886,6 +903,8 @@ def stationary(C, measure, h=0.025, x_max=20.0, eps=1e-7, **kw):
     out["q(x0)"] = 1 - out["surv"][1] if len(out["surv"]) > 1 else float("nan")
     out["method"] = f"richardson({h:g}, {h / 2:g})"
     out["steps"] = j
+    if C.vol != "constant":
+        out["stationary"] = True
     return out
 
 
@@ -988,9 +1007,25 @@ def economics(C, measure, occ, horizon=None):
     cost, +43bp at one year and +5bp at five.  With both, the pricing-drift
     excess is exactly minus the withholding leak at every horizon.
     """
-    k, p_real, mean_x0, _ = entry_law(C, measure)
-    c_p = put_premium(C, measure)
-    lam = arrival_rate(C, measure)             # arrivals per year
+    if occ.get("vol"):
+        # The moving volatility: the put's figures summed over its sale (_vol_entry).  The
+        # walk is VOL_NEAR_PERIODS long unless stationary() ran it, so a stationary read
+        # of a near walk, or a horizon past its end, is refused rather than closed.
+        ent = occ["entry"]
+        k, p_real, mean_x0, c_p = ent["k"], ent["p"], ent["x0"], ent["c_p"]
+        lam = p_real / C.cadence
+        mark_loss, drop, tax = ent["mark"], ent["d"], float("nan")
+        if horizon is None and not occ.get("stationary"):
+            raise ValueError("stationary figures under the moving volatility go through "
+                             "stationary(), which runs the walk long")
+        if horizon is not None and horizon > len(occ["surv"]) * C.tau_c:
+            raise ValueError(f"horizon {horizon} is past the walk's {len(occ['surv'])} periods")
+    else:
+        k, p_real, mean_x0, _ = entry_law(C, measure)
+        c_p = put_premium(C, measure)
+        lam = arrival_rate(C, measure)         # arrivals per year
+        mark_loss, drop = entry_mark_loss(C, measure), expected_drop(C, measure)
+        tax = grid_tax(C, measure)
     basis_factor = 1 - c_p / k                 # basis / strike
 
     if horizon is None:
@@ -1034,7 +1069,7 @@ def economics(C, measure, occ, horizon=None):
     # when it happens, and the unrealized appreciation of held shares counted.
     m_price = occ["m"]
     mv_capital = C.gamma_p * k + inventory
-    acq_loss = lam * entry_mark_loss(C, measure)
+    acq_loss = lam * mark_loss
     call_away_loss = lam * sum_cost
     econ_pnl = (prem_income + div_income + cash_interest + inventory * m_price
                 - acq_loss - call_away_loss)
@@ -1049,10 +1084,10 @@ def economics(C, measure, occ, horizon=None):
         "collateral_interest": collateral_interest,
         "premium_float": premium_float,
         "premium_held": premium_held,
-        "k": k, "p_real": p_real, "E[x0]": mean_x0, "E[d]": expected_drop(C, measure),
+        "k": k, "p_real": p_real, "E[x0]": mean_x0, "E[d]": drop,
         "c_p": c_p, "lambda": lam, "nu": occ["nu"], "m": occ["m"],
         "q(x0)": occ["q(x0)"], "E[J]": occ["E[J]"], "E[T]": occ["E[J]"] * C.tau_c,
-        "E[T]_siegmund": (mean_x0 + grid_tax(C, measure)) / occ["nu"]
+        "E[T]_siegmund": (mean_x0 + tax) / occ["nu"]
                          if occ["nu"] > 0 else float("inf"),
         "I": inventory, "capital": capital,
         "income": income, "premiums": prem_income, "dividends": div_income,
@@ -1258,7 +1293,11 @@ def arrival_rate(C, measure):
     One put per cadence period, assigned with probability p*, so the arrival
     rate is exactly the dial divided by the cadence -- no walk required, and
     exact whatever the grid does.  economics() reports the same number.
+    Under the moving volatility the dial is each sale's real-world quantile, so the
+    rate is p*/T again, to the lattice's sampling of that quantile.
     """
+    if C.vol != "constant":
+        return _vol_entry(C, _vol_lattice(C)[0])["p"] / C.cadence
     _, p_real, _, _ = entry_law(C, measure)
     return p_real / C.cadence
 
@@ -1390,7 +1429,18 @@ def census_weights(C, measure, horizon=None, h=0.01, x_max=8.0,
     converged shares are 7.2 / 9.4 / 8.7 / 7.7, a zig-zag the density does not
     have.  At h = 0.01 every whole-percent cut is a cell boundary, and the
     shares agree with h = 0.0025 to a tenth of a point.
+
+    Under the moving volatility the census is the lattice walk's, summed over
+    the volatility nodes and the earnings calendar, at a horizon it keeps
+    (VOL_CENSUS) or stationary; `split` is not kept there.
     """
+    if C.vol != "constant":
+        if split:
+            raise NotImplementedError("the moving volatility keeps the census whole")
+        xs, cen, g = _vol_census(C, horizon)
+        L, _ = _vol_lattice(C)
+        first = L[f"first cells {g}"][0] / float(L["first"][0])   # the exact first period
+        return list(xs), cen.sum(axis=(0, 1)) + _w0(C, horizon) * first
     m, s = C.world(measure)
     _, _, _, dens = entry_law(C, measure)
     walk = DepthWalk(m - s**2 / 2, s, C.tau_c, h=h, x_max=x_max)
@@ -1429,11 +1479,17 @@ def depth_census(C, measure, edges, horizon=None, h=0.01, x_max=8.0,
     total = sum(U)
     bins = [0.0] * (len(edges) - 1)
     mean_x = mean_q = 0.0
-    for x, ui in zip(xs, U):
+    if C.vol != "constant":             # each cell's exit at its own volatility
+        L, _ = _vol_lattice(C)
+        xs_v, cen, g = _vol_census(C, horizon)
+        fx = _w0(C, horizon) * L[f"first cells {g}"][1] / float(L["first"][0])
+        q_cells = [(float((cen[:, :, i] * L[f"call {g}"][:, :, 0, i].T).sum()) + fx[i]) / ui
+                   if ui > 0 else 0.0 for i, ui in enumerate(U)]
+    for i, (x, ui) in enumerate(zip(xs, U)):
         b = min(len(bins) - 1, max(0, sum(1 for e in edges[1:] if x >= e)))
         bins[b] += ui
         mean_x += ui * x
-        mean_q += ui * q_exit(C, measure, x)
+        mean_q += ui * (q_exit(C, measure, x) if C.vol == "constant" else q_cells[i])
     return [b / total for b in bins], mean_x / total, mean_q / total
 
 
@@ -1472,7 +1528,13 @@ def split_beta(C, measure, horizon=None, nz=2001, zmax=8.0, **census_kw):
     cushion, and it is one period's premium against the whole decline.
     Inventory is not the whole book, though: see `book_delta`, where the short
     put carries the total past 1.
+
+    Under the moving volatility (C.vol) the premium is included, as a published
+    beta's is and as `wheel_sim.py` reports it, since it then pairs with the size
+    of the move (`_vol_split_beta`).
     """
+    if C.vol != "constant":
+        return _vol_split_beta(C, horizon)
     m, s = C.world(measure)
     mu_r, sd_r = (m - s**2 / 2) * C.tau_c, s * sqrt(C.tau_c)
     xs, wts = census_weights(C, measure, horizon, **census_kw)
@@ -1615,7 +1677,13 @@ def book_delta_life(C, measure, horizon=None, **census_kw):
 
     In share units, as book_delta(); the put's is scaled by tau_p/T, the share
     of the time a put is live.  No shock: this is the book as it stands.
+
+    Under the moving volatility (C.vol) the delta runs through the price and
+    through the volatility the price moves (`_vol_book_delta_life`, its `channel`
+    in census_kw).
     """
+    if C.vol != "constant":
+        return _vol_book_delta_life(C, horizon, **census_kw)
     xs, wts = census_weights(C, measure, horizon, **census_kw)
     total = sum(wts)
     inv = sum((wx / total) * (1.0 - life_delta(C, measure, x, C.tau_c))
@@ -1812,6 +1880,405 @@ def time_to_inventory(C, occ, lam, target):
     if target <= 0:
         return 0.0
     return _time_to_survival_sum(occ["surv"], C.tau_c, target / (lam * C.tau_c))
+
+
+# ----------------------------------------------------------------------
+# The moving volatility: the lattice walk
+#
+# drafts/2026-11-22-model-moving-volatility-plan.md.  With Config.vol set, a
+# lot's state is its depth, the stock's two volatility factors and the week
+# of the earnings cycle, and code/lattice.py has simulated the fitted process
+# from every volatility node: where a lot's depth and volatility go over a call
+# period, and what each depth books.  The walk below steps that state a call
+# period at a time and returns what occupation() returns, so economics() and
+# everything after it read the moving volatility through the same arithmetic.
+# It needs numpy, as the lattice does; constant sigma does not reach it.
+#
+# The earnings week: a lot's phase p is the number of weeks from the start of
+# its call period to the next earnings week.  The period holds earnings when
+# p < 4, in its week p, and the next period starts at phase (p - 4) mod 13.  A
+# put sold p_put weeks before an earnings week enters its lot at p_put - 1.
+# ----------------------------------------------------------------------
+
+VOL_PROCESSES = {"factors": (False, False), "jumps": (True, False), "fitted": (True, True)}
+EARN_WEEKS = 13
+VOL_GRIDS = {0.01: "near", 0.025: "coarse", 0.0125: "fine"}
+VOL_CENSUS = (1.0, 5.0, 10.0, 30.0)     # horizons whose census the near walk keeps
+VOL_NEAR_PERIODS = 400                  # the near walk's length: past 30 years
+VOL_STATIONARY_PERIODS = 4000           # decision 6: test 8's 0.04% closure
+# A week holds earnings once in thirteen, on one of its five sessions: the put kinds'
+# weights (lattice.PUT_KINDS: none, then each session).
+_PUT_KIND_W = (12 / 13,) + (1 / 65,) * 5
+_PHASE_KIND = tuple(1 + p if p < 4 else 0 for p in range(EARN_WEEKS))
+_LATTICE = {}
+
+
+def _vol_run(C):
+    """The lattice's parameters for a Config, refusing what it was not built for."""
+    if _np is None:
+        raise ImportError("the moving volatility needs numpy (code/lattice.py)")
+    if abs(C.tau_p - 1 / 52) > 1e-12 or C.n != 4 or abs(C.cadence - C.tau_p) > 1e-12:
+        raise ValueError("the moving volatility is built on the running example's rhythm: a "
+                         "put a week (tau_p = T = 1/52) and four-week calls (n = 4)")
+    run = {"sigma": C.sigma, "mu": C.mu, "r": C.r, "delta": C.delta, "p_star": C.p_star}
+    if C.vol == "still":            # the volatility held still: step 2's structural check
+        return dict(run, jumps=False, earnings=False, still=True)
+    if C.vol not in VOL_PROCESSES:
+        raise ValueError(f"unknown vol {C.vol!r}: constant, {', '.join(VOL_PROCESSES)}")
+    jumps, earnings = VOL_PROCESSES[C.vol]
+    run = dict(run, jumps=jumps, earnings=earnings)
+    if abs(C.vol_hs - 0.1) > 1e-12:
+        run["hs step"] = C.vol_hs
+    return run
+
+
+def _vol_grid_depth(h):
+    """The depth the lattice's grid of cell width h reaches."""
+    import lattice
+    g = VOL_GRIDS.get(round(h, 10))
+    if g is None:
+        raise ValueError(f"the lattice holds cell widths {sorted(VOL_GRIDS)}, not {h}")
+    return lattice.GRIDS[g][1]
+
+
+def _vol_lattice(C):
+    """(the lattice's arrays, its cache key) for C, one set held at a time."""
+    import lattice
+    run = _vol_run(C)
+    key = lattice._key(run)[1] + lattice._exact_key(run)[1]   # the tables and the entry
+    if _LATTICE.get("key") != key:
+        _LATTICE.clear()
+        _LATTICE.update(key=key, data=lattice.load(run))
+    return _LATTICE["data"], key
+
+
+def _vol_entry(C, L):
+    """The put's figures over its sales, from the exact entry (decision 10): sales from
+    exact stationary states across the earnings calendar.  Per put sold unless per lot."""
+    import lattice
+    if C.iv_spread:
+        raise NotImplementedError("a volatility spread under the moving volatility needs each "
+                                  "sale's implied volatility, which the lattice does not yet hold")
+    p = dict(zip(lattice.EXACT_PUT_COLS, (float(v) for v in L["exact put"])))
+    N, A = p["sales"], p["assigned"]
+    tp, dmu = C.tau_p, C.mu - C.r
+    edge = (exp(C.r * tp) * p["prem"] - p["mark"]) / N     # E_Q - E_P of the payoff, a sale
+    return {
+        "k": p["k"] / N, "p": A / N, "c_p": p["prem"] / N, "mark": p["mark"] / A,
+        "x0": p["x0"] / A, "d": p["drop"] / A,
+        # the short put's life delta, as life_delta(put=True): both channels by the
+        # trapezoid, the price's alone, and exactly (its real-world edge over mu - r)
+        "D": p["D both"] / N, "D price": p["D price"] / N,
+        "D exact": edge / (dmu * tp) if dmu else p["D both"] / N,
+    }
+
+
+def _vol_first(L):
+    """The lot's first call period, from the exact entry: its figures per lot."""
+    import lattice
+    f = dict(zip(lattice.FIRST_COLS, (float(v) for v in L["first"])))
+    n = f.pop("lots")
+    return {k: v / n for k, v in f.items()}
+
+
+def _w0(C, horizon):
+    """The first call period's census weight over [0, horizon], as census_weights' j = 0."""
+    return 1.0 if horizon is None else max(0.0, horizon - 0.5 * C.tau_c) / horizon
+
+
+def vol_gaps(C):
+    """The gap at assignment, g = 1 - S'/K, under the moving volatility: (mean, median,
+    share beyond 5%, beyond 10%) over the lots assigned -- section 05's tail, from the
+    exact entry's eight million sales."""
+    import lattice
+    L, _ = _vol_lattice(C)
+    hist = L["exact gaps"]
+    hist = hist / hist.sum()
+    edges = lattice.GAP_BINS
+    mids = 0.5 * (edges[1:] + edges[:-1])
+    cdf = _np.cumsum(hist)
+    i = int(_np.searchsorted(cdf, 0.5))
+    lo = cdf[i - 1] if i else 0.0
+    median = edges[i] + (0.5 - lo) / hist[i] * (edges[i + 1] - edges[i])
+    return {"mean": float(hist @ mids), "median": float(median),
+            "beyond 5%": float(hist[mids > 0.05].sum()), "beyond 10%": float(hist[mids > 0.10].sum())}
+
+
+def _vol_cells(C, L, g, n, h):
+    """Each phase's per-cell figures on grid g: {name: (13, nodes, n)}."""
+    x = (_np.arange(n) + 0.5) * h
+    ex = _np.exp(x)
+    call = _np.moveaxis(L[f"call {g}"], 2, 0)        # (rows, nodes, kinds, n)
+    if g == "near":
+        cntP, s1P, s2P, sRP, sgP, cntQ, s1Q, sgQ = call
+    else:
+        cntP, s1P, s2P, sRP, cntQ, s1Q = call
+    if C.iv_spread:
+        raise NotImplementedError("a volatility spread under the moving volatility needs each "
+                                  "cell's implied volatility, which the lattice does not yet hold")
+    cells = {"prem": exp(-C.r * C.tau_c) * (s1Q - ex * cntQ), "cost": s1P - ex * cntP,
+             "exits": cntP, "exitdepth": x * cntP - sRP}
+
+    def by_phase(F):
+        return _np.ascontiguousarray(_np.moveaxis(F[:, list(_PHASE_KIND), :], 1, 0))
+
+    return x, {k: by_phase(v) for k, v in cells.items()}
+
+
+def _vol_earnings(L, h, M=20_000):
+    """Each node's earnings jump as depth offsets in cells, at the scale of the period's
+    starting state (the plan's one approximation): (offsets (nodes, 2M), weights (2M,)),
+    the law's quantile midpoints on each side."""
+    import volprocess as VP
+    proc = VP.Process(float(L["sig bar"]), True, True)
+    u = (_np.arange(M) + 0.5) / M
+    y = _np.concatenate([-proc.aeu * _np.log1p(-u), proc.aed * _np.log1p(-u)])
+    wy = _np.concatenate([_np.full(M, proc.pe / M), _np.full(M, (1 - proc.pe) / M)])
+    H = _np.clip(_np.add.outer(L["hf"], L["hs"]).ravel(), -VP.H_CLIP, VP.H_CLIP)
+    s = proc.sig_bar * _np.exp(proc.be * H)
+    comp = _np.log(proc.pe / (1 - s * proc.aeu) + (1 - proc.pe) / (1 + s * proc.aed))
+    return -(s[:, None] * y[None, :] - comp[:, None]) / h, wy
+
+
+def _vol_earnings_fft(shift, wy, F_len):
+    """The offsets of _vol_earnings split linearly onto whole cells, each node's law in
+    Fourier space (nodes, F_len//2 + 1); a negative offset wraps, as the walk expects."""
+    f = _np.floor(shift)
+    t = shift - f
+    f = f.astype(int)
+    out = _np.empty((shift.shape[0], F_len // 2 + 1), complex)
+    for a in range(shift.shape[0]):
+        law = _np.bincount(f[a] % F_len, wy * (1 - t[a]), F_len)
+        law += _np.bincount((f[a] + 1) % F_len, wy * t[a], F_len)
+        out[a] = _np.fft.rfft(law)
+    return out
+
+
+def _smooth_size(n):
+    """The least 2^a 3^b 5^c >= n, a size numpy's FFT handles fast."""
+    best = 1 << (n - 1).bit_length()
+    p5 = 1
+    while p5 < best:
+        p35 = p5
+        while p35 < best:
+            p = p35
+            while p < n:
+                p *= 2
+            best = min(best, p)
+            p35 *= 3
+        p5 *= 5
+    return best
+
+
+def _vol_walk(C, measure, h, x_max, j_max, eps, min_steps):
+    """occupation() under the moving volatility: the lattice walk, cached on disk."""
+    import hashlib
+    import json
+    import lattice
+    if measure != "P":
+        raise NotImplementedError("the moving volatility's walk is the real world's: the "
+                                  "pricing-drift twin is a run at mu = r")
+    g = VOL_GRIDS.get(round(h, 10))
+    if g is None or abs(lattice.GRIDS[g][1] - x_max) > 1e-12:
+        raise ValueError(f"the lattice holds grids {lattice.GRIDS}, not h = {h}, x_max = {x_max}")
+    L, lkey = _vol_lattice(C)
+    census_h = VOL_CENSUS if g == "near" else (None,)
+    key = hashlib.sha1(json.dumps([lkey, g, j_max, eps, min_steps, C.iv_spread, census_h,
+                                   lattice.VERSION]).encode()).hexdigest()[:12]
+    path = os.path.join(lattice.CACHE, f"walk-{key}.npz")
+    if os.path.exists(path):
+        with _np.load(path) as z:
+            seq = {k: z[k] for k in z.files}
+    else:
+        seq = _vol_walk_run(C, L, g, h, x_max, j_max, eps, min_steps, census_h)
+        tmp = path[:-4] + ".tmp.npz"
+        _np.savez_compressed(tmp, **seq)
+        os.replace(tmp, path)
+    ent = _vol_entry(C, L)
+    m = C.mu - C.delta
+    surv = [float(v) for v in seq["surv"]]
+
+    def close(s, win=10):
+        total = sum(s)
+        if len(s) < win + 2 or s[-1 - win] <= 0:
+            return total, None
+        ratio = (s[-1] / s[-1 - win]) ** (1.0 / win)
+        if ratio < 1.0:
+            total += s[-1] * ratio / (1 - ratio)
+        return total, ratio
+
+    lists = {k: [float(v) for v in seq[k]] for k in
+             ("prem", "basis", "exitcost", "exits", "depth", "exitdepth")}
+    EJ, r_s = close(surv)
+    Eprem, r_p = close(lists["prem"])
+    Ebasis, r_b = close(lists["basis"])
+    Ecost, _ = close(lists["exitcost"])
+    Eexits, _ = close(lists["exits"])
+    Edepth, _ = close(lists["exitdepth"])
+    return {
+        "nu": m - C.sigma ** 2 / 2, "m": m, "sigma": C.sigma, "steps": len(surv),
+        "surv": surv, "prem": lists["prem"], "basis": lists["basis"],
+        "exitcost": lists["exitcost"], "exitdepth": lists["exitdepth"],
+        "depth": lists["depth"], "E[overshoot]": -Edepth / Eexits if Eexits > 0 else float("nan"),
+        "E[J]": EJ, "E[prem]": Eprem, "E[basis]": Ebasis, "E[exitcost]": Ecost,
+        "P[exit]": Eexits, "ratio": (r_s, r_p, r_b), "escaped": float(seq["escaped"]),
+        "h": h, "x_max": x_max, "q(x0)": 1 - surv[1] if len(surv) > 1 else float("nan"),
+        "vol": C.vol, "grid": g, "entry": ent,
+        "census": {H: seq[f"census {H}"] for H in census_h},
+    }
+
+
+def _vol_walk_run(C, L, g, h, x_max, j_max, eps, min_steps, census_h):
+    """The walk itself: depth x volatility node x earnings phase, a call period a step, the
+    transition applied as a batched product in Fourier space."""
+    n = int(round(x_max / h))
+    nodes = L["pi"].size
+    x, cells = _vol_cells(C, L, g, n, h)
+    ex = _np.exp(x)
+    K = L[f"kern {g}"]
+    D = K.shape[2]
+    W = (D - 1) // 2
+    earnings = bool(_vol_run(C)["earnings"])
+    E, Eh = 0, None
+    if earnings:
+        shift, wy = _vol_earnings(L, h)
+        E = int(_np.abs(shift).max()) + 2              # the jump's reach, in cells
+    F_len = _smooth_size(n + D - 1 + 2 * E)
+    if earnings:
+        Eh = _vol_earnings_fft(shift, wy, F_len).astype(_np.complex64)
+    Kh = _np.empty((F_len // 2 + 1, nodes, nodes), _np.complex64)
+    for a in range(0, nodes, 32):
+        Kh[:, a:a + 32, :] = _np.moveaxis(_np.fft.rfft(K[a:a + 32], F_len, axis=-1), 2, 0)
+    # The first call period is the exact entry's (decision 10): its figures come from the
+    # lots simulated from their exact states, and the grid takes the survivors over at the
+    # start of their second period, from U.  The census below is the grid's, from j = 1;
+    # the census functions add the first period's from the same lots.
+    f = _vol_first(L)
+    U = L[f"entry2 {g}"].astype(_np.float64) / float(L["first"][0])
+    nxt = [(q + 4) % EARN_WEEKS for q in range(EARN_WEEKS)]   # U'[q] comes from U[q + 4]
+    census = {H: _np.zeros((EARN_WEEKS, nodes, n)) for H in census_h}
+    seq = {k: [1.0 if k == "surv" else f[k]] for k in
+           ("surv", "prem", "basis", "exitcost", "exits", "depth", "exitdepth")}
+    escaped = 0.0
+    for j in range(1, j_max):
+        S = float(U.sum())
+        seq["surv"].append(S)
+        seq["prem"].append(float((U * cells["prem"]).sum()))
+        cx = U.sum(axis=(0, 1))
+        seq["basis"].append(float(cx @ ex))
+        seq["depth"].append(float(cx @ x) / S if S > 0 else float("nan"))
+        seq["exitcost"].append(float((U * cells["cost"]).sum()))
+        seq["exits"].append(float((U * cells["exits"]).sum()))
+        seq["exitdepth"].append(float((U * cells["exitdepth"]).sum()))
+        for H, acc in census.items():
+            wt = 1.0 if H is None else max(0.0, H - (j + 0.5) * C.tau_c) / H
+            if wt:
+                acc += wt * U
+        if S < eps and j >= min_steps:
+            break
+        Uh = _np.fft.rfft(U, F_len, axis=-1)
+        if earnings:
+            Uh[:4] *= Eh
+        Uh = _np.ascontiguousarray(_np.moveaxis(Uh, 2, 0)).astype(_np.complex64)
+        V = _np.fft.irfft(_np.moveaxis(_np.matmul(Uh, Kh), 0, 2), F_len, axis=-1)
+        escaped += float(V[:, :, W + n:F_len - E].sum())
+        U = V[nxt][:, :, W:W + n].astype(_np.float64)
+    out = {k: _np.array(v) for k, v in seq.items()}
+    out["escaped"] = _np.array(escaped)
+    for H, acc in census.items():
+        by_kind = _np.zeros((5, nodes, n))
+        for p, kd in enumerate(_PHASE_KIND):
+            by_kind[kd] += acc[p]
+        out[f"census {H}"] = by_kind
+    return out
+
+
+def _vol_census(C, horizon):
+    """(depths, census by call kind (5, nodes, n), grid name): the near walk's at a horizon
+    it keeps, or the stationary walk's (the fine grid) at horizon None."""
+    if horizon is None:
+        occ = stationary(C, "P")
+        h = 0.0125
+    else:
+        if horizon not in VOL_CENSUS:
+            raise ValueError(f"the moving volatility keeps the census at {VOL_CENSUS} years")
+        occ = occupation(C, "P")
+        h = 0.01
+    cen = occ["census"][horizon]
+    return (_np.arange(cen.shape[2]) + 0.5) * h, cen, occ["grid"]
+
+
+def _vol_split_beta(C, horizon, premium=True):
+    """split_beta() under the moving volatility: each side's OLS slope of a lot's payoff on
+    the stock's return over one call period, census-weighted over depth, volatility and the
+    earnings calendar, the lot's premium included (with `premium`) as a published beta's is."""
+    L, _ = _vol_lattice(C)
+    x, cen, g = _vol_census(C, horizon)
+    ex = _np.exp(x)
+    call = _np.moveaxis(L[f"call {g}"], 2, 0)
+    cntP, s1P, s2P = call[0], call[1], call[2]
+    n_up, su_up, suu_up, n_dn, su_dn, suu_dn = _np.moveaxis(L["call const"], 2, 0)
+    c = (exp(-C.r * C.tau_c) * (call[-2] - ex * call[-3]) if g == "near"
+         else exp(-C.r * C.tau_c) * (call[5] - ex * call[4]))
+    if not premium:
+        c = 0.0 * c
+    wt = _np.moveaxis(cen, 0, 1)                      # (nodes, kinds, n), per arrival
+    exc = ex - 1.0
+    # up side: p0 = min(e^R, e^x) - 1 over R > 0, the premium on top
+    sp0 = su_up[..., None] - s1P + cntP * ex
+    sp0u = suu_up[..., None] - (s2P - 2 * s1P + cntP) + exc * (s1P - cntP)
+    up = [n_up[..., None], sp0 + c * n_up[..., None], su_up[..., None],
+          sp0u + c * su_up[..., None], suu_up[..., None]]
+    dn = [n_dn[..., None], su_dn[..., None] + c * n_dn[..., None], su_dn[..., None],
+          suu_dn[..., None] + c * su_dn[..., None], suu_dn[..., None]]
+    # the first call period, from the exact entry's lots, at its census weight
+    f, w0 = _vol_first(L), _w0(C, horizon)
+    out = []
+    for name, side in (("up", up), ("dn", dn)):
+        w, sp, su, spu, suu = (float((wt * _np.broadcast_to(v, wt.shape)).sum()) for v in side)
+        pc = 1.0 if premium else 0.0
+        w += w0 * f[f"{name} n"]
+        sp += w0 * (f[f"{name} p0"] + pc * f[f"{name} c"])
+        su += w0 * f[f"{name} u"]
+        spu += w0 * (f[f"{name} p0u"] + pc * f[f"{name} cu"])
+        suu += w0 * f[f"{name} uu"]
+        mp, mu_ = sp / w, su / w
+        out.append((spu / w - mp * mu_) / (suu / w - mu_ * mu_))
+    return out[0], out[1]
+
+
+def _vol_book_delta_life(C, horizon, channel="both"):
+    """book_delta_life() under the moving volatility: (inventory delta, short-put delta),
+    each option's delta averaged over its life.  `channel`: "both" (the price's and the
+    volatility's, first order, by the trapezoid in the drift), "price" (the price's alone),
+    or "exact" (each option's real-world edge over (mu - r)*tau, which makes the real-world
+    test an identity of the ledger's)."""
+    L, _ = _vol_lattice(C)
+    x, cen, g = _vol_census(C, horizon)
+    if g != "near":
+        raise ValueError("the life delta is kept on the near grid only")
+    ex = _np.exp(x)
+    cntP, s1P, s2P, sRP, sgP, cntQ, s1Q, sgQ = _np.moveaxis(L["call near"], 2, 0)
+    tc = C.tau_c
+    if channel == "both":
+        D = 0.5 * ((tc * s1P + sgP) + (tc * s1Q + sgQ)) / tc
+    elif channel == "price":
+        D = 0.5 * (s1P + s1Q)
+    elif channel == "exact" and C.mu != C.r:
+        D = ((s1P - ex * cntP) - (s1Q - ex * cntQ)) / ((C.mu - C.r) * tc)
+    elif channel == "exact":            # mu = r: no edge to divide, and first order is exact
+        return _vol_book_delta_life(C, horizon, "both")
+    else:
+        raise ValueError(f"unknown channel {channel!r}")
+    wt = _np.moveaxis(cen, 0, 1)
+    f, w0 = _vol_first(L), _w0(C, horizon)       # the exact first call period
+    D0 = {"both": f["D both"], "price": f["D price"],
+          "exact": (f["exitcost"] - exp(C.r * tc) * f["prem"]) / ((C.mu - C.r) * tc)
+          if C.mu != C.r else f["D both"]}[channel]
+    inv = (float((wt * (1.0 - D)).sum()) + w0 * (1.0 - D0)) / (float(wt.sum()) + w0)
+    ent = _vol_entry(C, L)
+    put = {"both": ent["D"], "price": ent["D price"], "exact": ent["D exact"]}[channel]
+    return inv, put * C.tau_p / C.cadence
 
 
 # ----------------------------------------------------------------------
