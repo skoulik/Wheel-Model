@@ -672,6 +672,44 @@ The volatility's moving alone lowers a point's worth a little; the jumps are wha
 Step 7's +48.1bp was on the old σ̄; on the measured one a volatility point is worth about 4%
 more under the fitted process than at constant σ, not 6%.
 
+**Part II side by side** (2026-11-23, material for the section revisions; scratch
+`side_by_side.py`). The constant-σ model as the article computes it (the near grid), the
+same with the volatility held still on the lattice (the continuum's figures, the first
+period from the exact entry), and the fitted process:
+
+| figure | Std constant | Std still | Std fitted | Con constant | Con still | Con fitted |
+|---|---|---|---|---|---|---|
+| §05 E[x0], entry depth | 1.548% | 1.548% | 1.675% | 1.313% | 1.313% | 1.615% |
+| §05 E[d], drop from the sale | 3.754% | 3.754% | 3.502% | 4.699% | 4.699% | 4.579% |
+| §05 put premium, of spot | 0.306% | 0.306% | 0.329% | 0.129% | 0.129% | 0.156% |
+| §05 gap: mean / median | | 1.26 | 1.535 | | 1.295 | 1.606 |
+| §05 gaps beyond 5% / 10% | | 1.78% / 0.001% | 5.38% / 0.63% | | 0.87% / 0% | 5.35% / 0.65% |
+| §07 left at first expiry | 0.4046 | 0.4067 | 0.4285 | 0.4192 | 0.4220 | 0.4356 |
+| §07 median holding, call periods | 2 | 2 | 2 | 2 | 2 | 2 |
+| §07 mean holding E[T], years | 2.099 | 2.100 | 2.110 | 2.018 | 2.019 | 2.144 |
+| §07 still held after 3 / 12 / 24 months | 0.381 / 0.179 / 0.119 | 0.380 / 0.178 / 0.119 | 0.359 / 0.166 / 0.112 | 0.369 / 0.172 / 0.115 | 0.367 / 0.171 / 0.114 | 0.356 / 0.167 / 0.113 |
+| §08 E[I] over 5 / 10 / 30 years | 5.41 / 7.39 / 11.40 | 5.39 / 7.36 / 11.35 | 5.12 / 7.00 / 10.87 | 2.63 / 3.58 / 5.50 | 2.61 / 3.56 / 5.47 | 2.57 / 3.52 / 5.49 |
+| §08 E[I(∞)] / years to 90% of it | 21.82 / 90.4 | 21.84 / 90.2 | 21.94 / 103.4 | 10.49 / 90.2 | 10.50 / 90.0 | 11.15 / 103.9 |
+| §09 true excess over 5 / 10 / 30 years, bp | 138.2 / 143.5 / 149.3 | 138.1 / 143.4 / 149.3 | 138.3 / 143.6 / 149.5 | 132.6 / 139.1 / 146.3 | 132.5 / 139.0 / 146.2 | 133.5 / 140.0 / 147.1 |
+| §09 book delta over its life, 30y | 0.931 | 0.931 | 0.932 | 0.913 | 0.912 | 0.917 |
+| §09 up-beta / down-beta, 30y | 0.828 / 1 | 0.828 / 1 | 0.838 / 0.993 | 0.824 / 1 | 0.823 / 1 | 0.832 / 0.991 |
+| §09 a volatility point, bp | 45.1 | 45.3 | 47.0 | 50.5 | 50.7 | 52.8 |
+| §10 lots' / capital boundary | 2.00% / 4.00% | 2.00% / 4.00% | 2.00% / 4.32% | | | |
+| §10 long-run variance of log S | 0.0400 | 0.0400 | 0.0427 | | | |
+
+Two cautions for whoever writes from it:
+- **The constant column carries TODO II-32.** The article's model starts its walk from the
+  entry density at each near-grid cell's centre, which reads the first expiry 0.2 points low
+  and inventory 0.3–0.6% high against the continuum; the lattice's first period runs from
+  the exact entry and carries no grid. So the fair side by side is still against fitted, and
+  II-32 is best settled before the sections quote both: either the constant model moves to
+  h = 0.0025 (II-32's own proposal) or Part II quotes the still lattice's continuum figures.
+- **Track A's excess under the moving volatility is approximate** (not in the table): its
+  capital takes each lot's basis as e^x(1 − c_p/k) with c_p/k averaged over the sales,
+  where under moving volatility each lot's ratio is its own sale's. The true excess is
+  exact; Track A should be measured from the exact entry's per-lot basis before it is
+  quoted.
+
 **Decision 2's fallback, measured** (h_slow at 0.05, 799 nodes, the fitted process, Standard):
 against 0.1, inventory at 5, 10 and 30 years moves by +0.0001, +0.0001 and −0.005 lots, the
 first expiry by −0.0002, the excess by −0.005bp, the book's delta by −0.00003, the up-beta
