@@ -672,7 +672,14 @@ against 0.1, inventory at 5, 10 and 30 years moves by +0.0001, +0.0001 and −0.
 first expiry by −0.0002, the excess by −0.005bp, the book's delta by −0.00003, the up-beta
 by −0.0005, the down-beta by less than 0.00001, the gaps not at all. With σ̄ shared
 (decision 9) and the entry exact (decision 10), h_slow's spread at 0.1 costs nothing the
-article quotes; the down-beta's residual is not its doing.
+article quotes; the down-beta's residual is not its doing. **h_fast at 0.05** (792 nodes)
+likewise: inventory −0.001 to −0.004 lots, the first expiry +0.0002, the excess −0.003bp,
+the up-beta +0.0003, the down-beta less than 0.00001. Neither factor's grid explains the
+down-beta's 0.0003 against the simulator (−0.0070 against −0.0067), and the two estimators
+are the same — each call period observed within the window, the lot's move against its
+price at the call's sale, the premium in, a slope with an intercept a side — with the
+window's weights differing only by half a period, (H − (j + ½)τ_c) against (H − (j + 1)τ_c).
+Left open: 5% of an effect both models put at 0.993 to three figures.
 
 Decision 8's test passes but for two of the simulator's own figures — the volatility channel
 of its delta, every process, and its tables' strike under the factors alone — and the
