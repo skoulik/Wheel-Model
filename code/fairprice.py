@@ -63,7 +63,7 @@ import numpy as np
 import volprocess as VP
 
 CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "data", "fair")
-VERSION = 5
+VERSION = 6                     # 6: σ̄ from 1.6 million independent reads (`moments`)
 PATHS = 200_000                 # a chunk of draws
 CHUNKS = 4                      # chunks pooled at every node: 800,000 paths
 BUILD_WORKERS = 8               # rows built at once; each holds its own draws, ~1.6 GB
@@ -73,7 +73,7 @@ CALL_TENORS = (5, 10, 15, 20)   # a call's life left at each put sale; the sale 
 HF_GRID = [round(-0.2 + 0.1 * i, 10) for i in range(13)]
 HS_GRID = [round(-0.1 + 0.2 * i, 10) for i in range(11)]
 U_GRID = [round(-3.0 + 0.1 * i, 10) for i in range(111)]     # below the money too
-MOMENT_ROWS, MOMENT_SESSIONS = 400, 12_000
+MOMENT_PATHS, MOMENT_READS, MOMENT_GAP, MOMENT_CHUNKS = 400_000, 4, 650, 16
 
 _erfc = np.vectorize(erfc, otypes=[float])
 
@@ -186,10 +186,19 @@ def boundaries(proc, n=400, years=200, seed=SEED):
     return iff mu - delta > c1, and their capital iff mu - delta > c2 -- sigma^2/2 and sigma^2
     at constant sigma. With the price drift compensated, c1 is the long-run drag of log S,
     the mean over the state of K+(H) - E[noise] a session; c2 is the long-run growth of
-    E[S_0/S_T], the mean of K+(H) + K-(H), K the noise's log moment generating function at
-    +1 and -1. The second mean is taken along the path tilted by e^(-log S), z shifted by
-    -sigma_t and the jumps tilted, which by the change of measure makes it exact. Earnings
-    sessions add their own cumulants; they do not move h, so the tilt leaves them be."""
+    E[S_0/S_T]. Along the path tilted by e^(-log S) -- z shifted by -sigma_t and the jumps
+    tilted -- that is E[S_0/S_T] = E~[exp(sum_t K(H_t))], K = K+(H) + K-(H) the noise's log
+    moment generating function at +1 and -1 a session, so c2 is (1/T) log E~[exp(sum K)].
+    Earnings sessions add their own cumulants; they do not move h, so the tilt leaves them be.
+
+    The time-average of K along the tilted paths, E~[sum K]/T, is reported beside it as "c2
+    time-average", and it is LOWER: by Jensen, log E~[e^Y] = E~[Y] + Var~(Y)/2 + ... for the
+    near-Gaussian Y = sum K, and the paths' own spread measures that term -- 0.06 to 0.07
+    points at the running example. Until 2026-11-22 this returned the time-average as c2,
+    and the docstring called it exact; the Markov additive process's eigenvalue (test 10 of
+    drafts/2026-11-22-model-moving-volatility-plan.md) is what exposed it. c2 is now the
+    time-average plus Var(sum K)/(2T) from the paths' spread, which the per-path
+    log-mean-exp reproduces to a few hundredths of a point."""
     g = np.random.default_rng(seed)
     T = int(years * VP.SESSIONS)
     p = proc
@@ -235,7 +244,13 @@ def boundaries(proc, n=400, years=200, seed=SEED):
             hf = p.phi_f * hf + p.th_f * x + p.k_f * down
             hs = p.phi_s * hs + p.th_s * x + p.k_s * down
         rate = acc / cnt * VP.SESSIONS
-        out["c2" if tilt else "c1"] = (float(rate.mean()), float(rate.std(ddof=1) / sqrt(n)))
+        se = float(rate.std(ddof=1) / sqrt(n))
+        if tilt:
+            jensen = float(rate.var(ddof=1)) * years / 2.0
+            out["c2 time-average"] = (float(rate.mean()), se)
+            out["c2"] = (float(rate.mean()) + jensen, se)
+        else:
+            out["c1"] = (float(rate.mean()), se)
     return out
 
 
@@ -308,30 +323,61 @@ def draw_sets(seed, chunks=None):
             for c in range(CHUNKS if chunks is None else chunks)]
 
 
-def moments(jumps=True, earnings=True, seed=SEED):
-    """Stationary real-world averages of e^(2H), e^(2βH), e^(2β_E·H), and H's quantiles."""
-    proc = VP.Process(1.0, jumps, earnings)        # the state's dynamics ignore σ̄
+def _moment_chunk(job):
+    """One chunk of `moments`' paths: their reads of H, a pmap worker."""
+    jumps, earnings, seed = job
+    proc = VP.Process(0.004, jumps, earnings)      # the state's dynamics ignore σ̄
     g = np.random.default_rng(seed)
-    hf, hs = np.zeros(MOMENT_ROWS), np.zeros(MOMENT_ROWS)
-    acc = np.zeros(3)
-    n = 0
-    Hs = []
-    chunk = 500
-    for start in range(0, VP.BURN + MOMENT_SESSIONS, chunk):
-        T = min(chunk, VP.BURN + MOMENT_SESSIONS - start)
-        d = {"z": g.standard_normal((T, MOMENT_ROWS)), "u": g.random((T, MOMENT_ROWS)),
-             "w": g.exponential(size=(T, MOMENT_ROWS))}
-        _, H, hf, hs = simulate(proc, hf, hs, 0.0, 0.0, d, final=True)
-        keep = H[max(0, VP.BURN - start):]
-        if keep.size:
-            acc += [np.exp(2 * keep).sum(), np.exp(2 * proc.beta * keep).sum(),
-                    np.exp(2 * proc.be * keep).sum()]
-            n += keep.size
-            Hs.append(keep[::10].ravel())
-    Hs = np.concatenate(Hs)
-    return {"e2H": acc[0] / n, "e2bH": acc[1] / n, "e2bEH": acc[2] / n,
-            "H quantiles": dict(zip(("0.1%", "5%", "50%", "95%", "99.9%"),
-                                    np.quantile(Hs, [0.001, 0.05, 0.5, 0.95, 0.999]).tolist()))}
+    n = MOMENT_PATHS // MOMENT_CHUNKS
+    hf, hs = np.zeros(n), np.zeros(n)
+    reads = []
+    for stretch in [VP.BURN] + [MOMENT_GAP] * (MOMENT_READS - 1):
+        for start in range(0, stretch, 50):
+            T = min(50, stretch - start)
+            d = {"z": g.standard_normal((T, n)), "u": g.random((T, n)),
+                 "w": g.exponential(size=(T, n))}
+            _, _, hf, hs = simulate(proc, hf, hs, 0.0, 0.0, d, final=True)
+        reads.append(np.clip(hf + hs, -VP.H_CLIP, VP.H_CLIP))
+    return np.concatenate(reads)
+
+
+def moments(jumps=True, earnings=True, seed=SEED):
+    """Stationary real-world averages of e^(2H), e^(2βH), e^(2β_E·H), and H's quantiles.
+
+    MOMENT_PATHS independent paths, each run BURN sessions from h = 0 into the stationary
+    state and read MOMENT_READS times, MOMENT_GAP sessions apart -- six of the slow factor's
+    half-lives, so the reads are all but independent: 1.6 million of them, E[e^(2H)] good to
+    about 0.1% and σ̄ to 0.05%. Every table and lattice of a process reads this, so it is
+    cached under data/fair/. Until 2026-11-22 it read 400 paths at every session for 12,000
+    sessions -- about sixteen thousand independent reads of a heavy-tailed average -- and at
+    its seed read E[e^(2H)] 1.4% low and so σ̄ 0.6% high: every fitted run of step 7 sat at
+    a total variance about 1.2% above σ² (decision 9 of
+    drafts/2026-11-22-model-moving-volatility-plan.md)."""
+    key = json.dumps({"jumps": jumps, "earnings": earnings, "seed": seed, "paths": MOMENT_PATHS,
+                      "reads": MOMENT_READS, "gap": MOMENT_GAP, "burn": VP.BURN, "fit": VP.FIT,
+                      "earn": VP.EARN, "clip": VP.H_CLIP, "version": VERSION}, sort_keys=True)
+    path = os.path.join(CACHE, f"moments-{hashlib.sha1(key.encode()).hexdigest()[:12]}.json")
+    if os.path.exists(path):
+        with open(path) as f:
+            return json.load(f)
+    jobs = [(jumps, earnings, seed + 7919 * c) for c in range(MOMENT_CHUNKS)]
+    from multiprocessing import parent_process
+    if parent_process() is None:
+        from model import pmap
+        H = np.concatenate(pmap(_moment_chunk, jobs))
+    else:
+        H = np.concatenate([_moment_chunk(j) for j in jobs])
+    be, beta = VP.EARN["beta E"], VP.FIT["beta"]
+    out = {"e2H": float(np.exp(2 * H).mean()), "e2bH": float(np.exp(2 * beta * H).mean()),
+           "e2bEH": float(np.exp(2 * be * H).mean()),
+           "e2H s.e.": float(np.exp(2 * H).std() / sqrt(H.size)),
+           "H quantiles": dict(zip(("0.1%", "5%", "50%", "95%", "99.9%"),
+                                   np.quantile(H, [0.001, 0.05, 0.5, 0.95, 0.999]).tolist()))}
+    os.makedirs(CACHE, exist_ok=True)
+    with open(path + ".tmp", "w") as f:
+        json.dump(out, f)
+    os.replace(path + ".tmp", path)
+    return out
 
 
 def sig_bar(sigma, mom, jumps=True, earnings=True):

@@ -2131,6 +2131,12 @@ def earnterm(args):
           f"on - off {d:+.3%} ± {se:.3%}")
 
 
+# Each horizon on a seed of its own (decision 8 of drafts/2026-11-22-model-moving-volatility-
+# plan.md): each batch seeds its generator from the seed alone, so on one seed the 5- and
+# 10-year runs are the first years of the 30-year one, and one early fluctuation showed at
+# every horizon.  A real run and its twin, and a spread run and its spread-free one, still
+# share a seed: their pairing is what the seed is for.
+MAG_HORIZON_SEED = {30.0: 0, 10.0: 1_000_003, 5.0: 2_000_006}
 MAG_PROCESSES = (("constant", dict()),
                  ("factors", dict(vol_fitted=True, vol_jumps=False, vol_earnings=False)),
                  ("+jumps", dict(vol_fitted=True, vol_earnings=False)),
@@ -2159,7 +2165,8 @@ def magnitudes(args):
     both regimes, at 30 years (and 5 and 10 for the excess and the inventory), each
     real-world run beside its pricing-drift twin on the same draws, and at 30 years again
     with a volatility point of spread. Every figure is written, with its error across
-    batches, to data/magnitudes.json; the excess is also read against its twin."""
+    batches, to data/magnitudes-s<seed>.json (each horizon on a seed of its own,
+    MAG_HORIZON_SEED); the excess is also read against its twin."""
     import json
     import os
     paths = args.paths or 5120
@@ -2170,10 +2177,11 @@ def magnitudes(args):
                 for drift, mu in (("real", 0.07), ("twin", 0.05)):
                     cases.append((proc, regime, years, spread, drift, Params(
                         p_star=ps, delta=0.025, mu=mu, years=years, paths=paths,
-                        seed=args.seed, iv_spread=spread, record_gaps=True,
+                        seed=args.seed + MAG_HORIZON_SEED[years], iv_spread=spread,
+                        record_gaps=True,
                         book_delta=(drift == "real" and years == 30.0 and spread == 0.0),
                         **kw)))
-    path = os.path.join("data", "magnitudes.json")
+    path = os.path.join("data", f"magnitudes-s{args.seed}.json")
     out = {}
     if os.path.exists(path):              # resume: a group already written is not rerun
         with open(path) as f:
@@ -2233,7 +2241,7 @@ def magnitudes(args):
                     v = out[f"{p} | {regime} | {years:g}y | spread {spread:g} | real"].get(k)
                     cells.append(f"{v[0]:>9.4f}±{v[1]:.4f}" if v else f"{'-':>16}")
                 print(f"  {k:>32}" + "".join(f"{c:>16}" for c in cells))
-    print("\nwritten data/magnitudes.json")
+    print(f"\nwritten {path}")
 
 
 def constrainedvol(args):
