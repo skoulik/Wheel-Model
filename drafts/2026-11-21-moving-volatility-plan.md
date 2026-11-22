@@ -1200,4 +1200,36 @@ parameter drop lands in the article's prose"). Each item points to where its num
    boundary and now sits 0.19 inside, so §10's "how close to the edge" story tightens. The
    side-by-side form fits §10 well: both boundaries, both models.
 
-   §11 is not yet measured.
+   **§11 under the fitted process, measured 2026-11-22** (`wheel_sim.py --scenario
+   constrainedvol`, 2,000 paths × 60 years). Sergei chose option b: the barrier is checked at
+   every daily close for both models, since jumps break the Brownian bridge
+   (`Params.daily_barrier`), so the side by side shows the process alone. §11's continuous
+   check is kept as the reference column. Errors are 0.3–1.1 points.
+
+   | account | constant, bridge | constant, daily | fitted, daily |
+   |---|---|---|---|
+   | survivable rule (A = 11.59, L = 1.13): sold by 10 / 30 / 60 years | 0.0 / 0.9 / 11.8% | 0.0 / 1.1 / 11.8% | 0.1 / 1.6 / 11.9% |
+   | ... frozen barrier (model.py's static one) touched within 30 years of filling | 1.1% | 1.0% | 2.1% |
+   | levered (A = 5, L = 2): sold by 10 / 30 / 60 years | 26.5 / 65.8 / 83.8% | 25.1 / 64.9 / 83.7% | 26.4 / 65.8 / 85.2% |
+   | ... frozen barrier touched | 46.6% | 48.2% | 50.1% |
+
+   - **Daily against continuous checking** costs about a point at most; the bridge was a fair
+     stand-in.
+   - **§11's liquidation figures stand under the fitted process.** The survivable rule keeps
+     its ~12% sixty-year risk. The 30-year risk rises 1.1 → 1.6%, and the frozen barrier is
+     touched twice as often (1.0 → 2.1%, about 2.7 errors): jumps reach a static barrier the
+     diffusion rarely does, though still rarely.
+   - At the 64-path smoke test, continuous and daily checking read 39% and 12.5% on the
+     levered account. That was noise; 512 paths gave 27.0 and 24.4%.
+
+   **Step 7 is complete:** every Part II result measured under the fitted process. What
+   moves:
+   - **the gap at assignment's tail**, by far the most;
+   - **the capital boundary**, 4.00 → 4.31%;
+   - **inventory**, −3 to −6%;
+   - **a volatility point's worth**, +6%;
+   - **the betas**, ±0.007;
+   - **§11's 30-year risks**, slightly.
+
+   What stays: the excess return, the assignment rate, the median holding, the lots'
+   boundary, §11's sixty-year risk.
