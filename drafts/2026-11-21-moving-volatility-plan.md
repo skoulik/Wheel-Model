@@ -270,9 +270,10 @@ the material, which Sergei accepted ("Good, let's settle the plan this way"):
   all prior sections in full"). One section per session, as with §09's review. The signed
   claims flag what cites a changed formula or figure; sentences that assume constant σ
   without citing anything are found only by reading.
-- **Still open, decided on step 7's numbers:** whether Part II's results are revised to the
-  moving process (`model.py` carrying h), or Part II keeps constant σ and reports the
-  difference where the assumption bites. The appendix plan holds either way.
+- **Decided on step 7's numbers (Sergei, 2026-11-22):** Part II carries the variable-σ
+  model's results, side by side with the simplified constant-σ model's where practical and
+  relevant. The gap at assignment is given prominence: "This is what brings 'pain' to the
+  stakeholders." (Step 7 records the override of Claude's proposal to keep constant σ.)
 
 ## Owed to the article
 
@@ -1165,6 +1166,20 @@ parameter drop lands in the article's prose"). Each item points to where its num
    What moves a lot is d's tail, the gap at assignment. Its mean/median goes from 1.26 to
    1.54 and gaps beyond 5% triple, almost all from the jumps; the live account reads 2.3.
 
-   That points to keeping the constant-σ model in Part II and reporting the difference where
-   the assumption bites: §05's gap tail, §07–08's 3–6%, §09's betas and the 48bp. That is
-   Sergei's decision. §10's boundaries and §11 are not yet measured.
+   Claude proposed keeping the constant-σ model in Part II and reporting the difference where
+   the assumption bites. **Sergei overrode it, 2026-11-22:** "The gaps at assignment are
+   important. This is what brings 'pain' to the stakeholders and should not be dismissed
+   lightly. Where practical and relevant, we can list both simplified model and
+   variable-sigma model's results side by side." So:
+   - **Part II carries the variable-σ model's results.** Wherever practical and relevant,
+     they sit side by side with the simplified constant-σ model's: the closed forms stay,
+     as the simplified model that explains the mechanism, and the fitted process's figures
+     stand beside them.
+   - **The gap at assignment gets prominence**, as the cost a stakeholder actually feels: its
+     tail (mean/median 1.54 against 1.26, gaps beyond 5% tripled), set against the live
+     account's 2.3 where Part IV compares.
+   - **To be decided as each section is revised:** where the side-by-side form serves and
+     where one figure is enough; and whether `model.py` carries h (the plan's step 7) or the
+     variable-σ figures come from the simulator alone.
+
+   §10's boundaries and §11 are not yet measured.
