@@ -1222,6 +1222,28 @@ parameter drop lands in the article's prose"). Each item points to where its num
    - At the 64-path smoke test, continuous and daily checking read 39% and 12.5% on the
      levered account. That was noise; 512 paths gave 27.0 and 24.4%.
 
+   **Remeasured 2026-11-24** at 8,000 paths on two seeds, on the simulator as fixed since
+   (`efbfa2d`: its events on its own clock) and at §11's new account, A = 11.52 (TODO II-32).
+   Errors about 0.1 point on the survivable rows, 0.5 on the levered:
+
+   | account | constant, bridge | constant, daily | fitted, daily |
+   |---|---|---|---|
+   | survivable (A = 11.52): sold by 10 / 30 / 60, seed 20260722 | 0.0 / 0.9 / 11.2% | 0.0 / 0.9 / 11.3% | 0.0 / 0.9 / 11.2% |
+   | ... seed 1 | 0.0 / 1.0 / 11.1% | 0.0 / 0.6 / 10.9% | 0.0 / 1.0 / 10.7% |
+   | ... frozen barrier touched within 30 years of filling | 1.0 / 0.9% | 1.0 / 0.9% | 1.8 / 2.3% |
+   | levered (A = 5, L = 2): sold by 10 / 30 / 60, seed 20260722 | 26.6 / 65.9 / 83.5% | 25.1 / 64.7 / 83.7% | 26.9 / 65.5 / 84.0% |
+   | ... seed 1 | 25.6 / 64.4 / 83.5% | 25.5 / 65.2 / 83.1% | 27.4 / 66.5 / 85.6% |
+   | ... frozen barrier touched | 47.4 / 47.6% | 46.8 / 47.3% | 49.8 / 50.4% |
+
+   **The thirty-year risk does not rise as the 2,000-path table said.** Pooled over the seeds,
+   the survivable account's reads 0.75% checked daily at constant σ and 0.95% fitted, about two
+   errors apart, where the table above read 1.1 and 1.6. The frozen barrier is still touched
+   about twice as often under the fitted process (0.95 against 2.05% pooled), and the
+   sixty-year risk is unchanged (11.1 and 11.0%). The levered account loses a point or two
+   more under the fitted process at sixty years and is touched three points more often frozen.
+   So the bullet above becomes: §11's liquidation figures stand; jumps reach a static barrier
+   more often, and an operating account's thirty-year risk at most slightly.
+
    **Step 7 is complete:** every Part II result measured under the fitted process. What
    moves:
    - **the gap at assignment's tail**, by far the most;
