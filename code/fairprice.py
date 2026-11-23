@@ -76,8 +76,13 @@ CALL_TENORS = (5, 10, 15, 20)   # a call's life left at each put sale; the sale 
 # the call's at its strike, so 1 to 4 serve it.
 DELTA_TENORS = tuple(range(1, TC))
 PRICED_TENORS = tuple(sorted(set(CALL_TENORS) | set(DELTA_TENORS)))
-HF_GRID = [round(-0.2 + 0.1 * i, 10) for i in range(13)]
-HS_GRID = [round(-0.1 + 0.2 * i, 10) for i in range(11)]
+# The factors' grid reaches as far as the lattice's (II-40's model plan, 2.): to 1.0 and 1.9
+# it held all but 0.1% of stationary states but 2.4% of the variance, the turbulent states
+# where deep lots enter, their call premiums read off the edge 25% low; and h_slow from
+# -0.1 left 8.6% of the factors-alone process's states below the floor, its strike read
+# too deep (its assignment rate 0.0008 short). Widened 2026-11-23.
+HF_GRID = [round(-0.2 + 0.1 * i, 10) for i in range(17)]     # -0.2 to 1.4
+HS_GRID = [round(-0.5 + 0.2 * i, 10) for i in range(15)]     # -0.5 to 2.3
 U_GRID = [round(-3.0 + 0.1 * i, 10) for i in range(111)]     # below the money too
 MOMENT_PATHS, MOMENT_READS, MOMENT_GAP, MOMENT_CHUNKS = 400_000, 4, 650, 16
 
