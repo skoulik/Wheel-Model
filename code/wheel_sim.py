@@ -328,6 +328,12 @@ class Agg:
         self.g_real = []           # realized log growth of the debit
         self.r_drift = []          # ...and of M/D, which is what the barrier sees
         self.e_drift = []          # ...and of equity measured in shares
+        # ...and the debit whole, which g cannot see: g is read over the paths still
+        # owing at the end, so one that repays in full leaves it.  Of the surviving
+        # paths that owed at first saturation, how many owe nothing at the end, and
+        # D/M at both ends summed over them, a repaid path counting zero.
+        self.owed = self.repaid = 0
+        self.dm_sat = self.dm_end = 0.0
         # Post-saturation, time-weighted: the regime the closed forms describe.
         self.ps_t = self.ps_inv = self.ps_lev = self.ps_income = 0.0
         self.ps_eq = self.ps_eqt = 0.0
@@ -369,7 +375,7 @@ class Agg:
                 "first_exit",
                 "paths", "sales", "blocked", "withdrawn", "ps_t",
                 "ps_inv", "ps_lev", "ps_eq", "ps_eqt", "ps_income", "ps_sales",
-                "ps_blocked")
+                "ps_blocked", "owed", "repaid", "dm_sat", "dm_end")
     _COUNTERS = ("inv_hist", "inv_by_idx", "eq_by_idx", "eqn_by_idx",
                  "cap_by_idx", "mvcap_by_idx", "n_by_idx", "period_hist",
                  "batch_hist")
@@ -1027,6 +1033,11 @@ def run_path(P, rng, agg, states=None):
             # months has a span of weeks, and its own rate, ±10 a year, carried the
             # unweighted mean of rates from one seed to the next (-1.8% to +0.5% for
             # ln(M/D), each quoting ±0.1; the moving-volatility plan, 5.).
+            if not dead and d_sat > 0.0 and t_end > t_sat:
+                agg.owed += 1
+                agg.repaid += d_last == 0.0
+                agg.dm_sat += d_sat / m_sat if m_sat > 0.0 else 0.0
+                agg.dm_end += d_last / m_last if m_last > 0.0 else 0.0
             if dead:
                 pass
             elif d_sat > 0.0 and d_last > 0.0 and t_end > t_sat:
@@ -1712,7 +1723,8 @@ def constrained(args):
     H_pol = min(30.0, years / 2)
     print(f"   {'policy':>10} {'g nominal':>9} {'g realized':>17}"
           f" {'d ln(E/S)':>10} {'thruput':>8} {'mean I':>7}"
-          f" {f'P(liq|sat,{H_pol:.0f}y)':>14} {'frozen':>7}")
+          f" {f'P(liq|sat,{H_pol:.0f}y)':>14} {'frozen':>7} {'repaid':>7}"
+          f" {'D/M sat -> end':>15}")
     for draw in DRAW_POLICIES:
         P, agg = base if draw == "stationary" else \
             run(A_30, L_max, draw, "", report=False)
@@ -1724,11 +1736,17 @@ def constrained(args):
               f" {gm:>+10.4f} +-{gse:.4f} {_span_rate(agg.e_drift)[0]:>+10.4f}"
               f" {1 - agg.ps_blocked / max(1, agg.ps_sales):>8.1%}"
               f" {agg.ps_inv / agg.ps_t if agg.ps_t else float('nan'):>7.2f}"
-              f" {dy[0]:>14.4f} {st[0]:>7.4f}")
+              f" {dy[0]:>14.4f} {st[0]:>7.4f}"
+              f" {agg.repaid / max(1, agg.owed):>7.1%}"
+              f" {agg.dm_sat / max(1, agg.owed):>7.4f} {agg.dm_end / max(1, agg.owed):.4f}")
     print("   ('frozen' is the same paths' static barrier, so the gap to "
           "P(liq) is what the wheel itself does;")
     print("    d ln(E/S) is the drift of equity in SHARES -- zero is the "
-          "steady state the frontier prices)")
+          "steady state the frontier prices;")
+    print("    repaid is the share of survivors owing at saturation that owe nothing "
+          "at the end, which g, read")
+    print("    over the paths still owing, cannot see; D/M is averaged over the same "
+          "paths, a repaid one at zero)")
 
 
 def validate(args):

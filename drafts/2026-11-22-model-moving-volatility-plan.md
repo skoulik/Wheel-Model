@@ -1037,3 +1037,26 @@ with five restatements of the old figures the draft had missed, found by greppin
 replaced figure: §09's stationary draw (2.12 to 2.05%), §10's realized g under withdrawal
 (+1.3 to about +1.5%), §11's own closing list ("twenty-five" to "about thirty"), and two
 comments in `model.py`. The two sentences above are left as they were, still open.
+
+**The first of them, settled 2026-11-23.** Read whole, the retained account does repay its
+debit, and mostly all of it: of the survivors owing at first saturation, 83.5% owe nothing
+at year 60 (83.3% on seed 1), and D/M averaged over them, a repaid path at zero, falls from
+0.081 to 0.025 on both; servicing the interest leaves it 0.076 to 0.084. There is no
+negative g to quote: a debit that reaches zero has no growth rate, and g is read over the
+sixth the price went against. The sentence now says that (Sergei: "Yes, looks good, please
+apply"), and `--scenario constrained`'s cash-policy table prints both columns, repaid and
+D/M at both ends. The same +4.2% bears on the second sentence: by ν > g alone the retained
+account fails the criterion and it is the safest of the four, so what is missing is the
+account's own size.
+
+**The second, settled the same day** (Sergei: "Yes, please go ahead with the small rewrite",
+against restating the boundary in D/M, which would move §10's comparison of the three). By
+ν > g the withdraw-everything account (g +1.5% against 2.5%) is not crossed, and it is the one
+liquidated most often: it shrinks 2.7% a year against the price, so its book is roughly flat
+in dollars, and its D/M rises 0.076 to 0.090. §11 and §10's restatement now say ν > g is the
+criterion for an account that holds its size, the static barrier's assumption. The lean had
+also said the ranking follows D/M; the scenario's new column refutes it — the stationary draw's
+D/M falls 0.081 to 0.066 (two thirds repay) and it is liquidated more often than the service
+policy's, whose D/M rises 0.076 to 0.084 — so the prose does not say it. What does order the
+four is not settled by these columns: averages over the survivors, not the paths that reach
+the barrier.
