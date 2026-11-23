@@ -728,4 +728,149 @@ Left open: 5% of an effect both models put at 0.993 to three figures.
 Decision 8's test passes but for two of the simulator's own figures — the volatility channel
 of its delta, every process, and its tables' strike under the factors alone — and the
 down-beta in the Standard regime (5% of the effect); four other figures sit between 2.0 and
-2.3, about what chance puts among ninety-six.
+2.3, about what chance puts among ninety-six. (All three traced the next day, below.)
+
+**The three divergences, traced** (2026-11-23; Sergei: "Whether each is real or a modelling
+artifact, it is better to know explicitly rather than dismiss as insignificant"). Each is the
+simulator's, and each is reproduced inside the lattice by doing what the simulator does
+(scratch `div_edges.py`, `div_tests23.py`, `div_test1*.py`, `lattice_seed.py`, `sim_ell.py`,
+`sim_order.py`). None touches `model.py` or a figure it gives.
+
+*First, an error never counted: the lattice's own.* Its tables come from one set of draws
+shared by every node, and every z above counted the simulator's errors and the exact entry's,
+not the tables'. Rebuilt on two more seeds (fitted, Standard), the sd across the three:
+
+| figure | lattice's sd across seeds | the simulator's error |
+|---|---|---|
+| down-beta | 0.00009 | 0.00008 |
+| up-beta | 0.00015 | 0.0017 |
+| E[I] at 5 / 10 / 30 years | 0.003 / 0.003 / 0.002 lots | 0.03 / 0.03 / 0.06 |
+| left at first expiry | 0.00015 | 0.0009 |
+| gaps beyond 5% / 10% | 0.0001 / 0.00004 | 0.0003 / 0.0001 |
+| book delta, both channels | 0.00001 | 0.0008 |
+| excess + leak | 0.003bp | 0.3bp |
+| a volatility point | 0.016bp | 0.2bp |
+
+Small beside the simulator's everywhere but the down-beta, where it is as large and doubles the
+comparison's variance.
+
+**1. The assignment rate under the factors alone: the simulator's tables stop short of the
+state.** `fairprice`'s grid starts h_slow at −0.1 (`HS_GRID`); with no kick the factors'
+h_slow sits around zero with sd 0.073, and 8.6% of stationary states lie below the floor, 0.034
+below it on average, where the tables read the strike off the edge: at a higher volatility than
+the state's, so deeper. From four million stationary states at the tables' own strikes, on
+their grid 0.20004 ± 0.00021 are assigned, below it 0.1913 ± 0.0007, over all 0.1993 ± 0.0002
+— the simulator's shortfall, 0.0008 ± 0.0001, within its error. With jumps the kicks keep
+h_slow far above the floor (no state below it); the lattice's grid for the factors spans ±0.35.
+
+**2. The down-beta: the same tables' ceiling, and the lattice's own error.** The tables stop at
+h_fast 1.0 and h_slow 1.9. Beyond them lie 0.11% of stationary states but 2.4% of the variance:
+the turbulent states, whose falls are the largest. There the simulator's call premiums, read
+at the edge, are 25% below fair (on the grid, 0.1–0.3% below the lattice's). The down-beta's
+distance from 1 *is* that pairing — below the strike a lot is the share, so the slope less 1 is
+Cov(c, u | down)/Var(u | down), the premium larger where the falls are — and a premium clamped
+low in exactly those states reads it short. The lattice's down-beta at 30 years with every call
+premium replaced by the simulator's, the first period's too:
+
+| | lattice | with the simulator's premiums | simulator, seeds 1–2 pooled | z before / after |
+|---|---|---|---|---|
+| fitted, Standard | 0.99295 (three seeds) | 0.99307 | 0.99328 ± 0.00008 | −3.7 / −2.3 |
+| fitted, Conservative | 0.99119 | 0.99135 | 0.99126 ± 0.00010 | −0.6 / +0.6 |
+| jumps, Standard | 0.99305 | 0.99320 | 0.99332 ± 0.00009 | −2.1 / −0.9 |
+| jumps, Conservative | 0.99098 | 0.99116 | 0.99111 ± 0.00011 | −1.0 / +0.4 |
+
+z with both models' errors (the lattice's, 0.00009 a seed, as measured above); the
+simulator's constant-σ run reads 1 within its noise (0.99993, 0.99997), as it must, so the
+fitted figures are compared directly. The clamp accounts for 0.00012–0.00019 of each gap; what
+is left is within both models' errors, the largest 2.3 of them (fitted, Standard), and averages
+−0.00005 over the four: nothing systematic is left.
+
+**3. The delta's volatility channel: the simulator's estimator, and its event order.**
+`wheel_sim.py` reads the book at each put sale, a week apart, each call's delta through the
+volatility (`eff_delta`: the vega times the tables' gradient in each factor times θ, per unit
+of the price's move) at 20, 15, 10 and 5 sessions to expiry and each put's at its sale. Against
+the life delta that the exact test needs, it departs four ways, each reproduced on the lattice's
+own draws by an adjoint pass that splits the pathwise derivative by the session whose shock it
+comes from (exact against `lattice.paths` to 3e-17), aggregated over the lattice's census:
+
+- **a left-endpoint rule.** The price's channel has a flat profile over an option's life
+  (E[Δ_t S_t] is the same at every t), so the rule costs it nothing; the volatility's falls to
+  zero at expiry with the vega — a call's from its four weeks' shocks 0.40, 0.32, 0.21 and
+  0.07, at every depth — so the rule reads 1.17 of it, and a put's, all from one week, about 1.9;
+- **timing**: it reads ∂V/∂h at the state before the session whose shock moves h, so the
+  sensitivity includes that session's own variance, which its shock cannot change — material
+  for the fast factor, half-life six sessions;
+- **shares**: it averages deltas in shares at the sampling date, where the life delta is in
+  dollars per unit of the price at the option's sale (small, −0.00004);
+- **the measure**: it reads the pricing-measure price's delta along real-world paths, where the
+  exact average is the trapezoid of the two measures (reweighted to the real world up to each
+  sample by Girsanov: 0.00001).
+
+| the book's vol channel per capital, 30y | fitted Std | fitted Con | jumps Std | jumps Con | factors Std | factors Con |
+|---|---|---|---|---|---|---|
+| exact (the lattice's, as `model.py`) | 0.00375 | 0.00378 | 0.00386 | 0.00388 | 0.00365 | 0.00379 |
+| the weekly left-endpoint rule | 0.00488 | 0.00505 | 0.00503 | 0.00517 | 0.00473 | 0.00502 |
+| ...with its timing | 0.00533 | 0.00553 | 0.00549 | 0.00567 | 0.00520 | 0.00554 |
+| ...in shares, at its measure: the simulator's estimator | 0.00530\* | 0.00549\* | 0.00545 | 0.00563 | 0.00515 | 0.00550 |
+| the simulator, seeds 1, 2 | 0.00517, 0.00519 | 0.00537, 0.00539 | 0.00537, 0.00528 | 0.00555, 0.00546 | 0.00515, 0.00502 | 0.00551, 0.00538 |
+
+\* Without the measure's 0.00001, which needs an adjoint pass per earnings day more.
+
+The tables' gradients are not at fault: at the same states they read the instantaneous vol
+channel within 0.3% of the pathwise derivative, for calls at the census's depths and the put
+at its strike. That left 0.0001, consistently, the replica above the simulator in all six
+(2% of its figure). Split by the sample's tenor (jumps, Standard, five simulator seeds), all of
+it sat in the samples at 20 sessions, the call's sale: 0.00128 ± 0.00001 against the replica's
+0.00139, where 15, 10, 5 and the put agree within 1%. **The cause is the simulator's event
+order.** A renewed call falls due at t + τ_c, one addition; the put sale four weeks on at four
+additions of the cadence. The two floats differ by about 6e-15 years, and on 9% of expiries the
+sale sorted first — 1.94 million samples with the expiring call still standing, 0 sessions
+left, and the renewed call's first sample lost — though the code's comment at the sale reads
+"after same-date settlements". With every event time rounded when it is pushed, so that equal
+dates are equal floats, the simulator's vol channel reads 0.00545 (jumps, Standard, seed 1),
+the replica's 0.00545. All of the 0.0015 is accounted for (jumps, Standard): 80% the
+left-endpoint rule, 32% the timing, −7% the event order, −3% the shares and the measure.
+
+The event order touches more than this figure. At every sale it samples, the book still holds the
+lots about to be called away (the sampled inventory reads 0.024 lots, 0.2%, above the
+time-average; fixed, they agree to 0.003), so the sampled capitals and the book's delta are a
+little off — the delta 0.0006–0.0008 low in either process, which moves the simulator's paired
+test by −0.15bp. At constant σ that test's residual then reads −0.56bp (−0.44bp before): the
+simulator's delta about 0.0028 high through the price's channel alone, which the left-endpoint
+rule does not explain in dollars and is **not traced here** — the shares' weighting of the price
+channel and the window's edges are the candidates. The run's draws are not otherwise disturbed, with one exception
+found on the way: the times' drift reaches 1e-12 years by the thirtieth year, crossing
+`advance`'s threshold for a step and inserting a spurious draw now and then (11 paths in 400),
+which reshuffles the rest of a batch's stream: noise, not bias. In a finite account the order
+also checks a put's capacity before the strike of a lot being called away has arrived, so a put
+the account could carry is now and then refused: at most on about 1% of weeks (a call-away in a
+given week, 0.12, times the 9%), and only when the account is at its capacity. Section 11's
+simulated figures (`--scenario constrained --paths 4000`), the original against the order fixed,
+on four seeds each (unpaired: fixing the order also removes the spurious draws, so the streams
+differ): the prudent account's throughput +0.35 ± 0.1 points (61.8% against 61.7% at the
+article's seed), its liquidation from an empty book 0.0 ± 0.1 points by thirty years and
+−0.5 ± 0.4 by sixty, after saturation −0.2 ± 0.2, T_sat +0.2 ± 0.3 years, the levered
+account's and the cash policies' within their noise. All within the runs' own spread between
+seeds, which is itself wider than §11's quoted precision: the sixty-year figure moves about half
+a point from one seed to the next where §11 quotes it to two decimals. Found on the way, and not
+this bug's:
+at the article's own command and seed the current simulator gives 0.85% and 11.80% from empty by
+thirty and sixty years, 3.78% after saturation and 31.7% throughput where §11 quotes 0.92%,
+12.15%, 3.95% and 31.8%. §11's simulated figures date from 2026-07-29, and the simulator's
+account has changed since (TODO II-35, 2026-11-13), so they are due a rerun with that section's
+revision, quoted to the precision the seeds allow.
+
+What follows, for Sergei's call — none of it changes a figure `model.py` gives:
+- **the simulator's tables' grid**, widened to the lattice's (h_fast to 1.4; h_slow from −0.5
+  for the factors alone, to 2.3), twelve table sets, about an hour, and the magnitudes reruns;
+- **its event times tied**: snapped to the session grid, or kept as integer counts of a
+  session — the running example's rhythm is on it; a sweep's monthly cadence is not, so an
+  integer clock in the simulator's own base step is the general form;
+- **`eff_delta`'s direct estimate of the volatility channel** is biased by design, about 40%
+  high, and is not a check of the lattice's: its excess-implied delta (the paired test) is.
+  Either read each option at every session from tables at every tenor, or report the direct
+  estimate as what it is;
+- **decision 8's comparisons** count the lattice's own error from now on, which only the
+  down-beta's needs;
+- **open**: the simulator's paired test at constant σ (−0.56bp once the order is fixed), its
+  price channel's own sampling, not traced; and §11's simulated figures, due a rerun (II-35).
