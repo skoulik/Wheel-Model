@@ -2,7 +2,7 @@
 
     python code/examples/account_capacity.py
     python code/examples/account_capacity.py --gamma-s 0.25
-    python code/examples/account_capacity.py --gamma-s 0.25 --equity 11.59
+    python code/examples/account_capacity.py --gamma-s 0.25 --equity 11.52
 
 Backs eq:capacity, eq:astar, eq:lambda-eff, eq:income-capacity and
 eq:capacity-lots in section 11.  Inventory is no longer an output: a finite
@@ -80,7 +80,7 @@ def compute(cfg=None, measure="P", horizon=None, eps=0.10, ctx=None, **kw):
     # by saturation at the broker's ceiling so model.py does the arithmetic.
     # Its realized L is the leverage an untended account drifts to: the strategy
     # holds only E[I(inf)] however much it is permitted, so L = E[I(inf)]/A caps
-    # out below the ceiling (1.883 against a permitted 4.00 at A = 11.59).
+    # out below the ceiling (1.895 against a permitted 4.00 at A = 11.52).
     broker_sat = model.saturation(cfg, measure, occ, eps,
                                   L_max=ceiling, econ=econ)
     return {
@@ -105,6 +105,9 @@ def compute(cfg=None, measure="P", horizon=None, eps=0.10, ctx=None, **kw):
     }
 
 
+# Section 11's account is the model's thirty-year capital, 11.52 since the near grid was
+# Richardson-extrapolated (TODO II-32; 11.59 before).  Where a comment quotes a section,
+# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         "I_inf": (21.82, 0.05),         # eq:little's "21.8 lots" carried in
@@ -132,11 +135,11 @@ CASES = [
         "permission_gap": (5.8, 0.05),  # "5.8x at 0.15", and the summary's
                                         # "a factor of 5.8"
     }, note="the most aggressive margin"),
-    Case("--gamma-s 0.25 --equity 11.59", {
-        "capacity": (13.15, 0.05),      # throughput table, A = 11.59
-        "throughput": (0.603, 0.005),   # "runs at 60% throughput"
-        "T_sat": (18.5, 0.2),           # "takes 18.5 years to find out"
-        "drift_L": (1.883, 0.001),      # "realized leverage is capped at
+    Case("--gamma-s 0.25 --equity 11.52", {
+        "capacity": (13.07, 0.05),      # throughput table, A = 11.52
+        "throughput": (0.599, 0.005),   # "runs at 60% throughput"
+        "T_sat": (18.2, 0.2),           # "takes 18.5 years to find out"
+        "drift_L": (1.895, 0.001),      # "realized leverage is capped at
                                         #  E[I(inf)]/A -- 1.883 at A = 11.59"
     }, note="the model's own 30y capital, at portfolio margin"),
     Case("--gamma-s 0.25 --equity 3.00", {

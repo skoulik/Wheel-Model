@@ -103,7 +103,7 @@ CASES = [
         "capital": (8.82, 0.06),        # "capital (cost) 8.90"
     }, note="Conservative regime"),
     # The cadence sweep of section 09 ("The one dial the model says is free").
-    # What cadence really sets is the capital the position needs -- 11.59 share
+    # What cadence really sets is the capital the position needs -- 11.52 share
     # prices a name at weekly against 3.28 at quarterly -- while the return per
     # unit of that capital barely moves.  The weekly column is the default Case
     # above; the excess each row earns is in returns_benchmark.py.  n = 4

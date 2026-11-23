@@ -546,7 +546,12 @@ literals, the appendix and four figures moved in the same commit; **what is left
 their balance 35.9 → 36.8 years), and §11's account, sized at the thirty-year capital 11.59 that
 now reads 11.52. True excess moves by a fifth of a basis point at most. Past sixty years the near grid's
 x_max = 4 lets lots escape (0.2 lot by 150), which the single grid's upward bias had hidden; no
-quoted figure reads it there.
+quoted figure reads it there. **The moving-volatility lattice stays on one h = 0.01 grid** (II-40):
+its first call period is simulated exactly, which removes most of the entry's cell error but not
+all — the still lattice reads 11.35 lots at thirty years against the constant model's 11.33 — and
+its comparisons are with the still lattice, on the same grid, so like for like. For the sections,
+a moving-volatility level is the constant figure plus the lattice's difference from the still one
+(the fitted process's 10.87 lots read so are 10.85).
 
 **II-34. The economic ledger measures exit flows against the price at exit, and reads about 0.2
 points high.** (Opened 2026-11-06, from the §09 review of "The benchmark that matters".) The ledger

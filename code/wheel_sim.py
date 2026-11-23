@@ -1768,8 +1768,10 @@ def constrained(args):
     # the barrier is a 33% drawdown instead of an 84% one and the paired
     # estimator has something to measure.  It is the untended account of
     # II-13, in the one form that also blocks.
-    A_30 = model.economics(C0, "P", model.occupation(C0, "P"),
-                           horizon=30.0)["mv_capital"]
+    # At the two decimals the article states it, so the runs are the account it quotes and
+    # match the analytic examples' --equity exactly (11.52 since TODO II-32).
+    A_30 = round(model.economics(C0, "P", model.occupation(C0, "P"),
+                                 horizon=30.0)["mv_capital"], 2)
     # Every headline run takes the stationary draw, because that is the only
     # policy under which "the account sits at capacity" survives thirty years
     # of price drift -- and every frontier figure being tested here is a
@@ -2419,7 +2421,8 @@ def constrainedvol(args):
     years = args.years or 60.0
     paths = args.paths or 2000
     w_stat = C0.r + econ["econ_excess"] - (C0.mu - C0.delta)
-    A_30 = model.economics(C0, "P", model.occupation(C0, "P"), horizon=30.0)["mv_capital"]
+    A_30 = round(model.economics(C0, "P", model.occupation(C0, "P"), horizon=30.0)["mv_capital"],
+                 2)                                 # as constrained() takes it
     ways = (("constant, bridge", dict()), ("constant, daily", dict(daily_barrier=True)),
             ("fitted, daily", dict(daily_barrier=True, vol_fitted=True)))
     print(f"\n{'=' * 72}\n§11 UNDER THE FITTED PROCESS  ({paths} paths x {years:g}y, "

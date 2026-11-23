@@ -1,8 +1,8 @@
 """The finite account: what the operator does with the cash.
 
-    python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59
-    python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.1349
-    python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.883
+    python code/examples/account_cash.py --gamma-s 0.25 --equity 11.52
+    python code/examples/account_cash.py --gamma-s 0.25 --equity 11.52 --leverage 1.1349
+    python code/examples/account_cash.py --gamma-s 0.25 --equity 11.52 --leverage 1.8945
 
 Backs eq:debit-growth, eq:theta-eff, eq:gmax and eq:draw in section 11.  A cash
 policy enters survival in exactly one way, by displacing the drift: the debit
@@ -14,7 +14,7 @@ the maximum cash an operator may take out, draw_max = income + (g_max - r_b)*D
 (eq:draw).
 
 The point of the draw is that it is a CONSTRAINT, not an optimum: down the
-leverage axis at A = 11.59 the sustainable draw is flat to a few basis points
+leverage axis at A = 11.52 the sustainable draw is flat to a few basis points
 as far as the survivable leverage -- it even rises about 2bp first -- and then
 collapses and goes negative, a demand for deposits, while the reported RoE
 climbs monotonically the whole way.  Return on paper and cash in hand move
@@ -95,43 +95,46 @@ def compute(cfg=None, measure="P", horizon=None, eps=0.10, leverage=None,
 # Economic figures are in dollars per period (TODO II-34).  Where a comment
 # quotes section 09 or 11, that prose is being rewritten to these values
 # (drafts/2026-11-06-dollars-per-period-plan.md) and may still show the old.
+# Section 11's account is the model's thirty-year capital, 11.52 since the near grid was
+# Richardson-extrapolated (TODO II-32; 11.59 before).  Where a comment quotes a section,
+# that prose is being rewritten to these values and may still show the old.
 CASES = [
-    Case("--gamma-s 0.25 --equity 11.59 --leverage 1.0", {
+    Case("--gamma-s 0.25 --equity 11.52 --leverage 1.0", {
         "f_star": (0.000, 0.001),       # draw table, L = 1.000
         "p_liq": (0.000, 0.002),
         "draw_frac": (0.0463, 0.0003),  # "4.63% ... unlevered"
         "roe_excess": (0.0156, 0.0005),
     }, note="unlevered: the first rung buys nothing and costs nothing"),
-    Case("--gamma-s 0.25 --equity 11.59 --leverage 1.0192", {
+    Case("--gamma-s 0.25 --equity 11.52 --leverage 1.0192", {
         "f_star": (0.025, 0.001),       # draw table, L = 1.019
         "p_liq": (0.010, 0.002),
         "draw_frac": (0.0465, 0.0003),  # the +2bp peak: "rises about 2bp"
         "roe_excess": (0.0159, 0.0005),
     }, note="the sustainable draw's non-monotone peak, +2bp"),
-    Case("--gamma-s 0.25 --equity 11.59 --leverage 1.1349", {
+    Case("--gamma-s 0.25 --equity 11.52 --leverage 1.1349", {
         "f_star": (0.158, 0.001),       # draw table, L = 1.135
         "p_liq": (0.100, 0.002),
         "g": (0.0, 1e-9),               # the g = 0 policy: the static barrier
         "draw_frac": (0.0458, 0.0003),  # "4.58% at survivable leverage"
         "roe_excess": (0.0177, 0.0005),
     }, note="the survivable leverage under the g = 0 cash policy"),
-    Case("--gamma-s 0.25 --equity 11.59 --leverage 1.25", {
+    Case("--gamma-s 0.25 --equity 11.52 --leverage 1.25", {
         "f_star": (0.267, 0.001),       # draw table, L = 1.250
         "p_liq": (0.192, 0.002),
         "draw_frac": (0.0430, 0.0003),
         "roe_excess": (0.0195, 0.0005),
     }, note="past the stopping rule: the draw starts falling"),
-    Case("--gamma-s 0.25 --equity 11.59 --leverage 1.5", {
+    Case("--gamma-s 0.25 --equity 11.52 --leverage 1.5", {
         "f_star": (0.444, 0.001),       # draw table, L = 1.500
         "p_liq": (0.363, 0.002),
         "draw_frac": (0.0286, 0.0003),
         "roe_excess": (0.0234, 0.0005),
     }, note="the draw collapsing while RoE keeps climbing"),
-    Case("--gamma-s 0.25 --equity 11.59 --leverage 1.883", {
-        "f_star": (0.625, 0.001),       # draw table, L = 1.883 = E[I(inf)]/A
-        "p_liq": (0.556, 0.002),
-        "draw_frac": (-0.0211, 0.0003), # "-2.14%": a demand for deposits
-        "roe_excess": (0.0293, 0.0005), # "+3.15% ... higher"
+    Case("--gamma-s 0.25 --equity 11.52 --leverage 1.8945", {
+        "f_star": (0.629, 0.001),       # draw table, L = 1.895 = E[I(inf)]/A
+        "p_liq": (0.561, 0.002),
+        "draw_frac": (-0.0232, 0.0003), # "-2.14%": a demand for deposits
+        "roe_excess": (0.0297, 0.0005), # "+3.15% ... higher"
     }, note="the strategy's own leverage cap: RoE up, cash negative"),
 ]
 

@@ -298,7 +298,7 @@ Backs [eq:capacity](#eq:capacity), [eq:astar](#eq:astar), [eq:lambda-eff](#eq:la
 | `python code/examples/account_capacity.py --gamma-s 0.25` | L_max = 1.1349, A_ceiling = 5.46, A_star = 19.23, permission_gap = 3.5, equity_discount = 11.9% |
 | `python code/examples/account_capacity.py --gamma-s 0.50` | A_ceiling = 10.91, A_star = 20.10, permission_gap = 1.8 |
 | `python code/examples/account_capacity.py --gamma-s 0.15` | A_ceiling = 3.27, A_star = 18.88, permission_gap = 5.8 |
-| `python code/examples/account_capacity.py --gamma-s 0.25 --equity 11.59` | capacity = 13.15, throughput = 60.3%, T_sat = 18.5, drift_L = 1.8831 |
+| `python code/examples/account_capacity.py --gamma-s 0.25 --equity 11.52` | capacity = 13.07, throughput = 59.9%, T_sat = 18.2, drift_L = 1.8945 |
 | `python code/examples/account_capacity.py --gamma-s 0.25 --equity 3.00` | capacity = 3.40, throughput = 15.6%, T_sat = 0.9 |
 | `python code/examples/account_capacity.py --gamma-s 0.25 --equity 15.00` | capacity = 17.02, throughput = 78.0%, T_sat = 44.4 |
 | `python code/examples/account_capacity.py --gamma-s 0.25 --equity 5.00` | capacity = 5.67, throughput = 26.0%, T_sat = 2.4 |
@@ -312,12 +312,12 @@ Backs [eq:debit-growth](#eq:debit-growth), [eq:theta-eff](#eq:theta-eff), [eq:gm
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.0` | f_star = 0.0000, p_liq = 0.0%, draw_frac = 4.64%, roe_excess = +1.566% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.0192` | f_star = 0.0251, p_liq = 1.0%, draw_frac = 4.66%, roe_excess = +1.596% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.1349` | f_star = 0.1585, p_liq = 10.0%, g = 0.0000, draw_frac = 4.59%, roe_excess = +1.777% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.25` | f_star = 0.2667, p_liq = 19.2%, draw_frac = 4.31%, roe_excess = +1.957% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.5` | f_star = 0.4444, p_liq = 36.3%, draw_frac = 2.88%, roe_excess = +2.349% |
-| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.59 --leverage 1.883` | f_star = 0.6252, p_liq = 55.6%, draw_frac = -2.11%, roe_excess = +2.948% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.52 --leverage 1.0` | f_star = 0.0000, p_liq = 0.0%, draw_frac = 4.64%, roe_excess = +1.566% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.52 --leverage 1.0192` | f_star = 0.0251, p_liq = 1.0%, draw_frac = 4.66%, roe_excess = +1.596% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.52 --leverage 1.1349` | f_star = 0.1585, p_liq = 10.0%, g = 0.0000, draw_frac = 4.59%, roe_excess = +1.777% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.52 --leverage 1.25` | f_star = 0.2667, p_liq = 19.2%, draw_frac = 4.31%, roe_excess = +1.957% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.52 --leverage 1.5` | f_star = 0.4444, p_liq = 36.3%, draw_frac = 2.88%, roe_excess = +2.349% |
+| `python code/examples/account_cash.py --gamma-s 0.25 --equity 11.52 --leverage 1.8945` | f_star = 0.6295, p_liq = 56.1%, draw_frac = -2.32%, roe_excess = +2.966% |
 
 ### `account_leverage.py` {#repro:account-leverage}
 

@@ -370,7 +370,7 @@ CASES = [
         "table_cash_mv": ([0.0615, 0.0402, 0.0179], 0.0005),
         # The equity paragraph: "1.21% rather than 1.38% at five years, 1.40%
         # rather than 1.49% at thirty".  By hand, the same dollars over k + E[I]
-        # instead of gamma_p*k + E[I]: 0.013819*5.61/6.39 and 0.014931*11.59/12.38.
+        # instead of gamma_p*k + E[I]: 0.013805*5.58/6.36 and 0.014923*11.52/12.30.
         "table_cash_secured": ([0.0121, 0.0130, 0.0140], 0.0001),
         # The cash-on-cost paragraph at thirty years: the numerator has come
         # right and the error is all denominator; and the line's zero.

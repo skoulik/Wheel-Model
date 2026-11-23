@@ -904,6 +904,12 @@ def main():
     print("--- Structural: capacity, saturation and the sustainable draw ---")
     G25 = Config(p_star=0.20, gamma_s=0.25)
     I_inf, lam = f["I"], f["lambda"]
+    # Section 11's account is the model's own thirty-year capital at market value, as
+    # section 09 quotes it -- 11.59 until the near grid was extrapolated (TODO II-32).
+    A30 = 11.52
+    check("section 11's account is section 09's thirty-year capital",
+          model.economics(STD, "P", model.occupation(STD, "P"), horizon=30.0)["mv_capital"],
+          A30, 0.005)
     L_max = max_leverage(G25, "P", 0.10)
     A_star = I_inf / L_max
     check("A*, the equity a wheel needs at portfolio margin (eps = 10%)",
@@ -997,7 +1003,7 @@ def main():
         gm = max_debit_growth(G25, "P", L, 0.10)
         if abs(liquidation_prob(G25, "P", L, g=gm) - 0.10) > 1e-12:
             FAILURES.append(f"g_max round trip fails at L = {L}")
-        D, y = (L - 1.0) * 11.59, 0.6095
+        D, y = (L - 1.0) * A30, 0.6095
         draw = max_sustainable_draw(G25, "P", L, 0.10, y, D)
         if abs(debit_growth(Config(p_star=0.20, gamma_s=0.25, draw=draw),
                             D, y) - gm) > 1e-12:
@@ -1013,13 +1019,13 @@ def main():
     # The draw at the leverage an untended account drifts to: it is negative,
     # which is a demand for deposits rather than a permission to withdraw, and
     # it happens at a leverage whose reported return on equity is HIGHER.
-    L_reach = I_inf / 11.59
-    drift = saturation(G25, "P", far_p, 0.10, equity=11.59,
+    L_reach = I_inf / A30
+    drift = saturation(G25, "P", far_p, 0.10, equity=A30,
                        L_max=L_reach, econ=f)
     check("...where the sustainable draw is a deposit, per year",
-          drift["draw"], -0.244, 0.001)          # -0.248 before TODO II-35
+          drift["draw"], -0.268, 0.001)          # -0.244 at A = 11.59, before II-32
     check("...while its excess return on equity reads higher, not lower",
-          drift["roe_excess"], 0.0293, 0.0005)
+          drift["roe_excess"], 0.0297, 0.0005)
 
     # II-14's constrained no-arbitrage identity, in its analytic half.  Under
     # the pricing measure a blocked, levered wheel must still earn r on equity
@@ -1126,11 +1132,11 @@ def main():
     # A* of 93.65.  Section 08 quotes three of the T_sat figures too, and they
     # are those same cases -- one check, cited from two sections.
     #
-    # The draw ladder at A = 11.59.  Every column of it is a case in
+    # The draw ladder at A = A30.  Every column of it is a case in
     # `examples/account_cash.py`; what is left here is the SHAPE the section
     # claims, which no single case can assert -- the two bottom rows of the
     # table move in opposite directions all the way up the ladder.
-    LADDER = (1.0000, 1.0192, 1.1349, 1.2500, 1.5000, 1.8829)
+    LADDER = (1.0000, 1.0192, 1.1349, 1.2500, 1.5000, round(I_inf / A30, 4))
     # The draw is NOT monotone at the bottom of the ladder: from L = 1 to
     # L = 1.0192 it rises by 2bp, because a barrier that far away (f* = 0.025,
     # a 97.5% drawdown) tolerates a debit that GROWS at 1.25%/yr, which is worth
@@ -1140,16 +1146,16 @@ def main():
     # past it, while the reported return rises the whole way.
     prev_roe = -1.0
     for L in LADDER:
-        s = saturation(G25, "P", far_p, 0.10, equity=11.59, L_max=L, econ=f)
+        s = saturation(G25, "P", far_p, 0.10, equity=A30, L_max=L, econ=f)
         if s["roe_excess"] <= prev_roe:
             FAILURES.append(f"RoE does not rise with leverage at L = {L}")
         prev_roe = s["roe_excess"]
-    flat = [saturation(G25, "P", far_p, 0.10, equity=11.59, L_max=L,
-                       econ=f)["draw"] / 11.59 for L in (1.0, 1.0192, 1.1349)]
+    flat = [saturation(G25, "P", far_p, 0.10, equity=A30, L_max=L,
+                       econ=f)["draw"] / A30 for L in (1.0, 1.0192, 1.1349)]
     if max(flat) - min(flat) > 0.001:
         FAILURES.append("the draw is not flat up to the survivable leverage")
-    steep = [saturation(G25, "P", far_p, 0.10, equity=11.59, L_max=L,
-                        econ=f)["draw"] / 11.59 for L in (1.1349, 1.25, 1.5, 1.8829)]
+    steep = [saturation(G25, "P", far_p, 0.10, equity=A30, L_max=L,
+                        econ=f)["draw"] / A30 for L in (1.1349, 1.25, 1.5, LADDER[-1])]
     if not all(b < a for a, b in zip(steep, steep[1:])) or steep[-1] >= 0:
         FAILURES.append("the draw does not collapse through zero past L_max")
     print("PASS  up the leverage ladder the reported return rises the whole "
@@ -1158,7 +1164,7 @@ def main():
     # ...and it is flat along the OTHER axis, which is the tautology that makes
     # the frontier's A column constant: g_max solves the equation L_max was
     # solved from, so wherever the stopping rule binds it returns g = 0.
-    for A in (1.0, 5.0, 11.59, 19.0):
+    for A in (1.0, 5.0, A30, 19.0):
         s = saturation(G25, "P", far_p, 0.10, equity=A, econ=f)
         check(f"draw is a flat 4.58% of equity at A = {A}", s["draw"] / A,
               0.0458, 0.0002)
@@ -1170,7 +1176,7 @@ def main():
     check("the draw that holds the account's size, r + excess - m",
           STD.r + f["econ_excess"] - (STD.mu - STD.delta), 0.0205, 0.0005)
 
-    if not I_inf / 11.59 < 1.0 / G25.gamma_s:
+    if not I_inf / A30 < 1.0 / G25.gamma_s:
         FAILURES.append("the strategy's own demand exceeds the broker's ceiling")
 
     # The capacity derivative, as an identity rather than an example: capacity
