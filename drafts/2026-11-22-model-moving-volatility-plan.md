@@ -965,7 +965,8 @@ prints the figure §11 quotes, is Sergei's call.
 
 What follows, for Sergei's call — none of it changes a figure `model.py` gives:
 - **the simulator's tables' grid**, widened to the lattice's (h_fast to 1.4; h_slow from −0.5
-  for the factors alone, to 2.3), twelve table sets, about an hour, and the magnitudes reruns;
+  for the factors alone, to 2.3), twelve table sets, about an hour, and the magnitudes reruns
+  — *done 2026-11-23, at the end*;
 - **its event times tied** — *done 2026-11-23, below*;
 - **`eff_delta`'s direct estimate of the volatility channel** is biased by design, about 40%
   high, and is not a check of the lattice's: its excess-implied delta (the paired test) is.
@@ -1086,3 +1087,40 @@ draws. Constant σ is untouched: its weekly reading stays, with the −0.12bp of
 The whole of the 40% is gone, each within half an error of the lattice's, at the tables'
 present grid; the Conservative regime and the magnitudes' own run follow the grid's rebuild.
 2,560 paths at thirty years take under four minutes with every session read.
+
+**The grid widened, and decision 8's comparison rerun, 2026-11-23** (Sergei: "Yes to both").
+`fairprice`'s grid is now h_fast −0.2 to 1.4 and h_slow −0.5 to 2.3 at the same spacing, 255
+nodes against 143, in every process (`377c87d`). The twelve table sets took 2h53m (10 minutes
+a set for the factors alone, 12 with jumps, 21 with earnings), and `--scenario magnitudes` on
+seeds 1 and 2 48 minutes each; the version-6 results are kept as
+`data/magnitudes-s{1,2}.grid-v6.json`, though they also predate the event clock and the
+delta's units. Pooled, each model less its constant-σ reference (`compare_step7.py`), the
+rows that failed before:
+
+| z, Standard | fitted before / now | jumps before / now | factors before / now |
+|---|---|---|---|
+| book delta, both channels | −2.2 / +0.8 | −2.4 / +0.6 | −2.4 / +1.1 |
+| down-beta | −6.6 / −2.3 | −6.1 / −2.3 | −0.8 / −0.4 |
+| left at first expiry | −6.3 / −0.8 | −4.5 / −0.6 | −1.1 / −0.1 |
+| gap: mean/median | +7.5 / +1.0 | +5.8 / −0.2 | +1.3 / +0.4 |
+| gaps beyond 5% / 10% | +6.9 / +4.8 → −0.2 / −0.8 | +5.6 / +5.5 → −0.9 / −1.4 | +1.6 / +1.5 → +0.3 / −0.7 |
+| assignment rate | 1.2 / 1.4 | 0.6 / 0.8 | 5.4 / 0.6 |
+
+(The gap and first-expiry rows also changed method since the table above: the lattice's side is
+now its exact entry, with that entry's own sampling error, as *3.* traced.) Over all 96
+comparisons, six processes and regimes by sixteen figures, five pass 2 and none 2.3, about
+what chance puts there. Of those five, three are the down-beta, which the simulator still
+reads 0.00006 to 0.00023 less negative in all six (the clamp's 0.00012–0.00019 gone from it;
+the z leaves out the lattice's own 0.00009 a seed, with which none passes 1.8); and two are
+E[I] at ten years, where all six z are negative because the processes of a regime share one
+constant-σ reference, which reads 7.28 against the model's 7.36 (Standard, two seeds), 1.9 of
+its errors low.
+
+One thing the comparison mixes. The book delta's rows are each model less its constant-σ
+reference, and the simulator's reference still reads its delta weekly at the sale (*4.*), about
+0.0004–0.0006 high, so all six rows sit +0.4 to +1.1 high in z. Against the lattice directly the
+every-session reading agrees: fitted 0.93172 ± 0.00053 against 0.93188, jumps 0.93037 ± 0.00079
+against 0.93108, factors 0.93206 ± 0.00066 against 0.93342 (seed 1). Reading the constant-σ
+book every session too — its sessions from a Brownian bridge on a stream of its own, so no
+other draw moves — would make the pairing like for like and take the weekly rule's −0.12bp out
+of the constant-σ paired test. Not done; for Sergei.
