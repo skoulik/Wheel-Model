@@ -970,7 +970,7 @@ What follows, for Sergei's call — none of it changes a figure `model.py` gives
 - **`eff_delta`'s direct estimate of the volatility channel** is biased by design, about 40%
   high, and is not a check of the lattice's: its excess-implied delta (the paired test) is.
   Either read each option at every session from tables at every tenor, or report the direct
-  estimate as what it is;
+  estimate as what it is — *the first, done 2026-11-23, at the end*;
 - **the simulator's sampled delta in the ledger's units** — *done 2026-11-23, below*;
 - **decision 8's comparisons** count the lattice's own error from now on, which only the
   down-beta's needs;
@@ -1060,3 +1060,29 @@ D/M falls 0.081 to 0.066 (two thirds repay) and it is liquidated more often than
 policy's, whose D/M rises 0.076 to 0.084 — so the prose does not say it. What does order the
 four is not settled by these columns: averages over the survivors, not the paths that reach
 the barrier.
+
+**The volatility channel read at every session, 2026-11-23** (Sergei: "Both need to be done.
+Let's start with 2"). `wheel_sim.book_session` reads the book's delta for the shock of every
+session, each option where that shock left it — the price and the factors after it, the
+sessions left after it — and the move in the price at the session's own volatility, the
+state before it: so the left-endpoint rule and the timing go together, and the put is read
+across its week, not at its sale. Each option's delta is in dollars per unit of the price it
+was sold at and weighted e^(r × time left), as `model.life_delta`'s, its expiry session the
+payoff's own slope; the capital beside it is summed on the same sessions (`Agg.dcap_sum`).
+It needs a call at every tenor of its life, 1 to 19 sessions: `fairprice` prices them from
+the draws it already steps (five sessions or fewer from the put's, the longer from the
+call's), writing them to a binary file beside each table set (26.5MB at the present grid),
+which only `book_delta` runs load, each row an array('d'); a build takes 8 minutes where it
+took 5, and the tables themselves are bit-identical to version 6's for the three sets built.
+`fairprice.path_states(every=True)` keeps every session's state for those runs, on the same
+draws. Constant σ is untouched: its weekly reading stays, with the −0.12bp of *4.*
+
+| the book's vol channel per capital, 30y, Standard | factors | jumps | fitted |
+|---|---|---|---|
+| exact (the lattice's, as `model.py`) | 0.00365 | 0.00386 | 0.00375 |
+| the simulator, read weekly at the sale (seed 1) | 0.00515 | 0.00537 | 0.00517 |
+| the simulator, read every session (seed 1, 2,560 paths) | 0.00364 ± 0.00005 | 0.00386 ± 0.00005 | 0.00377 ± 0.00004 |
+
+The whole of the 40% is gone, each within half an error of the lattice's, at the tables'
+present grid; the Conservative regime and the magnitudes' own run follow the grid's rebuild.
+2,560 paths at thirty years take under four minutes with every session read.

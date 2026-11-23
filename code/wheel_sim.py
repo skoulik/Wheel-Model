@@ -271,9 +271,11 @@ class Agg:
         # cost as well as its premium.
         self.open_put = 0.0
         self.open_call = 0.0
-        # The book's delta in shares, summed over the same dates as the
-        # capital; only with Params.book_delta, since it prices every lot's call.
+        # The book's delta, summed with the capital beside it: at every put sale at
+        # constant volatility, at every session under the fitted process (book_session);
+        # only with Params.book_delta, since it prices every lot's call.
         self.delta_sum = 0.0
+        self.dcap_sum = 0.0        # ...and the capital, on the same dates
         # The put's strike over spot, summed over put sales: its margin's average when
         # the strike moves with the state (the fitted process).
         self.kf_sum = 0.0
@@ -370,7 +372,7 @@ class Agg:
     _SCALARS = ("puts", "assigned", "d_sum", "exits", "prem_put", "prem_call",
                 "dividends", "cap_sum", "cap_n", "mvcap_sum", "acq_loss",
                 "giveaway", "acq_loss_d", "giveaway_d", "prem_float", "coll_int", "lot_time",
-                "open_put", "open_call", "delta_sum", "kf_sum", "delta_px_sum",
+                "open_put", "open_call", "delta_sum", "dcap_sum", "kf_sum", "delta_px_sum",
                 "vol_rise", "first_n",
                 "first_exit",
                 "paths", "sales", "blocked", "withdrawn", "ps_t",
@@ -471,7 +473,7 @@ def fitted_parts(P):
     once per process.  Build them in the parent before a pool runs (fittedvol does), or
     every worker would build the same tables at once."""
     key = (P.sigma, P.mu, P.r, P.delta, P.p_star, P.vol_jumps, P.vol_earnings,
-           P.vol_earn_feedback)
+           P.vol_earn_feedback, P.book_delta)
     if key not in _FITTED:
         # One set at a time: a pool worker running many cases would otherwise hold every
         # set it met, about a hundred megabytes each as Python lists, and step 7's run was
@@ -480,7 +482,7 @@ def fitted_parts(P):
         import fairprice
         data = fairprice.load({"sigma": P.sigma, "mu": P.mu, "r": P.r, "delta": P.delta,
                                "p_star": P.p_star, "jumps": P.vol_jumps,
-                               "earnings": P.vol_earnings})
+                               "earnings": P.vol_earnings}, delta=P.book_delta)
         T = VP.Tables(data)
         # The tables do not know the earnings term: with it on, options are priced as if it
         # were off, which the scenario that switches it on reads paired to cancel.
@@ -585,36 +587,78 @@ def run_path(P, rng, agg, states=None):
         st, i_ = states
         w_logS, w_hf, w_hs = (st[k][:, i_].tolist() for k in ("logS", "hf", "hs"))
         d_logS = st["daily"][:, i_].tolist() if "daily" in st else None
+        # ...and at every session, for a book whose delta is read at each (book_delta)
+        s_logS, s_hf, s_hs = ((st[k][:, i_].tolist() for k in ("s_logS", "s_hf", "s_hs"))
+                              if "s_logS" in st else (None, None, None))
         e0 = int(st["e0"][i_])
         hf, hs = w_hf[0], w_hs[0]
         n_now = 0                           # sessions stepped so far
         sig_now = proc.annual_vol(hf, hs)
 
-        def phase(sessions):
-            """The session of an option's life its earnings date falls on, or 0."""
-            j = (e0 - n_now) % VP.EARNINGS_EVERY + 1
+        def phase(sessions, n_=None):
+            """The session of an option's life its earnings date falls on, or 0, for an
+            option with `sessions` left after session n_ (by default, the present)."""
+            j = (e0 - (n_now if n_ is None else n_)) % VP.EARNINGS_EVERY + 1
             return j if j <= sessions else 0
 
-        def eff_delta(strike, sessions):
-            """A call's delta through both of its channels, in shares: the price's own
-            (with the smile, since the depth moves with the price) and the volatility's,
-            the vega times how far a one-sd diffusive shock moves each factor, per unit of
-            the move it makes in the price.  The pricing measure shifts exactly that
-            shock, so this is the exposure mu - r is earned on (decision 4); a put's is
-            the call's less e^(-delta tau), by parity.  Returns (both channels, the
-            price's alone)."""
+        def eff_delta(strike, sessions, S, hf, hs, sd, n_):
+            """A call's delta through both of its channels, in shares, for the shock of
+            session n_ - 1 -> n_: the price's own (with the smile, since the depth moves
+            with the price) and the volatility's, the vega times how far that one-sd
+            diffusive shock moved each factor, per unit of the move it made in the price.
+            Both are read where the shock left them -- the price S and the factors hf, hs
+            at n_, `sessions` left after it -- and the move in the price at the session's
+            own volatility sd, the state before it, which the shock did not set.  The
+            pricing measure shifts exactly that shock, so this is the exposure mu - r is
+            earned on (decision 4); a put's is the call's less e^(-delta tau), by parity.
+            Returns (both channels, the price's alone)."""
             tau = sessions * VP.DT
-            iv, d_f, d_s, d_x = tables.call_iv_grad(hf, hs, phase(sessions),
+            iv, d_f, d_s, d_x = tables.call_iv_grad(hf, hs, phase(sessions, n_),
                                                     log(strike / S), sessions)
             iv += P.iv_spread
             sq = iv * sqrt(tau)
             d1 = (log(S / strike) + (P.r - P.delta + iv * iv / 2) * tau) / sq
             carry = exp(-P.delta * tau)
             vega = S * carry * exp(-d1 * d1 / 2) / sqrt(2 * pi) * sqrt(tau)
-            H = max(-VP.H_CLIP, min(VP.H_CLIP, hf + hs))
-            sd = proc.sig_bar * exp(H)
             price = carry * N(d1) - vega * d_x / S
             return price + (proc.th_f * d_f + proc.th_s * d_s) * vega / (sd * S), price
+
+        def book_session(n_):
+            """The book's delta for the shock of session n_ - 1 -> n_ (both channels, the
+            price's alone): a lot's share, one, less its call's delta in dollars per unit
+            of the price the call was sold at, and the short put's the same way, each
+            option's weighted e^(r * time left) as model.life_delta's.  Read at every
+            session of every option's life, an option's samples average to its life
+            delta, where reading the book once a week at the sale took each option at
+            the start of its week, its volatility channel then 1.17 of the life's for a
+            call and about 1.9 for the put (the moving-volatility plan, 3.)."""
+            S_, hf_, hs_ = exp(s_logS[n_]), s_hf[n_], s_hs[n_]
+            H0 = max(-VP.H_CLIP, min(VP.H_CLIP, s_hf[n_ - 1] + s_hs[n_ - 1]))
+            sd = proc.sig_bar * exp(H0)
+            book = book_px = 0.0
+            for lot in lots:
+                ell = round(lot.t_exp * VP.SESSIONS) - n_
+                w = exp(P.r * ell * VP.DT) * S_ / lot.s_sale
+                if ell > 0:
+                    full, px = eff_delta(lot.strike, ell, S_, hf_, hs_, sd, n_)
+                else:                       # at expiry: the payoff's own slope
+                    full = px = 1.0 if S_ >= lot.strike else 0.0
+                book += 1.0 - full * w
+                book_px += 1.0 - px * w
+            if put_open is not None:
+                K_, s_put, n_exp = put_open
+                ell = n_exp - n_
+                w = exp(P.r * ell * VP.DT) * S_ / s_put
+                if ell > 0:
+                    full, px = eff_delta(K_, ell, S_, hf_, hs_, sd, n_)
+                    carry = exp(-P.delta * ell * VP.DT)
+                    book += (carry - full) * w
+                    book_px += (carry - px) * w
+                elif ell == 0:
+                    owed = 1.0 if S_ < K_ else 0.0
+                    book += owed * w
+                    book_px += owed * w
+            return book, book_px
 
     # ---- the account.  `ledger` off is Parts I and II verbatim.
     ledger = P.equity != float("inf")
@@ -623,6 +667,8 @@ def run_path(P, rng, agg, states=None):
     t_liq = float("inf")            # ...when, measured from an empty book
     t_sat = None                    # first put refused for want of capacity
     b_frozen = 0.0                  # the barrier as it stood at that moment
+    put_open = None                 # (strike, price at sale, expiry session): book_session
+    cap_open = None                 # ...and the capital the week's samples are per unit of
     t_stat = float("inf")           # when that frozen barrier was first touched
     d_a = d_b = d_sat = d_last = 0.0
     m_sat = m_last = 0.0            # market value of the book at the same two points
@@ -717,6 +763,12 @@ def run_path(P, rng, agg, states=None):
             n_prev, n_now = n_now, round(te * VP.SESSIONS)
             k_ = n_now // 5
             S, hf, hs = exp(w_logS[k_]), w_hf[k_], w_hs[k_]
+            if s_logS is not None and cap_open is not None and not dead:
+                for n_ in range(n_prev + 1, n_now + 1):
+                    b_, bp_ = book_session(n_)
+                    agg.delta_sum += b_
+                    agg.delta_px_sum += bp_
+                    agg.dcap_sum += cap_open
             if d_logS is not None:
                 closes = [exp(d_logS[n_]) for n_ in range(n_prev + 1, n_now + 1)]
         elif P.daily_barrier:
@@ -823,6 +875,7 @@ def run_path(P, rng, agg, states=None):
                                      else float("inf"))
                 ps_blocked += 1
                 ps_sales += 1
+                put_open = cap_open = None
             else:
                 c_p = S * bs_put(kf, P.tau_p, sig_iv, P.r, P.delta)
                 agg.puts += 1
@@ -852,26 +905,13 @@ def run_path(P, rng, agg, states=None):
                 # exposure its excess is earned on, as model.life_delta's.  In shares at
                 # the price ruling the calls read 0.00166 of capital short at the running
                 # example, a paired residual of -0.33bp (the moving-volatility plan, 4.).
-                # The put is read at its sale, where the two agree.
+                # At constant volatility the put is read at its sale, where the two agree;
+                # under the fitted process every option at every session (book_session).
                 if P.book_delta and fv:
-                    # The same book, each option's delta through both channels, and
-                    # through the price's alone.
-                    book = book_px = 0.0
-                    for lot in lots:
-                        ell = round((lot.t_exp - t) * VP.SESSIONS)
-                        if ell > 0:
-                            full, px = eff_delta(lot.strike, ell)
-                            book += 1.0 - full * S / lot.s_sale
-                            book_px += 1.0 - px * S / lot.s_sale
-                        else:
-                            book += 0.0 if S >= lot.strike else 1.0
-                            book_px += 0.0 if S >= lot.strike else 1.0
-                    full, px = eff_delta(K, 5)
-                    carry = exp(-P.delta * P.tau_p)
-                    book -= full - carry
-                    book_px -= px - carry
-                    agg.delta_sum += book
-                    agg.delta_px_sum += book_px
+                    # Read at every session of the week to come (book_session), the book
+                    # as it stands after this sale.
+                    put_open = (K, S, round((t + P.tau_p) * VP.SESSIONS))
+                    cap_open = mv_cap
                 elif P.book_delta:
                     # Shares, each less its call's delta at the call's remaining
                     # tenor in the units above, plus the short put just sold.
@@ -890,6 +930,7 @@ def run_path(P, rng, agg, states=None):
                     book += exp(-P.delta * P.tau_p) * N(-d1p)
                     agg.delta_sum += book
                     agg.delta_px_sum += book     # one channel: the price's
+                    agg.dcap_sum += mv_cap
                 push(t + P.tau_p, PUTEXP, (K, S, c_p, sig_now))
             if t + P.cadence <= P.years + 1e-9:
                 push(t + P.cadence, SALE, None)
@@ -1065,7 +1106,8 @@ def simulate(P, seed=None, paths=None):
         import fairprice
         proc, _ = fitted_parts(P)
         states = fairprice.path_states(proc, n, P.years, P.mu - P.delta, seed,
-                                       daily=P.daily_barrier and P.equity != float("inf"))
+                                       daily=P.daily_barrier and P.equity != float("inf"),
+                                       every=P.book_delta)
     for i in range(n):
         run_path(P, rng, agg, None if states is None else (states, i))
     return agg
@@ -1828,8 +1870,9 @@ def _dollar_row(P, g):
     the appreciation E[I]*m per unit of the price ruling -- is the same in both.
     The theory row is Black-Scholes's: each instrument's expected excess return
     is its delta times the stock's, so the book earns its sampled delta times
-    mu - r, less the withheld dividends.  The delta is sampled at every put sale
-    across each call's life, so it is a life average, as book_delta_life()'s.
+    mu - r, less the withheld dividends.  The delta is sampled across each
+    option's life -- at every put sale at constant volatility, at every session
+    under the fitted process -- so it is a life average, as book_delta_life()'s.
     """
     m = P.mu - P.delta
     per_yr = 1.0 / (g.paths * P.years)           # the window, as in validate()
@@ -1844,7 +1887,7 @@ def _dollar_row(P, g):
     ledger = (base - (g.acq_loss + g.giveaway) * per_yr) / cap
     dollar = (base - (g.acq_loss_d + g.giveaway_d) * per_yr) / cap
     leak = inv * P.delta * P.withhold / cap
-    delta = g.delta_sum / g.mvcap_sum             # per unit of the sampled capital
+    delta = g.delta_sum / g.dcap_sum              # per unit of the sampled capital
     theory = delta * (P.mu - P.r) - leak
     return {"ledger": ledger, "dollar": dollar, "theory": theory,
             "delta": delta, "dollar - theory": dollar - theory,
@@ -2024,7 +2067,7 @@ def _fv_row(P, g):
     row = {"excess": dollar, "minus the leak": -leak, "excess + leak": dollar + leak}
     if g.delta_sum:
         d = _dollar_row(P, g)
-        d_px = g.delta_px_sum / g.mvcap_sum
+        d_px = g.delta_px_sum / g.dcap_sum
         row.update({"delta x (mu - r) - leak": d["theory"],
                     "excess - that": d["dollar - theory"], "book delta": d["delta"],
                     "book delta, price only": d_px,

@@ -182,7 +182,11 @@ class Tables:
         self.put_logk = data["put"]["logk"]         # [phase][i][j]
         self.put_lniv = data["put"]["lniv"]
         self.call_lniv = {int(t): g for t, g in data["call"]["lniv"].items()}
-        # ...each [phase][i][j][k], by the sessions of the call's life left
+        # ...each [phase][i][j][k], by the sessions of the call's life left; and, when
+        # the run reads its book's delta at every session, every tenor of the call's
+        # life (`fairprice.load(..., delta=True)`), its rows arrays rather than lists
+        for t, g in data.get("delta lniv", {}).items():
+            self.call_lniv.setdefault(int(t), g)
         self.u_scale = data["u scale"]              # x / u: the run's sigma * sqrt(tau_c)
         self.sig_bar = data["sig bar"]
         # The state's interpolation weights, for the last (h_fast, h_slow) asked: every lot

@@ -46,8 +46,8 @@ since the state's dynamics are scale-free.
 
 Tables are cached under data/fair/, keyed by everything they depend on. A missing one is built
 a row of nodes per worker, BUILD_WORKERS at a time, each regenerating the same seeded draws,
-so the result is bit-identical to a serial build (checked 2026-11-22): about five minutes on
-the Windows desktop, against seventeen serially.
+so the result is bit-identical to a serial build (checked 2026-11-22): about eight minutes on
+the Windows desktop with every tenor priced (five without, 2026-11-23), against seventeen serially.
 
     python code/fairprice.py --check     # the tables' own checks, at the running example
 """
@@ -63,13 +63,19 @@ import numpy as np
 import volprocess as VP
 
 CACHE = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "data", "fair")
-VERSION = 6                     # 6: σ̄ from 1.6 million independent reads (`moments`)
+VERSION = 7                     # 7: a call at every tenor, for its delta read each session
 PATHS = 200_000                 # a chunk of draws
 CHUNKS = 4                      # chunks pooled at every node: 800,000 paths
 BUILD_WORKERS = 8               # rows built at once; each holds its own draws, ~1.6 GB
 SEED = 20261122
 TP, TC = 5, 20                  # sessions: the weekly put, the four-week call
 CALL_TENORS = (5, 10, 15, 20)   # a call's life left at each put sale; the sale is the last
+# ...and at every session of its life, for its delta read at every session (`wheel_sim`'s
+# book_delta): kept beside the tables in a binary file of their own, since they are four
+# times the size and only the runs that read the delta load them. A put's, by parity, is
+# the call's at its strike, so 1 to 4 serve it.
+DELTA_TENORS = tuple(range(1, TC))
+PRICED_TENORS = tuple(sorted(set(CALL_TENORS) | set(DELTA_TENORS)))
 HF_GRID = [round(-0.2 + 0.1 * i, 10) for i in range(13)]
 HS_GRID = [round(-0.1 + 0.2 * i, 10) for i in range(11)]
 U_GRID = [round(-3.0 + 0.1 * i, 10) for i in range(111)]     # below the money too
@@ -125,7 +131,7 @@ def simulate(proc, hf0, hs0, m, excess, draws, final=False):
     return (L, Hs, hf, hs) if final else (L, Hs)
 
 
-def path_states(proc, n, years, m, seed, daily=False):
+def path_states(proc, n, years, m, seed, daily=False, every=False):
     """`volprocess.Process.step` on arrays, for the simulator (TODO INF-9): n whole paths of
     the process at price drift m, each from the stationary state (BURN sessions from h = 0)
     with its own earnings calendar, the earnings term too when `proc` carries one. Kept at
@@ -133,7 +139,9 @@ def path_states(proc, n, years, m, seed, daily=False):
     (weeks + 1, n), and "e0", each path's earnings phase. The wheel never feeds back into
     the price, so a batch's paths can be stepped together before its event loop runs, which
     then reads them at the events alone; the draws are numpy's, so the results match the
-    session-by-session stepping in distribution, not draw for draw."""
+    session-by-session stepping in distribution, not draw for draw. With `every`, the
+    state at every session as well, "s_logS", "s_hf", "s_hs" of shape (sessions + 1, n),
+    for a book whose delta is read each session; the draws are the same either way."""
     g = np.random.default_rng(seed)
     T = int(round(years * VP.SESSIONS))
     if T % 5:
@@ -143,11 +151,16 @@ def path_states(proc, n, years, m, seed, daily=False):
     out = {k: np.empty((T // 5 + 1, n)) for k in ("logS", "hf", "hs")}
     if daily:                       # every close too, for a barrier checked daily
         out["daily"] = np.empty((T + 1, n))
+    if every:
+        for k in ("s_logS", "s_hf", "s_hs"):
+            out[k] = np.empty((T + 1, n))
     for t in range(-VP.BURN, T):
         if t >= 0 and t % 5 == 0:
             out["logS"][t // 5], out["hf"][t // 5], out["hs"][t // 5] = logS, hf, hs
         if daily and t >= 0:
             out["daily"][t] = logS
+        if every and t >= 0:
+            out["s_logS"][t], out["s_hf"][t], out["s_hs"][t] = logS, hf, hs
         H = np.clip(hf + hs, -VP.H_CLIP, VP.H_CLIP)
         sd = proc.sig_bar * np.exp(H)
         z, u, w = g.standard_normal(n), g.random(n), g.exponential(size=n)
@@ -177,6 +190,8 @@ def path_states(proc, n, years, m, seed, daily=False):
     out["logS"][T // 5], out["hf"][T // 5], out["hs"][T // 5] = logS, hf, hs
     if daily:
         out["daily"][T] = logS
+    if every:
+        out["s_logS"][T], out["s_hf"][T], out["s_hs"][T] = logS, hf, hs
     out["e0"] = e0
     return out
 
@@ -435,16 +450,18 @@ def _fill(lniv):
     return out
 
 
-def node_prices(proc, hf0, hs0, run, chunks, u_grid=U_GRID):
+def node_prices(proc, hf0, hs0, run, chunks, u_grid=U_GRID, tenors=PRICED_TENORS):
     """At one node: the put's (log k*, ln iv) per phase, and {tenor: the call's ln iv per
-    phase and depth} for each of CALL_TENORS. `chunks` is a list of draw sets (`draw_sets`),
+    phase and depth} for each of `tenors`. `chunks` is a list of draw sets (`draw_sets`),
     pooled: each holds three, stratified at its own expiry (`draws`) -- "strike" (the put's
     tenor, real world), "put" (the put's tenor, pricing measure, which also prices the
     five-session call), "call" (the call's, pricing measure, which prices the longer ones).
     The strike is the quantile of every chunk's paths together, and each price uses every
     chunk's sums, control variate included, so the pool is one sample of chunks x PATHS.
     The calls at fewer than twenty sessions are for an open call's delta and its mark at
-    the window's end; the premiums are the full-tenor ones."""
+    the window's end; the premiums are the full-tenor ones. Those of five sessions or
+    fewer come from the put's draws, the longer ones from the call's: every one of them
+    is a read of paths already stepped, at the session it expires."""
     r, delta, mu, p_star = run["r"], run["delta"], run["mu"], run["p_star"]
     excess = (mu - r) * VP.DT
     tp = TP * VP.DT
@@ -462,7 +479,7 @@ def node_prices(proc, hf0, hs0, run, chunks, u_grid=U_GRID):
     K = np.exp(np.array(u_grid) * run["u scale"])
     put_acc = np.zeros((TP + 1, 4))                 # sum pay, sum pay*R, sum R, sum R^2
     call_acc = {t: [np.zeros((t + 1, len(K))), np.zeros((t + 1, len(K))),
-                    np.zeros(t + 1), np.zeros(t + 1)] for t in CALL_TENORS}
+                    np.zeros(t + 1), np.zeros(t + 1)] for t in tenors}
     n_paths = 0
     for ds in chunks:
         d5, dq = ds["put"], ds["call"]
@@ -474,8 +491,8 @@ def node_prices(proc, hf0, hs0, run, chunks, u_grid=U_GRID):
             RQ = np.exp(L5[TP - 1] + eq)
             pay = np.maximum(ks[phase] - RQ, 0.0)
             put_acc[phase] += (pay.sum(), (pay * RQ).sum(), RQ.sum(), (RQ * RQ).sum())
-        for tenor in CALL_TENORS:
-            Lc, Hc, dc = (L5, H5, d5) if tenor == TP else (Lq, Hq, dq)
+        for tenor in tenors:
+            Lc, Hc, dc = (L5, H5, d5) if tenor <= TP else (Lq, Hq, dq)
             sp, spr, sr, srr = call_acc[tenor]
             for phase in range(tenor + 1):
                 eq = earnings_factor(proc, Hc[phase - 1], dc["ue"], dc["we"]) if phase else 0.0
@@ -502,7 +519,7 @@ def node_prices(proc, hf0, hs0, run, chunks, u_grid=U_GRID):
         out_put_k.append(log(ks[phase]))
         out_put_iv.append(float(np.log(implied("put", price, ks[phase], tp, r, delta))))
     calls = {}
-    for tenor in CALL_TENORS:
+    for tenor in tenors:
         sp, spr, sr, srr = call_acc[tenor]
         tau = tenor * VP.DT
         calls[tenor] = np.array([
@@ -536,7 +553,7 @@ def build(run, verbose=True):
     nf, ns = len(HF_GRID), len(HS_GRID)
     put_k = np.empty((TP + 1, nf, ns))
     put_iv = np.empty((TP + 1, nf, ns))
-    call = {t: np.empty((t + 1, nf, ns, len(U_GRID))) for t in CALL_TENORS}
+    call = {t: np.empty((t + 1, nf, ns, len(U_GRID))) for t in PRICED_TENORS}
     jobs = [(sb, run, i) for i in range(nf)]
     # A row of nodes a worker: each regenerates the same draws from the same seeds, so the
     # tables are bit-identical however many workers build them. Inside a worker (a table
@@ -550,30 +567,58 @@ def build(run, verbose=True):
     for i, row in enumerate(rows):
         for j, (pk, piv, c) in enumerate(row):
             put_k[:, i, j], put_iv[:, i, j] = pk, piv
-            for t in CALL_TENORS:
+            for t in PRICED_TENORS:
                 call[t][:, i, j, :] = c[t]
     if verbose:
         print(f"  fairprice: {nf} rows built", file=sys.stderr, flush=True)
     return {"hf": HF_GRID, "hs": HS_GRID, "u": U_GRID, "u scale": run["u scale"],
             "sig bar": sb, "moments": mom,
             "put": {"logk": put_k.tolist(), "lniv": _fill(put_iv).tolist()},
-            "call": {"lniv": {str(t): _fill(call[t]).tolist() for t in CALL_TENORS}}}
+            "call": {"lniv": {str(t): _fill(call[t]).tolist() for t in CALL_TENORS}},
+            "delta": {t: _fill(call[t]) for t in DELTA_TENORS}}
 
 
-def load(run, verbose=True):
-    """The tables for `run`, from the cache or built and cached."""
+def load(run, verbose=True, delta=False):
+    """The tables for `run`, from the cache or built and cached. With `delta`, the calls at
+    every tenor of DELTA_TENORS too, as data["delta lniv"] in `volprocess.Tables`'s layout,
+    each row of depths an array('d'): about fifty megabytes where nested lists of floats
+    would hold four hundred, in every worker that loads them. One build writes both files,
+    the binary one first, so a table on disk always has its every-tenor file beside it."""
     key, h = _key(run)
     path = os.path.join(CACHE, f"tables-{h}.json")
-    if os.path.exists(path):
+    side = os.path.join(CACHE, f"tables-{h}.delta.npy")
+    if os.path.exists(path) and os.path.exists(side):
         with open(path) as f:
-            return json.load(f)
-    data = build(run, verbose)
-    data["key"] = key
-    os.makedirs(CACHE, exist_ok=True)
-    with open(path + ".tmp", "w") as f:
-        json.dump(data, f)
-    os.replace(path + ".tmp", path)
+            data = json.load(f)
+    else:
+        data = build(run, verbose)
+        data["key"] = key
+        grids = data.pop("delta")
+        os.makedirs(CACHE, exist_ok=True)
+        np.save(side + ".tmp.npy", np.concatenate([grids[t].ravel() for t in DELTA_TENORS]))
+        os.replace(side + ".tmp.npy", side)
+        with open(path + ".tmp", "w") as f:
+            json.dump(data, f)
+        os.replace(path + ".tmp", path)
+    if delta:
+        data["delta lniv"] = _delta_rows(np.load(side), len(data["hf"]), len(data["hs"]),
+                                         len(data["u"]))
     return data
+
+
+def _delta_rows(flat, nf, ns, nu):
+    """{tenor: [phase][i][j] -> array('d') of depths}, from the flat every-tenor file."""
+    from array import array
+    out, off = {}, 0
+    for t in DELTA_TENORS:
+        n = (t + 1) * nf * ns * nu
+        g = flat[off:off + n].reshape(t + 1, nf, ns, nu)
+        off += n
+        out[t] = [[[array("d", g[ph, i, j].tobytes()) for j in range(ns)]
+                   for i in range(nf)] for ph in range(t + 1)]
+    if off != flat.size:
+        raise ValueError("the every-tenor file does not match its tables")
+    return out
 
 
 # ---------------------------------------------------------------------------- checks
