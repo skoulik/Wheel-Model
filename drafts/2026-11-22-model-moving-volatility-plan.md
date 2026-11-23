@@ -1123,4 +1123,29 @@ every-session reading agrees: fitted 0.93172 ± 0.00053 against 0.93188, jumps 0
 against 0.93108, factors 0.93206 ± 0.00066 against 0.93342 (seed 1). Reading the constant-σ
 book every session too — its sessions from a Brownian bridge on a stream of its own, so no
 other draw moves — would make the pairing like for like and take the weekly rule's −0.12bp out
-of the constant-σ paired test. Not done; for Sergei.
+of the constant-σ paired test. Done the same day, below.
+
+**The constant-σ book read at every session too, 2026-11-24** (Sergei: "Yes, please do this
+small change"). `wheel_sim.book_session_c` is `book_session` at constant σ: the price's channel
+in closed form, each option in dollars per unit of its sale price and weighted e^(r × time
+left), at sessions drawn between the events from a Brownian bridge — exact given the two ends,
+whatever the drift — on a stream of each path's own (`simulate` passes one per path), so no
+other draw moves: every scenario without `book_delta` prints byte-identical output, and in
+`--scenario dollars` only the delta's lines change. It refuses `book_delta` with `sv_eta`,
+several regimes or the daily barrier, which no scenario asks for. This supersedes "constant σ
+is untouched" above.
+
+| constant σ, Standard, 30y, 5,120 paths, paired with the pricing-drift twin | seed 1 | seed 2 |
+|---|---|---|
+| residual, read weekly at the sale (`640e67e`) | −0.24 ± 0.16bp | −0.16 ± 0.18bp |
+| residual, read every session | −0.10 ± 0.16bp | −0.02 ± 0.18bp |
+| the change, same paths | +0.14bp | +0.14bp |
+| book delta, weekly → every session (model 0.93091) | 0.93101 → 0.93032 | 0.93062 → 0.92992 |
+
+The weekly rule was −0.14bp on both seeds (*4.* put it at −0.12 over eight); what is left pools
+to −0.06 ± 0.12bp. With the magnitudes' constant groups rerun this way (the fitted ones kept;
+the previous files as `data/magnitudes-s{1,2}.weekly-const.json`), decision 8's book-delta rows
+read −0.34, −0.42, −0.50, −0.54, −0.05 and +0.02 (fitted, jumps, factors; Standard, Conservative),
+where they read +0.4 to +1.1 against the weekly reference; the ten-year E[I] rows are unchanged
+to the digit, the bridge's stream being its own. Over the 96, five still pass 2 and none 2.3:
+the down-beta's three and the ten-year reference's two, as above.

@@ -271,9 +271,9 @@ class Agg:
         # cost as well as its premium.
         self.open_put = 0.0
         self.open_call = 0.0
-        # The book's delta, summed with the capital beside it: at every put sale at
-        # constant volatility, at every session under the fitted process (book_session);
-        # only with Params.book_delta, since it prices every lot's call.
+        # The book's delta, summed with the capital beside it, at every session
+        # (book_session, book_session_c at constant volatility); only with
+        # Params.book_delta, since it prices every lot's call.
         self.delta_sum = 0.0
         self.dcap_sum = 0.0        # ...and the capital, on the same dates
         # The put's strike over spot, summed over put sales: its margin's average when
@@ -548,7 +548,7 @@ def bridge_hit(s_a, s_b, b_a, b_b, var, u):
     return u < exp(-2.0 * log(s_a / b_a) * log(s_b / b_b) / var)
 
 
-def run_path(P, rng, agg, states=None):
+def run_path(P, rng, agg, states=None, brng=None):
     S, t = 1.0, 0.0
     heap = []
     seq = 0
@@ -669,6 +669,45 @@ def run_path(P, rng, agg, states=None):
     b_frozen = 0.0                  # the barrier as it stood at that moment
     put_open = None                 # (strike, price at sale, expiry session): book_session
     cap_open = None                 # ...and the capital the week's samples are per unit of
+    # At constant sigma the same reading, the price's channel alone and in closed form, at
+    # sessions drawn between the events from a Brownian bridge: exact given the two ends,
+    # whatever the drift, and on the path's own stream `brng`, so the path is unchanged.
+    # Reading the book once a week at the sale instead left -0.12bp in the paired test
+    # (the moving-volatility plan, 4.), and paired the fitted runs against a reference read
+    # another way (its last section).
+    if P.book_delta and not fv and (sv or len(P.regimes) > 1 or P.daily_barrier):
+        raise ValueError("book_delta at constant sigma reads one regime, without "
+                         "sv_eta or the daily barrier")
+    sig_c = P.regimes[0].sigma + P.iv_spread
+
+    def book_session_c(S_, n_):
+        """book_session at constant sigma: the book's delta for the shock of session
+        n_ - 1 -> n_, each option's in dollars per unit of its sale price, weighted
+        e^(r * time left), its expiry the payoff's own slope."""
+        book = 0.0
+        for lot in lots:
+            ell = round(lot.t_exp * VP.SESSIONS) - n_
+            w = exp(P.r * ell * VP.DT) * S_ / lot.s_sale
+            if ell > 0:
+                tau = ell * VP.DT
+                d1 = ((log(S_ / lot.strike) + (P.r - P.delta + sig_c ** 2 / 2) * tau)
+                      / (sig_c * sqrt(tau)))
+                c = exp(-P.delta * tau) * N(d1)
+            else:
+                c = 1.0 if S_ >= lot.strike else 0.0
+            book += 1.0 - c * w
+        if put_open is not None:
+            K_, s_put, n_exp = put_open
+            ell = n_exp - n_
+            w = exp(P.r * ell * VP.DT) * S_ / s_put
+            if ell > 0:
+                tau = ell * VP.DT
+                d1 = ((log(S_ / K_) + (P.r - P.delta + sig_c ** 2 / 2) * tau)
+                      / (sig_c * sqrt(tau)))
+                book += exp(-P.delta * tau) * N(-d1) * w
+            elif ell == 0:
+                book += (1.0 if S_ < K_ else 0.0) * w
+        return book
     t_stat = float("inf")           # when that frozen barrier was first touched
     d_a = d_b = d_sat = d_last = 0.0
     m_sat = m_last = 0.0            # market value of the book at the same two points
@@ -783,6 +822,18 @@ def run_path(P, rng, agg, states=None):
                 closes.append(S)
         else:
             S = advance(S, t, te, P, rng)
+            if brng is not None and cap_open is not None and not dead:
+                n0, n1 = round(t * VP.SESSIONS), round(te * VP.SESSIONS)
+                x, x_end = log(s_a), log(S)
+                sd = P.regimes[0].sigma * sqrt(VP.DT)
+                for n_ in range(n0 + 1, n1 + 1):
+                    left = n1 - n_ + 1            # sessions from n_ - 1 to the end
+                    x = (x + (x_end - x) / left + sd * sqrt((left - 1) / left)
+                         * brng.gauss(0.0, 1.0)) if left > 1 else x_end
+                    b_ = book_session_c(exp(x), n_)
+                    agg.delta_sum += b_
+                    agg.delta_px_sum += b_       # one channel: the price's
+                    agg.dcap_sum += cap_open
         t = te
 
         if ledger:
@@ -905,32 +956,13 @@ def run_path(P, rng, agg, states=None):
                 # exposure its excess is earned on, as model.life_delta's.  In shares at
                 # the price ruling the calls read 0.00166 of capital short at the running
                 # example, a paired residual of -0.33bp (the moving-volatility plan, 4.).
-                # At constant volatility the put is read at its sale, where the two agree;
-                # under the fitted process every option at every session (book_session).
-                if P.book_delta and fv:
-                    # Read at every session of the week to come (book_session), the book
-                    # as it stands after this sale.
+                # The put the same way, every option at every session of its life.
+                if P.book_delta:
+                    # Read at every session of the week to come (book_session, or
+                    # book_session_c at constant sigma), the book as it stands after
+                    # this sale.
                     put_open = (K, S, round((t + P.tau_p) * VP.SESSIONS))
                     cap_open = mv_cap
-                elif P.book_delta:
-                    # Shares, each less its call's delta at the call's remaining
-                    # tenor in the units above, plus the short put just sold.
-                    book = 0.0
-                    for lot in lots:
-                        tau = lot.t_exp - t
-                        if tau > 1e-12:
-                            d1 = ((log(S / lot.strike)
-                                   + (P.r - P.delta + sig_iv**2 / 2) * tau)
-                                  / (sig_iv * sqrt(tau)))
-                            book += 1.0 - exp(-P.delta * tau) * N(d1) * S / lot.s_sale
-                        else:
-                            book += 0.0 if S >= lot.strike else 1.0
-                    d1p = ((log(1.0 / kf) + (P.r - P.delta + sig_iv**2 / 2) * P.tau_p)
-                           / (sig_iv * sqrt(P.tau_p)))
-                    book += exp(-P.delta * P.tau_p) * N(-d1p)
-                    agg.delta_sum += book
-                    agg.delta_px_sum += book     # one channel: the price's
-                    agg.dcap_sum += mv_cap
                 push(t + P.tau_p, PUTEXP, (K, S, c_p, sig_now))
             if t + P.cadence <= P.years + 1e-9:
                 push(t + P.cadence, SALE, None)
@@ -1108,8 +1140,12 @@ def simulate(P, seed=None, paths=None):
         states = fairprice.path_states(proc, n, P.years, P.mu - P.delta, seed,
                                        daily=P.daily_barrier and P.equity != float("inf"),
                                        every=P.book_delta)
+    # The constant-sigma book delta's sessions come from a Brownian bridge on a stream of
+    # each path's own, so that reading them moves no other draw (run_path, book_session_c).
+    bridged = P.book_delta and not P.vol_fitted
     for i in range(n):
-        run_path(P, rng, agg, None if states is None else (states, i))
+        run_path(P, rng, agg, None if states is None else (states, i),
+                 random.Random(f"bridge {seed} {i}") if bridged else None)
     return agg
 
 
@@ -1870,9 +1906,8 @@ def _dollar_row(P, g):
     the appreciation E[I]*m per unit of the price ruling -- is the same in both.
     The theory row is Black-Scholes's: each instrument's expected excess return
     is its delta times the stock's, so the book earns its sampled delta times
-    mu - r, less the withheld dividends.  The delta is sampled across each
-    option's life -- at every put sale at constant volatility, at every session
-    under the fitted process -- so it is a life average, as book_delta_life()'s.
+    mu - r, less the withheld dividends.  The delta is sampled at every session
+    of each option's life, so it is a life average, as book_delta_life()'s.
     """
     m = P.mu - P.delta
     per_yr = 1.0 / (g.paths * P.years)           # the window, as in validate()
