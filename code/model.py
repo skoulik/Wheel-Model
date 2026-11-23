@@ -2680,7 +2680,7 @@ def max_leverage(C, measure, eps, gamma_s=None, g=0.0):
 #    whose size is constant in SHARES; g = 0 holds the debit constant in
 #    DOLLARS, and a dollar-constant account shrinks against a compounding
 #    price.  Simulated, that halves the throughput -- 32% against the 60% this
-#    block reports at A = 11.59.  The frontier is the arithmetic of a
+#    block reports at A = 11.52.  The frontier is the arithmetic of a
 #    stationary account; staying stationary costs a draw of about
 #    r + econ_excess - m, which is roughly half the "maximum sustainable"
 #    figure max_sustainable_draw reports.

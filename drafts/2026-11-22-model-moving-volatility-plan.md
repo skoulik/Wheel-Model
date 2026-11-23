@@ -1149,3 +1149,40 @@ read −0.34, −0.42, −0.50, −0.54, −0.05 and +0.02 (fitted, jumps, facto
 where they read +0.4 to +1.1 against the weekly reference; the ten-year E[I] rows are unchanged
 to the digit, the bridge's stream being its own. Over the 96, five still pass 2 and none 2.3:
 the down-beta's three and the ten-year reference's two, as above.
+
+**§11 at A = 11.52, 2026-11-24** (TODO II-32). Extrapolating the near grid moved the model's
+thirty-year capital from 11.59 to 11.52, and §11's account is that capital, so the account
+moved with it (`dfb3b34`; the simulator now rounds A to the two decimals the article states).
+At 16,000 paths, the same two seeds as the recount above:
+
+| | the article's seed | seed 1 |
+|---|---|---|
+| thinning: inventory / income / E[W] | +1.1 / +0.5 / +1.1% | +0.6 / +0.3 / +0.6% |
+| puts sold; T_sat simulated (analytic 18.2) | 0.703; 17.9y | 0.706; 18.1y |
+| realized leverage | 0.744 | 0.742 |
+| drift of ln(M/D), span-weighted | −1.49 ± 0.04% | −1.47 ± 0.04% |
+| liquidated from empty by 30 / 60 years | 0.82 / 11.1% | 0.93 / 11.3% |
+| after saturation, 30y: closed / frozen / operating | 0.98 / 0.97 ± 0.08 / 3.59 ± 0.16% | 0.98 / 0.93 ± 0.08 / 3.78 ± 0.16% |
+| ...operating over frozen; over closed | 3.7; 3.7 | 4.1; 3.9 |
+| census after saturation: deepest bin; mean depth | +3.8 points; +6.1% | +3.7; +6.2% |
+| cash: retain / service / stationary / income | 0.29 / 1.50 / 3.59 / 9.30% | 0.25 / 1.32 / 3.78 / 9.27% |
+| ...the same paths' frozen barrier | 1.14 / 1.02 / 0.97 / 0.85% | 1.22 / 0.83 / 0.93 / 1.02% |
+| ...income over retain; over service | 32; 6.2 | 37; 7.0 |
+| ...income: realized g; service: throughput | +1.38%; 31.7% | +1.38%; 31.8% |
+| retained: repaid; D/M saturation → 60y | 83.9%; 0.081 → 0.024 | 83.8%; 0.081 → 0.024 |
+
+Against the article's seed at 11.59, same paths: nothing moves by more than about two of its
+standard errors (the largest, from empty by thirty years, 0.97 to 0.82%), the account being
+0.6% smaller. What the §11 rewrite (step 7 of the II-35 plan) has to change is
+what is quoted: A itself, capacity 13.07, throughput 59.9%, T_sat 18.2 years, the drifted cap
+1.895 and its draw −2.32% of equity; the frozen check, now 0.97% against the closed form's
+0.98%, 0.1 errors apart (it read 0.89 against 0.99, 1.1 apart); from empty, 0.82% by thirty
+years and 11.1% by sixty; the retained account's debit falling to 2.4% of the book, not 2.5%;
+the cash ratios — "about thirty" holds (32, 37), "nearly seven" is 6.2 and 7.0 on the two
+seeds, so "six or seven". The ratchet's factor of four holds, 3.7 and 3.9 against the closed
+form. The testbed (A = 5, L = 2) does not depend on A and did not move.
+
+The near grid's extrapolation has one more piece of independent evidence here: the constant-σ
+paired test of the same day read the simulator's every-session book delta at 0.93032 ± 0.00056
+and 0.92992 ± 0.00062, pooled 0.93014 ± 0.00042, against the single grid's 0.93091 (1.8 errors
+above) and the extrapolated pair's 0.93048 (0.8 above).
