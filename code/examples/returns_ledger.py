@@ -344,42 +344,45 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None,
 # r, the window's edge closed).  Where a comment quotes a section, that prose
 # is being rewritten to these values (drafts/2026-11-13-account-cash-and-
 # window-edge-plan.md) and still shows the old.
+# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
+# which moved Part II's two-decimal figures.  Where a comment quotes a section,
+# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
-        "appreciation": (0.5128, 0.0020),   # "for 11.40 lots ... is 0.5128 a year"
+        "appreciation": (0.5097, 0.0020),   # "for 11.40 lots ... is 0.5128 a year"
         "acq_loss": (0.1553, 0.0010),       # eq:mark-loss: "0.1553 per year"
-        "call_away_loss": (0.3880, 0.0005),  # eq:giveaway: "0.3880 per year"
+        "call_away_loss": (0.3891, 0.0005),  # eq:giveaway: "0.3880 per year"
         "overpay": (0.015, 0.0005),         # "by 1.5% of the price the put was sold at"
         "giveaway_per_exit": (0.039, 0.0005),  # "3.9% of a share price for each
                                                #   lot called away"
-        "net": (-0.0305, 0.0002),           # the ledger's "net -0.0305"
+        "net": (-0.0347, 0.0002),           # the ledger's "net -0.0305"
         # The decomposition table's 30 y column, and the horizon the figure marks.
-        "balance": (35.9, 0.1),             # "meet at about thirty-six years"; "equal at 36"
-        "econ_pnl": (0.7526, 0.0005),       # eq:excess: E[Pi] = 0.7526
+        "balance": (36.8, 0.1),             # "meet at about thirty-six years"; "equal at 36"
+        "econ_pnl": (0.7481, 0.0005),       # eq:excess: E[Pi] = 0.7526
         "econ_excess": (0.0149, 0.0001),    # eq:excess: "+1.49% per year"
         # The two-ledger table's Standard rows (5/10/30y): true excess rising,
         # cash falling through zero.
-        "table_lots": ([5.41, 7.39, 11.40], 0.05),
-        "table_mv": ([5.61, 7.59, 11.59], 0.05),
-        "table_cost": ([6.70, 9.83, 18.23], 0.06),
+        "table_lots": ([5.38, 7.35, 11.33], 0.05),
+        "table_mv": ([5.58, 7.55, 11.52], 0.05),
+        "table_cost": ([6.66, 9.77, 18.10], 0.06),
         "table_excess": ([0.0138, 0.0143, 0.0149], 0.0001),  # "Standard's from 1.38% to 1.49%"
-        "table_cash": ([0.0428, 0.0192, -0.0070], 0.0005),
-        "table_cash_mv": ([0.0608, 0.0397, 0.0176], 0.0005),
+        "table_cash": ([0.0434, 0.0197, -0.0068], 0.0005),
+        "table_cash_mv": ([0.0615, 0.0402, 0.0179], 0.0005),
         # The equity paragraph: "1.21% rather than 1.38% at five years, 1.40%
         # rather than 1.49% at thirty".  By hand, the same dollars over k + E[I]
         # instead of gamma_p*k + E[I]: 0.013819*5.61/6.39 and 0.014931*11.59/12.38.
         "table_cash_secured": ([0.0121, 0.0130, 0.0140], 0.0001),
         # The cash-on-cost paragraph at thirty years: the numerator has come
         # right and the error is all denominator; and the line's zero.
-        "cash_mv": (0.0176, 0.0005),        # "cash on market value reads 1.8%"
+        "cash_mv": (0.0179, 0.0005),        # "cash on market value reads 1.8%"
         "basis_ratio": (1.57, 0.005),       # "1.57 times market value"
-        "cash_cost_zero": (21.2, 0.05),     # "crosses zero a little after year twenty"
+        "cash_cost_zero": (21.6, 0.05),     # "crosses zero a little after year twenty"
     }, note="Standard regime"),
     # The decomposition table's other columns.  At five years the costs are
     # twice the gain, and Track A's cash on market value is the number an
     # operator would take for the economic return: 6.1% over r, against 1.38%.
     Case("--horizon 5", {
-        "net": (-0.26, 0.005),              # "the net is -0.26 a year"
+        "net": (-0.27, 0.005),              # "the net is -0.26 a year"
         "cost_ratio": (2.1, 0.05),          # "the costs are twice the gain"
         "income": (0.62, 0.005),            # "take 0.26 a year off its 0.62"
         "cash_mv": (0.061, 0.0005),         # "reports +6.1%"
@@ -387,10 +390,10 @@ CASES = [
         "econ_excess": (0.0138, 0.0001),    # "1.38% at five years"
     }, note="Standard regime, five years"),
     Case("--horizon 10", {
-        "net": (-0.19, 0.005),
+        "net": (-0.20, 0.005),
     }, note="Standard regime, ten years"),
     Case("--horizon 50", {
-        "net": (0.06, 0.005),               # "by fifty the gain is ahead"
+        "net": (0.05, 0.005),               # "by fifty the gain is ahead"
     }, note="Standard regime, fifty years"),
     # "1.53% at a hundred": the economic figure rises with the horizon.
     Case("--horizon 100", {
@@ -400,12 +403,12 @@ CASES = [
         "econ_excess": (0.0146, 0.0005),    # Conservative: "true excess +1.49%"
         # The two-ledger table's Conservative rows, which the Conservative
         # subsection's 30 y line repeats.
-        "table_lots": ([2.63, 3.58, 5.50], 0.05),   # "lots held 5.50"
-        "table_mv": ([2.82, 3.77, 5.70], 0.05),     # "capital (market) 5.70"
-        "table_cost": ([3.35, 4.86, 8.90], 0.06),   # "capital (cost) 8.90"
-        "table_excess": ([0.0133, 0.0139, 0.0146], 0.0001),  # "Conservative's from 1.33% to 1.46%"
-        "table_cash": ([0.0407, 0.0184, -0.0071], 0.0005),  # "cash-on-cost -0.83%"
-        "table_cash_mv": ([0.0578, 0.0381, 0.0170], 0.0005),
+        "table_lots": ([2.61, 3.55, 5.46], 0.05),   # "lots held 5.50"
+        "table_mv": ([2.80, 3.74, 5.65], 0.05),     # "capital (market) 5.70"
+        "table_cost": ([3.32, 4.82, 8.82], 0.06),   # "capital (cost) 8.90"
+        "table_excess": ([0.0132, 0.0139, 0.0146], 0.0001),  # "Conservative's from 1.33% to 1.46%"
+        "table_cash": ([0.0415, 0.0189, -0.0068], 0.0005),  # "cash-on-cost -0.83%"
+        "table_cash_mv": ([0.0586, 0.0387, 0.0175], 0.0005),
     }, note="Conservative regime"),
     # "What if the dividend never falls?" -- the sticky-dividend fixed point.  The
     # extra carry is real and outweighed: four basis points at thirty years, and
@@ -413,7 +416,7 @@ CASES = [
     Case("--sticky", {
         "sticky_F": ([1.020, 1.039, 1.113], 0.001),        # "inflation factor 1.020 1.039 1.113"
         "sticky_delta_eff": ([0.0255, 0.0260, 0.0278], 0.0001),  # "δ_eff 2.55% 2.60% 2.78%"
-        "sticky_excess": ([0.0138, 0.0142, 0.0146], 0.0002),     # "true excess +1.59% +1.58% +1.56%"
+        "sticky_excess": ([0.0137, 0.0142, 0.0146], 0.0002),     # "true excess +1.59% +1.58% +1.56%"
         "sticky_change": ([-0.0001, -0.0001, -0.0004], 0.0001),  # "change −0.01pp −0.01pp −0.04pp"
         "sticky_gap": ([-0.0019, -0.0015, -0.0010], 0.0001),        # "gap vs buy-and-hold +0.03pp +0.01pp +0.01pp"
         "sticky_inv_rise": (0.034, 0.003),      # "inventory rises 3.4%"

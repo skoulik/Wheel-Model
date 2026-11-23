@@ -54,10 +54,13 @@ def _deep_gap_share(cfg, measure, horizon, e):
     market value of 1, so its share of the gap is that difference, weighted by
     held time in the census.
     """
-    xs, w = model.census_weights(cfg, measure, horizon=horizon)
     f = 1 - e["c_p"] / e["k"]
-    loss = [wi * (math.exp(x) * f - 1) for x, wi in zip(xs, w)]
-    return sum(l for x, l in zip(xs, loss) if x >= DEEP) / sum(loss)
+
+    def share(h):
+        xs, w = model.census_weights(cfg, measure, horizon=horizon, h=h)
+        loss = [wi * (math.exp(x) * f - 1) for x, wi in zip(xs, w)]
+        return sum(l for x, l in zip(xs, loss) if x >= DEEP) / sum(loss)
+    return model.near(share)            # the near grid's pair (TODO II-32)
 
 
 def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
@@ -80,21 +83,24 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
     }
 
 
+# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
+# which moved Part II's two-decimal figures.  Where a comment quotes a section,
+# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
-        "inv": (11.40, 0.05),           # section 09: "11.40 lots held"
-        "mv_capital": (11.59, 0.05),    # eq:capital: "a total of 11.59"
-        "capital": (18.23, 0.06),       # "the margin ... brings the total to 18.23"
-        "lots_basis": (18.04, 0.06),    # "the bases come to 18.04"
+        "inv": (11.33, 0.05),           # section 09: "11.40 lots held"
+        "mv_capital": (11.52, 0.05),    # eq:capital: "a total of 11.59"
+        "capital": (18.10, 0.06),       # "the margin ... brings the total to 18.23"
+        "lots_basis": (17.91, 0.06),    # "the bases come to 18.04"
         "basis_per_lot": (1.58, 0.005),  # "1.58 share prices a lot on average"
         "gap": (6.6, 0.1),              # "the gap between them -- 6.6 share prices"
         "gap_per_lot": (0.58, 0.005),   # "or 0.58 a lot"
         "deep_gap": (0.73, 0.005),      # "account for 73% of the gap"
     }, note="Standard regime, 30y"),
     Case("--p-star 0.10", {
-        "inv": (5.50, 0.05),            # Conservative: "lots held 5.50"
-        "mv_capital": (5.70, 0.05),     # "capital (market) 5.70"
-        "capital": (8.90, 0.06),        # "capital (cost) 8.90"
+        "inv": (5.46, 0.05),            # Conservative: "lots held 5.50"
+        "mv_capital": (5.65, 0.05),     # "capital (market) 5.70"
+        "capital": (8.82, 0.06),        # "capital (cost) 8.90"
     }, note="Conservative regime"),
     # The cadence sweep of section 09 ("The one dial the model says is free").
     # What cadence really sets is the capital the position needs -- 11.59 share
@@ -103,12 +109,12 @@ CASES = [
     # above; the excess each row earns is in returns_benchmark.py.  n = 4
     # throughout, so the call period stays four put periods.
     Case("--tau-p 0.0384615385", {
-        "inv": (8.02, 0.05),            # the table: "biweekly  lots held 8.02"
-        "mv_capital": (8.21, 0.05),     # "capital (market) 8.21"
+        "inv": (7.99, 0.05),            # the table: "biweekly  lots held 8.02"
+        "mv_capital": (8.19, 0.05),     # "capital (market) 8.21"
     }, note="biweekly cadence, n = 4"),
     Case("--tau-p 0.0833333333", {
-        "inv": (5.42, 0.05),            # "monthly  5.42"
-        "mv_capital": (5.61, 0.05),     # "5.61"
+        "inv": (5.41, 0.05),            # "monthly  5.42"
+        "mv_capital": (5.60, 0.05),     # "5.61"
     }, note="monthly cadence, n = 4"),
     Case("--tau-p 0.25", {
         "inv": (3.09, 0.05),            # "quarterly  3.09"
@@ -119,24 +125,24 @@ CASES = [
     # the default Case above; the true excess each row earns is in
     # returns_benchmark.py, and ν in stability_criteria.py.
     Case("--delta 0.0", {
-        "inv": (8.54, 0.05),            # the table: "δ 0%  lots held 8.54"
-        "mv_capital": (8.74, 0.05),     # "capital (market) 8.74"
-        "capital": (12.11, 0.10),       # "capital (cost) 12.11"
+        "inv": (8.49, 0.05),            # the table: "δ 0%  lots held 8.54"
+        "mv_capital": (8.68, 0.05),     # "capital (market) 8.74"
+        "capital": (12.02, 0.10),       # "capital (cost) 12.11"
     }, note="no dividend"),
     Case("--delta 0.01", {
-        "inv": (9.56, 0.05),            # "δ 1%  9.56"
-        "mv_capital": (9.75, 0.05),     # "9.75"
-        "capital": (14.15, 0.10),       # "14.15"
+        "inv": (9.50, 0.05),            # "δ 1%  9.56"
+        "mv_capital": (9.69, 0.05),     # "9.75"
+        "capital": (14.04, 0.10),       # "14.15"
     }, note="a 1% yielder"),
     Case("--delta 0.04", {
-        "inv": (13.65, 0.05),           # "δ 4%  13.65"
-        "mv_capital": (13.84, 0.05),    # "13.84"
-        "capital": (24.00, 0.10),       # "24.00"
+        "inv": (13.57, 0.05),           # "δ 4%  13.65"
+        "mv_capital": (13.76, 0.05),    # "13.84"
+        "capital": (23.84, 0.10),       # "24.00"
     }, note="a 4% yielder"),
     Case("--delta 0.06", {
-        "inv": (17.31, 0.05),           # "δ 6%  17.31"
-        "mv_capital": (17.51, 0.05),    # "17.51"
-        "capital": (35.50, 0.10),       # "35.50" -- ν < 0 here, a non-converging snapshot
+        "inv": (17.22, 0.05),           # "δ 6%  17.31"
+        "mv_capital": (17.41, 0.05),    # "17.51"
+        "capital": (35.26, 0.10),       # "35.50" -- ν < 0 here, a non-converging snapshot
     }, note="a 6% yielder, past the count boundary"),
 ]
 

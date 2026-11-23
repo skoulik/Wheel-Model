@@ -87,8 +87,9 @@ def need_occupation(cfg, measure="P", **kw):
     """The near-grid killed walk.  Correct for *horizon-weighted* numbers.
 
     Anything read through `economics(..., horizon=H)` is weighted so that the
-    far tail contributes almost nothing, and the near grid (h = 0.01 over
-    x_max = 4) resolves what is left.  Use this for E[I] at 5/10/30 years,
+    far tail contributes almost nothing, and the near grid (h = 0.01 and
+    0.005, Richardson-extrapolated, over x_max = 4; TODO II-32) resolves what
+    is left.  Use this for E[I] at 5/10/30 years,
     the finite-horizon income and capital, and the shallow census.
     """
     return Need("occupation", cfg, measure, tuple(sorted(kw.items())))
@@ -98,10 +99,11 @@ def need_stationary(cfg, measure="P", **kw):
     """The Richardson-extrapolated walk.  Required for *whole-lifetime* numbers.
 
     A quantity summed over a lot's entire life -- E[J], E[W], the equilibrium
-    inventory, the stationary census -- is carried by the tail, where the near
-    grid both truncates (x_max = 4) and biases upward by O(h^2).  The two
-    disagree by more than the article's own precision: E[W] reads 2.05 on the
-    near grid against the extrapolated 2.10 that section 07 quotes.  Choosing
+    inventory, the stationary census -- is carried by the tail, which the near
+    grid truncates at x_max = 4.  The two disagree by more than the article's
+    own precision: E[W] reads 2.03 on the near grid against the extrapolated
+    2.10 that section 07 quotes (2.05 on its coarse grid alone, whose upward
+    O(h^2) bias offset part of the truncation).  Choosing
     between these is a correctness decision, not a speed one; stationary()
     costs well under a second at the running example.
 

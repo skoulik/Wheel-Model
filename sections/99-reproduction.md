@@ -20,23 +20,23 @@ Backs [eq:excess-return](#eq:excess-return), [eq:delta-return](#eq:delta-return)
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_benchmark.py` | wheel = 1.49%, equity_frac = 98.3%, buy_hold = 1.625%, buy_hold_adj = 1.60%, difference = -0.10%, exposure_sold = 0.104%, delta_frac = 93.1%, calls_sold = 6.9%, put_adds = 1.68%, buy_hold_delta = 1.51%, difference_delta = -0.020%, delta_sale_frac = 93.24%, shortcut = 0.002% |
+| `python code/examples/returns_benchmark.py` | wheel = 1.49%, equity_frac = 98.3%, buy_hold = 1.625%, buy_hold_adj = 1.60%, difference = -0.11%, exposure_sold = 0.105%, delta_frac = 93.0%, calls_sold = 6.9%, put_adds = 1.69%, buy_hold_delta = 1.51%, difference_delta = -0.020%, delta_sale_frac = 93.20%, shortcut = 0.002% |
 | `python code/examples/returns_benchmark.py --p-star 0.10` | wheel = 1.46%, buy_hold_adj = 1.57%, difference = -0.11%, difference_delta = -0.020% |
 | `python code/examples/returns_benchmark.py --iv-spread 0.005` | wheel = 1.72%, difference = 0.12% |
-| `python code/examples/returns_benchmark.py --iv-spread 0.010` | wheel = 1.94%, difference = 0.35% |
+| `python code/examples/returns_benchmark.py --iv-spread 0.010` | wheel = 1.95%, difference = 0.35% |
 | `python code/examples/returns_benchmark.py --iv-spread 0.015` | wheel = 2.18%, difference = 0.58% |
-| `python code/examples/returns_benchmark.py --iv-spread 0.020` | wheel = 2.41%, difference = 0.81% |
+| `python code/examples/returns_benchmark.py --iv-spread 0.020` | wheel = 2.41%, difference = 0.82% |
 | `python code/examples/returns_benchmark.py --tau-p 0.0384615385` | wheel = 1.44%, difference = -0.15% |
 | `python code/examples/returns_benchmark.py --tau-p 0.0833333333` | wheel = 1.35%, difference = -0.22% |
-| `python code/examples/returns_benchmark.py --tau-p 0.25` | wheel = 1.16%, difference = -0.38% |
+| `python code/examples/returns_benchmark.py --tau-p 0.25` | wheel = 1.15%, difference = -0.38% |
 | `python code/examples/returns_benchmark.py --tau-p 0.0833333333 --iv-spread 0.010` | wheel = 1.78% |
 | `python code/examples/returns_benchmark.py --delta 0.0` | wheel = 1.81%, difference = -0.14% |
 | `python code/examples/returns_benchmark.py --delta 0.01` | wheel = 1.69%, difference = -0.13% |
 | `python code/examples/returns_benchmark.py --delta 0.04` | wheel = 1.29%, difference = -0.09% |
 | `python code/examples/returns_benchmark.py --delta 0.06` | wheel = 1.02%, difference = -0.07% |
-| `python code/examples/returns_benchmark.py --horizon 5` | wheel = 1.38%, equity_frac = 96.5%, buy_hold_adj = 1.57%, difference = -0.19%, exposure_sold = 0.186%, delta_frac = 87.2%, calls_sold = 12.8%, put_adds = 3.47%, buy_hold_delta = 1.42%, difference_delta = -0.035%, delta_sale_frac = 87.47%, shortcut = 0.005% |
-| `python code/examples/returns_benchmark.py --horizon 10` | wheel = 1.43%, buy_hold_adj = 1.58%, difference = -0.15%, delta_frac = 90.0%, buy_hold_delta = 1.46%, difference_delta = -0.028%, shortcut = 0.004% |
-| `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 5` | wheel = 1.33%, difference = -0.19%, difference_delta = -0.035% |
+| `python code/examples/returns_benchmark.py --horizon 5` | wheel = 1.38%, equity_frac = 96.5%, buy_hold_adj = 1.57%, difference = -0.19%, exposure_sold = 0.188%, delta_frac = 87.1%, calls_sold = 12.9%, put_adds = 3.48%, buy_hold_delta = 1.42%, difference_delta = -0.035%, delta_sale_frac = 87.40%, shortcut = 0.005% |
+| `python code/examples/returns_benchmark.py --horizon 10` | wheel = 1.43%, buy_hold_adj = 1.58%, difference = -0.15%, delta_frac = 89.9%, buy_hold_delta = 1.46%, difference_delta = -0.028%, shortcut = 0.004% |
+| `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 5` | wheel = 1.32%, difference = -0.19%, difference_delta = -0.035% |
 | `python code/examples/returns_benchmark.py --p-star 0.10 --horizon 10` | wheel = 1.39%, difference = -0.15%, difference_delta = -0.028% |
 
 ### `strategy_cadence.py` {#repro:strategy-cadence}
@@ -142,7 +142,7 @@ Draws [fig:survival-curve](#fig:survival-curve): `python code/examples/holding_t
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/holding_time.py` | tax = 0.0323, ratio = 2.09, x0 = 0.0155, b = 0.279, overshoot = 0.667, theta = 0.035, far = 0.591, near = 0.722, tax_charged = 0.0370, ratio_charged = 2.39, entry_share = 29.5%, q_Ex0 = 0.403, naive = 2.48, columns = 0.60  0.46  0.38  0.27  0.18  0.12  0.07  0.04  0.02, haz = 0.405  0.234  0.068, cc_age = 159.5934  0.0105  0.0000, over_measured = 0.666, closed_mean = 0.30, closed_median = 2, depth_cols = 0.05  0.08  0.09  0.14  0.21  0.31  0.48  0.66  0.90, median = 2, EW = 2.10, EW_siegmund = 1.91, EW_far = 1.93, EW_near = 2.22, prem = 0.0372, exitcost = 0.0390, prem_float = 0.00014, call_leg_net = -0.0016 |
+| `python code/examples/holding_time.py` | tax = 0.0323, ratio = 2.09, x0 = 0.0155, b = 0.279, overshoot = 0.667, theta = 0.035, far = 0.591, near = 0.722, tax_charged = 0.0370, ratio_charged = 2.39, entry_share = 29.5%, q_Ex0 = 0.403, naive = 2.48, columns = 0.59  0.45  0.38  0.27  0.18  0.12  0.07  0.04  0.02, haz = 0.407  0.235  0.068, cc_age = 160.8361  0.0107  0.0000, over_measured = 0.667, closed_mean = 0.30, closed_median = 2, depth_cols = 0.05  0.08  0.09  0.14  0.21  0.30  0.48  0.66  0.90, median = 2, EW = 2.10, EW_siegmund = 1.91, EW_far = 1.93, EW_near = 2.22, prem = 0.0373, exitcost = 0.0391, prem_float = 0.00014, call_leg_net = -0.0016 |
 | `python code/examples/holding_time.py --measure Q` | EW = 9.01 |
 
 ### `holding_trapped.py` {#repro:holding-trapped}
@@ -166,8 +166,8 @@ Draws [fig:depth-census](#fig:depth-census): `python code/examples/inventory_cen
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/inventory_census.py` | shares = 15.1%  9.4%  8.6%  7.7%  6.9%  6.1%  5.5%  4.9%  4.3%  3.8%  27.6%, q_mid = 0.339  0.094  0.013  0.001  0.000  0.000  0.000  0.000  0.000  0.000  0.000, mean_x = 37.7%, mean_q = 0.0668, deep30 = 46.1%, deep50 = 27.6%, deep10 = 24.5%, first_share = 7.0%, later_peak = 7.5% |
-| `python code/examples/inventory_census.py --stationary` | mean_x = 78.3%, mean_q = 0.0364, deep50 = 52.5% |
+| `python code/examples/inventory_census.py` | shares = 15.1%  9.4%  8.7%  7.7%  6.9%  6.1%  5.5%  4.9%  4.3%  3.8%  27.6%, q_mid = 0.339  0.094  0.013  0.001  0.000  0.000  0.000  0.000  0.000  0.000  0.000, mean_x = 37.6%, mean_q = 0.0672, deep30 = 46.0%, deep50 = 27.6%, deep10 = 24.6%, first_share = 7.1%, later_peak = 7.5% |
+| `python code/examples/inventory_census.py --stationary` | mean_x = 78.1%, mean_q = 0.0367, deep50 = 52.4% |
 
 ### `inventory_little.py` {#repro:inventory-little}
 
@@ -177,7 +177,7 @@ Draws [fig:inventory-approach](#fig:inventory-approach): `python code/examples/i
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/inventory_little.py` | lam = 10.4, EW = 2.10, EI_eq = 21.82, at_h = 7.95  10.57  15.42, at_h_counted = 7.95  10.57  15.42, horizons = 5.41  7.39  11.40, residence = 0.52  0.71  1.10, approach90 = 90, departures = 8.54  9.72  10.25, still_held = 0.0144, late_share = 0.29 |
+| `python code/examples/inventory_little.py` | lam = 10.4, EW = 2.10, EI_eq = 21.82, at_h = 7.90  10.51  15.32, at_h_counted = 7.90  10.51  15.32, horizons = 5.38  7.35  11.33, residence = 0.52  0.71  1.09, approach90 = 90, departures = 8.55  9.72  10.25, still_held = 0.0143, late_share = 0.30 |
 
 ## Returns and Capital
 
@@ -189,11 +189,11 @@ Draws [fig:book-exposure](#fig:book-exposure): `python code/examples/returns_bet
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_beta.py` | beta_up = 0.828, beta_dn = 1.000, delta_dn20 = 1.069, held_dn20 = 0.983, delta_flat = 0.932, delta_up20 = 0.608, put_dn20 = 1.000, put_up20 = 0.000 |
-| `python code/examples/returns_beta.py --horizon 5` | delta_flat = 0.875, delta_dn20 = 1.143 |
-| `python code/examples/returns_beta.py --p-star 0.10` | beta_up = 0.824, beta_dn = 1.000 |
+| `python code/examples/returns_beta.py` | beta_up = 0.828, beta_dn = 1.000, delta_dn20 = 1.070, held_dn20 = 0.983, delta_flat = 0.932, delta_up20 = 0.607, put_dn20 = 1.000, put_up20 = 0.000 |
+| `python code/examples/returns_beta.py --horizon 5` | delta_flat = 0.874, delta_dn20 = 1.144 |
+| `python code/examples/returns_beta.py --p-star 0.10` | beta_up = 0.823, beta_dn = 1.000 |
 | `python code/examples/returns_beta.py --n 1` | beta_up = 0.927, beta_gap = 0.073 |
-| `python code/examples/returns_beta.py --n 13` | beta_up = 0.683, beta_gap = 0.317 |
+| `python code/examples/returns_beta.py --n 13` | beta_up = 0.682, beta_gap = 0.318 |
 | `python code/examples/returns_beta.py --sigma 0.30` | beta_up = 0.870, beta_gap = 0.130 |
 
 ### `returns_capital.py` {#repro:returns-capital}
@@ -202,15 +202,15 @@ Backs [eq:capital](#eq:capital).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_capital.py` | inv = 11.40, mv_capital = 11.59, capital = 18.23, lots_basis = 18.04, basis_per_lot = 1.58, gap = 6.64, gap_per_lot = 0.58, deep_gap = 72.6% |
-| `python code/examples/returns_capital.py --p-star 0.10` | inv = 5.50, mv_capital = 5.70, capital = 8.90 |
-| `python code/examples/returns_capital.py --tau-p 0.0384615385` | inv = 8.02, mv_capital = 8.21 |
-| `python code/examples/returns_capital.py --tau-p 0.0833333333` | inv = 5.42, mv_capital = 5.61 |
+| `python code/examples/returns_capital.py` | inv = 11.33, mv_capital = 11.52, capital = 18.10, lots_basis = 17.91, basis_per_lot = 1.58, gap = 6.58, gap_per_lot = 0.58, deep_gap = 72.5% |
+| `python code/examples/returns_capital.py --p-star 0.10` | inv = 5.46, mv_capital = 5.65, capital = 8.82 |
+| `python code/examples/returns_capital.py --tau-p 0.0384615385` | inv = 7.99, mv_capital = 8.19 |
+| `python code/examples/returns_capital.py --tau-p 0.0833333333` | inv = 5.41, mv_capital = 5.60 |
 | `python code/examples/returns_capital.py --tau-p 0.25` | inv = 3.09, mv_capital = 3.28 |
-| `python code/examples/returns_capital.py --delta 0.0` | inv = 8.54, mv_capital = 8.74, capital = 12.11 |
-| `python code/examples/returns_capital.py --delta 0.01` | inv = 9.56, mv_capital = 9.75, capital = 14.15 |
-| `python code/examples/returns_capital.py --delta 0.04` | inv = 13.65, mv_capital = 13.84, capital = 24.00 |
-| `python code/examples/returns_capital.py --delta 0.06` | inv = 17.31, mv_capital = 17.51, capital = 35.50 |
+| `python code/examples/returns_capital.py --delta 0.0` | inv = 8.49, mv_capital = 8.68, capital = 12.02 |
+| `python code/examples/returns_capital.py --delta 0.01` | inv = 9.50, mv_capital = 9.69, capital = 14.04 |
+| `python code/examples/returns_capital.py --delta 0.04` | inv = 13.57, mv_capital = 13.76, capital = 23.84 |
+| `python code/examples/returns_capital.py --delta 0.06` | inv = 17.22, mv_capital = 17.41, capital = 35.26 |
 
 ### `returns_income.py` {#repro:returns-income}
 
@@ -218,11 +218,11 @@ Backs [eq:income](#eq:income).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_income.py` | put = 0.1591, call = 0.3706, premiums = 0.5297, dividends = 0.2422, interest = 0.0114, collateral = 0.0098, float = 0.0016, income = 0.7832 |
-| `python code/examples/returns_income.py --p-star 0.10` | income = 0.3816 |
-| `python code/examples/returns_income.py --iv-spread 0.005` | premiums = 0.5555 |
-| `python code/examples/returns_income.py --iv-spread 0.010` | premiums = 0.5818 |
-| `python code/examples/returns_income.py --iv-spread 0.020` | premiums = 0.6358 |
+| `python code/examples/returns_income.py` | put = 0.1591, call = 0.3716, premiums = 0.5307, dividends = 0.2407, interest = 0.0114, collateral = 0.0098, float = 0.0016, income = 0.7827 |
+| `python code/examples/returns_income.py --p-star 0.10` | income = 0.3813 |
+| `python code/examples/returns_income.py --iv-spread 0.005` | premiums = 0.5565 |
+| `python code/examples/returns_income.py --iv-spread 0.010` | premiums = 0.5828 |
+| `python code/examples/returns_income.py --iv-spread 0.020` | premiums = 0.6366 |
 
 ### `returns_ledger.py` {#repro:returns-ledger}
 
@@ -234,15 +234,15 @@ Draws [fig:two-ledgers](#fig:two-ledgers): `python code/examples/returns_ledger.
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_ledger.py` | appreciation = 0.5128, acq_loss = 0.1553, call_away_loss = 0.3880, overpay = 1.49%, giveaway_per_exit = 3.90%, net = -0.0305, balance = 35.9, econ_pnl = 0.7526, econ_excess = 1.49%, table_lots = 5.41  7.39  11.40, table_mv = 5.61  7.59  11.59, table_cost = 6.70  9.83  18.23, table_excess = 1.38%  1.43%  1.49%, table_cash = 4.28%  1.92%  -0.70%, table_cash_mv = 6.08%  3.97%  1.76%, table_cash_secured = 1.21%  1.30%  1.40%, cash_mv = 1.76%, basis_ratio = 1.57, cash_cost_zero = 21.2 |
-| `python code/examples/returns_ledger.py --horizon 5` | net = -0.2636, cost_ratio = 2.08, income = 0.6214, cash_mv = 6.08%, basis_gap = +1.81%, econ_excess = 1.38% |
-| `python code/examples/returns_ledger.py --horizon 10` | net = -0.1923 |
-| `python code/examples/returns_ledger.py --horizon 50` | net = 0.0584 |
+| `python code/examples/returns_ledger.py` | appreciation = 0.5097, acq_loss = 0.1553, call_away_loss = 0.3891, overpay = 1.49%, giveaway_per_exit = 3.91%, net = -0.0347, balance = 36.8, econ_pnl = 0.7481, econ_excess = 1.49%, table_lots = 5.38  7.35  11.33, table_mv = 5.58  7.55  11.52, table_cost = 6.66  9.77  18.10, table_excess = 1.38%  1.43%  1.49%, table_cash = 4.34%  1.97%  -0.68%, table_cash_mv = 6.15%  4.02%  1.79%, table_cash_secured = 1.21%  1.30%  1.40%, cash_mv = 1.79%, basis_ratio = 1.57, cash_cost_zero = 21.6 |
+| `python code/examples/returns_ledger.py --horizon 5` | net = -0.2661, cost_ratio = 2.10, income = 0.6221, cash_mv = 6.15%, basis_gap = +1.81%, econ_excess = 1.38% |
+| `python code/examples/returns_ledger.py --horizon 10` | net = -0.1953 |
+| `python code/examples/returns_ledger.py --horizon 50` | net = 0.0535 |
 | `python code/examples/returns_ledger.py --horizon 100` | econ_excess = 1.53% |
-| `python code/examples/returns_ledger.py --p-star 0.10` | econ_excess = 1.46%, table_lots = 2.63  3.58  5.50, table_mv = 2.82  3.77  5.70, table_cost = 3.35  4.86  8.90, table_excess = 1.33%  1.39%  1.46%, table_cash = 4.07%  1.84%  -0.71%, table_cash_mv = 5.78%  3.81%  1.70% |
-| `python code/examples/returns_ledger.py --sticky` | sticky_F = 1.020  1.039  1.113, sticky_delta_eff = 2.55%  2.60%  2.78%, sticky_excess = 1.38%  1.42%  1.46%, sticky_change = -0.01%  -0.01%  -0.04%, sticky_gap = -0.19%  -0.15%  -0.10%, sticky_inv_rise = 3.4%, sticky_capital_rise = 5.1% |
-| `python code/examples/returns_ledger.py --trap` | trap_xstar = 0.693, trap_below = 50.0%, trap_beyond = 16.7% |
-| `python code/examples/returns_ledger.py --measure Q --trap` | trap_xstar = 0.182, trap_below = 16.7%, trap_beyond = 69.0% |
+| `python code/examples/returns_ledger.py --p-star 0.10` | econ_excess = 1.46%, table_lots = 2.61  3.55  5.46, table_mv = 2.80  3.74  5.65, table_cost = 3.32  4.82  8.82, table_excess = 1.32%  1.39%  1.46%, table_cash = 4.15%  1.89%  -0.68%, table_cash_mv = 5.86%  3.87%  1.75% |
+| `python code/examples/returns_ledger.py --sticky` | sticky_F = 1.020  1.039  1.113, sticky_delta_eff = 2.55%  2.60%  2.78%, sticky_excess = 1.37%  1.42%  1.46%, sticky_change = -0.01%  -0.01%  -0.04%, sticky_gap = -0.19%  -0.15%  -0.10%, sticky_inv_rise = 3.4%, sticky_capital_rise = 5.1% |
+| `python code/examples/returns_ledger.py --trap` | trap_xstar = 0.693, trap_below = 50.0%, trap_beyond = 16.4% |
+| `python code/examples/returns_ledger.py --measure Q --trap` | trap_xstar = 0.182, trap_below = 16.7%, trap_beyond = 68.9% |
 
 ### `returns_leverage.py` {#repro:returns-leverage}
 
@@ -250,10 +250,10 @@ Backs [eq:levered-excess](#eq:levered-excess).
 
 | command | the article's figures |
 |---|---|
-| `python code/examples/returns_leverage.py --gamma-s 0.25` | equity_req = 3.04, equity_frac = 26.3%, table_equity = 1.55  2.04  3.04, table_equity_frac = 27.6%  26.9%  26.3%, L_ceiling = 3.81, dd_ceiling = 1.7%, p_liq_ceiling = 97.9%, net_ceiling = +5.68%, L_max = 1.1349, net_survivable = +1.69%, unlevered = +1.49%, neutral_spread = 1.79%, diff_levered = -0.119%, L_ladder = 1.0000  1.0861  1.1349  1.1557, net_ladder = +1.49%  +1.62%  +1.69%  +1.73%, diff_ladder = -0.104%  -0.113%  -0.119%  -0.121% |
-| `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.015` | net_ceiling = +1.59%, net_survivable = +1.53%, net_ladder = +1.49%  +1.52%  +1.53%  +1.53% |
+| `python code/examples/returns_leverage.py --gamma-s 0.25` | equity_req = 3.03, equity_frac = 26.3%, table_equity = 1.54  2.03  3.03, table_equity_frac = 27.6%  26.9%  26.3%, L_ceiling = 3.81, dd_ceiling = 1.7%, p_liq_ceiling = 97.9%, net_ceiling = +5.68%, L_max = 1.1349, net_survivable = +1.69%, unlevered = +1.49%, neutral_spread = 1.79%, diff_levered = -0.119%, L_ladder = 1.0000  1.0861  1.1349  1.1557, net_ladder = +1.49%  +1.62%  +1.69%  +1.72%, diff_ladder = -0.105%  -0.114%  -0.119%  -0.121% |
+| `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.015` | net_ceiling = +1.58%, net_survivable = +1.52%, net_ladder = +1.49%  +1.52%  +1.52%  +1.53% |
 | `python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.03` | net_ceiling = -2.51%, net_survivable = +1.36%, net_ladder = +1.49%  +1.43%  +1.36%  +1.33% |
-| `python code/examples/returns_leverage.py --gamma-s 0.25 --p-star 0.10` | table_equity = 0.85  1.09  1.57, table_equity_frac = 30.1%  28.8%  27.5% |
+| `python code/examples/returns_leverage.py --gamma-s 0.25 --p-star 0.10` | table_equity = 0.85  1.08  1.56, table_equity_frac = 30.2%  28.9%  27.6% |
 
 ## Stability: Two Ways to Be Buried, and a Third if You Borrow
 

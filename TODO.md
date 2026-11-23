@@ -42,7 +42,7 @@ them they are still the bulk of what is left besides those stubs and the assembl
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, which moves two-decimal figures and no conclusion; II-34 and II-35, dollars per period and the account's cash, in progress; II-38 and II-39, the follow-ups to §09's published betas, now steps of II-40's plan; II-40, changing volatility and jumps in the model, now carried by `model.py` with the sections to revise (`drafts/2026-11-21-moving-volatility-plan.md`, `drafts/2026-11-22-model-moving-volatility-plan.md`); II-41, the index's removals from S&P's own record, for II-40's step 2. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, decided and in the code, with §08's and §09's two-decimal figures to rewrite; II-34 and II-35, dollars per period and the account's cash, in progress; II-38 and II-39, the follow-ups to §09's published betas, now steps of II-40's plan; II-40, changing volatility and jumps in the model, now carried by `model.py` with the sections to revise (`drafts/2026-11-21-moving-volatility-plan.md`, `drafts/2026-11-22-model-moving-volatility-plan.md`); II-41, the index's removals from S&P's own record, for II-40's step 2. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -532,6 +532,21 @@ II-34, exits measured at the exit price; `hidden_terms` went with that conventio
 grid near zero, or the walk started from the closed-form moments) or Richardson-extrapolate the
 finite-horizon figures as `stationary()` already does; then every two-decimal Part II figure off the
 near grid moves, with its checks, the appendix and the figures.
+
+**Decided 2026-11-24: Richardson.** `model.occupation()` runs h = 0.01 and 0.005 and extrapolates
+when no h is given, and the census functionals built on it (`depth_census`, `split_beta`,
+`book_delta`, `book_delta_life`) extrapolate as figures, the two grids' cells not being the same
+cells. E[x₀] reads 1.548% against the closed form's 1.548%; the lots held at thirty years 15.32,
+and their window average 11.33, where `mc_holding.py --window`'s grid-free walks read 15.322 ±
+0.005 and 11.324 ± 0.003 (and the single grid sits 20 standard errors high). The cost is about
+three times the single grid's; `verify_examples.py` went from 4.7 to 13 minutes. The 133 case
+literals, the appendix and four figures moved in the same commit; **what is left is the prose**
+— §08's "15.4 against 11.4" and residence 1.10, §09's capital table, income and ledger lines
+(11.40 → 11.33, 18.23 → 18.10, 0.5128 → 0.5097, the hidden terms' net −0.0305 → −0.0347 and
+their balance 35.9 → 36.8 years), and §11's account, sized at the thirty-year capital 11.59 that
+now reads 11.52. True excess moves by a fifth of a basis point at most. Past sixty years the near grid's
+x_max = 4 lets lots escape (0.2 lot by 150), which the single grid's upward bias had hidden; no
+quoted figure reads it there.
 
 **II-34. The economic ledger measures exit flows against the price at exit, and reads about 0.2
 points high.** (Opened 2026-11-06, from the §09 review of "The benchmark that matters".) The ledger

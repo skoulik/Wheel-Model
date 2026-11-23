@@ -287,6 +287,9 @@ FIGURES = [Figure("survival-curve", _draw_survival)]
 # Economic figures are in dollars per period (TODO II-34).  Where a comment
 # quotes section 09 or 11, that prose is being rewritten to these values
 # (drafts/2026-11-06-dollars-per-period-plan.md) and may still show the old.
+# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
+# which moved Part II's two-decimal figures.  Where a comment quotes a section,
+# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         "tax": (0.0323, 0.0005),        # section 07: "0.5826 x 0.20 x sqrt(1/13)"
@@ -302,18 +305,18 @@ CASES = [
         "entry_share": (0.295, 0.01),   # "29% entry, 71% grid"
         "q_Ex0": (0.403, 0.005),        # "a 40% chance of leaving on its first call"
         "naive": (2.48, 0.02),          # "would have said ten weeks" (x4 wk)
-        "columns": ([0.60, 0.46, 0.38, 0.27, 0.18, 0.12, 0.07, 0.04, 0.02], 0.005),
+        "columns": ([0.59, 0.45, 0.38, 0.27, 0.18, 0.12, 0.07, 0.04, 0.02], 0.005),
         # "0.40 on the first call, 0.23 on the second, 0.07 by the eighth"
-        "haz": ([0.405, 0.234, 0.068], 0.002),
+        "haz": ([0.407, 0.234, 0.068], 0.002),
         # "160 basis points ... about a hundredth of one ... below a millionth"
-        "cc_age": ([159.593, 0.0105, 0.0000], 0.002),
+        "cc_age": ([160.836, 0.0107, 0.0000], 0.002),
         # "0.666 steps, measured" -- against 0.667 inferred through Wald
-        "over_measured": (0.666, 0.005),
+        "over_measured": (0.667, 0.005),
         # "the mean holding time is 0.30 years against the true 2.10"
         "closed_mean": (0.30, 0.01),
         # "eight weeks either way" -- 2 call periods, as the true median
         "closed_median": (2, 0),
-        "depth_cols": ([0.05, 0.08, 0.09, 0.14, 0.21, 0.31, 0.48, 0.66, 0.90], 0.005),
+        "depth_cols": ([0.05, 0.08, 0.09, 0.14, 0.21, 0.30, 0.48, 0.66, 0.90], 0.005),
         "median": (2, 0),               # "a median of eight weeks"
         "EW": (2.10, 0.02),             # eq:holding
         "EW_siegmund": (1.9, 0.05),     # eq:holding-siegmund, "9% below"
@@ -321,8 +324,8 @@ CASES = [
         # sits between them, which is what section 07 quotes instead of "9%".
         "EW_far": (1.93, 0.02),
         "EW_near": (2.22, 0.02),
-        "prem": (0.0372, 0.001),        # section 09: "a lot collects 3.72% ... in call premiums"
-        "exitcost": (0.0390, 0.001),    # section 09: "and surrenders 3.90% in upside at call-away"
+        "prem": (0.0373, 0.001),        # section 09: "a lot collects 3.72% ... in call premiums"
+        "exitcost": (0.0391, 0.001),    # section 09: "and surrenders 3.90% in upside at call-away"
         # "0.01% more in interest on them"; "costs a lot 0.16%".  By hand:
         # 0.03724*(e^(0.05/13) - 1) = 0.000144, and 0.03724 + 0.000144 - 0.03900.
         "prem_float": (0.000144, 0.000005),

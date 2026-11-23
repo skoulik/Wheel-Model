@@ -108,8 +108,10 @@ def _draw_approach(fig, ax, cfg=None, measure="P", ctx=None, **kw):
 
     Off the extrapolated walk, not the near grid the 5/10/30-year cases use:
     a curve that has to reach the equilibrium and cross 90% of it where
-    `approach90` says needs the tail the near grid truncates (it runs 0.1 lot
-    high at thirty years and 0.1 low at 150).
+    `approach90` says needs the tail the near grid truncates: the two agree to
+    0.01 lot at thirty years, but by 150 the near grid's x_max = 4 has let 0.2
+    lot escape (TODO II-32; its single h = 0.01 grid, before, ran 0.1 high at
+    thirty, and its O(h^2) bias hid the escape at 150).
     """
     import figures
     cfg = cfg if cfg is not None else model.Config()
@@ -141,6 +143,9 @@ def _draw_approach(fig, ax, cfg=None, measure="P", ctx=None, **kw):
 FIGURES = [Figure("inventory-approach", _draw_approach)]
 
 
+# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
+# which moved Part II's two-decimal figures.  Where a comment quotes a section,
+# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         "lam": (10.4, 0.05),            # eq:lambda: "0.20 / (1/52) = 10.4 lots per year"
@@ -148,22 +153,22 @@ CASES = [
         "EI_eq": (21.8, 0.1),           # eq:little: "10.4 × 2.10 = 21.8 lots"
         # fig:inventory-approach's two curves read at 5/10/30 years; the prose
         # quotes "15.4 lots against an average of 11.4" at thirty.
-        "at_h": ([7.95, 10.57, 15.42], 0.05),      # eq:little-finite, upper curve
+        "at_h": ([7.90, 10.51, 15.32], 0.05),      # eq:little-finite, upper curve
         # "counting week by week gives the same total at every call date"
-        "at_h_counted": ([7.95, 10.57, 15.42], 0.005),
-        "horizons": ([5.41, 7.39, 11.40], 0.05),   # the [0,H] average, lower curve
+        "at_h_counted": ([7.90, 10.51, 15.32], 0.005),
+        "horizons": ([5.38, 7.35, 11.33], 0.05),   # the [0,H] average, lower curve
         # "0.52 years over a five-year window, 0.71 over ten, and 1.10 over
         # thirty, against a full life of 2.10" -- the window reading of the law
-        "residence": ([0.52, 0.71, 1.10], 0.005),
+        "residence": ([0.52, 0.71, 1.09], 0.005),
         "approach90": (90.0, 3.0),      # "Reaching 90% of the equilibrium level takes 90 years"
         # "departures reach 8.5 lots a year by the end of the first year, 9.7
         # by the fifth and 10.25 by the thirtieth"
-        "departures": ([8.54, 9.72, 10.25], 0.01),
+        "departures": ([8.55, 9.72, 10.25], 0.01),
         # "within 1.4% of arrivals ... one lot in seventy"
-        "still_held": (0.0144, 0.0003),
+        "still_held": (0.0143, 0.0003),
         # "they carry the three tenths of the equilibrium the operator does
         # not yet hold"
-        "late_share": (0.29, 0.01),
+        "late_share": (0.30, 0.01),
     }, note="Standard regime"),
 ]
 

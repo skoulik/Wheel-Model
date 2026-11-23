@@ -98,6 +98,9 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
 # quotes section 09 or 11, that prose is being rewritten to these values
 # (drafts/2026-11-13-account-cash-and-window-edge-plan.md) and still shows the
 # old.
+# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
+# which moved Part II's two-decimal figures.  Where a comment quotes a section,
+# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         "wheel": (0.0149, 0.0001),          # section 09: "+1.49%"; the table's 30 y
@@ -110,12 +113,12 @@ CASES = [
         # delta-scaled stock 0.375% of withholding on the 5.2 points of capital
         # between shares and delta, by hand: 0.00375*(0.9831 - 0.9309).
         "exposure_sold": (0.00105, 0.00002),
-        "delta_frac": (0.931, 0.0005),      # "leaves 93.1%"
+        "delta_frac": (0.930, 0.0005),      # "leaves 93.1%"
         "calls_sold": (0.069, 0.0005),      # "less 6.9"
-        "put_adds": (0.0168, 0.0005),       # "plus 1.7"
+        "put_adds": (0.0169, 0.0005),       # "plus 1.7"
         "buy_hold_delta": (0.0151, 0.0001), # "the stock, scaled to the book's delta  +1.51%"
         "difference_delta": (-0.00020, 0.00002),  # "the wheel, minus it  -0.020%"; "2.0"
-        "delta_sale_frac": (0.9324, 0.0001),     # the shortcut: "93.2%"
+        "delta_sale_frac": (0.9320, 0.0001),     # the shortcut: "93.2%"
         "shortcut": (0.000025, 0.000005),        # "a quarter of one at thirty"
     }, note="Standard regime, 30y"),
     Case("--p-star 0.10", {
@@ -133,7 +136,7 @@ CASES = [
         "difference": (0.0012, 0.0001),     # "vs buy-and-hold  +0.23%"
     }, note="sigma_IV = 20.5%"),
     Case("--iv-spread 0.010", {
-        "wheel": (0.0194, 0.0001),          # "21.0%  +2.05%"
+        "wheel": (0.0195, 0.0001),          # "21.0%  +2.05%"
         "difference": (0.0035, 0.0001),     # "+0.46%"
     }, note="sigma_IV = 21.0%"),
     # 1.5 points is the top of the single-name range section 09 now quotes
@@ -145,7 +148,7 @@ CASES = [
     }, note="sigma_IV = 21.5%, the top of the single-name range"),
     Case("--iv-spread 0.020", {
         "wheel": (0.0241, 0.0001),          # "22.0%  +2.52%"
-        "difference": (0.0081, 0.0001),     # "+0.92%"
+        "difference": (0.0082, 0.0001),     # "+0.92%"
     }, note="sigma_IV = 22.0%, two vol points dear"),
 
     # The cadence sweep of section 09: thirteen basis points across a
@@ -164,7 +167,7 @@ CASES = [
         "difference": (-0.0022, 0.0001),    # "-0.01%"
     }, note="monthly cadence, n = 4"),
     Case("--tau-p 0.25", {
-        "wheel": (0.0116, 0.0001),          # "quarterly  +1.47%"
+        "wheel": (0.0115, 0.0001),          # "quarterly  +1.47%"
         "difference": (-0.0038, 0.0001),    # "-0.07%"
     }, note="quarterly cadence, n = 4"),
     # The residual tilt the section admits to: at a FLAT premium the model
@@ -206,25 +209,25 @@ CASES = [
         "buy_hold_adj": (0.0157, 0.0001),   # "+1.57%"
         "difference": (-0.00187, 0.00002),  # "-0.19%"; "a fifth of a point at five"
         "exposure_sold": (0.00187, 0.00002),
-        "delta_frac": (0.872, 0.0005),      # "leaving 87.2%"
-        "calls_sold": (0.128, 0.0005),      # "the calls take 12.8 points"
-        "put_adds": (0.0347, 0.0005),       # "the put adds 3.5 back"
+        "delta_frac": (0.871, 0.0005),      # "leaving 87.2%"
+        "calls_sold": (0.129, 0.0005),      # "the calls take 12.8 points"
+        "put_adds": (0.0348, 0.0005),       # "the put adds 3.5 back"
         "buy_hold_delta": (0.0142, 0.0001), # "+1.42%"
         "difference_delta": (-0.00035, 0.00002),  # "-0.035%"; "3.5 basis points"
-        "delta_sale_frac": (0.8747, 0.0001),     # the shortcut: "87.5%"
+        "delta_sale_frac": (0.8740, 0.0001),     # the shortcut: "87.5%"
         "shortcut": (0.000045, 0.000005),        # "under half a basis point wider"
     }, note="Standard, five years"),
     Case("--horizon 10", {
         "wheel": (0.0143, 0.0001),          # the 10 y column
         "buy_hold_adj": (0.0158, 0.0001),   # "+1.58%"
         "difference": (-0.00149, 0.00002),  # "-0.15%"
-        "delta_frac": (0.900, 0.0005),
+        "delta_frac": (0.899, 0.0005),
         "buy_hold_delta": (0.0146, 0.0001), # "+1.46%"
         "difference_delta": (-0.00028, 0.00002),  # "-0.028%"
         "shortcut": (0.000036, 0.000005),
     }, note="Standard, ten years"),
     Case("--p-star 0.10 --horizon 5", {
-        "wheel": (0.0133, 0.0001),
+        "wheel": (0.0132, 0.0001),
         "difference": (-0.00187, 0.00002),  # "Conservative, as modelled  5y"
         "difference_delta": (-0.00035, 0.00002),
     }, note="Conservative, five years"),

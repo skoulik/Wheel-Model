@@ -102,11 +102,17 @@ def _components(cfg, measure, horizon):
     strike to a shoulder before it thins, and where it peaks is the depth the
     prose calls "a little more than one call's move deeper".
     """
-    xs, first, later = model.census_weights(cfg, measure, horizon=horizon,
-                                            split=True)
-    total = sum(first) + sum(later)
+    def first_share(h):
+        _, first, later = model.census_weights(cfg, measure, horizon=horizon, h=h,
+                                               split=True)
+        return sum(first) / (sum(first) + sum(later))
+
+    # The share on the near grid's pair (TODO II-32); the peak is a place on the
+    # grid, read on its coarse step.
+    xs, _, later = model.census_weights(cfg, measure, horizon=horizon, h=model.NEAR_H,
+                                        split=True)
     peak = max(range(len(later)), key=lambda i: later[i])
-    return {"first_share": sum(first) / total, "later_peak": xs[peak]}
+    return {"first_share": model.near(first_share), "later_peak": xs[peak]}
 
 
 def _per_point(xs, weights):
@@ -169,6 +175,9 @@ def _draw_census(fig, ax, cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
 FIGURES = [Figure("depth-census", _draw_census)]
 
 
+# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
+# which moved Part II's two-decimal figures.  Where a comment quotes a section,
+# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         # fig:depth-census, binned: the shares are the figure's density summed
@@ -176,22 +185,22 @@ CASES = [
         # whole-percent tolerance of 1.2 points was wider than the grid
         # artifact it should have caught (see census_weights).  The prose
         # quotes the tail bin and two of the q values.
-        "shares": ([0.151, 0.094, 0.086, 0.077, 0.069, 0.061,
+        "shares": ([0.151, 0.095, 0.086, 0.077, 0.069, 0.061,
                     0.055, 0.049, 0.043, 0.038, 0.276], 0.0006),
         "q_mid": ([0.339, 0.094, 0.013, 0.001, 0.000, 0.000,
                    0.000, 0.000, 0.000, 0.000, 0.000], 0.0005),  # "0.094 at 7.5 points, 0.013 at 12.5"
-        "mean_x": (0.377, 0.005),       # "mean depth of standing inventory is 38 log-points"
+        "mean_x": (0.376, 0.005),       # "mean depth of standing inventory is 38 log-points"
         "mean_q": (0.067, 0.0005),      # "0.067 per four-week period"
         "deep30": (0.46, 0.005),        # "Forty-six percent ... more than 30 log-points below"
         "deep50": (0.28, 0.005),        # "28% ... more than 50 log-points below the strike"
-        "deep10": (0.245, 0.005),       # "only a quarter of all held time is that shallow"
+        "deep10": (0.246, 0.005),       # "only a quarter of all held time is that shallow"
         # the two parts drawn dashed under the thirty-year curve
         "first_share": (0.070, 0.005),
         "later_peak": (0.07, 0.01),     # "a little more than one call's move deeper" (0.055)
     }, note="Standard regime, thirty-year horizon"),
     Case("--stationary", {
         "mean_x": (0.78, 0.005),        # "mean depth 78 log-points"
-        "mean_q": (0.036, 0.0005),      # "inventory-weighted q of 0.036"
+        "mean_q": (0.037, 0.0005),      # "inventory-weighted q of 0.036"
         "deep50": (0.52, 0.005),        # "52% ... more than 50 log-points under water"
     }, note="the stationary limit the system heads toward"),
 ]

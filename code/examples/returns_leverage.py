@@ -140,11 +140,14 @@ def compute(cfg=None, measure="P", horizon=30.0, eps=0.10, ctx=None, **kw):
 # r, the window's edge closed).  Where a comment quotes a section, that prose
 # is being rewritten to these values (drafts/2026-11-13-account-cash-and-
 # window-edge-plan.md) and still shows the old.
+# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
+# which moved Part II's two-decimal figures.  Where a comment quotes a section,
+# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("--gamma-s 0.25", {
-        "equity_req": (3.04, 0.02),         # the capital table's new row, 30y
+        "equity_req": (3.03, 0.02),         # the capital table's new row, 30y
         "equity_frac": (0.263, 0.005),      # "about a quarter of what is committed"
-        "table_equity": ([1.55, 2.04, 3.04], 0.005),  # the two-ledger table, Standard
+        "table_equity": ([1.54, 2.03, 3.03], 0.005),  # the two-ledger table, Standard
         "table_equity_frac": ([None, None, 0.26], 0.005),  # "26% of Standard's at thirty years"
         "L_ceiling": (3.81, 0.02),          # section 04's "close to four times"
         "dd_ceiling": (0.017, 0.001),       # "1.7% below today's price"
@@ -156,13 +159,13 @@ CASES = [
         "neutral_spread": (0.0179, 0.0003), # the crossover = the excess itself
         "diff_levered": (-0.001200, 0.00002),  # the capital-share gap, levered
         "L_ladder": ([1.0000, 1.0861, 1.1349, 1.1557], 0.0005),
-        "net_ladder": ([0.0149, 0.0162, 0.0169, 0.0173], 0.0003),
-        "diff_ladder": ([-0.001045, -0.001134, -0.001185, -0.001207], 0.00002),
+        "net_ladder": ([0.0149, 0.0162, 0.0169, 0.0172], 0.0003),
+        "diff_ladder": ([-0.001051, -0.001141, -0.001193, -0.001215], 0.00002),
     }, note="portfolio margin, financing at r: leverage at its most flattering"),
     Case("--gamma-s 0.25 --fin-spread 0.015", {
-        "net_ceiling": (0.0159, 0.0005),    # 3.8x the exposure, +0.29pp of return
-        "net_survivable": (0.0153, 0.0003), # "+1.62% at 1.5%"
-        "net_ladder": ([0.0149, 0.0152, 0.0153, 0.0153], 0.0003),
+        "net_ceiling": (0.0158, 0.0005),    # 3.8x the exposure, +0.29pp of return
+        "net_survivable": (0.0152, 0.0003), # "+1.62% at 1.5%"
+        "net_ladder": ([0.0149, 0.0152, 0.0152, 0.0153], 0.0003),
     }, note="the keenest retail financing: the whole ladder inside 2bp"),
     Case("--gamma-s 0.25 --fin-spread 0.03", {
         "net_ceiling": (-0.0251, 0.0005),   # "-2.31%": past the crossover
@@ -170,7 +173,7 @@ CASES = [
         "net_ladder": ([0.0149, 0.0143, 0.0136, 0.0133], 0.0003),
     }, note="a 3% spread: every levered row below the unlevered one"),
     Case("--gamma-s 0.25 --p-star 0.10", {
-        "table_equity": ([0.85, 1.09, 1.57], 0.005),  # the two-ledger table, Conservative
+        "table_equity": ([0.85, 1.08, 1.56], 0.005),  # the two-ledger table, Conservative
         # "up to 30% of Conservative's at five": the table's largest share,
         # the same put margin beside the smallest book.
         "table_equity_frac": ([0.30, None, None], 0.005),

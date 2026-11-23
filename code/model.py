@@ -35,11 +35,14 @@ defaults -- gamma_s = 1, A = inf -- which is the unconstrained operator every
 figure in Parts I and II reports.
 
 Numerics: finite-horizon quantities come from occupation() on a near grid
-(default h = 0.01, x_max = 4), whose resolution is set by the per-period
-step sigma*sqrt(tau_c); the stationary ones come from stationary(), which
-Richardson-extrapolates two grids because a single one biases E[T] upward
-by O(h^2) accumulated over the whole tail.  `code/mc_holding.py` is the
-grid-free check on both.
+(x_max = 4), Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32): a
+single grid starts every lot on cells as wide as its typical entry depth and
+reads E[x0] 1.58% where the closed form says 1.55%.  The stationary ones come
+from stationary(), which extrapolates two grids for the same reason, a
+single one biasing E[T] upward by O(h^2) accumulated over the whole tail.
+The census's functionals -- its shares, the betas, the book delta -- are
+extrapolated as figures, the two grids' cells not being the same cells.
+`code/mc_holding.py` is the grid-free check on both.
 
 Stdlib only -- with one optional accelerator.  The whole runtime of this
 project is DepthWalk.step(), a convolution of a 400-cell density with a
@@ -762,7 +765,50 @@ class DepthWalk:
         return _np.array(w) if _np is not None else w
 
 
-def occupation(C, measure, h=0.01, x_max=None, j_max=None, eps=1e-9,
+NEAR_H = 0.01                           # the near grid's coarse step; its fine one is half
+
+
+def _rich(a, b):
+    """Richardson's (4b - a)/3, b on the grid of half a's step, through the shapes
+    the near grid's results come in: numbers, sequences element by element (to the
+    shorter), dicts key by key; anything else is the fine grid's."""
+    if isinstance(a, bool) or isinstance(b, bool):
+        return b
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        return (4 * b - a) / 3
+    if isinstance(a, dict) and isinstance(b, dict):
+        return {k: (_rich(a[k], v) if k in a else v) for k, v in b.items()}
+    if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+        out = [_rich(x, y) for x, y in zip(a, b)]
+        return tuple(out) if isinstance(b, tuple) else out
+    if (_np is not None and isinstance(a, _np.ndarray) and isinstance(b, _np.ndarray)
+            and a.shape == b.shape):
+        return (4 * b - a) / 3
+    return b
+
+
+def _near_pair(fn, C, args, kw, key="h"):
+    """fn at the near grid, Richardson-extrapolated from NEAR_H and NEAR_H/2 when no
+    step is asked for (TODO II-32); at the step asked for when one is.  Under the
+    moving volatility the lattice's own grid, unextrapolated, as before."""
+    if kw.get(key) is not None:
+        return fn(C, *args, **kw)
+    if C.vol != "constant":
+        return fn(C, *args, **dict(kw, **{key: NEAR_H}))
+    coarse = fn(C, *args, **dict(kw, **{key: NEAR_H}))
+    fine = fn(C, *args, **dict(kw, **{key: NEAR_H / 2}))
+    return _rich(coarse, fine)
+
+
+def near(f):
+    """f(h), a figure read off the raw census at grid step h, on the near grid:
+    Richardson-extrapolated from NEAR_H and NEAR_H/2 (TODO II-32), the two grids'
+    cells not being the same cells.  For the example scripts that integrate
+    census_weights themselves; a location on the grid is not extrapolated."""
+    return _rich(f(NEAR_H), f(NEAR_H / 2))
+
+
+def occupation(C, measure, h=None, x_max=None, j_max=None, eps=1e-9,
                min_steps=40):
     """Per-arrival functionals of the killed walk, summed over its life.
 
@@ -771,11 +817,30 @@ def occupation(C, measure, h=0.01, x_max=None, j_max=None, eps=1e-9,
     indexed by j = 0, 1, ... where period j+1 of the lot's life is spent at
     depth x_j; S_0 = 1 and sum_j S_j = E[J].
 
+    With h unset, the near grid: the walk at h = 0.01 and at 0.005, every
+    sequence and total Richardson-extrapolated (TODO II-32), as stationary()
+    does for its pair; with h set, that one grid.
+
     The defaults are x_max = 4 and 8,000 periods.  Under the moving volatility
     (C.vol) the walk is the lattice's, on the grid the lattice holds for h, to its
     own depth, and VOL_NEAR_PERIODS long -- past every finite horizon the article
     quotes -- unless j_max says otherwise; stationary() runs it long.
     """
+    if h is None:
+        if C.vol != "constant":
+            h = NEAR_H
+        else:
+            kw = dict(x_max=x_max, j_max=j_max, eps=eps, min_steps=min_steps)
+            coarse = occupation(C, measure, h=NEAR_H, **kw)
+            fine = occupation(C, measure, h=NEAR_H / 2, **kw)
+            out = _rich(coarse, fine)
+            j = min(len(coarse["surv"]), len(fine["surv"]))
+            out["steps"] = j
+            out["ratio"] = fine["ratio"]
+            out["q(x0)"] = 1 - out["surv"][1] if j > 1 else float("nan")
+            out["h"] = NEAR_H
+            out["method"] = f"richardson({NEAR_H:g}, {NEAR_H / 2:g})"
+            return out
     if C.vol != "constant":
         return _vol_walk(C, measure, h, x_max if x_max is not None else
                          _vol_grid_depth(h), j_max or VOL_NEAR_PERIODS, eps, min_steps)
@@ -1124,8 +1189,8 @@ def inventory_at(C, measure, occ, t):
 
     Deliberately distinct from economics(horizon=t)["I"], which is the time
     *average* of E[I(u)] over [0,t].  Both are wanted and they are far apart
-    while the system is still filling: at the running example they read 15.42
-    and 11.40 at thirty years.  The average is the one a return is measured
+    while the system is still filling: at the running example they read 15.32
+    and 11.33 at thirty years.  The average is the one a return is measured
     against, since capital committed across a window is what the window's
     return has to be divided by; this one is what the operator is holding
     when the horizon arrives.
@@ -1429,7 +1494,10 @@ def census_weights(C, measure, horizon=None, h=0.01, x_max=8.0,
     section 08's census once printed 5% / 11% / 7% / 9% for bins whose
     converged shares are 7.2 / 9.4 / 8.7 / 7.7, a zig-zag the density does not
     have.  At h = 0.01 every whole-percent cut is a cell boundary, and the
-    shares agree with h = 0.0025 to a tenth of a point.
+    shares agree with h = 0.0025 to a tenth of a point.  Its figures --
+    depth_census, split_beta, book_delta, book_delta_life -- extrapolate it
+    from 0.01 and 0.005 by default (TODO II-32), the cuts boundaries on both;
+    the raw census is one grid, at the step asked for.
 
     Under the moving volatility the census is the lattice walk's, summed over
     the volatility nodes and the earnings calendar, at a horizon it keeps
@@ -1467,7 +1535,7 @@ def census_weights(C, measure, horizon=None, h=0.01, x_max=8.0,
     return walk.xs, U
 
 
-def depth_census(C, measure, edges, horizon=None, h=0.01, x_max=8.0,
+def depth_census(C, measure, edges, horizon=None, h=None, x_max=8.0,
                  j_max=8000, eps=1e-9):
     """How standing inventory is distributed over depth ([eq:census]).
 
@@ -1476,6 +1544,9 @@ def depth_census(C, measure, edges, horizon=None, h=0.01, x_max=8.0,
     starting from an empty book sees averaged over [0, horizon]; without it,
     the stationary census.
     """
+    if h is None:                       # the near grid's pair, as figures (TODO II-32)
+        return _near_pair(depth_census, C, (measure, edges, horizon),
+                          dict(x_max=x_max, j_max=j_max, eps=eps))
     xs, U = census_weights(C, measure, horizon, h, x_max, j_max, eps)
     total = sum(U)
     bins = [0.0] * (len(edges) - 1)
@@ -1536,6 +1607,8 @@ def split_beta(C, measure, horizon=None, nz=2001, zmax=8.0, **census_kw):
     """
     if C.vol != "constant":
         return _vol_split_beta(C, horizon)
+    if census_kw.get("h") is None:     # the near grid's pair, as figures (TODO II-32)
+        return _near_pair(split_beta, C, (measure, horizon, nz, zmax), census_kw)
     m, s = C.world(measure)
     mu_r, sd_r = (m - s**2 / 2) * C.tau_c, s * sqrt(C.tau_c)
     xs, wts = census_weights(C, measure, horizon, **census_kw)
@@ -1591,6 +1664,8 @@ def book_delta(C, measure, shock, horizon=None, **census_kw):
     because its holder does collect the dividends.  The call leg's discount
     runs over tau_c rather than tau_p, so it is the larger of the two.
     """
+    if C.vol == "constant" and census_kw.get("h") is None:   # the pair (TODO II-32)
+        return _near_pair(book_delta, C, (measure, shock, horizon), census_kw)
     m, s = C.world(measure)
     xs, wts = census_weights(C, measure, horizon, **census_kw)
     total = sum(wts)
@@ -1685,6 +1760,8 @@ def book_delta_life(C, measure, horizon=None, **census_kw):
     """
     if C.vol != "constant":
         return _vol_book_delta_life(C, horizon, **census_kw)
+    if census_kw.get("h") is None:     # the near grid's pair, as figures (TODO II-32)
+        return _near_pair(book_delta_life, C, (measure, horizon), census_kw)
     xs, wts = census_weights(C, measure, horizon, **census_kw)
     total = sum(wts)
     inv = sum((wx / total) * (1.0 - life_delta(C, measure, x, C.tau_c))
@@ -3066,7 +3143,7 @@ def report(C, args):
               f"   acquisition loss {x30['acq_loss']:.4f}"
               f"   call-away loss {x30['call_away_loss']:.4f}")
         esc = occ["escaped"]
-        print(f"   [near grid h={occ['h']}, x_max={occ['x_max']}, "
+        print(f"   [near grid {occ.get('method', 'h=' + str(occ['h']))}, x_max={occ['x_max']}, "
               f"{occ['steps']} periods; mass escaping the grid: {esc:.2e}]")
 
         if not args.far:
@@ -3151,7 +3228,8 @@ def convergence_check(args):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--h", type=float, default=0.01)
+    ap.add_argument("--h", type=float, default=None,
+                    help="one near grid at this step (unset: the Richardson pair, II-32)")
     ap.add_argument("--x-max", type=float, default=4.0)
     ap.add_argument("--far-h", type=float, default=0.025)
     ap.add_argument("--far-x-max", type=float, default=50.0)
