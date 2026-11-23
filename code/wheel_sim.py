@@ -324,6 +324,7 @@ class Agg:
         self.window = []           # years observed after it
         self.liq_dyn = []          # years from saturation to liquidation, or inf
         self.liq_stat = []         # ...of the frozen barrier, on the same path
+        # Per surviving path, (log change, years) from first saturation: _span_rate.
         self.g_real = []           # realized log growth of the debit
         self.r_drift = []          # ...and of M/D, which is what the barrier sees
         self.e_drift = []          # ...and of equity measured in shares
@@ -392,6 +393,23 @@ class Agg:
 
 def regime_at(P, t):
     return P.regimes[max(0, bisect_right(P._starts, t + 1e-12) - 1)]
+
+
+def _event_clock(P):
+    """Ticks a year of the simulator's event clock: the smallest N with the cadence and
+    the put's tenor (so the call's, n of them) whole multiples of 1/N -- 52 at the running
+    example, 12 at a monthly rhythm.  Every event date is a sum of those, so on this clock
+    it is k/N for a whole k and one date is one float.  None when either is not a ratio of
+    small whole numbers, and the dates are then left as summed."""
+    from fractions import Fraction
+    from math import lcm
+    N = 1
+    for x in (P.cadence, P.tau_p):
+        f = Fraction(x).limit_denominator(100_000)
+        if abs(float(f) - x) > 1e-12:
+            return None
+        N = lcm(N, f.denominator)
+    return N
 
 
 def advance(S, t0, t1, P, rng):
@@ -527,8 +545,20 @@ def run_path(P, rng, agg, states=None):
     heap = []
     seq = 0
 
+    clock = _event_clock(P)
+
     def push(te, prio, data):
+        """Queue an event at its date on the simulator's clock (_event_clock): one date
+        reached by different sums -- a renewed call's t + tau_c against four additions of
+        the cadence -- is then one float, and same-date events go by priority.  On the
+        raw sums the two differed by about 6e-15 years: the put sale sorted before the
+        same date's call expiry on 9% of expiries, so the book was sampled, and a finite
+        account's capacity checked, with the expiring call still standing; and the drift
+        reached 1e-12 by the thirtieth year, past advance()'s threshold, inserting a draw
+        over a vanishing interval now and then (the moving-volatility plan, 3.)."""
         nonlocal seq
+        if clock:
+            te = round(te * clock) / clock
         heapq.heappush(heap, (te, prio, seq, data))
         seq += 1
 
@@ -810,6 +840,13 @@ def run_path(P, rng, agg, states=None):
                 agg.cap_n += 1
                 agg.cap_by_idx[idx] += cost_cap / S
                 agg.mvcap_by_idx[idx] += mv_cap
+                # Each call's delta is read in dollars per unit of the price the call was
+                # sold at, S/lot.s_sale times its delta in shares: the ledger books every
+                # option's flows per unit of its sale price (TODO II-34), so that is the
+                # exposure its excess is earned on, as model.life_delta's.  In shares at
+                # the price ruling the calls read 0.00166 of capital short at the running
+                # example, a paired residual of -0.33bp (the moving-volatility plan, 4.).
+                # The put is read at its sale, where the two agree.
                 if P.book_delta and fv:
                     # The same book, each option's delta through both channels, and
                     # through the price's alone.
@@ -818,8 +855,8 @@ def run_path(P, rng, agg, states=None):
                         ell = round((lot.t_exp - t) * VP.SESSIONS)
                         if ell > 0:
                             full, px = eff_delta(lot.strike, ell)
-                            book += 1.0 - full
-                            book_px += 1.0 - px
+                            book += 1.0 - full * S / lot.s_sale
+                            book_px += 1.0 - px * S / lot.s_sale
                         else:
                             book += 0.0 if S >= lot.strike else 1.0
                             book_px += 0.0 if S >= lot.strike else 1.0
@@ -830,8 +867,8 @@ def run_path(P, rng, agg, states=None):
                     agg.delta_sum += book
                     agg.delta_px_sum += book_px
                 elif P.book_delta:
-                    # Shares, each less its call's spot delta at the call's
-                    # remaining tenor, plus the short put just sold.
+                    # Shares, each less its call's delta at the call's remaining
+                    # tenor in the units above, plus the short put just sold.
                     book = 0.0
                     for lot in lots:
                         tau = lot.t_exp - t
@@ -839,7 +876,7 @@ def run_path(P, rng, agg, states=None):
                             d1 = ((log(S / lot.strike)
                                    + (P.r - P.delta + sig_iv**2 / 2) * tau)
                                   / (sig_iv * sqrt(tau)))
-                            book += 1.0 - exp(-P.delta * tau) * N(d1)
+                            book += 1.0 - exp(-P.delta * tau) * N(d1) * S / lot.s_sale
                         else:
                             book += 0.0 if S >= lot.strike else 1.0
                     d1p = ((log(1.0 / kf) + (P.r - P.delta + sig_iv**2 / 2) * P.tau_p)
@@ -984,19 +1021,25 @@ def run_path(P, rng, agg, states=None):
             # barrier by definition, so including it would measure the
             # liquidation rather than the policy -- these three describe the
             # regime an account operates in, not how it leaves.
+            #
+            # Each is kept as (log change, years) and read by _span_rate, the total
+            # change over the total years: a path first saturating in a run's last
+            # months has a span of weeks, and its own rate, ±10 a year, carried the
+            # unweighted mean of rates from one seed to the next (-1.8% to +0.5% for
+            # ln(M/D), each quoting ±0.1; the moving-volatility plan, 5.).
             if dead:
                 pass
             elif d_sat > 0.0 and d_last > 0.0 and t_end > t_sat:
-                agg.g_real.append(log(d_last / d_sat) / (t_end - t_sat))
+                agg.g_real.append((log(d_last / d_sat), t_end - t_sat))
                 if m_sat > 0.0 and m_last > 0.0:
                     agg.r_drift.append(
-                        log((d_sat / m_sat) / (d_last / m_last)) / (t_end - t_sat))
+                        (log((d_sat / m_sat) / (d_last / m_last)), t_end - t_sat))
             # Equity measured in shares, which is the unit model.py's A is in.
             # Its drift says whether the account this run describes is the
             # stationary one the frontier prices, or one sliding away from it.
             if not dead and eq_sat > 0.0 and eq_last > 0.0 and t_end > t_sat:
-                agg.e_drift.append(log((eq_last / s_last) / (eq_sat / s_sat))
-                                   / (t_end - t_sat))
+                agg.e_drift.append((log((eq_last / s_last) / (eq_sat / s_sat)),
+                                    t_end - t_sat))
 
 
 def simulate(P, seed=None, paths=None):
@@ -1293,6 +1336,22 @@ def _mean_se(xs):
     return m, sqrt(sum((x - m) ** 2 for x in xs) / (n - 1) / n)
 
 
+def _span_rate(rows):
+    """A rate over paths of unequal span: total log change over total years, with the
+    ratio estimator's standard error.  `rows` are (log change, years) per path.  Paths
+    count in proportion to the time they cover, so one that saturates in a run's last
+    weeks counts for weeks, not as one path in a thousand at ten times the rate."""
+    n = len(rows)
+    if n == 0:
+        return float("nan"), float("nan")
+    span = sum(dt for _, dt in rows)
+    rate = sum(lr for lr, _ in rows) / span
+    if n < 2:
+        return rate, float("nan")
+    resid = sum((lr - rate * dt) ** 2 for lr, dt in rows)
+    return rate, sqrt(resid * n / (n - 1)) / span
+
+
 def _time_to_mean_inventory(agg, cadence, target):
     """When the mean inventory curve first reaches `target` lots.
 
@@ -1489,8 +1548,8 @@ def report_constrained(P, agg, ctl, ref, name):
               f" lot at a time")
         print(f"   sits below its own ceiling most of the time, and integer "
               f"lots keep it there.")
-    g_mean, g_se = _mean_se(agg.g_real)
-    r_mean, r_se = _mean_se(agg.r_drift)
+    g_mean, g_se = _span_rate(agg.g_real)
+    r_mean, r_se = _span_rate(agg.r_drift)
     print(f"   realized debit growth g = {g_mean:+.4f} +-{g_se:.4f}/yr"
           + (f"   (assumed {g_nom:+.4f})" if g_nom is not None else
              "   (this policy pins no g in advance)")
@@ -1499,7 +1558,7 @@ def report_constrained(P, agg, ctl, ref, name):
           f" {r_mean:+.4f} +-{r_se:.4f}/yr"
           + (f"   (closed form: nu - g = {crit['nu'] - g_nom:+.4f})"
              if g_nom is not None else ""))
-    e_mean, e_se = _mean_se(agg.e_drift)
+    e_mean, e_se = _span_rate(agg.e_drift)
     print(f"   realized drift of equity measured in SHARES: {e_mean:+.4f}"
           f" +-{e_se:.4f}/yr   (0 is the stationary account model.py prices)")
 
@@ -1659,10 +1718,10 @@ def constrained(args):
             run(A_30, L_max, draw, "", report=False)
         _, n, _, st, dy, _, _ = survival_rows(
             agg, model.criteria(as_config(P), "P")["nu"], P.sigma, (H_pol,))[0]
-        gm, gse = _mean_se(agg.g_real)
+        gm, gse = _span_rate(agg.g_real)
         gn = P.nominal_g()
         print(f"   {draw:>10} {('%+.4f' % gn) if gn is not None else '--':>9}"
-              f" {gm:>+10.4f} +-{gse:.4f} {_mean_se(agg.e_drift)[0]:>+10.4f}"
+              f" {gm:>+10.4f} +-{gse:.4f} {_span_rate(agg.e_drift)[0]:>+10.4f}"
               f" {1 - agg.ps_blocked / max(1, agg.ps_sales):>8.1%}"
               f" {agg.ps_inv / agg.ps_t if agg.ps_t else float('nan'):>7.2f}"
               f" {dy[0]:>14.4f} {st[0]:>7.4f}")

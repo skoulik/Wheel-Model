@@ -966,18 +966,68 @@ prints the figure §11 quotes, is Sergei's call.
 What follows, for Sergei's call — none of it changes a figure `model.py` gives:
 - **the simulator's tables' grid**, widened to the lattice's (h_fast to 1.4; h_slow from −0.5
   for the factors alone, to 2.3), twelve table sets, about an hour, and the magnitudes reruns;
-- **its event times tied**: snapped to the session grid, or kept as integer counts of a
-  session — the running example's rhythm is on it; a sweep's monthly cadence is not, so an
-  integer clock in the simulator's own base step is the general form;
+- **its event times tied** — *done 2026-11-23, below*;
 - **`eff_delta`'s direct estimate of the volatility channel** is biased by design, about 40%
   high, and is not a check of the lattice's: its excess-implied delta (the paired test) is.
   Either read each option at every session from tables at every tenor, or report the direct
   estimate as what it is;
-- **the simulator's sampled delta in the ledger's units**: each call's delta read times
-  S/S_sale, a factor in each of the two branches (`lot.s_sale` is already kept), which takes the
-  constant-σ paired residual from −0.47 to −0.14bp; what is left is the weekly rule's, and goes
-  only with sampling more often;
+- **the simulator's sampled delta in the ledger's units** — *done 2026-11-23, below*;
 - **decision 8's comparisons** count the lattice's own error from now on, which only the
   down-beta's needs;
-- **§11's prose**, on the recount of *5.*, paragraph by paragraph; and the scenario's drift
-  estimator, span-weighted.
+- **§11's prose**, on the recount below, paragraph by paragraph (drafted, uncommitted, for
+  review); and the scenario's drift estimator, span-weighted — *done 2026-11-23, below*.
+
+**Three of them done, 2026-11-23** (Sergei: "Please do 1 and 2 now. Then the draft of the
+prose" — 1 the simulator's own fixes, 2 the recount at four times the paths):
+- **The event clock** (`wheel_sim._event_clock`): every event date is put on the grid of the
+  run's own rhythm, k/N with N the smallest number making the cadence and the put's tenor
+  whole multiples of 1/N (52 at the running example, 12 at a monthly rhythm; left as summed
+  when either is not a ratio of small whole numbers). One date is then one float, and same-date
+  events go by priority. A lighter fix was tried first — the heap ordered by the date rounded
+  to 1e-9 years, each event keeping its own float — and does not preserve the draws either:
+  wherever the old order had inserted a draw over a vanishing interval, the reordered pair steps
+  back over a negative one and skips it. So the random stream moves on the 1–3% of paths that
+  carried such a draw whatever the fix, and the clock, which also takes the drift away, is the
+  one kept. Every scenario moves by its noise. Re-pinned in `verify_examples.py`: eight of
+  `--scenario stochvol`'s figures at their printed digits, each inside its standard error, the
+  largest E[I] with the leverage effect, 9.909 to 9.939 lots; none at the precision §09 quotes.
+  **§10's crash-and-flatline table moves beyond noise** at years 2 to 7 (lots held at year 2,
+  5.12 to 4.98; years 1, 8 and 10 unchanged; the paper loss unchanged at every row): at those
+  dates the old float order put every call expiry after the sale, so the sample counted the
+  day's call-aways as held. HEAD reproduces §10's printed table exactly; the new one is in the
+  draft, with the three figures its prose reads off it (5.1 to 5.0, 5.3 to 5.2, 6.0 to 5.9).
+- **The delta in the ledger's units**: each call's sampled delta times S/S_sale, in both
+  branches, as *4.* measured.
+- **The drifts span-weighted** (`wheel_sim._span_rate`): the realized g, the drift of ln(M/D)
+  and the equity's in shares, each total log change over total years, with the ratio
+  estimator's error.
+
+**§11 recounted at 16,000 paths** on the fixed simulator, the article's seed and seed 1:
+
+| | the article's seed | seed 1 |
+|---|---|---|
+| thinning: inventory / income / E[W] | +1.1 / +0.5 / +1.1% | +1.2 / +0.5 / +1.2% |
+| puts sold; T_sat simulated (analytic 18.5) | 0.707; 18.2y | 0.706; 18.4y |
+| realized leverage | 0.743 | 0.742 |
+| drift of ln(M/D), span-weighted | −1.47 ± 0.04% | −1.51 ± 0.03% |
+| liquidated from empty by 30 / 60 years | 0.97 / 11.0% | 0.89 / 11.0% |
+| after saturation, 30y: closed / frozen / operating | 0.99 / 0.89 ± 0.08 / 3.62 ± 0.16% | 0.99 / 1.06 / 3.70% |
+| ...operating over frozen; over closed | 4.1; 3.7 | 3.5; 3.7 |
+| testbed's worst frozen less closed | 0.3 errors | 0.7 |
+| census after saturation: deepest bin; mean depth | +4.1 points; +6.6% | +4.0; +6.8% |
+| cash: retain / service / stationary / income | 0.26 / 1.36 / 3.62 / 8.99% | 0.32 / 1.27 / 3.70 / 8.73% |
+| ...the same paths' frozen barrier | 1.09 / 0.84 / 0.89 / 0.88% | 0.85 / 0.86 / 1.06 / 0.88% |
+| ...income over retain; over service | 35; 6.6 | 27; 6.9 |
+| ...income: realized g; service: throughput | +1.46%; 31.7% | +1.41%; 31.8% |
+
+The draft quotes the article's seed, the ratios as the two seeds allow them: the ratchet "a
+factor of four" (3.7 against the closed form itself, on both), the cash policy "about thirty",
+income against service "nearly seven". Thinning now holds to about 1% on the fixed simulator,
+where the old one read +1.9 ± 0.4% on six seeds of 4,000 paths: 1.5 errors apart, so the old
+order's refusals may account for part of it, not shown to. Two of §11's
+sentences read against these figures for the review, not changed in the draft: the retained
+account's "g goes strongly negative", where the realized g of the paths still owing is +4.2%
+(the ones that repay drop out of it); and the withdraw-everything account's boundary "crossed
+nonetheless" at a realized g of 1.5% against ν = 2.5%, which by ν > g alone it is not — it is
+the account shrinking (equity −2.7% a year in shares) that keeps M from growing with the
+price, which the criterion as stated leaves out.

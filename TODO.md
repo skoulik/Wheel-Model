@@ -640,7 +640,8 @@ done ([`drafts/2026-11-22-model-moving-volatility-plan.md`](drafts/2026-11-22-mo
 simulator within both models' errors on everything Part II quotes, once three shortcomings of the
 simulator's own are allowed for: its fair-price tables' grid, its direct estimate of the book's
 delta, through both channels, and the order of its same-day events (the plan's *The three
-divergences, traced*, 2026-11-23; their fixes await Sergei's call).
+divergences, traced*, 2026-11-23). The event order and the delta's units are fixed (the same
+day); the grid and the volatility channel's sampling await Sergei's call.
 What remains: the section revisions with both models side by side — the plan's *Part II side by
 side* is their material, and II-32 is best settled first, since the constant column carries its
 near-grid entry — the estimation appendix (`96-volatility.md`), the formula fixes the plan's

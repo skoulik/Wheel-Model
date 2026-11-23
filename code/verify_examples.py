@@ -617,6 +617,10 @@ def main():
     # rise are section 09's reason the up-beta's direction turns on the
     # leverage effect; the rise of volatility to assignment, the exits at the
     # first call expiry and the exit rate by depth are why inventory falls.
+    # Re-pinned 2026-11-23, when the simulator's event clock took the float drift's
+    # stray draws out of its paths: eight figures moved, each inside its standard
+    # error (E[I] with the leverage effect the most, 9.909 to 9.939 lots), and none
+    # at the precision section 09 quotes.
     print("--- Section 09: this book's betas and holding time under changing volatility ---")
     import wheel_sim as W
     _eta = W.SV_SD_LOGVOL * sqrt(2 * log(2) / W.SV_HALF_LIFE)
@@ -634,14 +638,14 @@ def main():
     _d3, _d4 = 0.0006, 0.00006       # half a unit in the printed third / fourth place
     for _name, _row, _g, _want in (
             ("one volatility", _c, _sv_agg[0],
-             (None, None, None, None, 0.036, 0.080, 0.408, 11.312, 1.089,
+             (None, None, None, None, 0.036, 0.080, 0.408, 11.314, 1.089,
               (0.378, 0.039), (0.0161, 0.0010))),
             ("moving, no leverage effect", _n, _sv_agg[1],
-             (0.804, 0.976, 0.904, 0.784, 0.041, 0.099, 0.417, 10.685, 1.018,
-              (0.368, 0.037), (0.0199, 0.0050))),
+             (0.804, 0.976, 0.904, 0.784, 0.041, 0.099, 0.416, 10.684, 1.018,
+              (0.368, 0.037), (0.0198, 0.0051))),
             ("moving, leverage effect", _l, _sv_agg[2],
-             (0.884, 0.988, 0.949, 0.863, 0.034, 0.093, 0.473, 9.909, 0.974,
-              (0.307, 0.038), (0.0117, 0.0016)))):
+             (0.884, 0.988, 0.949, 0.863, 0.034, 0.093, 0.474, 9.939, 0.977,
+              (0.307, 0.038), (0.0116, 0.0017)))):
         up, dn, pl, upx, sd, near, first, inv, held, km, exits = _want
         for _key, _v in (("up-beta", up), ("down-beta", dn), ("plain beta", pl),
                          ("up-beta, no premium", upx)):
