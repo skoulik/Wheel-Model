@@ -28,7 +28,7 @@ the static barrier the section's earlier figures assume.
 
 Two limits to name.  The g = r_b figure the section quotes for the withdraw-
 everything policy is debit_growth() at draw = income, but the section's realized
-+1.3% and the four-policy liquidation column are SIMULATED (wheel_sim.py
++1.5% and the four-policy liquidation column are SIMULATED (wheel_sim.py
 --scenario constrained), not closed form, and are not this module's to
 reproduce.  And theta_eff (eq:theta-eff) has no standalone model.py function --
 it lives inside max_leverage/max_debit_growth via the displaced drift -- so it

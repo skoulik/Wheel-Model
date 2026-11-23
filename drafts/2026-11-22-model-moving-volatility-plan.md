@@ -974,8 +974,8 @@ What follows, for Sergei's call — none of it changes a figure `model.py` gives
 - **the simulator's sampled delta in the ledger's units** — *done 2026-11-23, below*;
 - **decision 8's comparisons** count the lattice's own error from now on, which only the
   down-beta's needs;
-- **§11's prose**, on the recount below, paragraph by paragraph (drafted, uncommitted, for
-  review); and the scenario's drift estimator, span-weighted — *done 2026-11-23, below*.
+- **§11's prose**, on the recount below; and the scenario's drift estimator, span-weighted —
+  *done 2026-11-23, below*.
 
 **Three of them done, 2026-11-23** (Sergei: "Please do 1 and 2 now. Then the draft of the
 prose" — 1 the simulator's own fixes, 2 the recount at four times the paths):
@@ -1031,3 +1031,9 @@ account's "g goes strongly negative", where the realized g of the paths still ow
 nonetheless" at a realized g of 1.5% against ν = 2.5%, which by ν > g alone it is not — it is
 the account shrinking (equity −2.7% a year in shares) that keeps M from growing with the
 price, which the criterion as stated leaves out.
+
+Committed 2026-11-23 as drafted (Sergei: "The draft changes are fine, please commit them"),
+with five restatements of the old figures the draft had missed, found by grepping each
+replaced figure: §09's stationary draw (2.12 to 2.05%), §10's realized g under withdrawal
+(+1.3 to about +1.5%), §11's own closing list ("twenty-five" to "about thirty"), and two
+comments in `model.py`. The two sentences above are left as they were, still open.

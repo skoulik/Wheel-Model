@@ -2363,15 +2363,15 @@ def vol_boundaries(C):
 # answer is that these formulas are RIGHT ABOUT WHAT THEY DESCRIBE and that
 # what they describe is not an operator.  Simulated with the book frozen as
 # the closed form freezes it, the barrier is reproduced at every horizon and
-# at probabilities from 1% to 47%, worst disagreement 1.6 standard errors.
+# at probabilities from 1% to 48%, worst disagreement 1.1 standard errors.
 # Simulated with
 # the account allowed to go on selling puts under a utilization rule, the
 # same paths give a different number, because a frozen book DE-LEVERS as the
 # price rises while an operator buys instead: the barrier follows the price up
 # and does not follow it down.  The size of that gap is set by the cash
 # policy, and so is its sign -- at the running example, thirty years past
-# saturation, P(liquidation) runs 0.35% under full retention against a frozen
-# 0.92%, 3.95% under a draw that holds the account's size fixed, and 8.6%
+# saturation, P(liquidation) runs 0.26% under full retention against a frozen
+# 1.09%, 3.6% under a draw that holds the account's size fixed, and 9.0%
 # under withdrawing the income.  Read these functions as the frozen case, and
 # the multiple as the operator's.
 # ----------------------------------------------------------------------
@@ -2496,12 +2496,12 @@ def debit_growth(C, debit, income):
     Where it breaks, measured (`wheel_sim.py --scenario constrained`): the
     debit is not a smooth exponential but a jump process, grown by assignments
     and repaid by call-aways, and the account's size is not fixed.  At the
-    running example the g = 0 policy realizes g = +0.8%/yr rather than 0 --
-    small -- while the g = r_b policy realizes +1.3% rather than +5.0%,
+    running example the g = 0 policy realizes g = +0.9%/yr rather than 0 --
+    small -- while the g = r_b policy realizes +1.5% rather than +5.0%,
     because withdrawing the income shrinks the account faster than the
     interest compounds it.  The RANKING survives and the arithmetic does not:
-    the policy that pins g = r_b is still the one that gets liquidated, eight
-    times as often as the one that pins g = 0.
+    the policy that pins g = r_b is still the one that gets liquidated, nearly
+    seven times as often as the one that pins g = 0.
     """
     if C.draw is None:
         return 0.0

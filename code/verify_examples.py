@@ -1111,9 +1111,9 @@ def main():
     # correctly, which is a different failure mode and the one an article has.
     #
     # What is deliberately absent: every simulated figure section 11 quotes --
-    # the ratchet's 3.95% against 1.09%, the four cash policies, the census
-    # depths, the thinning table, realized leverage of 0.745 -- comes from
-    # `wheel_sim.py --scenario constrained --paths 4000`, which costs minutes
+    # the ratchet's 3.62% against 0.89%, the four cash policies, the census
+    # depths, the thinning table, realized leverage of 0.743 -- comes from
+    # `wheel_sim.py --scenario constrained --paths 16000`, which costs minutes
     # rather than seconds.  The small seeded run below pins the same machinery
     # at a configuration this file can afford; the section's figures are the
     # scenario's and are cited as such in the text.
