@@ -793,8 +793,10 @@ the life delta that the exact test needs, it departs four ways, each reproduced 
 own draws by an adjoint pass that splits the pathwise derivative by the session whose shock it
 comes from (exact against `lattice.paths` to 3e-17), aggregated over the lattice's census:
 
-- **a left-endpoint rule.** The price's channel has a flat profile over an option's life
-  (E[Δ_t S_t] is the same at every t), so the rule costs it nothing; the volatility's falls to
+- **a left-endpoint rule.** The price's channel has a flat profile over an option's life by the
+  session of its shock (every session's shock moves the price at expiry alike), so in this split
+  the rule costs it nothing — though the samples the simulator takes, E[Δ_t S_t], are flat only
+  under the pricing measure, which costs it 0.0006 at constant σ (*4.*, below); the volatility's falls to
   zero at expiry with the vega — a call's from its four weeks' shocks 0.40, 0.32, 0.21 and
   0.07, at every depth — so the rule reads 1.17 of it, and a put's, all from one week, about 1.9;
 - **timing**: it reads ∂V/∂h at the state before the session whose shock moves h, so the
@@ -835,10 +837,8 @@ The event order touches more than this figure. At every sale it samples, the boo
 lots about to be called away (the sampled inventory reads 0.024 lots, 0.2%, above the
 time-average; fixed, they agree to 0.003), so the sampled capitals and the book's delta are a
 little off — the delta 0.0006–0.0008 low in either process, which moves the simulator's paired
-test by −0.15bp. At constant σ that test's residual then reads −0.56bp (−0.44bp before): the
-simulator's delta about 0.0028 high through the price's channel alone, which the left-endpoint
-rule does not explain in dollars and is **not traced here** — the shares' weighting of the price
-channel and the window's edges are the candidates. The run's draws are not otherwise disturbed, with one exception
+test by −0.15bp. At constant σ that test's residual then reads −0.56bp at seed 1 (−0.44bp
+before), traced in *4.* below. The run's draws are not otherwise disturbed, with one exception
 found on the way: the times' drift reaches 1e-12 years by the thirtieth year, crossing
 `advance`'s threshold for a step and inserting a spurious draw now and then (11 paths in 400),
 which reshuffles the rest of a batch's stream: noise, not bias. In a finite account the order
@@ -860,6 +860,109 @@ thirty and sixty years, 3.78% after saturation and 31.7% throughput where §11 q
 account has changed since (TODO II-35, 2026-11-13), so they are due a rerun with that section's
 revision, quoted to the precision the seeds allow.
 
+**4. The constant-σ paired residual: the simulator reads its delta in shares** (traced
+2026-11-23). The paired test sets the simulator's excess against the delta it samples, and that
+delta is not the one its ledger earns on. The ledger books each option's flows per unit of the
+price the option was sold at (II-34), so the exposure the excess is earned on is a call's dollar
+delta per unit of that price, Δ_t·S_t/S_sale, averaged over its life (`model.life_delta`); the
+simulator reads Δ_t in shares — per unit of the price ruling — at each weekly sale. The calls'
+delta per lot over a call's life, census-weighted at the running example (Standard, 30 years),
+in dollars carried to expiry, e^(r(τ−t))·E[Δ_t S_t]/S_sale, and in shares, E[Δ_t]:
+
+| | at sale | 1 week | 2 weeks | 3 weeks | life average |
+|---|---|---|---|---|---|
+| real world, dollars | 0.06906 | 0.06961 | 0.07018 | 0.07074 | 0.07018 |
+| real world, shares | 0.06879 | 0.06830 | 0.06780 | 0.06731 | — |
+| pricing measure, dollars | 0.06906 | 0.06906 | 0.06906 | 0.06906 | 0.06906 |
+| pricing measure, shares | 0.06879 | 0.06777 | 0.06676 | 0.06575 | — |
+
+In dollars the discounted delta is a martingale under the pricing measure, flat across the life,
+and rises 3.3% over it in the real world, by the gamma term (μ − r)·S²Γ: the weekly samples at
+the start of each week read it 0.00056 a lot short of the life average. In shares it *falls*
+instead, because Δ_t and S_t/S_sale move together — a covariance of order σ²t, which does not
+vanish under the pricing measure — 0.00157 a lot further. A short call's delta read low is the
+book's read high: through the census, +0.00059 for the rule and +0.00165 for the units, together
++0.00224 (Conservative +0.00230), a paired residual of −0.45bp (−0.46bp). In the simulator itself
+— a scratch copy with the event order fixed, each call's delta also read times S/S_sale, the same
+runs, eight seeds:
+
+| | observed | predicted |
+|---|---|---|
+| paired residual, delta in shares (the simulator's) | −0.467 ± 0.053bp | −0.448bp |
+| paired residual, delta in dollars per unit of the sale price | −0.135 ± 0.053bp | −0.117bp, the weekly rule |
+| shares less dollars, in the delta | 0.00166 (sd 0.00001) | 0.00165 |
+
+**All of it is accounted for**: −0.02 ± 0.05bp left. (The excess alone implies a delta 0.00055 ±
+0.00030 below `model.py`'s life delta, 1.8 errors: the simulator's census against the model's.)
+The magnitudes comparisons are each model less its own constant-σ reference, so the price
+channel's bias cancels from them as far as it is the same at fitted and constant σ — and there the
+price channel's own comparison agreed, within half an error in all six — while the lattice's
+price channel is exact by the real-world test. Only the simulator's absolute paired test carries
+it.
+
+**5. §11's simulated figures, recounted** (2026-11-23, II-35's step 7 for §11). §11's command
+(`wheel_sim.py --scenario constrained --paths 4000`, seed 20260722) run at each simulator commit
+since its figures were taken: `4e7ec57` (2026-07-29) reproduces every figure §11 quotes, to the
+last digit; II-34's simulator commit (`4e73b59`) moves none; II-34's model commit (`bb629e2`) and
+II-35's first (`96521d1`) move every run under the stationary draw, and only those — through
+the draw, r + excess − m from `model.py`'s stationary excess, now 2.05% of equity where §11
+quotes 2.12%, a figure no check covers. A draw a few basis points different reshuffles the
+account's blocking on the same price paths, so every figure of those runs moves by its noise:
+across those commits the operating book's liquidation after saturation read 3.95%, 3.19%,
+3.78%. II-35's second (`fce81fb`, premiums withdrawn at expiry rather than at sale) moves the
+service and income policies — on four seeds, before against after, +0.28 points liquidated
+under service (−0.12 to +0.68) and +0.35 under income, both within about 1.6 errors — and
+nothing after it moves any. So §11's figures are stale by II-34 and II-35, and the bug of
+*3.* is in all of them alike.
+
+The current simulator on six seeds (the article's, 1–5), the prudent account unless named:
+
+| | the article's seed | mean of six | sd across them |
+|---|---|---|---|
+| thinning: inventory, constrained against thinned | +1.9% | +1.9% | 0.9 |
+| thinning: income | +0.9% | +0.8% | 0.4 |
+| puts sold | 0.705 | 0.706 | 0.003 |
+| T_sat, simulated (analytic 18.5) | 18.9y | 18.4y | 0.4 |
+| realized leverage | 0.743 | 0.741 | 0.003 |
+| liquidated from empty by 30 / 60 years | 0.85% / 11.8% | 0.90% / 11.4% | 0.18 / 0.4 |
+| after saturation, 30y: frozen (closed form 0.98%) | 1.25% | 1.08% | 0.18 |
+| ...operating | 3.78% | 3.64% | 0.24 |
+| ...operating over frozen | 3.0 | 3.4 (pooled) | 2.6 to 4.3 |
+| ...frozen less closed, in its errors | +1.4 | +0.5 | −0.3 to +1.9 |
+| the testbed's worst frozen less closed, in errors | 0.4 | — | 0.1 to 1.9 |
+| census after saturation: deepest bin, points | +3.9 | +4.2 | 0.4 |
+| ...mean depth | +6.1% | +7.4% | 1.0 |
+| ...the whole run's mean depth | −0.9% | +0.4% | 1.0 |
+| cash: retain / service / stationary / income, liquidated | 0.35 / 1.79 / 3.78 / 8.60% | 0.43 / 1.44 / 3.64 / 8.92% | 0.17 / 0.27 / 0.24 / 0.46 |
+| ...the same paths' frozen barrier | 0.92 / 1.34 / 1.25 / 0.81% | 1.00 / 0.96 / 1.08 / 0.88% | 0.1–0.2 |
+| ...income over retain / over service | 24.6 / 4.8 | 20.7 / 6.2 (pooled) | 12.6–30.4 / 4.8–8.9 |
+| ...income: realized g | +1.44% | +1.38% | 0.03 |
+| ...service: throughput, equity's drift in shares | 31.7%, −2.2%/y | 31.8%, −2.2%/y | 0.4, 0.0 |
+
+**One of §11's statistics is not measured by its estimator.** The drift of ln(M/D) — the
+ratchet's "−1.55% ± 0.10 per year" — read −1.70, +0.52, +0.13, −1.54, −1.83 and −1.75% on the six
+seeds, each quoting an error near 0.1. The scenario averages each surviving path's rate,
+log(R_sat/R_end)/(T − t_sat), unweighted; a path that first saturates in the run's last months
+carries a rate of ±3 to ±17 a year on a span of 0.02–0.3 years, and two or three of them carry
+the mean (a scratch copy keeping each path's log ratio and span, four seeds). The median, −1.42
+to −1.56%, and the span-weighted rate, Σ log ratio / Σ span, −1.40 to −1.48%, are steady: the
+book drifts toward its barrier at about 1.4% a year, and §11's conclusion stands on a sound
+estimate of it. The realized g under the stationary and retain policies shares the estimator
+and its instability (0.011 to 0.037 on four seeds); under the income policy, the only g §11
+quotes, it is steady.
+
+What this does to §11's prose, for the paragraph review: the ratchet's factor of 3.6 is about
+three (3.0 at the article's seed, 3.4 pooled), in its table and in the closing warning;
+uniform thinning holds to about 2% on inventory and holding time, not under 1%, and its error
+is positive on all six seeds — the composition effect of *The census the constraint leaves
+behind*, seen in the counts; withdrawing the income is about six times worse than servicing it,
+not eight; the cash policy moves survival by a factor of about twenty, not twenty-five (§10's
+restatement too); the blocked book 6–7% deeper, not 5.3%; the realized leverage 0.74 (§09 and §11
+quote 0.745); the stationary draw 2.05%; the frozen barrier's agreement with the closed form
+1.4 errors at the article's seed, 0.5 pooled; the rest within a digit of what §11 quotes.
+Whether the scenario's drift estimator becomes the span-weighted one, so that the command
+prints the figure §11 quotes, is Sergei's call.
+
 What follows, for Sergei's call — none of it changes a figure `model.py` gives:
 - **the simulator's tables' grid**, widened to the lattice's (h_fast to 1.4; h_slow from −0.5
   for the factors alone, to 2.3), twelve table sets, about an hour, and the magnitudes reruns;
@@ -870,7 +973,11 @@ What follows, for Sergei's call — none of it changes a figure `model.py` gives
   high, and is not a check of the lattice's: its excess-implied delta (the paired test) is.
   Either read each option at every session from tables at every tenor, or report the direct
   estimate as what it is;
+- **the simulator's sampled delta in the ledger's units**: each call's delta read times
+  S/S_sale, a factor in each of the two branches (`lot.s_sale` is already kept), which takes the
+  constant-σ paired residual from −0.47 to −0.14bp; what is left is the weekly rule's, and goes
+  only with sampling more often;
 - **decision 8's comparisons** count the lattice's own error from now on, which only the
   down-beta's needs;
-- **open**: the simulator's paired test at constant σ (−0.56bp once the order is fixed), its
-  price channel's own sampling, not traced; and §11's simulated figures, due a rerun (II-35).
+- **§11's prose**, on the recount of *5.*, paragraph by paragraph; and the scenario's drift
+  estimator, span-weighted.
