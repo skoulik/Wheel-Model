@@ -34,7 +34,9 @@ remainder is almost entirely §03's.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-38 to II-41** —
+`python -m examples --appendix`, never edited by hand). A third, the volatility process's
+estimation (`sections/96-volatility.md`), was written on 2026-11-24 and awaits its review
+(II-42). Part I is written bar two stubs; **Part II is closed bar II-38 to II-42** —
 thirty-six of its items are in `DONE.md`, the latest II-32, II-34 and II-35 on 2026-11-24;
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
@@ -573,6 +575,33 @@ mid-year "Constituent Change Announced for the S&P 500 Dividend Aristocrats" not
 fetches); every deletion is then classified by reason, the rate restated as a count, and the
 dividend-cut leavers listed for the decision whether they join the calibration for their member
 years.
+
+**II-42. Review the volatility appendix, `sections/96-volatility.md`.** (Opened 2026-11-24,
+Sergei: "Please move the appendix into place and commit it as is and add a todo item to review
+it.") Written the same day on the outline he agreed ("The structure is sound"; every borrowed
+idea credited with its bibliography link; the data described by its fundamentals, the scripts
+as one current way to rebuild it), and committed **unreviewed**. To do:
+- **The review**, paragraph by paragraph, as §09's was.
+- **Where its figures come from**, for checking: the data's statistics, jumps and earnings law
+  re-run from the cache on 2026-11-24 (`python code/jumps.py`, `earnings.py`,
+  `earnmoves.py --recover --feedback`, from the repository root); the fit's parameters, errors
+  and distance from `data/aristocrats/volfit-final.json` and `volfit-final-se.json`; the jump
+  sizes in local sd at the median state from a scratch simulation of the pinned process
+  (median H 0.824, 5% 0.32, 95% 1.59); the model comparisons, identification, group fits, the
+  S&P fit, the weights' checks, the block lengths, the clustering table, the earnings term's
+  wheel run and the tables' accuracy from the records of those runs in
+  `drafts/2026-11-21-moving-volatility-plan.md`.
+- **A correction it makes to that plan**: the plan read the jump sizes a↑ = 1.77 and a↓ = 2.02
+  as local sd ("averaging two local sd"). They are in units of σ̄·e^(βH), and the fitted
+  model's typical H is 0.82, so a down jump averages 1.4 local sd beyond the day's ordinary
+  move at the median state.
+- **Before it is final**: pin its data-side figures in `verify_examples.py`, skipped without
+  `data/aristocrats/` as `bxm_real.py`'s are; decide which displays carry `{#eq:}` anchors,
+  each then needing an example script; time a fresh fetch for "Rebuilding the data"; decide
+  whether the standard errors are quoted at two-year blocks with the note that they move by up
+  to a fifth (as drafted) or at the larger one-year blocks; and whether the fair-prices
+  subsection's link to §09's eq:delta-return is acceptable in an appendix meant to stand alone
+  on §00's notation. Then §06's structure subsection, which cites it.
 
 ## Part III — Many assets
 
