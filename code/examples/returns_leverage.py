@@ -5,13 +5,17 @@
     python code/examples/returns_leverage.py --gamma-s 0.25 --fin-spread 0.03
 
 Backs eq:levered-excess in section 09.  Equity earns the strategy's excess on
-everything it carries and pays the financing spread on the borrowed part, so
+everything it carries and pays the financing spread on the borrowed part, which
+the account's own cash -- the put's collateral and the premiums held, a share c
+of the capital -- pays part of down (TODO II-35), so
 
-    net excess on equity  =  excess*L - spread*(L - 1),
+    net excess on equity  =  excess*L - spread*(L - 1 - c*L).
 
-which is **exactly neutral at every L when the spread equals the strategy's own
-excess return** -- 1.40% here, against retail spreads of 1-3% that straddle it.
-Above that spread leverage subtracts.
+Without the cash it would be exactly neutral at every L when the spread equals
+the strategy's own excess return; with it the neutral spread is
+excess*(L - 1)/(L - 1 - c*L), 1.79% at the survivable leverage against an excess
+of 1.49%, falling to 1.53% at the broker's ceiling -- inside the retail spreads
+of 1-3%.  Above it leverage subtracts.
 
 Three readings, all printed together.  `equity_req` is the second ledger line of
 section 04 -- gamma_p*k posted in full plus gamma_s of the shares -- and the
@@ -25,7 +29,7 @@ so `diff_ladder` -- the gap between them -- merely scales by L.
 
 Horizon-weighted, off the near-grid killed walk: the excess being levered is
 section 09's own 30-year figure, not the stationary one section 11's frontier
-uses.  The two differ (1.40% against section 11's 1.56%) by the put
+uses.  The two differ (1.49% against section 11's 1.57%) by the put
 collateral, which section 11 excludes, and by the horizon, since in dollars
 per period the excess rises as the book deepens; section 09 quotes its own.
 """
@@ -133,16 +137,6 @@ def compute(cfg=None, measure="P", horizon=30.0, eps=0.10, ctx=None, **kw):
     }
 
 
-# Economic figures are in dollars per period (TODO II-34).  Where a comment
-# quotes section 09 or 11, that prose is being rewritten to these values
-# (drafts/2026-11-06-dollars-per-period-plan.md) and may still show the old.
-# Economic and Track A figures moved with TODO II-35 (the account's cash earns
-# r, the window's edge closed).  Where a comment quotes a section, that prose
-# is being rewritten to these values (drafts/2026-11-13-account-cash-and-
-# window-edge-plan.md) and still shows the old.
-# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
-# which moved Part II's two-decimal figures.  Where a comment quotes a section,
-# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("--gamma-s 0.25", {
         "equity_req": (3.03, 0.02),         # the capital table's new row, 30y
@@ -152,24 +146,24 @@ CASES = [
         "L_ceiling": (3.81, 0.02),          # section 04's "close to four times"
         "dd_ceiling": (0.017, 0.001),       # "1.7% below today's price"
         "p_liq_ceiling": (0.979, 0.005),    # "97.9%": not a surviving account
-        "net_ceiling": (0.0568, 0.0005),    # "+6.11% at no spread at all"
+        "net_ceiling": (0.0568, 0.0005),    # "+5.68% at no spread at all"
         "L_max": (1.1349, 0.0005),          # section 11's survivable leverage
-        "net_survivable": (0.0169, 0.0003), # "+1.82% at zero spread"
+        "net_survivable": (0.0169, 0.0003), # "+1.69% at zero spread"
         "unlevered": (0.0149, 0.0003),      # eq:excess, unchanged at L = 1
-        "neutral_spread": (0.0179, 0.0003), # the crossover = the excess itself
+        "neutral_spread": (0.0179, 0.0003), # the crossover, above the excess by the cash
         "diff_levered": (-0.001200, 0.00002),  # the capital-share gap, levered
         "L_ladder": ([1.0000, 1.0861, 1.1349, 1.1557], 0.0005),
         "net_ladder": ([0.0149, 0.0162, 0.0169, 0.0172], 0.0003),
         "diff_ladder": ([-0.001051, -0.001141, -0.001193, -0.001215], 0.00002),
     }, note="portfolio margin, financing at r: leverage at its most flattering"),
     Case("--gamma-s 0.25 --fin-spread 0.015", {
-        "net_ceiling": (0.0158, 0.0005),    # 3.8x the exposure, +0.29pp of return
-        "net_survivable": (0.0152, 0.0003), # "+1.62% at 1.5%"
+        "net_ceiling": (0.0158, 0.0005),    # 3.8x the exposure, +0.09pp of return
+        "net_survivable": (0.0152, 0.0003), # "+1.52% at 1.5%"
         "net_ladder": ([0.0149, 0.0152, 0.0152, 0.0153], 0.0003),
-    }, note="the keenest retail financing: the whole ladder inside 2bp"),
+    }, note="the keenest retail financing: the whole ladder within 4bp"),
     Case("--gamma-s 0.25 --fin-spread 0.03", {
-        "net_ceiling": (-0.0251, 0.0005),   # "-2.31%": past the crossover
-        "net_survivable": (0.0136, 0.0003), # "+1.42% at 3%"
+        "net_ceiling": (-0.0251, 0.0005),   # "-2.51%": past the crossover
+        "net_survivable": (0.0136, 0.0003), # "+1.36% at 3%"
         "net_ladder": ([0.0149, 0.0143, 0.0136, 0.0133], 0.0003),
     }, note="a 3% spread: every levered row below the unlevered one"),
     Case("--gamma-s 0.25 --p-star 0.10", {

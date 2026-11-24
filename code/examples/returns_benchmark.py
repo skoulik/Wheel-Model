@@ -93,27 +93,19 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
     }
 
 
-# Economic figures are in dollars per period (TODO II-34), with the account's
-# cash earning r and the window's edge closed (TODO II-35).  Where a comment
-# quotes section 09 or 11, that prose is being rewritten to these values
-# (drafts/2026-11-13-account-cash-and-window-edge-plan.md) and still shows the
-# old.
-# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
-# which moved Part II's two-decimal figures.  Where a comment quotes a section,
-# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         "wheel": (0.0149, 0.0001),          # section 09: "+1.49%"; the table's 30 y
         "equity_frac": (0.983, 0.0005),     # "98% at the thirty-year mark"; "98.3%"
         "buy_hold": (0.01625, 0.00001),     # "mu - r - w*delta = +1.625%"
         "buy_hold_adj": (0.0160, 0.0001),   # "the same capital in the stock  +1.60%"
-        "difference": (-0.00105, 0.00002),  # "difference  -0.10%"; "a tenth of a point"
+        "difference": (-0.00105, 0.00002),  # "difference  -0.11%"; "a tenth of a point"
         # The identities the structural checks hold exactly: the gap to the
         # equity-adjusted stock is minus the exposure sold, and to the
         # delta-scaled stock 0.375% of withholding on the 5.2 points of capital
         # between shares and delta, by hand: 0.00375*(0.9831 - 0.9309).
         "exposure_sold": (0.00105, 0.00002),
-        "delta_frac": (0.930, 0.0005),      # "leaves 93.1%"
+        "delta_frac": (0.930, 0.0005),      # "leaves 93.0%"
         "calls_sold": (0.069, 0.0005),      # "less 6.9"
         "put_adds": (0.0169, 0.0005),       # "plus 1.7"
         "buy_hold_delta": (0.0151, 0.0001), # "the stock, scaled to the book's delta  +1.51%"
@@ -122,7 +114,7 @@ CASES = [
         "shortcut": (0.000025, 0.000005),        # "a quarter of one at thirty"
     }, note="Standard regime, 30y"),
     Case("--p-star 0.10", {
-        "wheel": (0.0146, 0.0001),          # Conservative: "true excess +1.49%"
+        "wheel": (0.0146, 0.0001),          # Conservative: "true excess +1.46%"
         "buy_hold_adj": (0.0157, 0.0001),   # "against a benchmark of +1.57%"
         "difference": (-0.00107, 0.00002),  # "The eight-basis-point deficit"
         "difference_delta": (-0.00020, 0.00002),
@@ -132,23 +124,23 @@ CASES = [
     # buys, and the gap over buy-and-hold that grows with it -- "about 45 basis
     # points per volatility point".  (Premiums per year are in returns_income.py.)
     Case("--iv-spread 0.005", {
-        "wheel": (0.0172, 0.0001),          # the table: "20.5%  +1.83%"
-        "difference": (0.0012, 0.0001),     # "vs buy-and-hold  +0.23%"
+        "wheel": (0.0172, 0.0001),          # the table: "20.5%  +1.72%"
+        "difference": (0.0012, 0.0001),     # "vs buy-and-hold  +0.12%"
     }, note="sigma_IV = 20.5%"),
     Case("--iv-spread 0.010", {
-        "wheel": (0.0195, 0.0001),          # "21.0%  +2.05%"
-        "difference": (0.0035, 0.0001),     # "+0.46%"
+        "wheel": (0.0195, 0.0001),          # "21.0%  +1.95%"
+        "difference": (0.0035, 0.0001),     # "+0.35%"
     }, note="sigma_IV = 21.0%"),
     # 1.5 points is the top of the single-name range section 09 now quotes
     # (Bakshi & Kapadia: 1.07 dropping dividend payers, 1.5 across all
     # options), so the range is bracketed by checks rather than interpolated.
     Case("--iv-spread 0.015", {
-        "wheel": (0.0218, 0.0001),          # the table: "21.5%  +2.29%"
-        "difference": (0.0058, 0.0001),     # "vs buy-and-hold  +0.69%"
+        "wheel": (0.0218, 0.0001),          # the table: "21.5%  +2.18%"
+        "difference": (0.0058, 0.0001),     # "vs buy-and-hold  +0.58%"
     }, note="sigma_IV = 21.5%, the top of the single-name range"),
     Case("--iv-spread 0.020", {
-        "wheel": (0.0241, 0.0001),          # "22.0%  +2.52%"
-        "difference": (0.0082, 0.0001),     # "+0.92%"
+        "wheel": (0.0241, 0.0001),          # "22.0%  +2.41%"
+        "difference": (0.0082, 0.0001),     # "+0.82%"
     }, note="sigma_IV = 22.0%, two vol points dear"),
 
     # The cadence sweep of section 09: thirteen basis points across a
@@ -159,16 +151,16 @@ CASES = [
     # INF-6: the harness pinned `cadence` at 1/52, so --tau-p 0.08333 sold a
     # monthly put every WEEK and reported +1.74% here instead of +1.56%.
     Case("--tau-p 0.0384615385", {
-        "wheel": (0.0144, 0.0001),          # the table: "biweekly  +1.59%"
-        "difference": (-0.0015, 0.0001),     # "vs buy-and-hold  +0.00%"
+        "wheel": (0.0144, 0.0001),          # the table: "biweekly  +1.44%"
+        "difference": (-0.0015, 0.0001),     # "vs buy-and-hold  -0.15%"
     }, note="biweekly cadence, n = 4"),
     Case("--tau-p 0.0833333333", {
-        "wheel": (0.0135, 0.0001),          # "monthly  +1.56%"
-        "difference": (-0.0022, 0.0001),    # "-0.01%"
+        "wheel": (0.0135, 0.0001),          # "monthly  +1.35%"
+        "difference": (-0.0022, 0.0001),    # "-0.22%"
     }, note="monthly cadence, n = 4"),
     Case("--tau-p 0.25", {
-        "wheel": (0.0115, 0.0001),          # "quarterly  +1.47%"
-        "difference": (-0.0038, 0.0001),    # "-0.07%"
+        "wheel": (0.0115, 0.0001),          # "quarterly  +1.15%"
+        "difference": (-0.0038, 0.0001),    # "-0.38%"
     }, note="quarterly cadence, n = 4"),
     # The residual tilt the section admits to: at a FLAT premium the model
     # harvests more per point the faster it writes, because premium volume goes
@@ -183,19 +175,19 @@ CASES = [
     # pays the same tax stays "essentially zero throughout -- never more than two
     # basis points, at any yield".  (Lots and capital are in returns_capital.py.)
     Case("--delta 0.0", {
-        "wheel": (0.0181, 0.0001),          # the table: "δ 0%  +1.98%"
+        "wheel": (0.0181, 0.0001),          # the table: "δ 0%  +1.81%"
         "difference": (-0.0014, 0.0003),     # "the gap is essentially zero"
     }, note="no dividend"),
     Case("--delta 0.01", {
-        "wheel": (0.0169, 0.0001),          # "δ 1%  +1.83%"
+        "wheel": (0.0169, 0.0001),          # "δ 1%  +1.69%"
         "difference": (-0.0013, 0.0003),
     }, note="a 1% yielder"),
     Case("--delta 0.04", {
-        "wheel": (0.0129, 0.0001),          # "δ 4%  +1.38%"
+        "wheel": (0.0129, 0.0001),          # "δ 4%  +1.29%"
         "difference": (-0.0009, 0.0003),
     }, note="a 4% yielder"),
     Case("--delta 0.06", {
-        "wheel": (0.0102, 0.0001),          # "δ 6%  +1.08%" -- a non-converging snapshot
+        "wheel": (0.0102, 0.0001),          # "δ 6%  +1.02%" -- a non-converging snapshot
         "difference": (-0.0007, 0.0003),
     }, note="a 6% yielder, past the count boundary"),
 
@@ -209,12 +201,12 @@ CASES = [
         "buy_hold_adj": (0.0157, 0.0001),   # "+1.57%"
         "difference": (-0.00187, 0.00002),  # "-0.19%"; "a fifth of a point at five"
         "exposure_sold": (0.00187, 0.00002),
-        "delta_frac": (0.871, 0.0005),      # "leaving 87.2%"
-        "calls_sold": (0.129, 0.0005),      # "the calls take 12.8 points"
+        "delta_frac": (0.871, 0.0005),      # "leaving 87.1%"
+        "calls_sold": (0.129, 0.0005),      # "the calls take 12.9 points"
         "put_adds": (0.0348, 0.0005),       # "the put adds 3.5 back"
         "buy_hold_delta": (0.0142, 0.0001), # "+1.42%"
         "difference_delta": (-0.00035, 0.00002),  # "-0.035%"; "3.5 basis points"
-        "delta_sale_frac": (0.8740, 0.0001),     # the shortcut: "87.5%"
+        "delta_sale_frac": (0.8740, 0.0001),     # the shortcut: "87.4%"
         "shortcut": (0.000045, 0.000005),        # "under half a basis point wider"
     }, note="Standard, five years"),
     Case("--horizon 10", {

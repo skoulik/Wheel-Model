@@ -34,15 +34,15 @@ remainder is almost entirely §03's.
 Thirteen of the seventeen planned section files exist, plus two appendices: the bibliography
 (`sections/98-bibliography.md`, hand-maintained, the only file that may declare a `{#ref:}`
 anchor) and the generated reproduction table (`sections/99-reproduction.md`, produced by
-`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-32 and II-38 to II-41, with II-34 and II-35 in progress** —
-thirty-three of its items are in `DONE.md`, the latest II-37 on 2026-11-21;
+`python -m examples --appendix`, never edited by hand). Part I is written bar two stubs; **Part II is closed bar II-38 to II-41** —
+thirty-six of its items are in `DONE.md`, the latest II-32, II-34 and II-35 on 2026-11-24;
 **Part III and Part IV are unwritten**, and between
 them they are still the bulk of what is left besides those stubs and the assembly work.
 
 | part | files | state |
 |---|---|---|
 | I. Setup | 00 notation · 01 abstract · 02 introduction · 03 prior-work · 04 strategy | written, except 01 and 03 (stubs) |
-| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-32, the near grid's entry, decided and in the code, with §08's and §09's two-decimal figures to rewrite; II-34 and II-35, dollars per period and the account's cash, in progress; II-38 and II-39, the follow-ups to §09's published betas, now steps of II-40's plan; II-40, changing volatility and jumps in the model, now carried by `model.py` with the sections to revise (`drafts/2026-11-21-moving-volatility-plan.md`, `drafts/2026-11-22-model-moving-volatility-plan.md`); II-41, the index's removals from S&P's own record, for II-40's step 2. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
+| II. One asset | 05 entry · 06 depth-process · 07 holding-time · 08 inventory · 09 returns · 10 stability · 11 constrained | **written**; open: II-38 and II-39, the follow-ups to §09's published betas, now steps of II-40's plan; II-40, changing volatility and jumps in the model, now carried by `model.py` with the sections to revise (`drafts/2026-11-21-moving-volatility-plan.md`, `drafts/2026-11-22-model-moving-volatility-plan.md`); II-41, the index's removals from S&P's own record, for II-40's step 2. Every section carries its citations; §09 went from none to eight on 2026-08-05 |
 | III. Many assets | 12 portfolio · 13 correlation | **do not exist** |
 | IV. Reality | 14 verification · 15 live-account · 16 outlook | **14 and 15 do not exist**; the outlook is a stub, on disk as `15-outlook.md` |
 
@@ -506,115 +506,8 @@ One item was opened here after that and is no longer in this part. **II-31**, op
 against §07's reading of the live account's above-strike lot-time, moved to **IV-10** on
 2026-08-26: §07's live paragraph was cut, the text parked under IV-1, and the claim is now §14's
 to make or qualify, so the constraint belongs with the section that will carry it. Nothing else
-reopened Part II until the §09 review of 2026-10-23 opened II-32, which is numerical and moves no
-conclusion, and II-33, a citation to check, which closed on 2026-11-14.
-
-**II-32. The near grid's entry law is a cell too coarse, and Part II's two-decimal figures carry
-it.** (Opened 2026-10-23, from the §09 review.) Every finite-horizon figure in Part II comes off the
-near grid, h = 0.01, and the entry law it starts from sits on cells as wide as the typical entry
-depth: the grid puts E[x₀] at 1.58% where the closed form says 1.55%. A slightly deeper entry holds
-lots slightly longer, and it shows wherever two decimals are quoted:
-
-    cell width h                 0.01       0.005      0.0025
-    grid E[x₀]                   1.579%     1.556%     1.550%
-    lots held at 30 y            15.42      15.35      15.33
-    window average, 30 y         11.40      11.34      11.33
-    net of the hidden terms      −0.0063    −0.0094    −0.0102
-    true excess return           +1.604%    +1.604%    +1.604%
-
-The 15.42 is the near grid reading 0.7% above the extrapolated walk's 15.32 at thirty years, an
-open question until now; halving h twice closes it, so the two are one finding. **The headline does
-not move** — true excess agrees to a thousandth of a point at all three widths — but §08 and §09
-quote 11.40, 18.23, 0.5128 and −0.0063 off this grid, and `model.hidden_terms` reported the same
-error as a gap of 0.005 between the net and its three parts, 0.003 of it because the mark loss used
-the closed-form entry law while the walk used the grid's. (The table's economic rows are from before
-II-34, exits measured at the exit price; `hidden_terms` went with that convention.) **To decide:** refine the entry (a finer
-grid near zero, or the walk started from the closed-form moments) or Richardson-extrapolate the
-finite-horizon figures as `stationary()` already does; then every two-decimal Part II figure off the
-near grid moves, with its checks, the appendix and the figures.
-
-**Decided 2026-11-24: Richardson.** `model.occupation()` runs h = 0.01 and 0.005 and extrapolates
-when no h is given, and the census functionals built on it (`depth_census`, `split_beta`,
-`book_delta`, `book_delta_life`) extrapolate as figures, the two grids' cells not being the same
-cells. E[x₀] reads 1.548% against the closed form's 1.548%; the lots held at thirty years 15.32,
-and their window average 11.33, where `mc_holding.py --window`'s grid-free walks read 15.322 ±
-0.005 and 11.324 ± 0.003 (and the single grid sits 20 standard errors high). The cost is about
-three times the single grid's; `verify_examples.py` went from 4.7 to 13 minutes. The 133 case
-literals, the appendix and four figures moved in the same commit; **what is left is the prose**
-— §08's "15.4 against 11.4" and residence 1.10, §09's capital table, income and ledger lines
-(11.40 → 11.33, 18.23 → 18.10, 0.5128 → 0.5097, the hidden terms' net −0.0305 → −0.0347 and
-their balance 35.9 → 36.8 years), and §11's account, sized at the thirty-year capital 11.59 that
-now reads 11.52. True excess moves by a fifth of a basis point at most. Past sixty years the near grid's
-x_max = 4 lets lots escape (0.2 lot by 150), which the single grid's upward bias had hidden; no
-quoted figure reads it there. **The moving-volatility lattice stays on one h = 0.01 grid** (II-40):
-its first call period is simulated exactly, which removes most of the entry's cell error but not
-all — the still lattice reads 11.35 lots at thirty years against the constant model's 11.33 — and
-its comparisons are with the still lattice, on the same grid, so like for like. For the sections,
-a moving-volatility level is the constant figure plus the lattice's difference from the still one
-(the fitted process's 10.87 lots read so are 10.85).
-
-**II-34. The economic ledger measures exit flows against the price at exit, and reads about 0.2
-points high.** (Opened 2026-11-06, from the §09 review of "The benchmark that matters".) The ledger
-measures each flow against the share price ruling when it happens: a call's upside surrendered as
-(S_T − K)/S_T at expiry, a put's mark loss as (K − S′)/S′ at assignment. A dollar return per
-period measures both against the capital at the period's start, (S_T − K)/S_w and (K − S′)/S. The
-two differ at second order: E[(R − e^x)⁺] − E[(1 − e^x/R)⁺], with R = S_T/S_w, is 0.16% of a share
-price for a call period at the strike (about σ²·τ_c/2), 0.06% at five log-points deep and nothing
-past twenty. Summed over the thirty-year census (`model.census_weights`), 52 puts a year and the
-market-value capital, Standard regime (`python code/ledger_dollar_check.py` prints it):
-
-    measure                                        Q           P
-    ledger true excess                          −0.291%     +1.604%
-    exit-measurement bias                       +0.153%     +0.205%
-      of which calls / puts               +0.207/−0.054  +0.273/−0.068
-    dollar excess = ledger − bias               −0.444%     +1.399%
-    theory: δ_book·(μ − r) − leak − overcharge  −0.437%     +1.412%
-
-The theory row is independent of the bias computation: the book's own delta per unit of capital
-(`model.book_delta`: 0.946 under Q, 0.932 under P) times the stock's excess return, less the
-dividend-withholding leak and the collateral overcharge — Black–Scholes's result that an option's
-expected excess return is its delta times the stock's. The dollar figures meet it to 1.3bp at both
-measures; the ledger misses by 15 and 19.
-
-What follows, if the article adopts dollars per period: **(1)** §09's headline is about +1.40%, not +1.60%. **(2)** "Identical to owning the
-stock" (+0.01%) is two effects of about 0.2 points cancelling. The book's delta is 93% of its
-capital, not the 98% in shares, so it trails the capital-share benchmark by about 0.2 points, and
-the ledger hands back about 0.2. Against a delta-scaled benchmark, which is Israelov and Nielsen's
-(II-33, in `DONE.md`), the dollar gap is about zero. **(3)** The verification test's residual (8bp at thirty
-years against the leak alone; the collateral footnote's "residual of opposite sign") is this
-bias: against leak and overcharge together it is 15bp, and the dollar version closes it to under
-one. **(4)** The hidden-terms lift, σ²/2 on the lots held, belongs to the same convention; §09 says
-so itself ("the ledger, though, is not kept in dollars"). Whatever rests on eq:econ-pnl may move:
-§09's leverage break-even and volatility-premium conversion, §10, §11's return on equity.
-**Confirmed by simulation** (2026-11-06), which shares no machinery with the depth walk:
-`python code/wheel_sim.py --scenario dollars --paths 3200` books both exits each way on the same
-paths and samples the book's delta from the simulated lots, with standard errors across 32
-batches:
-
-    run                          ledger     dollars    delta theory   dollars − theory
-    Standard, real world        +1.607%    +1.402%    +1.412%        −0.010% ± 0.006%
-    Conservative, real world    +1.502%    +1.294%    +1.297%        −0.004% ± 0.007%
-    Standard, μ = r             −0.289%    −0.442%    −0.437%        −0.006% ± 0.005%
-
-The ledger column reproduces `model.economics` (+1.604%, +1.494%, −0.291%), and the ledger misses
-the theory by 0.15–0.21 points at ± 0.005 in every run. **To decide:** whether the
-article's return is dollar per period or per unit of the price at each flow, and if the former,
-how eq:econ-pnl books exits.
-
-**II-35. The economic ledger has a window-edge bug and leaves the account's cash uncredited.**
-(Opened 2026-11-13, from the §09 review of "The benchmark that matters".) The true excess
-return disagreed with delta theory by +43bp at one year, +2.1 at five and −1.2 at thirty, which
-the pricing-drift check tolerated by stopping at five years. Traced to three parts and nothing
-else: over a finite horizon a call's premium is spread across its period while its upside
-surrendered is booked at expiry, so calls open at the horizon count premium and no cost (+5.2bp
-at 5 y, +0.4 at 30); a premium earns no interest between sale and expiry (−2.6, −1.4), the twin
-of the collateral overcharge the §09 footnote records; and the comparison took each option's
-delta at sale, where its delta drifts over its life (−0.56, −0.30). With the first two fixed,
-the collateral credited and the delta averaged over each option's life, true excess =
-Δ̄·(μ − r) − withholding leak, exactly, at every horizon and in both regimes. **Decided**
-(Sergei, 2026-11-13): fix both throughout, credit the collateral and the premiums alike, and
-compute the delta properly while explaining the usual shortcut. Plan:
-`drafts/2026-11-13-account-cash-and-window-edge-plan.md`.
+reopened Part II until the §09 review of 2026-10-23 opened II-32, which is numerical, moved no
+conclusion and closed on 2026-11-24, and II-33, a citation to check, which closed on 2026-11-14.
 
 **II-38. The volatility's swing structure, checked on single stocks and on the index.**
 (Opened 2026-11-20, Sergei, II-37's decision 2.) `wheel_sim.py --scenario stochvol` and
@@ -660,11 +553,11 @@ done ([`drafts/2026-11-22-model-moving-volatility-plan.md`](drafts/2026-11-22-mo
 simulator within both models' errors on everything Part II quotes, once three shortcomings of the
 simulator's own are allowed for: its fair-price tables' grid, its direct estimate of the book's
 delta, through both channels, and the order of its same-day events (the plan's *The three
-divergences, traced*, 2026-11-23). The event order and the delta's units are fixed (the same
-day); the grid and the volatility channel's sampling await Sergei's call.
-What remains: the section revisions with both models side by side — the plan's *Part II side by
-side* is their material, and II-32 is best settled first, since the constant column carries its
-near-grid entry — the estimation appendix (`96-volatility.md`), the formula fixes the plan's
+divergences, traced*, 2026-11-23). All three are fixed: the event order and the delta's units
+the same day, the grid and the volatility channel's sampling at Sergei's word (`377c87d`,
+`640e67e`). What remains: the section revisions with both models side by side — the plan's
+*Part II side by side* is their material, the constant column now on the extrapolated near grid
+(II-32, in `DONE.md`) — the estimation appendix (`96-volatility.md`), the formula fixes the plan's
 owed list names, three sources to fetch, and a full re-read of every section.
 
 **II-41. The index's removals, from S&P's own record.** (Opened 2026-11-21, Sergei: "let's go

@@ -105,9 +105,6 @@ def compute(cfg=None, measure="P", horizon=None, eps=0.10, ctx=None, **kw):
     }
 
 
-# Section 11's account is the model's thirty-year capital, 11.52 since the near grid was
-# Richardson-extrapolated (TODO II-32; 11.59 before).  Where a comment quotes a section,
-# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         "I_inf": (21.82, 0.05),         # eq:little's "21.8 lots" carried in
@@ -138,9 +135,9 @@ CASES = [
     Case("--gamma-s 0.25 --equity 11.52", {
         "capacity": (13.07, 0.05),      # throughput table, A = 11.52
         "throughput": (0.599, 0.005),   # "runs at 60% throughput"
-        "T_sat": (18.2, 0.2),           # "takes 18.5 years to find out"
+        "T_sat": (18.2, 0.2),           # "takes 18.2 years to find out"
         "drift_L": (1.895, 0.001),      # "realized leverage is capped at
-                                        #  E[I(inf)]/A -- 1.883 at A = 11.59"
+                                        #  E[I(inf)]/A -- 1.895 at A = 11.52"
     }, note="the model's own 30y capital, at portfolio margin"),
     Case("--gamma-s 0.25 --equity 3.00", {
         "capacity": (3.40, 0.05),       # throughput table, A = 3.00

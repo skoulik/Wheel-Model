@@ -94,9 +94,6 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
     }
 
 
-# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
-# which moved Part II's two-decimal figures.  Where a comment quotes a section,
-# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         "beta_up": (0.828, 0.0005),     # section 09: "0.83", and "0.828" beside Conservative
@@ -109,11 +106,11 @@ CASES = [
         "put_up20": (0.000, 0.002),     # and contributes nothing on the way up
     }, note="Standard regime, 30y census"),
     Case("--horizon 5", {
-        "delta_flat": (0.8740, 0.0005),  # "0.875 ... at five", the young book fig:book-exposure adds
+        "delta_flat": (0.8740, 0.0005),  # "0.874 ... at five", the young book fig:book-exposure adds
         "delta_dn20": (1.144, 0.005),   # "1.14 after a 20% fall against 1.07"
     }, note="the five-year book, the figure's second pair of curves"),
     Case("--p-star 0.10", {
-        "beta_up": (0.823, 0.0005),     # "0.828 to 0.824": the strike dial barely moves it
+        "beta_up": (0.823, 0.0005),     # "0.828 to 0.823": the strike dial barely moves it
         "beta_dn": (1.000, 0.001),
     }, note="Conservative: the dial barely moves the asymmetry"),
     # n is the lever that does move it, and it is section 07's grid tax again:

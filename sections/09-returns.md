@@ -1,17 +1,17 @@
 # Returns and Capital {#sec:returns}
 
-What does the wheel earn, and on how much money? All quantities below are per unit of the current share price, so "capital of 11.59" means eleven and a half times what one share costs today, and an income of 0.78 means just over three quarters of a share price per year.
+What does the wheel earn, and on how much money? All quantities below are per unit of the current share price, so "capital of 11.52" means eleven and a half times what one share costs today, and an income of 0.78 means just over three quarters of a share price per year.
 
 ## What comes in
 
-Take the Standard regime at a thirty-year horizon, which by [the inventory section](#para:inventory-window-average) means 11.40 lots held on average. Cash arrives from four places:
+Take the Standard regime at a thirty-year horizon, which by [the inventory section](#para:inventory-window-average) means 11.33 lots held on average. Cash arrives from four places:
 
     put premiums      0.1591 per year     one put a week, at 0.31% each
-    call premiums     0.3706 per year     11.40 lots, each selling a call every four weeks
-    dividends         0.2422 per year     δ_net on 11.40 lots at today's price
+    call premiums     0.3716 per year     11.33 lots, each selling a call every four weeks
+    dividends         0.2407 per year     δ_net on 11.33 lots at today's price
     interest          0.0114 per year     r on the put's collateral, and on each premium until its option expires
     ------------------------------------
-    Track A income    0.7832 per year    {#eq:income}
+    Track A income    0.7827 per year    {#eq:income}
 
 Just over three quarters of a share price per year, in cash, realized. It is an impressive-looking number, and it is the number that makes this strategy popular. Note also what the composition says: **the calls out-earn the puts more than two to one**, and the dividends out-earn the puts as well. The strategy is named after selling puts, but by the time it is running at scale, put premium is the smallest of the three sources its trades produce. The fourth, interest, is the account's own cash at work: r on the collateral behind the live put, 0.0098 a year, and on the premiums waiting for their options to expire, 0.0016.
 
@@ -21,10 +21,10 @@ The number is also, on its own, meaningless. It says nothing until we ask what h
 
 Two different quantities can be called "the capital", and choosing between them decides the answer.
 
-**Cost basis.** Each lot cost its strike, less the premium of the put that delivered it. That strike is the lot's frozen call strike K_c, and against today's price it is K_c/S = e^x by [eq:depth-def](#eq:depth-def): a lot at depth x cost e^x of today's share prices. Summed over the 11.40 lots, the bases come to 18.04 — 1.58 share prices a lot on average — and the margin on the live put brings the total to **18.23**. This is the number a spreadsheet of purchases produces, and it is what practitioners usually mean by "capital deployed".
+**Cost basis.** Each lot cost its strike, less the premium of the put that delivered it. That strike is the lot's frozen call strike K_c, and against today's price it is K_c/S = e^x by [eq:depth-def](#eq:depth-def): a lot at depth x cost e^x of today's share prices. Summed over the 11.33 lots, the bases come to 17.91 — 1.58 share prices a lot on average — and the margin on the live put brings the total to **18.10**. This is the number a spreadsheet of purchases produces, and it is what practitioners usually mean by "capital deployed".
 
 <a id="para:capital-market-value"></a>
-**Market value.** Those same shares would sell today for what the market pays, which is one share price a lot whatever the lot cost: 11.40 share prices. The same margin on the live put brings the total to **11.59**.
+**Market value.** Those same shares would sell today for what the market pays, which is one share price a lot whatever the lot cost: 11.33 share prices. The same margin on the live put brings the total to **11.52**.
 
 The margin is in both totals, so the gap between them — 6.6 share prices, or 0.58 a lot — belongs to the lots alone: it is the accumulated paper loss on the standing inventory. It is large because a lot's cost grows exponentially with its depth, which hands the deep lots most of it: those more than 50 log-points down are 28% of the book by [the inventory section](#para:census-thirty-years)'s census, and account for 73% of the gap.
 
@@ -36,7 +36,7 @@ In symbols, the capital a return is measured against has two terms: γ_p·k, the
 
 E[Capital]  =  γ_p·k  +  E[I]    {#eq:capital}
 
-At thirty years that is the 11.59 above, and it is the denominator of every return in this section. The next subsection turns to the numerator.
+At thirty years that is the 11.52 above, and it is the denominator of every return in this section. The next subsection turns to the numerator.
 
 ## What Track A leaves out
 
@@ -55,21 +55,21 @@ the average fall E[d] being [eq:d-mean](#eq:d-mean)'s.
 
 **The upside surrendered at call-away.** When a lot is called away, the shares are delivered at the strike while the market is *above* the strike — that is precisely why the call was exercised. The operator hands over something worth more than what they receive. Track A sees an exit at the same price as the entry and books nothing. A lot leaves once, at the first call expiry that finds the price at or above its strike — after J periods, in [the holding-time section](#sec:holding)'s notation — and stands then at a depth x_J ≤ 0: it delivers a share worth S_T, the price at that expiry, for its strike K. Measured against the price S the lot's last call was sold at, the upside it gives up is (S_T − K)/S, and at λ arrivals a year
 
-L_call  =  λ · E[ (S_T − K) / S ]  =  **0.3880** per year    {#eq:giveaway}
+L_call  =  λ · E[ (S_T − K) / S ]  =  **0.3891** per year    {#eq:giveaway}
 
 The average runs over every way a lot's price can reach that one exit, and the model takes it a call period at a time: the chance a lot is still held at period j and called at its end, times what it gives up when it is, summed over j. To first order the cost is −x_J, the overshoot of [eq:wald-holding](#eq:wald-holding), how far past its strike a lot stands on the first day it is allowed to leave, so this is the call-grid tax again, paid in price rather than in time: 3.9% of a share price for each lot called away. That is more than twice the put premiums, and it will turn out to be the largest negative term in the whole ledger. That ranking is not peculiar to this model: [Hill and colleagues](#ref:hill-et-al-2006), decomposing the returns of a fixed-strike covered-call programme into its component parts, likewise found that *"the cost of exercise ate away the largest proportion of the excess returns."*
 
-Against those, one real gain is also invisible to Track A: the **appreciation of shares held**, which is simply the inventory drifting at the price's own rate, E[I]·m — for 11.40 lots at m = 4.5%, **0.5128** a year.
+Against those, one real gain is also invisible to Track A: the **appreciation of shares held**, which is simply the inventory drifting at the price's own rate, E[I]·m — for 11.33 lots at m = 4.5%, **0.5097** a year.
 
 Add all three, at the thirty-year horizon the section has used so far:
 
-    appreciation of held shares    +0.5128
+    appreciation of held shares    +0.5097
     mark loss at acquisition       −0.1553
-    upside surrendered             −0.3880
+    upside surrendered             −0.3891
     -------------------------------------
-    net                            −0.0305
+    net                            −0.0347
 
-The gain Track A ignores and the two costs it ignores nearly cancel. That is a property of the horizon, not of the strategy, and figure [fig:hidden-terms](#fig:hidden-terms) shows it. The two costs arrive at almost their full rate within a few years — every lot takes its mark loss the day it is assigned, and the fast lots are called away within weeks — while the gain accrues on whatever is held, and so grows only as the book does. At five years the costs are twice the gain and the net is −0.26 a year; the curves meet at about thirty-six years; by fifty the gain is ahead.
+The gain Track A ignores and the two costs it ignores nearly cancel. That is a property of the horizon, not of the strategy, and figure [fig:hidden-terms](#fig:hidden-terms) shows it. The two costs arrive at almost their full rate within a few years — every lot takes its mark loss the day it is assigned, and the fast lots are called away within weeks — while the gain accrues on whatever is held, and so grows only as the book does. At five years the costs are twice the gain and the net is −0.27 a year; the curves meet at about thirty-seven years; by fifty the gain is ahead.
 
 ![What Track A does not see: the appreciation of held shares against the mark loss and the upside surrendered, each averaged over the first t years.](../figures/hidden-terms.svg){#fig:hidden-terms}
 
@@ -77,11 +77,11 @@ Only where the curves meet do the cash ledger and the economic one agree, so eve
 
 E[Π]  =  Track A income  +  E[I]·m  −  L_acq  −  L_call    {#eq:econ-pnl}
 
-At thirty years that is Track A's 0.7832 less the 0.0305 above: 0.7526 a year. What remains is the comparison [the strategy section](#eq:excess-return) set up: charge the capital of [eq:capital](#eq:capital) the risk-free rate it could have earned elsewhere — Track C — and divide what is left by that capital.
+At thirty years that is Track A's 0.7827 less the 0.0347 above: 0.7481 a year. What remains is the comparison [the strategy section](#eq:excess-return) set up: charge the capital of [eq:capital](#eq:capital) the risk-free rate it could have earned elsewhere — Track C — and divide what is left by that capital.
 
-**True excess return  =  ( E[Π] − r · E[Capital] ) / E[Capital]  =  (0.7526 − 0.05 × 11.591) / 11.591  =  +1.49% per year**    {#eq:excess}
+**True excess return  =  ( E[Π] − r · E[Capital] ) / E[Capital]  =  (0.7481 − 0.05 × 11.522) / 11.522  =  +1.49% per year**    {#eq:excess}
 
-The wheel earns 1.49 points a year more than the risk-free rate on the capital it ties up — at thirty years, for the figure depends on the horizon. Worked the same way it is 1.38% at five years, 1.43% at ten and 1.53% at a hundred: it rises as the book ages. A lot is a share with a call sold against it, and the call gives away part of what the share would earn — a large part while the price sits near the strike, almost none once the price has fallen well below it, where the call is unlikely ever to pay. A young book is mostly lots near their strikes; an old one holds more lots sunk deep, whose calls no longer offset their shares, so more of its capital earns what the stock earns. The benchmark subsection below makes that exact. Track A's reading moves the other way: at five years the three hidden terms take 0.26 a year off its 0.62, and its cash measured against market-value capital reports +6.1%, meeting the economic figure only near thirty-six years. The next subsection sets the horizons side by side, together with what an operator's own records would show.
+The wheel earns 1.49 points a year more than the risk-free rate on the capital it ties up — at thirty years, for the figure depends on the horizon. Worked the same way it is 1.38% at five years, 1.43% at ten and 1.53% at a hundred: it rises as the book ages. A lot is a share with a call sold against it, and the call gives away part of what the share would earn — a large part while the price sits near the strike, almost none once the price has fallen well below it, where the call is unlikely ever to pay. A young book is mostly lots near their strikes; an old one holds more lots sunk deep, whose calls no longer offset their shares, so more of its capital earns what the stock earns. The benchmark subsection below makes that exact. Track A's reading moves the other way: at five years the three hidden terms take 0.27 a year off its 0.62, and its cash measured against market-value capital reports +6.1%, meeting the economic figure only near thirty-seven years. The next subsection sets the horizons side by side, together with what an operator's own records would show.
 
 ## The two ledgers, side by side
 
@@ -90,31 +90,31 @@ Two ledgers have now been built for the same book: the economic one, which marks
 | | 5 y | 10 y | 30 y |
 |---|---|---|---|
 | *Standard regime, p\* = 20%* | | | |
-| lots held | 5.41 | 7.39 | 11.40 |
-| capital, market value | 5.61 | 7.59 | 11.59 |
-| capital, cost basis | 6.70 | 9.83 | 18.23 |
-| equity required, at portfolio margin | 1.55 | 2.04 | 3.04 |
+| lots held | 5.38 | 7.35 | 11.33 |
+| capital, market value | 5.58 | 7.55 | 11.52 |
+| capital, cost basis | 6.66 | 9.77 | 18.10 |
+| equity required, at portfolio margin | 1.54 | 2.03 | 3.03 |
 | **true excess return** | **+1.38%** | **+1.43%** | **+1.49%** |
-| cash income on market value | +6.08% | +3.97% | +1.76% |
-| cash income on cost basis | +4.28% | +1.92% | −0.70% |
+| cash income on market value | +6.15% | +4.02% | +1.79% |
+| cash income on cost basis | +4.34% | +1.97% | −0.68% |
 | *Conservative regime, p\* = 10%* | | | |
-| lots held | 2.63 | 3.58 | 5.50 |
-| capital, market value | 2.82 | 3.77 | 5.70 |
-| capital, cost basis | 3.35 | 4.86 | 8.90 |
-| equity required, at portfolio margin | 0.85 | 1.09 | 1.57 |
-| **true excess return** | **+1.33%** | **+1.39%** | **+1.46%** |
-| cash income on market value | +5.78% | +3.81% | +1.70% |
-| cash income on cost basis | +4.07% | +1.84% | −0.71% |
+| lots held | 2.61 | 3.55 | 5.46 |
+| capital, market value | 2.80 | 3.74 | 5.65 |
+| capital, cost basis | 3.32 | 4.82 | 8.82 |
+| equity required, at portfolio margin | 0.85 | 1.08 | 1.56 |
+| **true excess return** | **+1.32%** | **+1.39%** | **+1.46%** |
+| cash income on market value | +5.86% | +3.87% | +1.75% |
+| cash income on cost basis | +4.15% | +1.89% | −0.68% |
 
-The true excess return rises with the horizon in both regimes, for the reason the previous subsection gave: Standard's from 1.38% to 1.49%, Conservative's from 1.33% to 1.46%. What it should be measured against is the next subsection's question, and why Conservative trails Standard, by less the longer the book runs, is answered under the Conservative regime further down.
+The true excess return rises with the horizon in both regimes, for the reason the previous subsection gave: Standard's from 1.38% to 1.49%, Conservative's from 1.32% to 1.46%. What it should be measured against is the next subsection's question, and why Conservative trails Standard, by less the longer the book runs, is answered under the Conservative regime further down.
 
 The cash-on-cost-basis line does something else entirely, and it is worth understanding because **it is what an operator's own records will show them**. Early on it is spectacular — a strategy apparently earning 4.3% over T-bills. Then it decays, crosses zero a little after year twenty, and keeps falling, while the economic return rises; figure [fig:two-ledgers](#fig:two-ledgers) draws all three lines. The cash-on-market-value row — the same cash, measured against market value instead of cost — separates the two things wrong with the cash-on-cost line. At five years nearly all of the error is in the numerator: cash on market value reads 6.1% against an economic 1.4%, for the reason the previous subsection gave, and cost basis takes back only 1.8 points of it. By thirty years the numerator has nearly come right — cash on market value reads 1.8% against an economic 1.5% — and most of the error is the denominator: cost basis has inflated to 1.57 times market value as deep lots accumulated, and dividing by it turns 1.8% into −0.7%. An operator watching this happen will conclude the strategy has stopped working. It has not; the measurement was wrong at both ends, too flattering at the start and too damning later, and for a different reason at each.
 
 ![The two-ledger table's three returns in the Standard regime, each averaged over the first t years: the economic return, and Track A's cash measured against market value and against cost basis.](../figures/two-ledgers.svg){#fig:two-ledgers}
 
-**The equity row is not a rival to the two capital rows.** An operator does not have to *have* 11.59 in order to hold 11.59, because a broker will lend against held shares. At portfolio margin, γ_s = 0.25, the operator must keep a quarter of the shares' market value in the account, plus the whole margin behind the live put, which the broker does not lend against at all: **3.04** at thirty years in the Standard regime. Because the put's margin is posted in full, the equity required is a little over a quarter of the market-value capital — 26% of Standard's at thirty years, and up to 30% of Conservative's at five, where the same margin stands beside a smaller book. An operator who secures the put with its whole strike in cash rather than the broker's fifth of it commits more capital to the same trades: the extra cash earns r and is charged r, so the wheel makes the same dollars, spread over more capital — 1.21% rather than 1.38% at five years, 1.40% rather than 1.49% at thirty. It is a second ledger line rather than a third measure of capital: it answers "what must be *in* the account?", where the two capital rows answer "what is committed?". A return is not divided by it, because the resulting number is a fact about financing rather than about the strategy; the subsection on leverage below works out what happens to an operator who tries, and what the borrowing itself costs. How much of the wheel a given balance can run — the question the equity row does answer — is worked out in [the constrained section](#sec:constrained).
+**The equity row is not a rival to the two capital rows.** An operator does not have to *have* 11.52 in order to hold 11.52, because a broker will lend against held shares. At portfolio margin, γ_s = 0.25, the operator must keep a quarter of the shares' market value in the account, plus the whole margin behind the live put, which the broker does not lend against at all: **3.03** at thirty years in the Standard regime. Because the put's margin is posted in full, the equity required is a little over a quarter of the market-value capital — 26% of Standard's at thirty years, and up to 30% of Conservative's at five, where the same margin stands beside a smaller book. An operator who secures the put with its whole strike in cash rather than the broker's fifth of it commits more capital to the same trades: the extra cash earns r and is charged r, so the wheel makes the same dollars, spread over more capital — 1.21% rather than 1.38% at five years, 1.40% rather than 1.49% at thirty. It is a second ledger line rather than a third measure of capital: it answers "what must be *in* the account?", where the two capital rows answer "what is committed?". A return is not divided by it, because the resulting number is a fact about financing rather than about the strategy; the subsection on leverage below works out what happens to an operator who tries, and what the borrowing itself costs. How much of the wheel a given balance can run — the question the equity row does answer — is worked out in [the constrained section](#sec:constrained).
 
-Of the table's three returns, then, only the first measures the strategy. The other two are what an operator's own records produce: cash on market value agrees with it only near thirty-six years, and cash on cost basis is too flattering early and too damning late, for a different reason at each end. The equity row is not a return at all but the money the account must hold. What remains is one figure per regime and horizon — 1.49% a year over the risk-free rate at thirty years in the Standard regime, a little less in the Conservative and less again over shorter horizons — and whether that is a good result depends on what it is set against, which is the next subsection's question.
+Of the table's three returns, then, only the first measures the strategy. The other two are what an operator's own records produce: cash on market value agrees with it only near thirty-seven years, and cash on cost basis is too flattering early and too damning late, for a different reason at each end. The equity row is not a return at all but the money the account must hold. What remains is one figure per regime and horizon — 1.49% a year over the risk-free rate at thirty years in the Standard regime, a little less in the Conservative and less again over shorter horizons — and whether that is a good result depends on what it is set against, which is the next subsection's question.
 
 ## The benchmark that matters
 
@@ -126,7 +126,7 @@ Buying and holding the same stock earns μ − r − w·δ = **+1.625%** over th
 |---|---|---|---|
 | the wheel | +1.38% | +1.43% | +1.49% |
 | the same capital in the stock | +1.57% | +1.58% | +1.60% |
-| **difference** | **−0.19%** | **−0.15%** | **−0.10%** |
+| **difference** | **−0.19%** | **−0.15%** | **−0.11%** |
 
 At fair option prices, then, the wheel earns less than the same money in the stock: a tenth of a point a year at thirty years, a fifth of a point at five. The options are not what costs it; the exposure is. A lot is a share with a call sold against it, and the call takes back part of the share's exposure to the stock — about half of it while the price sits near the strike, almost none once the price has fallen well below it. The one live put works the other way, adding a little exposure the shares do not carry. The book as a whole is therefore a smaller position in the stock than the shares it holds.
 
@@ -140,21 +140,21 @@ At fair option prices, then, the wheel earns less than the same money in the sto
 >
 > the factor e^(r·(τ−t)) carrying each moment's gain to expiry. Summing [eq:delta-return](#eq:delta-return) over the life, what the option earns above the risk-free rate is Δ̄·(μ − r)·τ of the price it was sold at. Delta is therefore the size of the stock position a book is equivalent to, as far as expected return goes; risk is another matter, taken up in the next subsection.
 
-Counted by delta, each option's averaged over its life by [eq:life-delta](#eq:life-delta), the book carries less exposure than its capital. At five years 96.5% of the capital is in shares and the other 3.5% is the collateral behind the live put. The calls take 12.8 points of the shares' exposure away and the put adds 3.5 back, leaving **87.2%**. At thirty, 98.3% in shares less 6.9 plus 1.7 leaves **93.1%**. Against the stock scaled to that exposure instead, the shortfall of the first table — 0.19 points a year at five years, 0.10 at thirty — all but closes:
+Counted by delta, each option's averaged over its life by [eq:life-delta](#eq:life-delta), the book carries less exposure than its capital. At five years 96.5% of the capital is in shares and the other 3.5% is the collateral behind the live put. The calls take 12.9 points of the shares' exposure away and the put adds 3.5 back, leaving **87.1%**. At thirty, 98.3% in shares less 6.9 plus 1.7 leaves **93.0%**. Against the stock scaled to that exposure instead, the shortfall of the first table — 0.19 points a year at five years, 0.11 at thirty — all but closes:
 
 | Standard regime | 5 y | 10 y | 30 y |
 |---|---|---|---|
 | the stock, scaled to the book's delta | +1.42% | +1.46% | +1.51% |
 | the wheel, minus it | −0.035% | −0.028% | −0.020% |
 
-What is left is exactly the withholding tax on the dividends of the shares the book holds beyond the exposure it carries: 15% of the 2.5% dividend, on the 9.3 points of capital between them at five years — 3.5 basis points — and on 5.2 points at thirty, 2.0. The put's part of the exposure pays none, since it holds no shares. The usual shortcut takes each option's delta at the moment it is sold, the figure a broker's screen shows. It puts the book at 87.5% and 93.2%, a little higher, because a call's delta moves over its life — with the price and with the time left — and on this book averages slightly above its value at sale. Counted that way, the gap reads under half a basis point wider at five years and a quarter of one at thirty.
+What is left is exactly the withholding tax on the dividends of the shares the book holds beyond the exposure it carries: 15% of the 2.5% dividend, on the 9.4 points of capital between them at five years — 3.5 basis points — and on 5.3 points at thirty, 2.0. The put's part of the exposure pays none, since it holds no shares. The usual shortcut takes each option's delta at the moment it is sold, the figure a broker's screen shows. It puts the book at 87.4% and 93.2%, a little higher, because a call's delta moves over its life — with the price and with the time left — and on this book averages slightly above its value at sale. Counted that way, the gap reads under half a basis point wider at five years and a quarter of one at thirty.
 
 <a id="para:smaller-position-in-the-stock"></a>
-**At fair option prices the wheel is economically a smaller position in the stock.** Per unit of the exposure it actually carries it earns what the stock earns, short only of the tax withheld on the dividends of the shares it holds beyond that exposure. Its calls sell part of the shares' exposure away at a fair price and its put buys a little back, also at a fair price, and the shortfall against the same capital in the stock is exactly the return on the exposure given up: 9.3 points of capital at the stock's full 2 points over the risk-free rate — the withholding on those shares is paid either way — which is 0.19 a year at five years, and 5.2 points, 0.10, at thirty.
+**At fair option prices the wheel is economically a smaller position in the stock.** Per unit of the exposure it actually carries it earns what the stock earns, short only of the tax withheld on the dividends of the shares it holds beyond that exposure. Its calls sell part of the shares' exposure away at a fair price and its put buys a little back, also at a fair price, and the shortfall against the same capital in the stock is exactly the return on the exposure given up: 9.4 points of capital at the stock's full 2 points over the risk-free rate — the withholding on those shares is paid either way — which is 0.19 a year at five years, and 5.3 points, 0.11, at thirty.
 
 No-arbitrage predicts the shape of this result before any of the machinery is built. Selling a fairly priced option is a fairly priced transaction; doing it repeatedly, in a loop, with inventory, is still a fairly priced transaction, so the book can earn only what the exposure it carries earns. What no-arbitrage cannot say is how much exposure that is. The 87% of the capital at five years and 93% at thirty come from the depth walk and its census, and they are what set the shortfall against the stock. **The 0.78 of a share price per year that Track A reports is not income the strategy generates. Most of it is the risk-free rate the capital would have earned anyway, and the rest is the stock's own premium on the exposure the book carries, relabelled — and while the book is young, part of it is the operator's own capital handed back in instalments.**
 
-The per-lot accounts make the same point in miniature: over its lifetime a lot collects **3.72%** of a share price in call premiums, and 0.01% more in interest on them while each call runs, and surrenders **3.90%** in upside at call-away. The covered-call leg, the part that feels most like free income, costs a lot 0.16% of a share price over its life: exactly the stock's premium on the exposure its calls hand over, by [eq:delta-return](#eq:delta-return).
+The per-lot accounts make the same point in miniature: over its lifetime a lot collects **3.73%** of a share price in call premiums, and 0.01% more in interest on them while each call runs, and surrenders **3.91%** in upside at call-away. The covered-call leg, the part that feels most like free income, costs a lot 0.16% of a share price over its life: exactly the stock's premium on the exposure its calls hand over, by [eq:delta-return](#eq:delta-return).
 
 Nor is this only what the present model finds. [Israelov and Nielsen](#ref:israelov-nielsen-2014) arrive at the same conclusion by a decomposition close to the one above — splitting a covered call into an ordinary equity position plus a short-volatility position — and state it almost in these words. In their worked example, priced so that implied volatility matches the volatility that follows, *"even though the annual collected option premium is 22.1% of net asset value, there would be zero compensation for shorting volatility,"* leaving a programme *"no different from what would have been earned by simply reducing the index position size by 51%."* Their 51% is the call's delta on the day it is sold, the shortcut above; averaged over the call's month by [eq:life-delta](#eq:life-delta), it is 53%.[^in-life-delta] Different instrument, different accounting, different decade; same answer.
 
@@ -178,7 +178,7 @@ That second number is not a rounding. It is exact in every configuration of this
 
 exposure(s)  =  [ E[I] · ∫ ρ(x; H) · ( 1 − e^(−δ·τ_c)·N(d₁) ) dx  +  e^(−δ·τ_p)·N(−d₁′) ]  /  E[Capital]    {#eq:book-exposure}
 
-Here the E[I] lots, the capital of [eq:capital](#eq:capital) and the census ρ(x; H) of [eq:census-finite](#eq:census-finite), which spreads one unit of weight over depth, are all the book's averaged over its first H years. d₁ is [eq:bs-call](#eq:bs-call)'s with k = e^x/(1 + s) and τ = τ_c, the strike of a lot at depth x against the moved price; d₁′ is [eq:bs-put](#eq:bs-put)'s with k/(1 + s) in place of k. Each option is taken at its delta on the day it is sold, the shortcut described above, so the undisturbed book reads the 0.932 and 0.875 found above, at thirty years and at five:
+Here the E[I] lots, the capital of [eq:capital](#eq:capital) and the census ρ(x; H) of [eq:census-finite](#eq:census-finite), which spreads one unit of weight over depth, are all the book's averaged over its first H years. d₁ is [eq:bs-call](#eq:bs-call)'s with k = e^x/(1 + s) and τ = τ_c, the strike of a lot at depth x against the moved price; d₁′ is [eq:bs-put](#eq:bs-put)'s with k/(1 + s) in place of k. Each option is taken at its delta on the day it is sold, the shortcut described above, so the undisturbed book reads the 0.932 and 0.874 found above, at thirty years and at five:
 
 ![The book's exposure per unit of capital against an instantaneous change in the share price, every strike held where it was frozen, averaged over the first thirty years (solid) and the first five (dotted): the whole book, and the shares held with their calls. The gap between the two is the short put.](../figures/book-exposure.svg){#fig:book-exposure}
 
@@ -186,7 +186,7 @@ Here the E[I] lots, the capital of [eq:capital](#eq:capital) and the census ρ(x
 
 The slope of [fig:book-exposure](#fig:book-exposure) is the more interesting part: it is the position *changing character as prices move*. As the stock falls, every frozen call slides further out of the money and each lot reverts toward being plain stock; as it rises, the calls come alive and the exposure drains away. The strategy therefore buys exposure into declines and sheds it into rallies, automatically and without anyone deciding to. [Israelov and Nielsen](#ref:israelov-nielsen-2015) name this **equity reversal** and attribute about a quarter of a covered call's total risk to it, at a Sharpe ratio near 0.10 — a real risk that is paid almost nothing. The model pays it nothing at all, and says why: in the price process assumed here a share's next move does not depend on its last, so exposure added after a fall earns no more per unit than exposure held all along, and the book is paid only for its average exposure, the delta counted above. The timing is risk taken on for no reward, and not only in the model: [Israelov, Klein and Tummala](#ref:israelov-covering-the-world) split covered calls on eleven national equity indexes the same way and find the timing component's average return statistically indistinguishable from zero in all eleven, though it carries about a quarter of the risk.
 
-Which lever controls the gap between the two betas? Not the strike dial: at the Conservative setting the up-beta moves from 0.828 to 0.824. It is **n**, the clock ratio: the number of put periods a call is written across.
+Which lever controls the gap between the two betas? Not the strike dial: at the Conservative setting the up-beta moves from 0.828 to 0.823. It is **n**, the clock ratio: the number of put periods a call is written across.
 
 | calls written every… | week (n = 1) | four weeks (n = 4) | quarter (n = 13) |
 |---|---|---|---|
@@ -215,32 +215,32 @@ The book is smaller, too. Over thirty years it holds 10.7 lots on average withou
 
 Why keep σ fixed, when the market's is not? Because one σ is what lets the rest of this article be exact. With one σ, a lot's prospects depend on its depth alone, which is what made depth [the right variable](#sec:depth); with σ moving they depend on depth and on the current volatility, which every lot shares and which persists for months, so the walk gains a second dimension and the lots stop being independent of one another given the price. The closed-form results, the call-grid tax among them, are each exact for one σ; with σ moving each becomes an average over the volatility's path, to be computed rather than read off. And option prices then answer to volatility as well as to the price — a second risk, with its own premium — so the exact test this section leans on, [eq:delta-return](#eq:delta-return), would need a further term to stay exact. None of this touches the averages, which are linear and survive, nor a simulation, which carries moving volatility at no cost and is how this subsection measured its figures. What one σ cannot give is risk measured across periods of different volatility — which is what a published beta is.
 
-## The leverage that survives does not pay for itself
+## The leverage that survives barely pays for itself
 
-Everything so far is an unlevered account, earning [eq:excess](#eq:excess)'s +1.60% on capital the operator owns outright. Borrowing changes the arithmetic in exactly one place. Equity earns the strategy's excess on every share it carries and pays the financing spread on the part that was borrowed — the risk-free leg of the carry is already what "excess" is measured against — so for a book of leverage L financed at r_b:
+Everything so far is an unlevered account, earning [eq:excess](#eq:excess)'s +1.49% on capital the operator owns outright. Borrowing changes the arithmetic in exactly one place. Equity earns the strategy's excess on every share it carries and pays the financing spread on the part that was borrowed — the risk-free leg of the carry is already what "excess" is measured against. That part is a little smaller than the shares bought beyond the equity, because the account's own cash — the collateral behind the live put and the premiums waiting for their options to expire, a share c of the capital — sits in one balance with the debit and pays part of it down. So for a book of leverage L financed at r_b:
 
-net excess on equity  =  excess · L  −  (r_b − r) · (L − 1)    {#eq:levered-excess}
+net excess on equity  =  excess · L  −  (r_b − r) · (L − 1 − c·L)    {#eq:levered-excess}
 
-Read as an equation in the spread, that gives the whole result at once. The two terms cancel for **every** L when r_b − r = excess: borrowing is exactly neutral, in whatever quantity, when the broker's spread equals the strategy's own excess return. The break-even spread, in other words, *is* the excess return — **1.60%** here, [eq:excess](#eq:excess)'s own number rather than a coincidence resembling it. Retail financing spreads of 1–3% straddle it, and above it leverage does not merely stop helping: it subtracts.
+Read as an equation in the spread, that gives the whole result at once. Without the cash, the two terms would cancel for **every** L at r_b − r = excess: borrowing would be exactly neutral, in whatever quantity, when the broker's spread equals the strategy's own excess return. The cash makes the debit smaller, by most where the debit is small, and so puts the break-even spread a little above the excess, at excess·(L − 1)/(L − 1 − c·L). At thirty years c is 2.0% of the capital, 1.7 points of it the put's collateral, and the break-even is **1.79%** at the leverage that survives (below) against an excess of 1.49%, falling to 1.53% at the broker's ceiling. Retail financing spreads of 1–3% straddle it, and above it leverage does not merely stop helping: it subtracts.
 
-The tempting reading is the two-ledger table's equity row. An account holding the thirty-year book on the broker's minimum equity of 3.04 is levered **3.81 times**, and at no spread at all [eq:levered-excess](#eq:levered-excess) reports **+6.11%** — close to four times the excess return, which is exactly the appeal. Two things happen to it. Financing eats it: at a 1.5% spread it is **+1.90%**, twenty-nine basis points of extra return for nearly four times the exposure, and at 3% it is **−2.31%**. And nobody holds that book anyway, because [the constrained section](#sec:constrained)'s barrier sits **1.7% below today's price** at that leverage — the account is sold out on the first bad afternoon, with an eventual probability of **97.9%**. So the four-times number is not a return an operator collects. It is a return they are liquidated out of.
+The tempting reading is the two-ledger table's equity row. An account holding the thirty-year book on the broker's minimum equity of 3.03 is levered **3.81 times**, and at no spread at all [eq:levered-excess](#eq:levered-excess) reports **+5.68%** — close to four times the excess return, which is exactly the appeal. Two things happen to it. Financing eats it: at a 1.5% spread it is **+1.58%**, nine basis points of extra return for nearly four times the exposure, and at 3% it is **−2.51%**. And nobody holds that book anyway, because [the constrained section](#sec:constrained)'s barrier sits **1.7% below today's price** at that leverage — the account is sold out on the first bad afternoon, with an eventual probability of **97.9%**. So the four-times number is not a return an operator collects. It is a return they are liquidated out of.
 
 The number worth computing is therefore the one at leverage that survives, which [the constrained section](#sec:constrained) puts at L_max = **1.1349** at portfolio margin and a 10% eventual-liquidation tolerance. Across every account type:
 
 | net excess on equity | fully paid | Reg T | portfolio margin | aggressive PM |
 |---|---|---|---|---|
 | survivable leverage L_max | 1.0000 | 1.0861 | 1.1349 | 1.1557 |
-| financed at r (spread 0) | +1.60% | +1.74% | +1.82% | +1.85% |
-| spread 1.5% | +1.60% | +1.61% | +1.62% | +1.62% |
-| spread 3.0% | +1.60% | +1.48% | +1.42% | +1.39% |
+| financed at r (spread 0) | +1.49% | +1.62% | +1.69% | +1.72% |
+| spread 1.5% | +1.49% | +1.52% | +1.52% | +1.53% |
+| spread 3.0% | +1.49% | +1.43% | +1.36% | +1.33% |
 
-**The borrowing that survives the liquidation constraint is too small to pay for itself at any retail financing rate.** At the keenest of them — a spread of 1.5% — the whole ladder collapses onto +1.61% to +1.62%, within two basis points of the unlevered +1.60%; at 3% every levered account earns *less* than the unlevered one. Even financed at the risk-free rate itself, the entire effect is 22 basis points at portfolio margin and 25 at the most aggressive margin available. And the real effect is smaller still, because an account does not sit at its ceiling: [the constrained section](#sec:constrained) measures the prudent account's realized leverage at **0.743** against a permitted 1.1349, a book refilled one lot a week being under its stopping rule most of the time. Most of the time there is no debit to pay a spread on, and no multiple to collect.
+**The borrowing that survives the liquidation constraint is too small to pay for itself by more than a few basis points at any retail financing rate.** At the keenest of them — a spread of 1.5% — the whole ladder collapses onto +1.52% to +1.53%, about three basis points above the unlevered +1.49%; at 3% every levered account earns *less* than the unlevered one. Even financed at the risk-free rate itself, the entire effect is 20 basis points at portfolio margin and 23 at the most aggressive margin available. And the real effect is smaller still, because an account does not sit at its ceiling: [the constrained section](#sec:constrained) measures the prudent account's realized leverage at **0.744** against a permitted 1.1349, a book refilled one lot a week being under its stopping rule most of the time. Most of the time there is no debit to pay a spread on, and no multiple to collect.
 
-The same verdict arrives in the only currency an operator actually spends. [The constrained section](#sec:constrained) computes the largest draw compatible with a fixed liquidation risk, and it is **4.63% of equity unlevered against 4.58% at survivable leverage** — flat to a few basis points as far as the leverage that survives, then collapsing through zero beyond it. Borrowing that survives buys no drawing power either. Two cautions travel with that figure, both that section's: it holds the *liquidation risk* constant rather than the account, and the draw that keeps the *business* stationary is **2.05% of equity a year** — two numbers both called sustainable, a factor of two apart.
+The same verdict arrives in the only currency an operator actually spends. [The constrained section](#sec:constrained) computes the largest draw compatible with a fixed liquidation risk, and it is **4.64% of equity unlevered against 4.59% at survivable leverage** — flat to a few basis points as far as the leverage that survives, then collapsing through zero beyond it. Borrowing that survives buys no drawing power either. Two cautions travel with that figure, both that section's: it holds the *liquidation risk* constant rather than the account, and the draw that keeps the *business* stationary is **2.05% of equity a year** — two numbers both called sustainable, a factor of two apart.
 
-None of this touches the verdict of the previous subsection, and the reason is that [eq:levered-excess](#eq:levered-excess) does not know what the capital is invested in. The same loan, at the same spread and against the same barrier, is available to someone who buys the shares and sells no options at all, so both sides of the wheel-against-the-stock comparison are multiplied by the same L and charged the same spread. The spread cancels between them exactly, and what is left is the unlevered gap multiplied by L: it *scales*, and does not change sides. At each account type's own survivable leverage it runs from 0.7 to 0.8 basis points against 0.7 unlevered — **+0.01% at every γ_s**, the same one basis point of numerical noise as before. **Leverage multiplies the wheel and the stock identically, so it cannot decide between them.**
+None of this touches the verdict of the benchmark subsection, and the reason is that [eq:levered-excess](#eq:levered-excess) does not know what the capital is invested in. The same loan, at the same spread and against the same barrier, is available to someone who buys the shares and sells no options at all and keeps the same share of the capital in cash, so both sides of the wheel-against-the-stock comparison are multiplied by the same L and charged the same spread. The spread cancels between them all but exactly — only the premiums held, 0.3% of the capital, are the wheel's alone, and they are worth about 0.3 basis points for every point of spread — and what is left is the unlevered gap multiplied by L: it *scales*, and does not change sides. Financed at r, it is 11.4 to 12.1 basis points at each account type's own survivable leverage, against 10.5 unlevered. **Leverage multiplies the wheel and the stock identically, so it cannot decide between them.**
 
-(One reconciliation, for a reader who checks this against [the constrained section](#sec:constrained)'s own return-on-equity column, which reads +1.90% where the table above reads +1.82% at the same leverage. That section excludes the put collateral from both sides of the ledger, uniformly, and so levers an excess of 1.68% rather than this section's 1.60%. The 8-basis-point difference between them is the collateral overcharge of the footnote above, and nothing else.)
+(One reconciliation, for a reader who checks this against [the constrained section](#sec:constrained)'s own return-on-equity column, which reads +1.78% where the table above reads +1.69% at the same leverage. That section levers a different excess, 1.57% rather than this section's 1.49%: it leaves the put's collateral out of the account on both sides of the ledger, and it prices the stationary book rather than the first thirty years, and the excess rises as the book deepens.)
 
 ## So where could an edge come from?
 
@@ -256,15 +256,15 @@ The model can price exactly how much of it is needed. Holding everything else fi
 
 | σ_IV | premiums/yr | wheel | vs buy-and-hold |
 |---|---|---|---|
-| 20.0% (fair) | 0.5297 | +1.60% | +0.01% |
-| 20.5% | 0.5555 | +1.83% | +0.23% |
-| 21.0% | 0.5818 | +2.05% | +0.46% |
-| 21.5% | 0.6086 | +2.29% | +0.69% |
-| 22.0% | 0.6358 | +2.52% | +0.92% |
+| 20.0% (fair) | 0.5307 | +1.49% | −0.11% |
+| 20.5% | 0.5565 | +1.72% | +0.12% |
+| 21.0% | 0.5828 | +1.95% | +0.35% |
+| 21.5% | 0.6095 | +2.18% | +0.58% |
+| 22.0% | 0.6366 | +2.41% | +0.82% |
 
-**The break-even is zero.** At fair prices the wheel matches the stock, and every volatility point of overpricing is worth about 45 basis points of excess return on top. There is no hurdle to clear first: against the single-name premium of roughly a point that the literature actually supports, **the whole of it is edge — some 50 to 70 basis points a year**, the two middle rows of the table. That is a cleaner statement than it looks, and it is the no-arbitrage argument showing up as arithmetic — a fairly priced loop earns exactly what the asset earns, so whatever the strategy makes above that has to come from the options being sold dear.
+**The break-even is about a quarter of a point.** At fair prices the wheel trails the stock by the exposure its calls sell, and every volatility point of overpricing is worth about 45 basis points of excess return on top, so the first quarter of a point or so pays for that exposure and everything beyond it is edge. Against the single-name premium of roughly a point that the literature actually supports, that is **some 35 to 60 basis points a year** over the stock, the third and fourth rows of the table. That is a cleaner statement than it looks, and it is the no-arbitrage argument showing up as arithmetic — a fairly priced loop earns exactly what the exposure it carries earns, so whatever the strategy makes above that has to come from the options being sold dear.
 
-The same table is also the clearest way to see what the familiar number would have bought. At the two to four points the index studies report, the wheel would clear 90 to 180 basis points over simply holding the stock. Nothing in the model differs between those two readings — only the input does, and reaching for the number everyone quotes would overstate the prize by a factor of three.
+The same table is also the clearest way to see what the familiar number would have bought. At the two to four points the index studies report, the wheel would clear 80 to 180 basis points over simply holding the stock. Nothing in the model differs between those two readings — only the input does, and reaching for the number everyone quotes would overstate the prize by nearly a factor of four.
 
 The natural objection to *every point is worth about 45 basis points* is that surely something eats part of it on the way through — that a machine with this many moving parts must skim off some of any extra richness before it reaches the owner. It does not, and the claim does not rest on this model alone. Israelov and Nielsen's example, built at a quite different ratio of option notional to capital, likewise has the whole of the richness arriving rather than a fraction of it. And the experiment has been run on real prices: [Merton, Scholes and Gladstein](#ref:merton-scholes-gladstein-1978) simulated fourteen years of covered call writing across a hundred and thirty-six stocks, then re-ran the entire simulation with the premium received scaled from 70% to 130% of model value, and [repeated the exercise on puts four years later](#ref:merton-scholes-gladstein-1982). Their dial is percent-of-premium where this one is volatility points, but at the premium levels they report the two convert cleanly — ten percent of an at-the-money six-month premium is about three volatility points — and their measured slopes then come to roughly **50 basis points per volatility point per year on each leg**, against the 45 here. Two legs, a different era, real price paths.[^msg-slope]
 
@@ -297,14 +297,14 @@ The three omissions above are all about *which* option is written. The remaining
     cadence              weekly  biweekly  monthly  quarterly
     puts written / yr      52.0      26.0     12.0        4.0
     lots acquired / yr    10.40      5.20     2.40       0.80
-    lots held             11.40      8.02     5.42       3.09
-    capital (market)      11.59      8.21     5.61       3.28
-    true excess          +1.60%    +1.59%   +1.56%     +1.47%
-    vs buy-and-hold      +0.01%    +0.00%   −0.01%     −0.07%
+    lots held             11.33      7.99     5.41       3.09
+    capital (market)      11.52      8.19     5.60       3.28
+    true excess          +1.49%    +1.44%   +1.35%     +1.15%
+    vs buy-and-hold      −0.11%    −0.15%   −0.22%     −0.38%
 
-**Thirteen basis points across a thirteenfold change.** Writing thirteen times as many contracts does not earn thirteen times as much, or twice as much, or measurably more at all: the return per unit of capital is the same, and what cadence really sets is **how much capital the position needs** — 11.59 share prices a name at weekly, 3.28 at quarterly. That is the same shape of conclusion the dividend sweep reached, and for a related reason: a faster clock does not create edge, it accumulates inventory faster. What it buys is on the other side of the ledger, and [the portfolio section](#sec:portfolio) is where it is spent — a given balance runs a few names quickly or many names slowly, at the same return.
+**Thirty-four basis points across a thirteenfold change, and none of it edge.** Writing thirteen times as many contracts does not earn thirteen times as much, or twice as much: the weekly book earns 1.49% on its capital and the quarterly 1.15%, and the difference is how much of the stock each one holds. With the call period held at four put periods, a quarterly put's calls run a year, and a call written for a year sells far more of its share's exposure than one written for four weeks: the calls take 24 points of the quarterly book's exposure away against 7 of the weekly's, leaving it 75% exposed to the stock against 93%. That exposure is sold at a fair price, so per unit of what each book keeps every cadence earns what the stock earns, short only of the withholding on the shares it holds beyond it — 2 basis points weekly, 7 quarterly. What cadence really sets is **how much capital the position needs** — 11.52 share prices a name at weekly, 3.28 at quarterly — and how much of its exposure the calls sell. That is the same shape of conclusion the dividend sweep reached, and for a related reason: a faster clock does not create edge, it accumulates inventory faster. What it buys is on the other side of the ledger, and [the portfolio section](#sec:portfolio) is where it is spent — a given balance runs a few names quickly or many names slowly.
 
-**The uncomfortable part is that the record disagrees, and the model cannot see why.** Cboe publishes both a monthly and a weekly at-the-money put-writing index on the same underlying, which is this sweep run for real. Over 2006–2018 the monthly programme compounded **5.97%** and the weekly **4.51%** — while the weekly collected **37.1%** of notional a year in premium against the monthly's **22.1%** ([Bondarenko](#ref:bondarenko-2019)). More premium, less money, and a gap of nearly a percentage and a half that this table puts at thirteen basis points with the sign reversed. At a *flat* volatility premium the model even tilts the wrong way, harvesting 45 basis points a point at weekly against 42 at monthly, because premium volume scales as one over the square root of tenor and a flat spread pays on volume.
+**The uncomfortable part is that the record disagrees, and the model cannot see why.** Cboe publishes both a monthly and a weekly at-the-money put-writing index on the same underlying, which is this sweep run for real. Over 2006–2018 the monthly programme compounded **5.97%** and the weekly **4.51%** — while the weekly collected **37.1%** of notional a year in premium against the monthly's **22.1%** ([Bondarenko](#ref:bondarenko-2019)). More premium, less money, and a gap of nearly a percentage and a half that this table puts at fourteen basis points with the sign reversed. At a *flat* volatility premium the model even tilts the wrong way, harvesting 45 basis points a point at weekly against 42 at monthly, because premium volume scales as one over the square root of tenor and a flat spread pays on volume.
 
 The reconciliation is the axis named just above. Take the two indices' own premium collections: pure square-root scaling says the weekly programme should gather √(52/12) = 2.08 times the monthly's, and it gathered 1.68 — so it was selling at roughly **0.81 of the monthly's implied volatility**, three points lower at those levels. Three points, at this section's own 45 basis points a point, is the right order to account for the whole gap. [Bondarenko](#ref:bondarenko-2019) names both forces himself — weekly resets that "better capture the volatility risk-premium", which is the tilt above, and at-the-money implied volatilities "typically in contango" — and his two indices show which is the larger. **So cadence is not free; it is free in a model whose σ_IV does not depend on tenor.** Giving σ_IV a term structure is the smallest extension that would let this article speak to the question at all, and [the outlook](#sec:outlook) records it as the first thing a practitioner would ask for.
 
@@ -314,12 +314,12 @@ The reconciliation is the axis named just above. Take the two indices' own premi
 
     gross yield δ         0%      1%     2.5%      4%      6%
     ν                  +5.0%   +4.0%   +2.5%   +1.0%   −1.0%
-    lots held            8.54    9.56   11.40   13.65   17.31
-    capital (market)     8.74    9.75   11.59   13.84   17.51
-    capital (cost)      12.11   14.15   18.23   24.00   35.50
-    true excess        +1.98%  +1.83%  +1.60%  +1.38%  +1.08%
+    lots held            8.49    9.50   11.33   13.57   17.22
+    capital (market)     8.68    9.69   11.52   13.76   17.41
+    capital (cost)      12.02   14.04   18.10   23.84   35.26
+    true excess        +1.81%  +1.69%  +1.49%  +1.29%  +1.02%
 
-Yield is **mildly negative for the wheel, monotonically** — but the interesting part is where the damage falls. The return declines by 90 basis points across the sweep, most of which is simply the withholding tax on a larger dividend stream; measured against a buy-and-hold benchmark that suffers the same tax, the gap is essentially zero throughout — never more than two basis points, at any yield. What yield really does is **double the inventory and nearly triple the cost-basis capital**. A high-yield name does not make the wheel much less profitable per unit of capital; it makes the wheel need far more capital, and take far longer to release it.
+Yield is **mildly negative for the wheel, monotonically** — but the interesting part is where the damage falls. The return declines by 79 basis points across the sweep, which is less than the withholding tax on the larger dividend stream takes from the stock itself, 87. Measured against a buy-and-hold benchmark that suffers the same tax, the gap is the exposure the calls sell, and it narrows as the yield rises, from 14 basis points to 7: a higher yield sinks the book deeper, where its calls sell less of it, 4 points of its exposure at 6% against 9 at none. What yield really does is **double the inventory and nearly triple the cost-basis capital**. A high-yield name does not make the wheel much less profitable per unit of capital; it makes the wheel need far more capital, and take far longer to release it.
 
 The δ = 6% row deserves its flag: ν has gone negative there, which by [the holding-time section](#para:when-lots-never-leave) means a fixed fraction of lots never come back at all. Its thirty-year figures are a snapshot of a system that does not converge. [The stability section](#sec:stability) takes that up.
 
@@ -334,16 +334,16 @@ The δ = 6% row deserves its flag: ν has gone negative there, which by [the hol
     horizon                      5 y      10 y      30 y
     inflation factor            1.020     1.039     1.113
     δ_eff                       2.55%     2.60%     2.78%
-    true excess               +1.59%    +1.58%    +1.56%
+    true excess               +1.37%    +1.42%    +1.46%
     change from constant δ    −0.01pp   −0.01pp   −0.04pp
-    gap vs buy-and-hold       +0.03pp   +0.01pp   +0.01pp
+    gap vs buy-and-hold       −0.19pp   −0.15pp   −0.10pp
 
 <a id="para:sticky-dividend-four-bp"></a>
 **Four basis points at thirty years, and negative.** The extra carry is real and it is outweighed, by the same two mechanisms the sweep above already identified: a higher yield drags harder on the price, so the book deepens (inventory rises 3.4%, cost-basis capital 5.1%), and a larger share of the total return arrives in the one form that is taxed on the way in.
 
 One warning about that inflation factor, since it is the kind of number a reader might reach for. It corrects a δ defined as the payout over the *trend* price — the yield at y = 0. A δ read off observed dividend yields is not that number: it is already an average taken over whatever deviations the period contained, so the inflation is inside it already. **Applied to a measured yield the factor corrects a number that was never wrong**, and it double-counts by precisely the quantity computed here.
 
-The last line is the one that settles it. The article's verdict is not the wheel's excess return in isolation but its *gap* against owning the stock, and the sweep above showed that gap is flat in δ to a basis point or two. A sticky dividend moves the wheel and the benchmark together, so it cannot change the verdict — and if anything it favours the wheel, since a buy-and-hold position holds one anchor for the entire horizon and picks up a larger inflation factor for it (1.37 at thirty years, against the wheel's 1.11) while the wheel's lots turn over.
+The last line is the one that settles it. The article's verdict is not the wheel's excess return in isolation but its *gap* against owning the stock, and the sweep above showed that gap moving by about a basis point for each point of yield — here, at thirty years, from 10.5 basis points at δ to 10.1 at δ_eff. A sticky dividend moves the wheel and the benchmark together, so it cannot change the verdict — and if anything it favours the wheel, since a buy-and-hold position holds one anchor for the entire horizon and picks up a larger inflation factor for it (1.37 at thirty years, against the wheel's 1.11) while the wheel's lots turn over.
 
 Two boundaries mark where this analysis stops.
 
@@ -355,27 +355,27 @@ And there is a depth past which the assumption is self-defeating. Freeze the pay
 
 Everything above, apart from the Conservative rows of the two-ledger table, used p\* = 20%. At p\* = 10% — [the entry section](#sec:entry)'s Conservative setting — with strikes 3.5% out of the money rather than 2.3%:
 
-    lots held 5.50 · capital (market) 5.70 · capital (cost) 8.90
-    Track A income 0.371/yr · true excess +1.49% · cash-on-cost −0.83%
+    lots held 5.46 · capital (market) 5.65 · capital (cost) 8.82
+    Track A income 0.381/yr · true excess +1.46% · cash-on-cost −0.68%
 
-Half the assignments, half the inventory, half the capital — and a slightly *worse* excess return than Standard, against a benchmark of +1.57%. The eight-basis-point deficit is worth chasing down rather than interpreting, because it is not economics at all. It is the collateral footnote above, arriving where it is easiest to see. The put margin γ_p·k is essentially the same 0.19 in both regimes — it is one put either way — but the inventory it stands beside is half the size, so the margin runs 3.4% of Conservative's capital against 1.7% of Standard's, and Track C's overcharge doubles with it, from 8 basis points a year to 17. Credit that collateral with the rate it actually earns and the two regimes agree on the number that matters:
+Half the assignments, half the inventory, half the capital — and an excess return three basis points below Standard's, against a benchmark that is three basis points lower too, +1.57% against +1.60%. The two are the same three points, and they are the put's margin. γ_p·k is essentially the same 0.19 in both regimes — it is one put either way — but the inventory it stands beside is half the size, so the margin runs 3.4% of Conservative's capital against 1.7% of Standard's, and that cash earns the risk-free rate and nothing over it, in the wheel and in a benchmark holding the same share in cash alike. Against that benchmark the two regimes agree:
 
 | difference vs buy-and-hold | 5 y | 10 y | 30 y |
 |---|---|---|---|
-| Standard, as modelled | +0.03% | +0.01% | +0.01% |
-| Conservative, as modelled | −0.14% | −0.11% | −0.08% |
-| Standard, collateral earning r | +0.20% | +0.14% | +0.09% |
-| Conservative, collateral earning r | +0.20% | +0.14% | +0.09% |
+| Standard | −0.19% | −0.15% | −0.11% |
+| Conservative | −0.19% | −0.15% | −0.11% |
+| Standard, against the stock scaled to its delta | −0.035% | −0.028% | −0.020% |
+| Conservative, against the stock scaled to its delta | −0.035% | −0.028% | −0.020% |
 
-The last two rows agree to a third of a basis point at every horizon, which is far tighter than either is separately determined. **The entire visible difference between the two regimes is an accounting convention, not a property of the strategy** — and it is a useful reminder that a deficit of a few basis points in a table like this is more likely to be a ledger artifact than a discovery.
+They agree to a quarter of a basis point at every horizon, and the reason is that both parts of the book's exposure scale with p\*. The lots are half as many, but each is nearly the same object — it enters a little shallower, 1.3% below its strike against 1.6%, and then walks the same walk — so the census keeps its shape, and the calls sell nearly the same share of the book's exposure, 7.1 points of Conservative's capital at thirty years against 6.9 of Standard's. And the one live put, one put either way, carries a delta that follows its chance of assignment, 0.10 of a share at p\* = 10% against 0.19 at 20%, so it adds back the same 1.7 points to each.
 
-That leaves the real result, which is the invariance. The choice of strike moves everything the operator experiences — how often they are assigned, how much capital they need, how large the book grows, how busy the account is — and moves the expected return not at all. It is the tidiest illustration in the article of what the model is for: the dial the operator actually turns is a dial over their own experience of the strategy, not over its returns.
+That leaves the real result, which is the invariance. The choice of strike moves everything the operator experiences — how often they are assigned, how much capital they need, how large the book grows, how busy the account is — and moves the expected return by the three basis points its put's margin holds in cash, and the return against the stock not at all. It is the tidiest illustration in the article of what the model is for: the dial the operator actually turns is a dial over their own experience of the strategy, not over its returns.
 
 ## What this section produced
 
-The section set out to price the strategy and found that at fair option prices there is nothing to price: the wheel is economically the stock. Its whole edge is the volatility risk premium, and the conversion is that **every point of overpricing is worth about 45 basis points of excess return, against a break-even of zero** — no hurdle to clear before the strategy is worth running, and no return available from the machinery itself. The third of a share price a year that Track A reports is the equity risk premium relabelled, plus the operator's own capital returned in instalments.
+The section set out to price the strategy and found that at fair option prices there is nothing to price: the wheel is economically a smaller position in the stock, earning what the stock earns on the exposure it keeps and trailing the same money in the stock by the exposure its calls sell, a tenth of a point a year at thirty years. Its whole edge is the volatility risk premium, and the conversion is that **every point of overpricing is worth about 45 basis points of excess return, against a break-even of about a quarter of a point** — the price of the exposure sold, and no return available from the machinery itself. The 0.78 of a share price a year that Track A reports is the risk-free rate on the capital and the stock's premium on the exposure the book carries, relabelled, plus, while the book is young, the operator's own capital returned in instalments.
 
-Three qualifications, none of them small. Identical expected return is not identical risk: the book changes character as prices fall, because every frozen call slides further out of the money as the stock drops away from it. Leverage buys none of the missing return, the spread at which borrowing turns neutral being **1.60%** — the strategy's own excess return rather than a number that resembles it, so that ordinary retail financing straddles the break-even. And the strike dial moves everything the operator lives through while moving what they earn not at all.
+Three qualifications, none of them small. Earning the stock's return on a smaller exposure is not carrying a smaller risk: the book changes character as prices fall, because every frozen call slides further out of the money as the stock drops away from it. Leverage buys almost none of the missing return: the borrowing that survives is small, and the spread at which it turns neutral, **1.79%** at portfolio margin, lies inside the range of ordinary retail financing. And the strike dial moves everything the operator lives through while moving what they earn against the stock not at all.
 
 One question goes unasked here, and it is the one that decides whether any of these numbers exist. Every figure above is an expectation, and an expectation is a number only while the integral behind it converges — which for this strategy it does not always do. [The stability section](#sec:stability) asks when it does.
 

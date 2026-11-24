@@ -67,19 +67,12 @@ def compute(cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
     }
 
 
-# Economic and Track A figures moved with TODO II-35 (the account's cash earns
-# r, the window's edge closed).  Where a comment quotes a section, that prose
-# is being rewritten to these values (drafts/2026-11-13-account-cash-and-
-# window-edge-plan.md) and still shows the old.
-# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
-# which moved Part II's two-decimal figures.  Where a comment quotes a section,
-# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         "put": (0.1591, 0.0010),        # section 09: "put premiums 0.1591 per year"
-        "call": (0.3716, 0.0020),       # "call premiums 0.3706 per year"
-        "premiums": (0.5307, 0.0010),   # the vol-risk-premium table: "20.0% (fair) 0.5297"
-        "dividends": (0.2407, 0.0010),  # "dividends 0.2422 per year"
+        "call": (0.3716, 0.0020),       # "call premiums 0.3716 per year"
+        "premiums": (0.5307, 0.0010),   # the vol-risk-premium table: "20.0% (fair) 0.5307"
+        "dividends": (0.2407, 0.0010),  # "dividends 0.2407 per year"
         # The account's cash at r (TODO II-35): eq:income "interest 0.0114", and
         # the paragraph after it, "0.0098 a year" and "0.0016".  r*gamma_p*k on
         # the collateral, and each leg's premiums times
@@ -88,22 +81,22 @@ CASES = [
         "interest": (0.0114, 0.0002),
         "collateral": (0.0098, 0.0001),
         "float": (0.0016, 0.0001),
-        "income": (0.7827, 0.0020),     # eq:income "Track A income 0.7832 per year"
+        "income": (0.7827, 0.0020),     # eq:income "Track A income 0.7827 per year"
     }, note="Standard regime, 30y; call leg pinned transitively"),
     Case("--p-star 0.10", {
-        "income": (0.3813, 0.0020),     # Conservative: "Track A income 0.371/yr"
+        "income": (0.3813, 0.0020),     # Conservative: "Track A income 0.381/yr"
     }, note="Conservative regime"),
     # The volatility-risk-premium sweep of section 09 -- premiums per year as the
     # quote gets richer.  Only the quote moves, so this is the premiums column of
     # that table; the excess it buys is in returns_benchmark.py.
     Case("--iv-spread 0.005", {
-        "premiums": (0.5565, 0.0010),   # the table: "20.5%  0.5555"
+        "premiums": (0.5565, 0.0010),   # the table: "20.5%  0.5565"
     }, note="sigma_IV = 20.5%, half a vol point of overpricing"),
     Case("--iv-spread 0.010", {
-        "premiums": (0.5828, 0.0010),   # "21.0%  0.5818"
+        "premiums": (0.5828, 0.0010),   # "21.0%  0.5828"
     }, note="sigma_IV = 21.0%"),
     Case("--iv-spread 0.020", {
-        "premiums": (0.6366, 0.0010),   # "22.0%  0.6358"
+        "premiums": (0.6366, 0.0010),   # "22.0%  0.6366"
     }, note="sigma_IV = 22.0%"),
 ]
 

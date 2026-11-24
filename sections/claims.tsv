@@ -11,11 +11,11 @@
 07-holding-time.md	sec:verification	pending	pending	2026-10-23
 08-inventory.md	sec:portfolio	pending	pending	2026-10-23
 08-inventory.md	sec:verification	pending	pending	2026-10-23
-09-returns.md	eq:delta-return	10cc553bf0b5	d3c8f9e8b3b4	2026-11-21
-09-returns.md	eq:excess-return	d9a94f8d0367	ad308c3ff97e	2026-11-13
+09-returns.md	eq:delta-return	2c17e7446ef1	d3c8f9e8b3b4	2026-11-24
+09-returns.md	eq:excess-return	86e6fcd31bf9	ad308c3ff97e	2026-11-24
 09-returns.md	eq:wald-holding	0e2fba1f7f48	86d43c3450c0	2026-11-06
-09-returns.md	para:census-thirty-years	88fe690c632b	f73e55f8cd9f	2026-10-23
-09-returns.md	para:inventory-window-average	b3986fbecd2d	8b50aa38722d	2026-11-13
+09-returns.md	para:census-thirty-years	88fe690c632b	b32fa76ec7b7	2026-11-24
+09-returns.md	para:inventory-window-average	ec025d77fed7	ee9146fe72e4	2026-11-24
 09-returns.md	para:track-a	648b1fde53e5	52ccb24cac88	2026-11-13
 09-returns.md	para:when-lots-never-leave	62cedcd1c48a	7b2aafc3b676	2026-10-22
 09-returns.md	sec:live	pending	pending	2026-10-23
@@ -25,7 +25,7 @@
 10-stability.md	para:holding-first-passage-question	05fa16bd5b24	c6a36153b58f	2026-10-22
 10-stability.md	para:one-drift-two-readings	bbe19a9d34b5	e81d1f58d2fa	2026-10-22
 10-stability.md	para:smaller-book-moving-volatility	5602a2715650	3a512eb773a3	2026-11-21
-11-constrained.md	para:capital-market-value	34d2bc619001	ebce5fb72bc3	2026-10-23
+11-constrained.md	para:capital-market-value	297856487431	dab1529b0f68	2026-11-24
 11-constrained.md	para:entry-depth-figures	81d5bf4ac46a	07482679e48a	2026-10-22
 11-constrained.md	para:inventory-ninety-years	87959478eef4	f462e4f88dda	2026-10-22
 para:answers-entry	eq:x0-mean	b231b797af89	8faeaf09b38b	2026-10-22
@@ -39,7 +39,7 @@ para:answers-inventory	para:warehouse-fills-with-slow-lots	19f47f70cfd0	fbc5dbbb
 para:answers-live-account	sec:live	pending	pending	2026-10-23
 para:answers-portfolios	sec:correlation	pending	pending	2026-10-23
 para:answers-portfolios	sec:portfolio	pending	pending	2026-10-23
-para:answers-returns	para:smaller-position-in-the-stock	ed6e783b07eb	04b07ce700ff	2026-11-13
+para:answers-returns	para:smaller-position-in-the-stock	ed6e783b07eb	93f709189152	2026-11-24
 para:answers-stability	eq:capital-criterion	31411e21fcce	a45f9ef6aeab	2026-10-22
 para:answers-stability	eq:count-criterion	31411e21fcce	c2a862f053c9	2026-10-22
 para:answers-stability	para:boundaries-belong-to-the-stock	31411e21fcce	746e9c4ad1af	2026-10-22

@@ -1445,23 +1445,24 @@ def equity_required(C, econ):
 def levered_excess(excess, L, spread, cash=0.0):
     """Excess return on equity for a book of leverage L financed at r + spread.
 
-        net excess on equity  =  excess*L - spread*(L - 1)   [eq:levered-excess]
+        net excess on equity  =  excess*L - spread*(L - 1 - cash*L)   [eq:levered-excess]
 
-    with `cash` the account's own cash per unit of the capital, which an account
-    that borrows does not hold beside its debit but against it: one balance,
-    so the cash reduces what is borrowed and earns r_b rather than the r that
-    `excess` credited it.  The borrowed part per unit of equity is then
-    L - 1 - cash*L (TODO II-35); cash = 0 is the displayed form.
+    with `cash` the account's own cash per unit of the capital (c in the
+    section), which an account that borrows does not hold beside its debit but
+    against it: one balance, so the cash reduces what is borrowed and earns r_b
+    rather than the r that `excess` credited it (TODO II-35).
 
     The whole ledger collapses to this: equity earns the excess on everything
     it carries and pays the spread on the borrowed part, since the risk-free
     leg of the carry is already what "excess" is measured against.  Two
-    consequences the returns section reports.  It is **exactly neutral at every
-    L when spread = excess** -- the broker's charge and the strategy's own edge
-    are the same quantity, so borrowing buys a multiple of nothing -- and above
-    that spread leverage SUBTRACTS.  And it applies identically to the wheel and
-    to a levered buy-and-hold, so the difference between them scales by L and
-    the article's verdict is invariant to financing.
+    consequences the returns section reports.  With no cash it is **exactly
+    neutral at every L when spread = excess** -- the broker's charge and the
+    strategy's own edge are the same quantity -- and the cash lifts that
+    neutral spread to excess*(L - 1)/(L - 1 - cash*L), by most where the debit
+    is small; above it leverage SUBTRACTS.  And it applies identically to the
+    wheel and to a levered buy-and-hold holding the same share in cash, so the
+    difference between them scales by L, up to spread times the premiums only
+    the wheel holds, and the article's verdict is invariant to financing.
 
     The clamp is the one thing here the displayed form leaves out, because the
     section only ever reads it at L >= 1: a net creditor pays no spread, and the

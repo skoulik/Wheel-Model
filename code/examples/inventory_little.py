@@ -143,16 +143,13 @@ def _draw_approach(fig, ax, cfg=None, measure="P", ctx=None, **kw):
 FIGURES = [Figure("inventory-approach", _draw_approach)]
 
 
-# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
-# which moved Part II's two-decimal figures.  Where a comment quotes a section,
-# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         "lam": (10.4, 0.05),            # eq:lambda: "0.20 / (1/52) = 10.4 lots per year"
         "EW": (2.10, 0.02),             # eq:holding, carried into eq:little
         "EI_eq": (21.8, 0.1),           # eq:little: "10.4 × 2.10 = 21.8 lots"
         # fig:inventory-approach's two curves read at 5/10/30 years; the prose
-        # quotes "15.4 lots against an average of 11.4" at thirty.
+        # quotes "15.3 lots against an average of 11.3" at thirty.
         "at_h": ([7.90, 10.51, 15.32], 0.05),      # eq:little-finite, upper curve
         # "counting week by week gives the same total at every call date"
         "at_h_counted": ([7.90, 10.51, 15.32], 0.005),

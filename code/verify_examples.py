@@ -1117,8 +1117,8 @@ def main():
     # correctly, which is a different failure mode and the one an article has.
     #
     # What is deliberately absent: every simulated figure section 11 quotes --
-    # the ratchet's 3.62% against 0.89%, the four cash policies, the census
-    # depths, the thinning table, realized leverage of 0.743 -- comes from
+    # the ratchet's 3.59% against 0.97%, the four cash policies, the census
+    # depths, the thinning table, realized leverage of 0.744 -- comes from
     # `wheel_sim.py --scenario constrained --paths 16000`, which costs minutes
     # rather than seconds.  The small seeded run below pins the same machinery
     # at a configuration this file can afford; the section's figures are the
@@ -1166,13 +1166,12 @@ def main():
     # solved from, so wherever the stopping rule binds it returns g = 0.
     for A in (1.0, 5.0, A30, 19.0):
         s = saturation(G25, "P", far_p, 0.10, equity=A, econ=f)
-        check(f"draw is a flat 4.58% of equity at A = {A}", s["draw"] / A,
-              0.0458, 0.0002)
+        check(f"draw is a flat 4.59% of equity at A = {A}", s["draw"] / A,
+              0.0459, 0.0002)
 
     # Two quantities both called sustainable, a factor of two apart.  The draw
     # that keeps the account stationary in SHARES is derived, not tuned.
-    # 2.05% since TODO II-35 credited the account's cash; section 11 still
-    # quotes the 2.00% it was.
+    # 2.05% since TODO II-35 credited the account's cash.
     check("the draw that holds the account's size, r + excess - m",
           STD.r + f["econ_excess"] - (STD.mu - STD.delta), 0.0205, 0.0005)
 

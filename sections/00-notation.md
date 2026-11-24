@@ -77,7 +77,7 @@ Everything above describes an operator who buys whatever the puts assign. A real
 
 | Symbol | Meaning |
 |---|---|
-| A | **Account equity**, measured in share prices — one unit is one share at today's spot, so an account of A = 11.59 could pay for eleven and a half lots outright. The unconstrained model is A = ∞. (Unrelated to the accounting tracks below, which are always written out as "Track A") |
+| A | **Account equity**, measured in share prices — one unit is one share at today's spot, so an account of A = 11.52 could pay for eleven and a half lots outright. The unconstrained model is A = ∞. (Unrelated to the accounting tracks below, which are always written out as "Track A") |
 | γ_s | Equity fraction the broker requires against **held shares**: 1.00 shares paid for in full, 0.50 under Reg T, 0.25 under portfolio margin, 0.15 the most aggressive available. A property of the account type, not a dial the operator turns |
 | u, u\* | **Utilization**: margin posted as a fraction of equity. u\* is the operator's **stopping rule** — the utilization at which they stop selling new puts. u\* = 1 runs to the broker's own limit; a survival tolerance instead fixes u\* = γ_s·L_max |
 | L | **Leverage**: gross exposure per unit of equity, L = u/γ_s ([eq:leverage](#eq:leverage)), so the broker's ceiling u\* = 1 is L = 1/γ_s. The leverage an account *realizes* is E[I]/A, which is generally far below what it is permitted. What carrying it costs is priced in [the returns section](#sec:returns) ([eq:levered-excess](#eq:levered-excess)) |

@@ -23,7 +23,7 @@ The finite account adds three parameters to the model, and no more.
 
 **γ_s, the equity fraction.** A property of the account type rather than a dial the operator turns: a fact about their broker and their paperwork.
 
-**A, the account's equity**, measured — like everything else in this article — in share prices. A = 11.59 means the operator's own money would buy eleven and a half lots outright at today's price. The unconstrained model is A = ∞.
+**A, the account's equity**, measured — like everything else in this article — in share prices. A = 11.52 means the operator's own money would buy eleven and a half lots outright at today's price. The unconstrained model is A = ∞.
 
 **ε, the survival tolerance.** The probability of being sold out that the operator is willing to live with. The examples use ε = 10%, and one property of it has to be flagged immediately because it recurs: **it is a statement about unbounded time.** A 10% eventual risk is not a 10% risk over any particular decade, and every probability derived from it below carries a horizon.
 
@@ -137,16 +137,16 @@ An account smaller than A\* does not fail. It runs a fraction of the strategy, a
 
 The interesting part is how long the account takes to notice. **T_sat**, the time until expected inventory reaches capacity, replaces the unconstrained model's arbitrary "90% of the asymptote" convention with a real threshold — the date the account starts refusing puts:
 
-    equity A            1.00    3.00    5.00   11.59   15.00   19.04   19.23
-    capacity, lots      1.13    3.40    5.67   13.15   17.02   21.61   21.82
-    throughput          5.2%   15.6%   26.0%   60.3%   78.0%   99.0%    100%
-    T_sat, years         0.1     0.9     2.4    18.5    44.4     270   never
+    equity A            1.00    3.00    5.00   11.52   15.00   19.04   19.23
+    capacity, lots      1.13    3.40    5.67   13.07   17.02   21.61   21.82
+    throughput          5.2%   15.6%   26.0%   59.9%   78.0%   99.0%    100%
+    T_sat, years         0.1     0.9     2.4    18.2    44.4     270   never
 
 Two things in that table, pointing opposite ways.
 
 **The good news is real but it is a trade, not an escape.** [The inventory section](#para:inventory-ninety-years) reported that the unconstrained equilibrium takes ninety years to approach, and called it a limit no participant reaches. A constrained account does reach its equilibrium, because a capacity ceiling truncates exactly the slow deep tail that made the approach take a lifetime — 2.4 years at A = 5, under a year at A = 3. But it reaches it in proportion to how little of the strategy it is running. An operator who wants to be at equilibrium in two years gets there by running a quarter of the wheel. An operator running all of it inherits the ninety years unchanged, and one running 99% of it waits 270.
 
-**The bad news is the top of the table.** An account at the model's own thirty-year capital — 11.59 share prices, which is what [the returns section](#para:capital-market-value) reports the strategy as consuming — runs at **60% throughput**, and takes 18.5 years to find out. Smaller accounts are worse: at A = 5 the strategy runs at a quarter of its rate, and at A = 1 at a twentieth. These are reachable steady states in which the wheel is barely running.
+**The bad news is the top of the table.** An account at the model's own thirty-year capital — 11.52 share prices, which is what [the returns section](#para:capital-market-value) reports the strategy as consuming — runs at **60% throughput**, and takes 18.2 years to find out. Smaller accounts are worse: at A = 5 the strategy runs at a quarter of its rate, and at A = 1 at a twentieth. These are reachable steady states in which the wheel is barely running.
 
 ### And every number above is a number about one stock
 
@@ -189,16 +189,16 @@ Simulating four cash policies on the same account, the same paths and the same s
 
 | what is done with the income | liquidated | what the static barrier says |
 |---|---|---|
-| retain everything | **0.26%** | 1.09% |
-| service the interest, withdraw the rest (g = 0) | 1.36% | 0.84% |
-| draw only enough to keep the account's size | 3.62% | 0.89% |
-| withdraw the income, let the interest accrue | **8.99%** | 0.88% |
+| retain everything | **0.29%** | 1.14% |
+| service the interest, withdraw the rest (g = 0) | 1.50% | 1.02% |
+| draw only enough to keep the account's size | 3.59% | 0.97% |
+| withdraw the income, let the interest accrue | **9.30%** | 0.85% |
 
-**The cash policy moves survival by a factor of about thirty. The barrier formula does not see it at all** — it reads between 0.84% and 1.09% for all four. Full retention is *safer* than the closed form; withdrawing the income is nearly seven times worse than servicing it.
+**The cash policy moves survival by a factor of about thirty. The barrier formula does not see it at all** — it reads between 0.85% and 1.14% for all four. Full retention is *safer* than the closed form; withdrawing the income is six or seven times worse than servicing it.
 
-The mechanism is the ranking's own explanation. Retained income repays the debit, and on most paths repays all of it: of the accounts that owed something when they first filled, five in six owe nothing by the sixtieth year, and across them all the debit falls from 8% of the book's value to 2.5%. The account de-levers itself. Withdrawn income leaves the interest compounding against a price whose median grows at ν = 2.5% while r_b = 5% — a race the borrower loses, and only the dividend closes any of the gap, which a withdrawn dividend does not.
+The mechanism is the ranking's own explanation. Retained income repays the debit, and on most paths repays all of it: of the accounts that owed something when they first filled, five in six owe nothing by the sixtieth year, and across them all the debit falls from 8% of the book's value to 2.4%. The account de-levers itself. Withdrawn income leaves the interest compounding against a price whose median grows at ν = 2.5% while r_b = 5% — a race the borrower loses, and only the dividend closes any of the gap, which a withdrawn dividend does not.
 
-One qualification, because it withdraws an appealing piece of arithmetic. The closed form says the withdraw-everything policy pins g = r_b = 5% exactly, against ν = 2.5%, so the third stability boundary below is crossed by a factor of two. Simulated, the realized g under that policy is **about +1.5%, not 5%** — withdrawing the income shrinks the account faster than the interest compounds the debit, and the linearization behind [eq:debit-growth](#eq:debit-growth) is exact only where the drain is proportional to the debit. Read as ν > g, the boundary is then not crossed at all, and yet this is the policy liquidated most often. What the comparison leaves out is the account's size. ν is the rate a book grows at while it keeps its lots, and this one does not keep them: the account shrinks by 2.7% a year against the price, so its book is roughly flat in dollars while the debt still grows by 1.5%, and the debt against the book's value rises from 7.6% to 9.0%. **ν > g is the criterion for an account that holds its size**, which is what the static barrier assumes; one that shrinks has a book growing more slowly than the price, and the debt need only outgrow the book. Quote the table as the evidence, and do not quote g = r_b as a measured rate.
+One qualification, because it withdraws an appealing piece of arithmetic. The closed form says the withdraw-everything policy pins g = r_b = 5% exactly, against ν = 2.5%, so the third stability boundary below is crossed by a factor of two. Simulated, the realized g under that policy is **about +1.4%, not 5%** — withdrawing the income shrinks the account faster than the interest compounds the debit, and the linearization behind [eq:debit-growth](#eq:debit-growth) is exact only where the drain is proportional to the debit. Read as ν > g, the boundary is then not crossed at all, and yet this is the policy liquidated most often. What the comparison leaves out is the account's size. ν is the rate a book grows at while it keeps its lots, and this one does not keep them: the account shrinks by 2.7% a year against the price, so its book is roughly flat in dollars while the debt still grows by 1.4%, and the debt against the book's value rises from 7.6% to 9.0%. **ν > g is the criterion for an account that holds its size**, which is what the static barrier assumes; one that shrinks has a book growing more slowly than the price, and the debt need only outgrow the book. Quote the table as the evidence, and do not quote g = r_b as a measured rate.
 
 <a id="para:third-boundary"></a>
 **A third stability boundary.** [The stability section](#sec:stability) found two conditions for the wheel to work: lots come back iff ν > 0, and the capital in them comes back iff m > σ². The finite account adds a third in the same currency — the account survives iff **ν > g**, the price's median growth outrunning the debt's — and [the stability section](#sec:stability) is where the three are set beside each other and compared.
@@ -215,49 +215,49 @@ both logarithms being negative, so the sustainable growth rate falls as the barr
 
 draw_max  =  income + ( g_max − r_b ) · D    {#eq:draw}
 
-This is a **constraint, not an optimum.** It does not say what an operator should withdraw; it says what a chosen leverage costs in spendable cash. And what makes it worth reporting is that the answer goes negative, at a leverage far below anything a broker would query. At A = 11.59 and γ_s = 0.25:
+This is a **constraint, not an optimum.** It does not say what an operator should withdraw; it says what a chosen leverage costs in spendable cash. And what makes it worth reporting is that the answer goes negative, at a leverage far below anything a broker would query. At A = 11.52 and γ_s = 0.25:
 
-    leverage L         1.000    1.019    1.135    1.250    1.500    1.883
-    barrier f*         0.000    0.025    0.158    0.267    0.444    0.625
-    P(sold out, ever)   0.0%     1.0%    10.0%    19.2%    36.3%    55.6%
-    draw, % of equity  4.63%    4.65%    4.58%    4.30%    2.86%   -2.14%
-    excess RoE        +1.68%   +1.71%   +1.90%   +2.09%   +2.51%   +3.15%
+    leverage L         1.000    1.019    1.135    1.250    1.500    1.895
+    barrier f*         0.000    0.025    0.158    0.267    0.444    0.630
+    P(sold out, ever)   0.0%     1.0%    10.0%    19.2%    36.3%    56.1%
+    draw, % of equity  4.64%    4.66%    4.59%    4.31%    2.88%   -2.32%
+    excess RoE        +1.57%   +1.60%   +1.78%   +1.96%   +2.35%   +2.97%
 
-Two readings of the same six columns, and they point in opposite directions. Down the last row, leverage improves the reported return on equity monotonically, from 1.68% to 3.15%. Down the row above it, the cash the operator may actually take out is flat to within a few basis points as far as the survivable leverage — the first rungs buy nothing and cost nothing — and then **collapses, and goes negative**: a demand for deposits rather than a permission to withdraw. Return on paper and cash in hand move opposite ways, and only one of them is spendable.
+Two readings of the same six columns, and they point in opposite directions. Down the last row, leverage improves the reported return on equity monotonically, from 1.57% to 2.97%. Down the row above it, the cash the operator may actually take out is flat to within a few basis points as far as the survivable leverage — the first rungs buy nothing and cost nothing — and then **collapses, and goes negative**: a demand for deposits rather than a permission to withdraw. Return on paper and cash in hand move opposite ways, and only one of them is spendable.
 
-Note also what the draw column does *not* do along the account-size axis: it is a flat 4.58% of equity at every A below A\*. That degeneracy is not a coincidence but a tautology — g_max solves the same equation L_max was solved from, so wherever the stopping rule binds it returns exactly the policy that rule was chosen under, g = 0. There is no slack anywhere the constraint is active. The draw axis is sharp along leverage and empty along size.
+Note also what the draw column does *not* do along the account-size axis: it is a flat 4.59% of equity at every A below A\*. That degeneracy is not a coincidence but a tautology — g_max solves the same equation L_max was solved from, so wherever the stopping rule binds it returns exactly the policy that rule was chosen under, g = 0. There is no slack anywhere the constraint is active. The draw axis is sharp along leverage and empty along size.
 
-**And a warning about the phrase "sustainable", which this section uses in two incompatible ways.** The 4.58–4.63% above holds the *liquidation risk* fixed. It does not hold the *account* fixed: the g = 0 policy keeps the debit constant in dollars, while everything in this article counts an account in share prices, and a dollar-constant account shrinks against a compounding price. Simulated, an account following the frontier's own cash policy **loses half its throughput** — 31.7% against the 60.3% the table above reports — sliding away from its capacity at over 2% a year. Staying stationary in the units the model counts costs a draw of r + excess − m = **2.05% of equity per year**. Two figures, both called sustainable, a factor of two apart, because they hold different things constant. **The article's frontier figures are the arithmetic of an account that stays the same size; an operator who wants to draw 4.6% is choosing a shrinking business.**
+**And a warning about the phrase "sustainable", which this section uses in two incompatible ways.** The 4.59–4.64% above holds the *liquidation risk* fixed. It does not hold the *account* fixed: the g = 0 policy keeps the debit constant in dollars, while everything in this article counts an account in share prices, and a dollar-constant account shrinks against a compounding price. Simulated, an account following the frontier's own cash policy **loses half its throughput** — 31.7% against the 59.9% the table above reports — sliding away from its capacity at over 2% a year. Staying stationary in the units the model counts costs a draw of r + excess − m = **2.05% of equity per year**. Two figures, both called sustainable, a factor of two apart, because they hold different things constant. **The article's frontier figures are the arithmetic of an account that stays the same size; an operator who wants to draw 4.6% is choosing a shrinking business.**
 
 ## The ratchet: where the closed form breaks
 
 Everything to this point has treated the barrier as static — the book frozen, the price moving. That is the assumption [eq:barrier](#eq:barrier) is built on, and it is time to test it, because a real account does not hold still.
 
-Simulate the same paths twice. Once with the book frozen at the moment the account first saturates, the price alone moving it; once with the account allowed to go on operating under its stopping rule. The frozen run is [eq:survive](#eq:survive)'s assumption measured rather than computed, and it passes: 0.89% against a closed form's 0.99% at thirty years past saturation, 1.1 standard errors apart, and across two orders of magnitude of probability at a more heavily levered testbed the worst disagreement is 0.3 standard errors. **The closed forms are right about what they describe.**
+Simulate the same paths twice. Once with the book frozen at the moment the account first saturates, the price alone moving it; once with the account allowed to go on operating under its stopping rule. The frozen run is [eq:survive](#eq:survive)'s assumption measured rather than computed, and it passes: 0.97% against a closed form's 0.98% at thirty years past saturation, 0.1 standard errors apart, and across two orders of magnitude of probability at a more heavily levered testbed the worst disagreement is 0.3 standard errors. **The closed forms are right about what they describe.**
 
 What they describe is not an operator. The same paths, with the account operating:
 
     thirty years past saturation      frozen book    operating book
-    P(sold out)                            0.89%             3.62%
+    P(sold out)                            0.97%             3.59%
     standard error                        +-0.08            +-0.16
 
 **A factor of four, at identical leverage on identical prices** — 3.7 against the closed form itself. The mechanism is a ratchet, and it is the cleanest statement in this section of what a static barrier gets wrong.
 
-A frozen book *de-levers as the price rises*. That is the whole of the closed form's comfort: every rally puts distance between the account and its barrier, permanently. An operator on a utilization rule does the opposite. A price rise raises their equity, the rule then permits another put, and they sell it — so the barrier follows the price up. A price fall merely blocks, and the barrier stays where it is. **The barrier ratchets upward and never comes back down.** Measured directly: the drift of ln(M/D), which is precisely what the barrier sees, is **−1.47% ± 0.04 per year** where the closed form assumes ν − g = **+2.50%**. The quantity the formula treats as drifting safely away from the barrier is in fact drifting toward it.
+A frozen book *de-levers as the price rises*. That is the whole of the closed form's comfort: every rally puts distance between the account and its barrier, permanently. An operator on a utilization rule does the opposite. A price rise raises their equity, the rule then permits another put, and they sell it — so the barrier follows the price up. A price fall merely blocks, and the barrier stays where it is. **The barrier ratchets upward and never comes back down.** Measured directly: the drift of ln(M/D), which is precisely what the barrier sees, is **−1.49% ± 0.04 per year** where the closed form assumes ν − g = **+2.50%**. The quantity the formula treats as drifting safely away from the barrier is in fact drifting toward it.
 
 So the untended steady state is the state of maximum fragility, and **the stopping rule is mandatory rather than prudent**: a mechanical put-selling rule with no withdrawals converts the broker's permission into actual leverage without the operator ever deciding to lever anything.
 
 ### Where the drift stops, and why it is not the broker's ceiling
 
-The account does not ratchet up forever. It stops at the strategy's own appetite: an account cannot hold more than the stationary inventory however much it is permitted, so realized leverage is capped at E[I(∞)]/A — **1.883** at A = 11.59, against a permitted 4.00. The wheel simply has nothing to buy with the rest of the money.
+The account does not ratchet up forever. It stops at the strategy's own appetite: an account cannot hold more than the stationary inventory however much it is permitted, so realized leverage is capped at E[I(∞)]/A — **1.895** at A = 11.52, against a permitted 4.00. The wheel simply has nothing to buy with the rest of the money.
 
-And 1.883 is the last column of the draw table above. At that drifted leverage the account's excess return on equity reads **higher, 3.15% against 1.68% unlevered**, while the cash it may sustainably withdraw has gone to **−2.14% of equity per year**. That pairing is the answer to why the stopping rule is mandatory, and it is not the obvious answer. The drifted account does not look bad on paper — it looks *better*. What it cannot do is pay anybody. An untended wheel migrates to a state of higher reported return, higher fragility, and negative distributable cash, and only one of those three is visible in a performance figure.
+And 1.895 is the last column of the draw table above. At that drifted leverage the account's excess return on equity reads **higher, 2.97% against 1.57% unlevered**, while the cash it may sustainably withdraw has gone to **−2.32% of equity per year**. That pairing is the answer to why the stopping rule is mandatory, and it is not the obvious answer. The drifted account does not look bad on paper — it looks *better*. What it cannot do is pay anybody. An untended wheel migrates to a state of higher reported return, higher fragility, and negative distributable cash, and only one of those three is visible in a performance figure.
 
 ### Two smaller corrections, both in the operator's favour
 
-**Realized leverage sits well below the stopping rule.** The prudent account's is **0.743** against a rule of 1.1349, because a book refilled one lot a week is under its ceiling most of the time. At small account sizes the effect is stronger still and becomes discrete: at A = 5, integer lots mean the book stops at 5 lots against a capacity of 5.67, the account **never borrows at all**, and its permitted 13% leverage is unreachable. Its barrier is vacuous.
+**Realized leverage sits well below the stopping rule.** The prudent account's is **0.744** against a rule of 1.1349, because a book refilled one lot a week is under its ceiling most of the time. At small account sizes the effect is stronger still and becomes discrete: at A = 5, integer lots mean the book stops at 5 lots against a capacity of 5.67, the account **never borrows at all**, and its permitted 13% leverage is unreachable. Its barrier is vacuous.
 
-**And the fill-up years are years the account cannot be sold out in.** The closed form starts a saturated account; a real one is unlevered for its entire fill-up. From an empty book the prudent account's liquidation probability is **0.97% by thirty years and 11.0% by sixty** — against 3.6% in the thirty years *after* saturation. Note the second figure against the ε = 10% the stopping rule was solved under. Allowed to keep buying, the account exceeds its own eventual-risk tolerance inside sixty years, which is the ratchet showing up in the one number the operator chose.
+**And the fill-up years are years the account cannot be sold out in.** The closed form starts a saturated account; a real one is unlevered for its entire fill-up. From an empty book the prudent account's liquidation probability is **0.82% by thirty years and 11.1% by sixty** — against 3.6% in the thirty years *after* saturation. Note the second figure against the ε = 10% the stopping rule was solved under. Allowed to keep buying, the account exceeds its own eventual-risk tolerance inside sixty years, which is the ratchet showing up in the one number the operator chose.
 
 ## Capacity moves with the price
 
@@ -271,7 +271,7 @@ and the price-dependence runs entirely through the second term. **A net creditor
 
 That mechanism is not peculiar to this strategy, and it shows up on a much larger sample. [Santa-Clara and Saretto](#ref:santa-clara-saretto-2009), replaying option-writing strategies on the S&P 500 under the exchanges' margin rules, find that margin requirements cap how much can be written and force investors out of their positions precisely when they are losing money — the same forced exit at the worst moment, arrived at from market history rather than from a barrier. Their setting is index puts and this one is a wheel on a single name, so none of their magnitudes transfer; what transfers is that the mechanism is real and is the binding one in practice.
 
-The prudent account is a net creditor for most of its life, realized leverage of 0.743 being what that looks like. So for the accounts this section recommends, a falling market makes blocking *less* likely, not more.
+The prudent account is a net creditor for most of its life, realized leverage of 0.744 being what that looks like. So for the accounts this section recommends, a falling market makes blocking *less* likely, not more.
 
 ## The census the constraint leaves behind
 
@@ -280,10 +280,10 @@ Which settles a question the reframe raised and got backwards.
 Blocking does not remove arrivals at random; it removes them when the account is full. The natural guess is that a constrained book is *shallower* than an unconstrained one — blocking bites during drawdowns, so the account misses exactly the lots it would have bought cheapest, which are the ones that would have gone deepest. Measured against a simulated unconstrained control on the same paths, that guess is **wrong, and wrong in sign**:
 
     depth census                      unconstrained    constrained, after saturation
-    share of lot-time deeper than 35%        0.489                            0.530
-    mean depth                              0.4810                           0.5127
+    share of lot-time deeper than 35%        0.489                            0.527
+    mean depth                              0.4810                           0.5104
 
-**A blocked book is 6.6% deeper**, with the deepest bin's share up 4.1 points.
+**A blocked book is 6.1% deeper**, with the deepest bin's share up 3.8 points.
 
 Two reasons the intuition failed, and both are already on the page. Blocking removes the *newest* arrivals — and a new lot is a shallow lot, entering 1.6% below its strike by [the entry section](#para:entry-depth-figures)'s law. Refusing arrivals therefore strips the shallow end of the census, not the deep end. And the drawdown story was backwards too, by the previous subsection: a near-unlevered account's capacity in lots *rises* as the price falls, so blocking is if anything rarer during a drawdown, not more common.
 
@@ -317,6 +317,6 @@ The finite account changes four things and leaves one alone.
 
 What it leaves alone is the return. Leverage multiplies both the wheel and the buy-and-hold benchmark it is measured against, so [the returns section](#sec:returns)'s verdict survives the reframe untouched. The finite account is not a story about making more money. It is a story about how much of the strategy an operator can actually run, how long it takes them to find out, and who closes the position when it goes wrong.
 
-And one warning that outranks all four. **The closed forms in this section are right about capacity and wrong about survival**, and by a knowable amount: uniform thinning holds to about 1%, T_sat lands at 18.2 years simulated against 18.5 analytic, and the static barrier understates an operating book's liquidation risk by a factor of about four because a book that is refilled after every recovery ratchets its barrier upward and never lowers it. Every survival figure here should be read as a lower bound on what an operating account faces.
+And one warning that outranks all four. **The closed forms in this section are right about capacity and wrong about survival**, and by a knowable amount: uniform thinning holds to about 1%, T_sat lands at 17.9 years simulated against 18.2 analytic, and the static barrier understates an operating book's liquidation risk by a factor of about four because a book that is refilled after every recovery ratchets its barrier upward and never lowers it. Every survival figure here should be read as a lower bound on what an operating account faces.
 
 (The simulated figures in this section come from `python code/wheel_sim.py --scenario constrained --paths 16000`, at a fixed seed; the analytic ones from `python code/model.py`.)

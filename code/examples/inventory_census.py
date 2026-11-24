@@ -175,9 +175,6 @@ def _draw_census(fig, ax, cfg=None, measure="P", horizon=30.0, ctx=None, **kw):
 FIGURES = [Figure("depth-census", _draw_census)]
 
 
-# The near grid is Richardson-extrapolated from h = 0.01 and 0.005 (TODO II-32),
-# which moved Part II's two-decimal figures.  Where a comment quotes a section,
-# that prose is being rewritten to these values and may still show the old.
 CASES = [
     Case("", {
         # fig:depth-census, binned: the shares are the figure's density summed
@@ -200,7 +197,7 @@ CASES = [
     }, note="Standard regime, thirty-year horizon"),
     Case("--stationary", {
         "mean_x": (0.78, 0.005),        # "mean depth 78 log-points"
-        "mean_q": (0.037, 0.0005),      # "inventory-weighted q of 0.036"
+        "mean_q": (0.037, 0.0005),      # "inventory-weighted q of 0.037"
         "deep50": (0.52, 0.005),        # "52% ... more than 50 log-points under water"
     }, note="the stationary limit the system heads toward"),
 ]
