@@ -100,6 +100,11 @@ PUTEXP, CALLEXP, SALE = 0, 1, 2
 DEPTH_EDGES = [0.0, 0.02, 0.04, 0.07, 0.10, 0.15, 0.22, 0.35, float("inf")]
 KM_HORIZONS_M = [3, 6, 9, 12, 24, 36, 60, 120]
 DRAW_POLICIES = ("service", "retain", "income", "stationary")
+# The debt's tail, which is what orders the cash policies: a debit past this share
+# of the book's market value is about twice the survivable stopping rule's, so the
+# account is refused every put and holds a frozen book -- the static barrier's own
+# assumption -- and what the policy does to the debit there decides the rest.
+DEBT_TAIL = 0.25
 
 # Path batches for the constrained scenario.  Fixed, and NOT derived from the
 # core count: each batch seeds its own generator, so the answer is the same
@@ -336,6 +341,13 @@ class Agg:
         # D/M at both ends summed over them, a repaid path counting zero.
         self.owed = self.repaid = 0
         self.dm_sat = self.dm_end = 0.0
+        # ...and the debt's tail, on every saturated path: years from first saturation
+        # until the debit first stands past DEBT_TAIL of the book (at an event date, or
+        # at liquidation, whichever is first), or inf; and the log growth of the debit
+        # and of the book over the time it stands there, a liquidated path's last step
+        # taken to the barrier.
+        self.t_tail = []
+        self.tail_dlnd = self.tail_dlnm = self.tail_t = 0.0
         # Post-saturation, time-weighted: the regime the closed forms describe.
         self.ps_t = self.ps_inv = self.ps_lev = self.ps_income = 0.0
         self.ps_eq = self.ps_eqt = 0.0
@@ -377,12 +389,13 @@ class Agg:
                 "first_exit",
                 "paths", "sales", "blocked", "withdrawn", "ps_t",
                 "ps_inv", "ps_lev", "ps_eq", "ps_eqt", "ps_income", "ps_sales",
-                "ps_blocked", "owed", "repaid", "dm_sat", "dm_end")
+                "ps_blocked", "owed", "repaid", "dm_sat", "dm_end",
+                "tail_dlnd", "tail_dlnm", "tail_t")
     _COUNTERS = ("inv_hist", "inv_by_idx", "eq_by_idx", "eqn_by_idx",
                  "cap_by_idx", "mvcap_by_idx", "n_by_idx", "period_hist",
                  "batch_hist")
     _LISTS = ("durations", "gaps", "t_liq", "sat_times", "a_sat", "window", "liq_dyn",
-              "liq_stat", "g_real", "r_drift", "e_drift")
+              "liq_stat", "g_real", "r_drift", "e_drift", "t_tail")
 
     def merge(self, o):
         """Absorb another Agg, so a run can be split over a process pool."""
@@ -712,6 +725,8 @@ def run_path(P, rng, agg, states=None, brng=None):
     d_a = d_b = d_sat = d_last = 0.0
     m_sat = m_last = 0.0            # market value of the book at the same two points
     eq_sat = eq_last = s_sat = s_last = 0.0
+    t_tail = float("inf")           # the debt's tail, see Agg.t_tail
+    tail_prev = None                # (t, D, M) at the last event date after saturation
     t_end = P.years
     ps_sales = ps_blocked = 0
     # Which flows stay in the account.  Income is premium plus net dividend;
@@ -769,6 +784,18 @@ def run_path(P, rng, agg, states=None, brng=None):
             elif not isinstance(P.draw, str):
                 take += P.draw * dt
             d_a = max(0.0, -cash)
+            if t_sat is not None and m_last > 0.0:
+                # The account as it stands at this event date, before the interval's
+                # flows: when the debit first passes DEBT_TAIL of the book, and how the
+                # debit and the book grow while it is past it.  Nothing here is drawn.
+                if t_tail == float("inf") and d_a > DEBT_TAIL * m_last:
+                    t_tail = t - t_sat
+                if (tail_prev is not None and t > tail_prev[0] and d_a > 0.0
+                        and tail_prev[1] > DEBT_TAIL * tail_prev[2]):
+                    agg.tail_dlnd += log(d_a / tail_prev[1])
+                    agg.tail_dlnm += log(m_last / tail_prev[2])
+                    agg.tail_t += t - tail_prev[0]
+                tail_prev = (t, d_a, m_last)
             cash += div + interest - take
             # Premiums whose options expire now leave the account, having
             # earned the interval's interest above.
@@ -847,6 +874,13 @@ def run_path(P, rng, agg, states=None, brng=None):
                     if (daily_hit(closes, d_a / den, d_b / den) if P.daily_barrier
                             else bridge_hit(s_a, S, d_a / den, d_b / den, var, u)):
                         dead, t_liq, t_end = True, t, t
+                        # The last step of the debt's tail ends at the barrier, where
+                        # the book is worth D/(1 - gamma_s); no event date samples it.
+                        if (tail_prev is not None and t > tail_prev[0] and d_b > 0.0
+                                and tail_prev[1] > DEBT_TAIL * tail_prev[2]):
+                            agg.tail_dlnd += log(d_b / tail_prev[1])
+                            agg.tail_dlnm += log(d_b / (1.0 - P.gamma_s) / tail_prev[2])
+                            agg.tail_t += t - tail_prev[0]
                         for lot in lots:       # sold out from under the operator
                             agg.durations.append(
                                 (round((t - lot.entry) * 12, 6), False))
@@ -1089,6 +1123,10 @@ def run_path(P, rng, agg, states=None, brng=None):
                                else float("inf"))
             agg.liq_stat.append(t_stat - t_sat if t_stat < float("inf")
                                 else float("inf"))
+            # A liquidated path has passed the tail by the time it reaches the
+            # barrier, whether or not an event date saw it there.
+            agg.t_tail.append(min(t_tail, t_liq - t_sat) if t_liq < float("inf")
+                              else t_tail)
             # The realized growth rate of the debit, against the g the closed
             # forms were told to assume.  Defined only while there is a debit
             # at both ends; an account that repays itself has no log growth.
@@ -1805,9 +1843,11 @@ def constrained(args):
           f" {'d ln(E/S)':>10} {'thruput':>8} {'mean I':>7}"
           f" {f'P(liq|sat,{H_pol:.0f}y)':>14} {'frozen':>7} {'repaid':>7}"
           f" {'D/M sat -> end':>15}")
+    policies = []
     for draw in DRAW_POLICIES:
         P, agg = base if draw == "stationary" else \
             run(A_30, L_max, draw, "", report=False)
+        policies.append((draw, agg))
         _, n, _, st, dy, _, _ = survival_rows(
             agg, model.criteria(as_config(P), "P")["nu"], P.sigma, (H_pol,))[0]
         gm, gse = _span_rate(agg.g_real)
@@ -1827,6 +1867,32 @@ def constrained(args):
           "at the end, which g, read")
     print("    over the paths still owing, cannot see; D/M is averaged over the same "
           "paths, a repaid one at zero)")
+
+    # What orders the four is the debt's tail, not its average (D/M above is lower
+    # under the stationary draw than under servicing, and it is liquidated twice as
+    # often).  Past DEBT_TAIL of the book the stopping rule refuses every put, so the
+    # book is frozen and nu > g decides with the g the policy produces there.  On
+    # every saturated path whose window runs its course, liquidated ones included.
+    print(f"\n   the debt's tail, {H_pol:.0f}y after saturation: past {DEBT_TAIL:.0%} of the"
+          " book every put is refused and the book is frozen")
+    print(f"   {'policy':>10} {'paths':>6} {'D/M past':>9} {'...then sold':>13}"
+          f" {'there: d ln D':>14} {'d ln M':>8} {'d ln(M/D)':>10}")
+    for draw, agg in policies:
+        rows = [(tt, ld) for tt, w, ld in zip(agg.t_tail, agg.window, agg.liq_dyn)
+                if w >= H_pol]
+        n = len(rows)
+        past = sum(1 for tt, _ in rows if tt <= H_pol)
+        sold = sum(1 for tt, ld in rows if tt <= H_pol and ld <= H_pol)
+        gd = agg.tail_dlnd / agg.tail_t if agg.tail_t else float("nan")
+        gmk = agg.tail_dlnm / agg.tail_t if agg.tail_t else float("nan")
+        print(f"   {draw:>10} {n:>6} {past / max(1, n):>9.1%} {sold / max(1, past):>13.1%}"
+              f" {gd:>+14.4f} {gmk:>+8.4f} {gmk - gd:>+10.4f}")
+    print(f"   ('D/M past' is the share of paths whose debit stood past {DEBT_TAIL:.0%} of the"
+          " book at an event date,")
+    print("    or reached the barrier; '...then sold' the share of those liquidated in the"
+          " window; the growth rates")
+    print("    are per year of the time spent past it, over the whole run, a liquidated"
+          " path's last step to the barrier)")
 
 
 def validate(args):

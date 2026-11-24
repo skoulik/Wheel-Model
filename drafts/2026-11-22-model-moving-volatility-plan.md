@@ -1186,3 +1186,34 @@ The near grid's extrapolation has one more piece of independent evidence here: t
 paired test of the same day read the simulator's every-session book delta at 0.93032 ± 0.00056
 and 0.92992 ± 0.00062, pooled 0.93014 ± 0.00042, against the single grid's 0.93091 (1.8 errors
 above) and the extrapolated pair's 0.93048 (0.8 above).
+
+**What orders the four cash policies, 2026-11-24** (Sergei: "Let's do it now", then "Yes,
+please add"). The question the second settled sentence above left open. The drift of ln(M/D)
+over every path, liquidated ones up to the barrier (by Wald's identity the span-weighted rate
+over paths stopped at liquidation is unbiased for a constant drift, where the survivors' is
+not), failed as the measure: ln(M/D) blows up as the debit nears zero, and at 800 paths it did
+not order the four. What does is the debt's tail, measured first by a scratch trace of D/M at
+every call expiry and then by `--scenario constrained`'s own new table (`DEBT_TAIL = 0.25`, at
+every event date, a liquidated path's last step taken to the barrier; every other line of the
+scenario's output unchanged on both seeds). Thirty years after saturation, article seed / seed 1:
+
+| | retain | service | stationary | income |
+|---|---|---|---|---|
+| liquidated | 0.29 / 0.25% | 1.50 / 1.32% | 3.59 / 3.78% | 9.30 / 9.27% |
+| debit past a quarter of the book | 4.5 / 4.0% | 20.7 / 20.9% | 23.8 / 23.1% | 37.4 / 38.0% |
+| ...then liquidated | 6.5 / 6.2% | 7.2 / 6.3% | 15.1 / 16.3% | 24.9 / 24.4% |
+| there, per year: d ln D | +2.2 / +2.3% | 0 | +3.5 / +3.5% | +4.3 / +4.2% |
+| d ln M | +2.2 / +2.5% | +2.4 / +2.6% | +2.3 / +2.1% | +2.3 / +2.3% |
+| d ln(M/D) | 0.0 / +0.2% | +2.4 / +2.6% | −1.3 / −1.4% | −1.9 / −1.9% |
+
+Past a quarter of the book the debit is about twice the stopping rule's (0.119 at L_max), so
+the account is refused every put — no lot was ever assigned there in the scratch trace — and its
+book is as good as frozen, the static barrier's own assumption. There ν > g decides after all,
+with the g each policy produces in that state: servicing holds the debit flat, retaining lets it
+grow about as fast as the book (deep lots' income no longer covers the interest), and the
+stationary draw, which goes on taking its share of the equity, and the income withdrawal, which
+lets the interest compound, grow it faster than the book. Mean D/M does not order them (time-
+weighted over the window, 6.5% servicing against 5.3% for the stationary draw, in the trace). So
+two stages: how often the debt gets high (retention rarely), and whether, once high, it keeps
+climbing. Retaining and servicing continue to the barrier equally often within the errors (±1.1
+points on retention's 500 paths), though their drifts there differ.
