@@ -319,6 +319,28 @@ parameter drop lands in the article's prose"). Each item points to where its num
    (step 4); half the down jumps fall on market-wide days.
 7. **What is left out, and why:** takeovers (decision 5), the index's leavers (step 2's
    lower bound), the constant jump rate (3), the earnings term (4).
+8. **The long run, and the lattice's sources** (added 2026-11-27 at Sergei's word,
+   "implement all of the suggestions"; the sources read that day):
+   - §06, where the lattice is described: [`tauchen-1986`] as its precedent, and the three
+     ways it departs — transitions simulated, an end state split to keep its mean, the range
+     set by where deep lots enter — with the split's Δ²/6 of spread as the reason σ̄ sits
+     0.65% below the lattice's own law;
+   - §07, in the side-by-side holding time: Wald's identity for a Markov additive process
+     ([`asmussen-2003`], Cor. XI.2.6), E_i S_τ = κ′(0)·E_i τ + k_i − E_i k_(J_τ), as why the
+     mean holding time moves — lots enter in turbulent states and leave in calm ones. An
+     explanation, not a computation: the lattice gives E[W] exactly;
+   - §10: both boundaries read off the lattice as a Markov additive process
+     ([`asmussen-2003`] XI.2, [`ney-nummelin-1987`] for the continuous state). c1 is the
+     stationary mean of one step (Cor. XI.2.9(a)): the volatility's persistence and feedback
+     move it only through where the volatility spends its time. c2 is the log of an
+     eigenvalue, not an average over states. θ becomes γ, the root of κ(−γ) = 0
+     (Theorem XIII.8.3), above 1 exactly when the capital boundary is cleared — all from
+     `lattice.long_run`;
+   - §11, beside eq:survive: the exponent carries over as γ, the prefactor does not — it
+     goes as h_i, the volatility at the start (`long_run`'s "h quantiles"), and its constant
+     C needs the overshoot, which has no simple form (Asmussen p. 379); the finite horizons
+     have no such result. So γ is quoted beside θ, and §11's figures stay constant-σ;
+   - and none of it as a novelty: the mathematics is textbook, applied to the wheel.
 
 ## Sequence
 

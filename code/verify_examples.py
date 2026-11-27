@@ -149,6 +149,25 @@ def _check_moving_volatility():
                   x["econ_excess"] + x["leak"] / x["mv_capital"], 0.0, 1e-9)
     else:
         print("  skipped: the fitted lattice at mu = r is not built")
+    # The long run read as a Markov additive process (lattice.long_run).  Held still, its
+    # Lundberg root must be theta = 2nu/sigma^2 and its lots' boundary sigma^2/2: the
+    # constant-sigma criteria, recovered by the eigenvalue machinery.  On any process the
+    # exact drift (the stationary mean of one step) and the central difference agree, and
+    # gamma clears 1 exactly when the capital boundary is cleared.
+    for cfg, name in ((still, "still"), (fit, "fitted")):
+        if not lattice.long_run_cached(mo._vol_run(cfg)):
+            print(f"  skipped: the {name} long run is not built")
+            continue
+        lr = model.vol_boundaries(cfg)
+        nu = cfg.mu - cfg.delta - cfg.sigma ** 2 / 2
+        check(f"{name} long run: exact drift = central difference (c1)",
+              lr["c1"] - lr["c1 difference"], 0.0, 1e-5)
+        check(f"{name} long run: gamma > 1 exactly when the capital boundary is cleared",
+              float((lr["gamma"] > 1) == lr["capital_ok"]), 1.0, 0)
+        if name == "still":
+            check("still long run: c1 = sigma^2/2", lr["c1"], cfg.sigma ** 2 / 2, 1e-4)
+            check("still long run: gamma = theta = 2nu/sigma^2", lr["gamma"],
+                  2 * nu / cfg.sigma ** 2, 0.01)
 
 
 def main():

@@ -588,18 +588,24 @@ def _exact_chunk(job):
 
 LONG_RUN_PATHS = 200_000
 LONG_RUN_HS = 0.05                    # h_slow's spacing for the eigenvalues (test 10)
-LONG_RUN_THETAS = (-0.02, 0.0, 0.02, -1.0)
+# Three thetas about zero for kappa''(0), then the Lundberg grid on which kappa(theta) is
+# searched for its root -gamma (-1.0 among them, for c2).  The slot after the last theta
+# holds E[R; next node b | node a], kappa's derivative at zero entry by entry.
+LONG_RUN_THETAS = (-0.02, 0.0, 0.02) + tuple(round(-0.1 * k, 10) for k in range(1, 31))
+LUNDBERG = slice(3, len(LONG_RUN_THETAS))
+H_QUANTILES = (0.05, 0.5, 0.95, 0.99)  # of h at -gamma, over the stationary law
 
 
 def _long_run_row(job):
     """One row of nodes' tilted transitions over a call period, F(theta)_ab =
-    E[e^(theta*R); next node b | node a], for each theta and kind of period: a pmap worker."""
+    E[e^(theta*R); next node b | node a], for each theta and kind of period, and in the last
+    slot E[R; next node b | node a]: a pmap worker."""
     run, sig_bar, i, seed = job
     HF, HS = long_run_grid(run)
     proc = process(run, sig_bar)
     m, tc = run["mu"] - run["delta"], TC * VP.DT
     nodes = HF.size * HS.size
-    out = np.zeros((len(LONG_RUN_THETAS), CALL_KINDS, HS.size, nodes))
+    out = np.zeros((len(LONG_RUN_THETAS) + 1, CALL_KINDS, HS.size, nodes))
     for j in range(HS.size):
         # Draws of each node's own: an eigenvalue needs no smoothness across nodes, and on
         # draws every node shares their errors are common and c2 moved 0.03 between seeds.
@@ -615,8 +621,8 @@ def _long_run_row(job):
         for kd, vs in enumerate(kinds):
             for v in vs:
                 R = pin(variants[v], m, tc)
-                for t, th in enumerate(LONG_RUN_THETAS):
-                    e = np.exp(th * R)
+                for t, th in enumerate(LONG_RUN_THETAS + (None,)):
+                    e = R if th is None else np.exp(th * R)
                     out[t, kd, j] += np.bincount(idx.ravel(), (w * e[None, :]).ravel(),
                                                  nodes) / (LONG_RUN_PATHS * len(vs))
     return out
@@ -631,16 +637,42 @@ def long_run_grid(run):
     return grid(dict(run, **{"hs step": LONG_RUN_HS}))
 
 
+def _long_run_path(run, seed=SEED + 7):
+    key = {"lattice": _key(run)[1], "paths": LONG_RUN_PATHS, "hs": LONG_RUN_HS,
+           "thetas": LONG_RUN_THETAS, "version": 3, "seed": seed}
+    return os.path.join(CACHE, "longrun-" + hashlib.sha1(
+        json.dumps(key, sort_keys=True).encode()).hexdigest()[:12] + ".json")
+
+
+def long_run_cached(run):
+    """Whether `run`'s long run is in the cache, so that a check can read it unbuilt."""
+    return os.path.exists(_long_run_path(run))
+
+
+def _lagrange(x, xs):
+    """Weights of the polynomial through the points xs, read at x."""
+    return [np.prod([(x - b) / (a - b) for b in xs if b != a]) for a in xs]
+
+
 def long_run(run, verbose=True, seed=SEED + 7):
     """Section 10's boundaries under the fitted process, from the lattice read as a Markov
-    additive process (test 10): kappa(theta), the log of the largest eigenvalue of the tilted
-    transition over the thirteen-period earnings cycle, a year.  c1 = m - kappa'(0), the
-    lots' boundary, the long-run drag of log S; c2 = m + kappa(-1), the capital's, the
-    growth of E[S0/S_t]; kappa''(0) the long-run variance of log S.  Cached."""
-    key = {"lattice": _key(run)[1], "paths": LONG_RUN_PATHS, "hs": LONG_RUN_HS,
-           "thetas": LONG_RUN_THETAS, "version": 2, "seed": seed}
-    path = os.path.join(CACHE, "longrun-" + hashlib.sha1(
-        json.dumps(key, sort_keys=True).encode()).hexdigest()[:12] + ".json")
+    additive process (test 10; Asmussen, Applied Probability and Queues, XI.2 and XIII.8):
+    kappa(theta), the log of the largest eigenvalue of the tilted transition over the
+    thirteen-period earnings cycle, a year.
+
+    c1 = m - kappa'(0), the lots' boundary, the long-run drag of log S.  kappa'(0) is the
+    stationary mean of one step (Asmussen's Cor. XI.2.9(a)): each phase's stationary law
+    against E[R; next node], summed over the cycle -- exact, where the central difference
+    about zero ("c1 difference", kept as its check) carries the differencing's error.
+    c2 = m + kappa(-1), the capital's, the growth of E[S0/S_t]; kappa''(0) the long-run
+    variance of log S.  gamma, the root of kappa(-gamma) = 0 (Lundberg's equation, Theorem
+    XIII.8.3), is the moving volatility's theta = 2nu/sigma^2: the rate at which a deep lot's
+    census tail and a frozen book's chance of reaching its barrier decay with depth -- above
+    1 exactly when the capital boundary is cleared.  The barrier's prefactor goes as the right
+    eigenvector h at -gamma, normalised to average 1 under the stationary law; "h quantiles"
+    are its points at H_QUANTILES over that law, at the cycle's start: how much the
+    volatility at the start moves the barrier's risk.  Cached."""
+    path = _long_run_path(run, seed)
     if os.path.exists(path):
         with open(path) as f:
             return json.load(f)
@@ -651,22 +683,74 @@ def long_run(run, verbose=True, seed=SEED + 7):
     HF, HS = long_run_grid(run)
     rows = pmap(_long_run_row, [(run, sig_bar, i, seed) for i in range(HF.size)],
                 workers=min(BUILD_WORKERS, os.cpu_count() or 1, HF.size))
-    F = np.concatenate(rows, axis=2)             # (theta, kind, node a, node b)
+    F = np.concatenate(rows, axis=2)             # (theta + 1, kind, node a, node b)
+    del rows
     tc = TC * VP.DT
+    year = EARN_WEEKS * tc
     # The cycle: a lot's phase falls 4 weeks a period, mod 13, so over 13 periods it meets
     # every phase once; the spectral radius of the product is the cycle's growth.
     order = [(-4 * j) % EARN_WEEKS for j in range(EARN_WEEKS)]
-    kap = []
-    for t in range(len(LONG_RUN_THETAS)):
+    kinds = [1 + p if p < 4 else 0 for p in order]
+
+    def cycle(Fs):
         M = np.eye(F.shape[2])
-        for p in order:
-            M = M @ F[t, 1 + p if p < 4 else 0]
-        kap.append(float(np.log(np.max(np.abs(np.linalg.eigvals(M))))) / (EARN_WEEKS * tc))
-    (km, k0, kp, k1), eps = kap, LONG_RUN_THETAS[2]
+        for k in kinds:
+            M = M @ Fs[k]
+        return M
+
+    def perron(M, left=False):
+        vals, vecs = np.linalg.eig(M.T if left else M)
+        i = int(np.argmax(vals.real))
+        return float(vals[i].real), np.abs(vecs[:, i].real)
+
+    kap = np.array([np.log(perron(cycle(F[t]))[0]) / year for t in range(len(LONG_RUN_THETAS))])
+    km, k0, kp = kap[:3]
+    eps = LONG_RUN_THETAS[2]
     m = run["mu"] - run["delta"]
-    out = {"c1": m - (kp - km) / (2 * eps), "c2": m + k1,
+    # kappa'(0) exactly: the stationary law at the cycle's start, carried through its phases,
+    # against each phase's E[R; next node] (Cor. XI.2.9(a)).
+    pi = perron(cycle(F[1]), left=True)[1]
+    pi /= pi.sum()
+    drift = 0.0
+    for k in kinds:
+        drift += float(pi @ F[-1, k].sum(axis=1))
+        pi = pi @ F[1, k]
+    th = np.array(LONG_RUN_THETAS[LUNDBERG])
+    kl = kap[LUNDBERG]
+    k1 = float(kl[np.argmin(np.abs(th + 1.0))])
+    out = {"c1": m - drift / year, "c1 difference": m - (kp - km) / (2 * eps), "c2": m + k1,
            "long-run variance": (kp - 2 * k0 + km) / eps ** 2, "kappa(0)": k0,
            "nodes": int(F.shape[2])}
+    # gamma: the first sign change of kappa below zero on the Lundberg grid, then the root of
+    # the cubic through the four grid points about it; past the grid, a lower bound.
+    up = np.nonzero(kl >= 0)[0]
+    if drift <= 0:
+        out["gamma"] = None                      # the lots do not come back: no root
+    elif up.size == 0:
+        out["gamma"], out["gamma bound"] = -float(th[-1]), "above"
+    else:
+        a = max(0, min(int(up[0]) - 2, th.size - 4))
+        xs, ys = th[a:a + 4], kl[a:a + 4]
+        lo, hi = float(th[up[0]]), float(th[up[0] - 1]) if up[0] > 0 else 0.0
+        f = lambda x: float(np.dot(_lagrange(x, xs), ys))
+        if up[0] == 0:
+            hi = -1e-6
+        for _ in range(60):
+            mid = 0.5 * (lo + hi)
+            lo, hi = (mid, hi) if f(mid) >= 0 else (lo, mid)
+        root = 0.5 * (lo + hi)
+        out["gamma"] = -root
+        # h at -gamma, from the tilted transitions interpolated in theta the same way.
+        wts = _lagrange(root, xs)
+        Fg = sum(wt * F[LUNDBERG.start + a + q] for q, wt in enumerate(wts))
+        h = perron(cycle(Fg))[1]
+        pi0 = perron(cycle(F[1]), left=True)[1]
+        pi0 /= pi0.sum()
+        h /= float(pi0 @ h)
+        srt = np.argsort(h)
+        cdf = np.cumsum(pi0[srt])
+        out["h quantiles"] = [float(h[srt][min(int(np.searchsorted(cdf, q)), h.size - 1)])
+                              for q in H_QUANTILES]
     os.makedirs(CACHE, exist_ok=True)
     with open(path + ".tmp", "w") as f:
         json.dump(out, f)
