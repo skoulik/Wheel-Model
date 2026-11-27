@@ -208,8 +208,8 @@ converges to a simpler one, we can use this fact to simplify the simulation"). T
 is a Markov additive process — the volatility state a Markov chain, log S summing
 increments whose law depends on it — and such a process's long run is carried by κ(θ), the
 log of the largest eigenvalue of F(θ)_ab = E[e^(θR); next node b | node a], a year
-(Asmussen, *Applied Probability and Queues*, ch. XI — from memory, to be opened before it is
-cited): the long-run drift of log S is κ′(0), its long-run variance κ″(0), the growth of
+([`asmussen-2003`], ch. XI §2: Prop. 2.1, Cor. 2.3, 2.7 and Prop. 2.10 — written from memory,
+checked against the book 2026-11-27): the long-run drift of log S is κ′(0), its long-run variance κ″(0), the growth of
 E[S₀/S_t] is κ(−1). So §10's boundaries are c1 = m − κ′(0) and c2 = m + κ(−1), read off a
 matrix of the volatility nodes alone. Jumps, no earnings, against `fairprice.boundaries`
 (400 paths × 200 years: c1 = 2.026 ± 0.006%, c2 = 4.359 ± 0.014%):
@@ -425,15 +425,17 @@ formulas, if we show them in the article"):
   Markov additive process's eigenvalue, m + κ(−1) — and never the time-average of the
   tilted cumulant, which Jensen's inequality puts below it; the lots' boundary is the
   long-run drift m − κ′(0), where no such term arises;
-- **sources not yet held**, wanted only when the prose is written: Asmussen, *Applied
-  Probability and Queues* (2nd ed., Springer 2003), ch. XI, for the Markov additive
-  process's eigenvalue and its derivatives (test 10, the boundaries, the long-run variance;
-  cited above from memory, to be opened first); Ney & Nummelin (1987), *Annals of
-  Probability* 15(2), for the same on a general state space, the continuous process the
-  lattice approximates (optional); Tauchen (1986), *Economics Letters* 20, the standard
-  reference for carrying a continuous-state Markov process on a finite grid, the lattice's
-  construction (or Kushner & Dupuis, *Numerical Methods for Stochastic Control Problems in
-  Continuous Time*, for the Markov chain approximation method);
+- **sources**, wanted when the prose is written: Asmussen, *Applied Probability and Queues*
+  (2nd ed., Springer 2003), ch. XI, for the Markov additive process's eigenvalue and its
+  derivatives (test 10, the boundaries, the long-run variance) — **held since 2026-11-27**,
+  [`asmussen-2003`]; Tauchen (1986), *Economics Letters* 20, the standard reference for
+  carrying a continuous-state Markov process on a finite grid, the lattice's construction —
+  **held since 2026-11-27**, [`tauchen-1986`], whose entry lists where the lattice departs
+  from it; Ney & Nummelin (1987), *Annals of Probability* 15(2), for the same on a general
+  state space, the continuous process the lattice approximates (optional) — **held since
+  2026-11-27**, [`ney-nummelin-1987`]; not yet held: Kushner & Dupuis, *Numerical Methods for Stochastic Control Problems in Continuous Time*,
+  for the Markov chain approximation method, closer than Tauchen to the lattice's
+  mean-keeping split (optional);
 - **the exact entry** (decision 10), once built: where the article describes how the model
   treats the sale and the first call period, it says they are simulated from the
   stationary state and the grid carries lots from the second period on.
