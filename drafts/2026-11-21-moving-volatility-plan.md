@@ -335,12 +335,18 @@ parameter drop lands in the article's prose"). Each item points to where its num
      move it only through where the volatility spends its time. c2 is the log of an
      eigenvalue, not an average over states. θ becomes γ, the root of κ(−γ) = 0
      (Theorem XIII.8.3), above 1 exactly when the capital boundary is cleared — all from
-     `lattice.long_run`;
+     `lattice.long_run`. **Written 2026-11-27** as §10's "When the volatility moves: the
+     boundaries as eigenvalues", with the article's symbols Λ(α) and θ_v (κ is the volatility
+     model's kick and γ the margin fractions'): c1 2.00%, c2 4.32% (margin 0.18 points
+     against 0.50), θ_v = 1.070 against 1.25, reproducing the desktop's 2.003% / 4.320%;
    - §11, beside eq:survive: the exponent carries over as γ, the prefactor does not — it
      goes as h_i, the volatility at the start (`long_run`'s "h quantiles"), and its constant
      C needs the overshoot, which has no simple form (Asmussen p. 379); the finite horizons
-     have no such result. So γ is quoted beside θ, and §11's figures stay constant-σ;
+     have no such result. So γ is quoted beside θ, and §11's figures stay constant-σ.
+     **Written 2026-11-27**: h runs 0.98–1.03 between the stationary law's 5th and 95th
+     percentiles (1.05 at the 99th) — the starting volatility barely matters to "ever";
    - and none of it as a novelty: the mathematics is textbook, applied to the wheel.
+   §06's Tauchen paragraph and §07's Wald identity wait for those sections' revisions.
 
 ## Sequence
 

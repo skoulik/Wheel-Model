@@ -142,6 +142,25 @@ One last reason the boundaries are closer than they look. The model treats μ, �
 
 The effect compounds: everything downstream depends on ν, ν is a difference of quantities of similar size, and stress attacks every term in it simultaneously. A configuration calibrated comfortably inside both of the stock's boundaries in calm markets can be outside both in a quarter, and the transition is not gradual — [eq:trapped](#eq:trapped) turns on as soon as ν changes sign. The borrower's boundary goes the same way and for the same reason, since ν is one side of it too: the cash policy that was survivable at 20% volatility need not be at 30%, and nothing about the policy has changed.
 
+## When the volatility moves: the boundaries as eigenvalues
+
+Both boundaries above take σ as one number. [The volatility appendix](#sec:volatility) fits a process in which a stock's volatility moves instead — two factors, one fading within days and one over months, with jumps in the price and moves around earnings — scaled so that its variance still averages σ² over the years. A lot's depth then no longer takes independent steps: each period's move depends on a volatility that the earlier moves helped set. Both boundaries survive the change, and each is still read off a single function.
+
+> **Detour: a walk whose steps depend on a moving state.** Let a state J move as a Markov chain — here J is the volatility — and let a running total S add up steps whose distribution depends on where J stands. Probabilists call the pair a *Markov additive process*. For a walk of independent steps, E[e^(α·S_t)] = e^(t·Λ(α)) exactly, where Λ(α) is the logarithm of a year's step's moment generating function. With a state behind the steps the same holds in the long run, and Λ(α) is then the logarithm of the largest eigenvalue of the matrix whose entry in row a, column b is E[e^(α·R); J moves to b | J starts at a], R being a year's step: the powers of that matrix are what compound the years, and the largest eigenvalue of a matrix of positive entries is the rate at which its powers grow ([Asmussen](#ref:asmussen-2003), ch. XI; [Ney and Nummelin](#ref:ney-nummelin-1987) for a state that varies continuously, as the volatility does). As for independent steps, Λ's slope at zero is the long-run drift of S and its curvature there the long-run variance. With one state the matrix is a single number, and for the log price Λ(α) = α·ν + α²σ²/2.
+
+<a id="para:boundaries-as-eigenvalues"></a>
+Take S to be ln S_t. Lots come back when the log price drifts up in the long run, Λ′(0) > 0, and that slope is one period's mean log return averaged over the states the volatility visits, each weighted by the time spent in it ([Asmussen](#ref:asmussen-2003), corollary XI.2.9): how persistent the volatility is, and how it answers the price, move the lots' boundary only through where it spends its time. Capital comes back when E[S₀/S_t] decays, Λ(−1) < 0. That is the logarithm of an eigenvalue, not an average of each state's own growth rate: a turbulent stretch compounds while it lasts, so the average understates the growth, by Jensen's inequality, and a boundary read from it would sit too low. Written as the drift m each one needs, at the running example's σ = 20%:
+
+| | one σ | the fitted process |
+|---|---|---|
+| lots return when m exceeds | σ²/2 = 2.00% | 2.00% |
+| capital returns when m exceeds | σ² = 4.00% | 4.32% |
+
+The lots' boundary stays where it was: the process is scaled so that its variance averages σ², and a mean drift sees that average and little else. The capital's moves by a third of a point, and the running example's m = 4.5% clears it by 0.18 points rather than 0.50 — a volatility that moves takes about two thirds of the margin without changing its average.
+
+<a id="para:theta-moving-volatility"></a>
+θ carries over the same way. Λ(−θ) = 0 is what insurance mathematics calls the Lundberg equation, and its positive root is the adjustment coefficient for a Markov additive process just as 2ν/σ² is for one σ ([Asmussen](#ref:asmussen-2003), theorem XIII.8.3); call it θ_v. A lot's chance of ever standing x deep falls in proportion to e^(−θ_v·x) as x grows, so θ_v is the rate at which the deep strata thin out, and it exceeds 1 exactly when capital comes back — Λ is convex and zero at zero, so Λ(−1) < 0 and θ_v > 1 say the same thing. At the running example θ_v = 1.07, against θ = 1.25.
+
 ## The three failure modes
 
 The wheel has three failure modes. The first two are slow, silent, and are not "losing money on a trade":

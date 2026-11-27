@@ -168,6 +168,17 @@ def _check_moving_volatility():
             check("still long run: c1 = sigma^2/2", lr["c1"], cfg.sigma ** 2 / 2, 1e-4)
             check("still long run: gamma = theta = 2nu/sigma^2", lr["gamma"],
                   2 * nu / cfg.sigma ** 2, 0.01)
+        else:
+            # The figures sections 10 and 11 quote ("When the volatility moves").
+            m = cfg.mu - cfg.delta
+            check("sec10: fitted lots' boundary 2.00%", lr["c1"], 0.0200, 5e-5)
+            check("sec10: fitted capital boundary 4.32%", lr["c2"], 0.0432, 5e-5)
+            check("sec10: m clears the fitted capital boundary by 0.18 points",
+                  m - lr["c2"], 0.0018, 5e-5)
+            check("sec10: theta_v = 1.07 against theta = 1.25", lr["gamma"], 1.07, 0.005)
+            h5, _, h95, _ = lr["h quantiles"]
+            check("sec11: h at the 5th percentile, 0.98", h5, 0.98, 0.005)
+            check("sec11: h at the 95th percentile, 1.03", h95, 1.03, 0.005)
 
 
 def main():
