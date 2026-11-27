@@ -172,10 +172,15 @@ def _check_moving_volatility():
             # The figures sections 10 and 11 quote ("When the volatility moves").
             m = cfg.mu - cfg.delta
             check("sec10: fitted lots' boundary 2.00%", lr["c1"], 0.0200, 5e-5)
-            check("sec10: fitted capital boundary 4.32%", lr["c2"], 0.0432, 5e-5)
-            check("sec10: m clears the fitted capital boundary by 0.18 points",
-                  m - lr["c2"], 0.0018, 5e-5)
-            check("sec10: theta_v = 1.07 against theta = 1.25", lr["gamma"], 1.07, 0.005)
+            check("sec10: fitted capital boundary 4.31%", lr["c2"], 0.0431, 5e-5)
+            check("sec10: m clears the fitted capital boundary by 0.19 points",
+                  m - lr["c2"], 0.0019, 5e-5)
+            check("sec10: theta_v = 1.08 against theta = 1.25", lr["gamma"], 1.08, 0.005)
+            # The spacing pair converges toward the extrapolation, the finer read closer.
+            by = lr["by spacing"]
+            coarse, fine = (by[str(h)] for h in lattice.LONG_RUN_HS)
+            check("long run: the finer spacing reads c2 nearer the extrapolation",
+                  float(abs(fine["c2"] - lr["c2"]) < abs(coarse["c2"] - lr["c2"])), 1.0, 0)
             h5, _, h95, _ = lr["h quantiles"]
             check("sec11: h at the 5th percentile, 0.98", h5, 0.98, 0.005)
             check("sec11: h at the 95th percentile, 1.03", h95, 1.03, 0.005)

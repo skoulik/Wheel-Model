@@ -626,6 +626,13 @@ their errors common, not averaging — so each node draws its own; then two seed
 Within about one and a half of the simulation's errors. The running example's μ − δ = 4.5%
 sits 0.18 points inside the capital boundary under the fitted process.
 
+**2026-11-27: the gap was the grid.** The eigenvalues sat above the simulation in all four
+cells, so `long_run` was read at h_slow 0.025 too (1,581 nodes): fitted c1 1.999%, c2 4.311%,
+θ_v 1.074. The split's widening is O(h²) (decision 2), and Richardson on 0.05 and 0.025 gives
+c1 1.997% and c2 4.307% — the simulation's 1.995 ± 0.005% and 4.307% — and θ_v 1.076; the
+spread of h does not move. `long_run` now reads both spacings and extrapolates (Sergei: "Yes,
+please do the change and commit"), and the running example sits 0.19 points inside.
+
 **Step 5's checks, in `verify_examples.py`** ("the moving volatility's lattice", reading the
 cache and reporting a missing lattice as skipped): the still lattice against the continuum
 (h = 0.0025) on the first expiry and inventory at 30 years; the pricing-drift test on the

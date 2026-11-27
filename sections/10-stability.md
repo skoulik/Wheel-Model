@@ -154,12 +154,12 @@ Take S to be ln S_t. Lots come back when the log price drifts up in the long run
 | | one σ | the fitted process |
 |---|---|---|
 | lots return when m exceeds | σ²/2 = 2.00% | 2.00% |
-| capital returns when m exceeds | σ² = 4.00% | 4.32% |
+| capital returns when m exceeds | σ² = 4.00% | 4.31% |
 
-The lots' boundary stays where it was: the process is scaled so that its variance averages σ², and a mean drift sees that average and little else. The capital's moves by a third of a point, and the running example's m = 4.5% clears it by 0.18 points rather than 0.50 — a volatility that moves takes about two thirds of the margin without changing its average.
+The lots' boundary stays where it was: the process is scaled so that its variance averages σ², and a mean drift sees that average and little else. The capital's moves by a third of a point, and the running example's m = 4.5% clears it by 0.19 points rather than 0.50 — a volatility that moves takes three fifths of the margin without changing its average.
 
 <a id="para:theta-moving-volatility"></a>
-θ carries over the same way. Λ(−θ) = 0 is what insurance mathematics calls the Lundberg equation, and its positive root is the adjustment coefficient for a Markov additive process just as 2ν/σ² is for one σ ([Asmussen](#ref:asmussen-2003), theorem XIII.8.3); call it θ_v. A lot's chance of ever standing x deep falls in proportion to e^(−θ_v·x) as x grows, so θ_v is the rate at which the deep strata thin out, and it exceeds 1 exactly when capital comes back — Λ is convex and zero at zero, so Λ(−1) < 0 and θ_v > 1 say the same thing. At the running example θ_v = 1.07, against θ = 1.25.
+θ carries over the same way. Λ(−θ) = 0 is what insurance mathematics calls the Lundberg equation, and its positive root is the adjustment coefficient for a Markov additive process just as 2ν/σ² is for one σ ([Asmussen](#ref:asmussen-2003), theorem XIII.8.3); call it θ_v. A lot's chance of ever standing x deep falls in proportion to e^(−θ_v·x) as x grows, so θ_v is the rate at which the deep strata thin out, and it exceeds 1 exactly when capital comes back — Λ is convex and zero at zero, so Λ(−1) < 0 and θ_v > 1 say the same thing. At the running example θ_v = 1.08, against θ = 1.25.
 
 ## The three failure modes
 

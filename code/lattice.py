@@ -587,7 +587,11 @@ def _exact_chunk(job):
 # ---------------------------------------------------------------------------- the long run
 
 LONG_RUN_PATHS = 200_000
-LONG_RUN_HS = 0.05                    # h_slow's spacing for the eigenvalues (test 10)
+# h_slow's spacings for the eigenvalues, Richardson-extrapolated (test 10: c2 is the figure most
+# sensitive to h_slow's spread, and the split's widening is O(h^2) -- decision 2): at the
+# running example the pair reads c2 4.321 / 4.311%, extrapolated 4.307% against the simulated
+# 4.307% (2026-11-27).
+LONG_RUN_HS = (0.05, 0.025)
 # Three thetas about zero for kappa''(0), then the Lundberg grid on which kappa(theta) is
 # searched for its root -gamma (-1.0 among them, for c2).  The slot after the last theta
 # holds E[R; next node b | node a], kappa's derivative at zero entry by entry.
@@ -600,8 +604,8 @@ def _long_run_row(job):
     """One row of nodes' tilted transitions over a call period, F(theta)_ab =
     E[e^(theta*R); next node b | node a], for each theta and kind of period, and in the last
     slot E[R; next node b | node a]: a pmap worker."""
-    run, sig_bar, i, seed = job
-    HF, HS = long_run_grid(run)
+    run, sig_bar, i, seed, hs_step = job
+    HF, HS = long_run_grid(run, hs_step)
     proc = process(run, sig_bar)
     m, tc = run["mu"] - run["delta"], TC * VP.DT
     nodes = HF.size * HS.size
@@ -628,25 +632,34 @@ def _long_run_row(job):
     return out
 
 
-def long_run_grid(run):
-    """The eigenvalues' grid: h_slow at LONG_RUN_HS where the process has jumps (test 10:
-    the boundary c2 is the figure most sensitive to h_slow's spread), the process's own
-    grid otherwise."""
-    if run.get("still") or not run["jumps"]:
+def _extrapolates(run):
+    """Whether the long run is read on the spacing pair: only where the process has jumps,
+    since otherwise its grid is the process's own whatever the spacing."""
+    return not (run.get("still") or not run["jumps"])
+
+
+def long_run_grid(run, hs_step):
+    """The eigenvalues' grid: h_slow at hs_step where the process has jumps, the process's
+    own grid otherwise."""
+    if not _extrapolates(run):
         return grid(run)
-    return grid(dict(run, **{"hs step": LONG_RUN_HS}))
+    return grid(dict(run, **{"hs step": hs_step}))
 
 
-def _long_run_path(run, seed=SEED + 7):
-    key = {"lattice": _key(run)[1], "paths": LONG_RUN_PATHS, "hs": LONG_RUN_HS,
+def _long_run_path(run, hs_step, seed=SEED + 7):
+    key = {"lattice": _key(run)[1], "paths": LONG_RUN_PATHS, "hs": hs_step,
            "thetas": LONG_RUN_THETAS, "version": 3, "seed": seed}
     return os.path.join(CACHE, "longrun-" + hashlib.sha1(
         json.dumps(key, sort_keys=True).encode()).hexdigest()[:12] + ".json")
 
 
+def _spacings(run):
+    return LONG_RUN_HS if _extrapolates(run) else LONG_RUN_HS[:1]
+
+
 def long_run_cached(run):
     """Whether `run`'s long run is in the cache, so that a check can read it unbuilt."""
-    return os.path.exists(_long_run_path(run))
+    return all(os.path.exists(_long_run_path(run, hs)) for hs in _spacings(run))
 
 
 def _lagrange(x, xs):
@@ -671,8 +684,25 @@ def long_run(run, verbose=True, seed=SEED + 7):
     1 exactly when the capital boundary is cleared.  The barrier's prefactor goes as the right
     eigenvector h at -gamma, normalised to average 1 under the stationary law; "h quantiles"
     are its points at H_QUANTILES over that law, at the cycle's start: how much the
-    volatility at the start moves the barrier's risk.  Cached."""
-    path = _long_run_path(run, seed)
+    volatility at the start moves the barrier's risk.
+
+    Where the process has jumps, each figure is read at both of LONG_RUN_HS's spacings and
+    Richardson-extrapolated, (4*fine - coarse)/3, h's quantiles taken from the finer; "by
+    spacing" keeps both readings.  Cached, a spacing at a time."""
+    reads = [_long_run_at(run, hs, verbose, seed) for hs in _spacings(run)]
+    if len(reads) == 1:
+        return reads[0]
+    coarse, fine = reads
+    out = dict(fine, **{"by spacing": dict(zip(map(str, LONG_RUN_HS), reads))})
+    for k in ("c1", "c1 difference", "c2", "long-run variance", "gamma"):
+        if coarse.get(k) is not None and fine.get(k) is not None:
+            out[k] = (4 * fine[k] - coarse[k]) / 3
+    return out
+
+
+def _long_run_at(run, hs_step, verbose=True, seed=SEED + 7):
+    """long_run at one h_slow spacing."""
+    path = _long_run_path(run, hs_step, seed)
     if os.path.exists(path):
         with open(path) as f:
             return json.load(f)
@@ -680,8 +710,8 @@ def long_run(run, verbose=True, seed=SEED + 7):
     t0 = time.time()
     data = load(run, verbose)
     sig_bar = float(data["sig bar"])
-    HF, HS = long_run_grid(run)
-    rows = pmap(_long_run_row, [(run, sig_bar, i, seed) for i in range(HF.size)],
+    HF, HS = long_run_grid(run, hs_step)
+    rows = pmap(_long_run_row, [(run, sig_bar, i, seed, hs_step) for i in range(HF.size)],
                 workers=min(BUILD_WORKERS, os.cpu_count() or 1, HF.size))
     F = np.concatenate(rows, axis=2)             # (theta + 1, kind, node a, node b)
     del rows

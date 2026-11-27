@@ -338,7 +338,11 @@ parameter drop lands in the article's prose"). Each item points to where its num
      `lattice.long_run`. **Written 2026-11-27** as §10's "When the volatility moves: the
      boundaries as eigenvalues", with the article's symbols Λ(α) and θ_v (κ is the volatility
      model's kick and γ the margin fractions'): c1 2.00%, c2 4.32% (margin 0.18 points
-     against 0.50), θ_v = 1.070 against 1.25, reproducing the desktop's 2.003% / 4.320%;
+     against 0.50), θ_v = 1.070 against 1.25, reproducing the desktop's 2.003% / 4.320%.
+     **The same day, at h_slow 0.025 too** (Sergei: "Yes, please do the change"): c1 1.999%,
+     c2 4.311%, θ_v 1.074; Richardson on the pair, now what `long_run` returns, gives c1
+     1.997% and c2 4.307% — against the simulation's 1.995 ± 0.005% and 4.307% — and θ_v
+     1.076. The quoted figures moved to 4.31%, 0.19 points and θ_v 1.08;
    - §11, beside eq:survive: the exponent carries over as γ, the prefactor does not — it
      goes as h_i, the volatility at the start (`long_run`'s "h quantiles"), and its constant
      C needs the overshoot, which has no simple form (Asmussen p. 379); the finite horizons
