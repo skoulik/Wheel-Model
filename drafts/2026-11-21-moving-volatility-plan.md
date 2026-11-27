@@ -323,8 +323,8 @@ parameter drop lands in the article's prose"). Each item points to where its num
    "implement all of the suggestions"; the sources read that day):
    - §06, where the lattice is described: [`tauchen-1986`] as its precedent, and the three
      ways it departs — transitions simulated, an end state split to keep its mean, the range
-     set by where deep lots enter — with the split's Δ²/6 of spread as the reason σ̄ sits
-     0.65% below the lattice's own law;
+     set by where deep lots enter — with the split's Δ²/6 of spread as the reason the lattice's own
+     law would put σ̄ 0.56% lower — **written 2026-11-27** in §06's "A volatility that moves";
    - §07, in the side-by-side holding time: Wald's identity for a Markov additive process
      ([`asmussen-2003`], Cor. XI.2.6), E_i S_τ = κ′(0)·E_i τ + k_i − E_i k_(J_τ), as why the
      mean holding time moves — lots enter in turbulent states and leave in calm ones. An

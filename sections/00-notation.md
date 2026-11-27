@@ -26,7 +26,13 @@ This file is the single source of truth for every symbol used in the article. Wh
 | S, S₀ | Price of the underlying stock; S₀ when a fixed reference moment matters |
 | μ | Real-world expected annual **total return** of the stock — price appreciation plus dividend yield |
 | r | Risk-free interest rate, annualized |
-| σ | Volatility of the stock's returns, annualized — the **realized** volatility, which governs the actual price path. Held **constant**: one number for every price level and every date, which is what makes depth a self-contained description of a lot; see [the depth section](#sec:depth) |
+| σ | Volatility of the stock's returns, annualized — the **realized** volatility, which governs the actual price path. Held **constant**: one number for every price level and every date, which is what makes depth a self-contained description of a lot; see [the depth section](#sec:depth). Under the moving volatility it is the year's whole volatility averaged over the long run, diffusion, jumps and earnings together ([the depth section](#para:set-not-fitted)) |
+| σ_t | Under the moving volatility, a session's diffusive volatility, σ_t = σ̄ · e^(ℓ_f + ℓ_s); a session is a fifth of a week. See [the depth section](#para:volatility-that-moves) |
+| σ̄ | The scale of σ_t: set, not fitted, so that the year's whole variance averages σ² over the long run ([the depth section](#para:set-not-fitted)) |
+| ℓ_f, ℓ_s | The fast and slow parts of the log volatility, each fading toward zero with its own half-life t_f, t_s (about six sessions and five months) and pushed by the session's move |
+| z̃, D | A session's move in its own standard deviations, and 1 on a session bringing a downward jump (0 otherwise) — the two things that push ℓ_f and ℓ_s |
+| η, η_f, η_s | How far one standard deviation of the session's move pushes log volatility (fitted: −0.029), and its split between the two parts |
+| κ, κ_f, κ_s | The further push a downward jump gives log volatility, the kick (fitted: 0.63), and its split between the two parts |
 | σ_IV | Implied volatility: the number the market quotes option prices in. The article's results assume σ_IV = σ (no volatility risk premium) unless stated, and [the returns section](#sec:returns) computes what spread would be needed to change the verdict. **A single scalar**: one value for both legs, every strike and every lot depth. Real surfaces are flat in neither direction, and [the returns section](#sec:returns) names what that costs and why it is not carried |
 | δ | Continuous dividend yield, annualized, gross of withholding (running example: 2.5%). Held **constant**, which assumes the payout tracks the price's *trend* — a company raising its dividend at the price's log drift ν has, by construction, a constant yield. It does **not** assume the payout is cut when the price dips; see [the depth section](#sec:depth) |
 | w | Withholding tax fraction on dividends (running example: 15%, the common treaty rate) |

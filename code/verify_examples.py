@@ -89,6 +89,65 @@ def _stationary_job(job):
     return occ, economics(cfg, measure, occ), time_to_fraction(cfg, occ, 0.9)
 
 
+def _check_volatility_process():
+    """The figures section 06's "A volatility that moves" quotes.  The fitted parameters
+    are pinned in volprocess.py (stdlib); the variance's split, the diffusion's range and
+    the chain's own sigma-bar need the fitted lattice's cache, which carries the stationary
+    moments with it, and are skipped without it."""
+    import volprocess as VP
+    f, yr = VP.FIT, VP.SESSIONS / VP.FIT_SESSIONS
+    tf = f["half-life fast"]
+    ts = tf * f["slow/fast"]
+    check("sec06: the fast part halves in about six sessions", tf, 6.0, 0.5)
+    check("sec06: the slow part in about five months (sessions)", ts / (VP.SESSIONS / 12), 5.0, 0.5)
+    check("sec06: eta = -0.029", f["theta"], -0.029, 0.0005)
+    check("sec06: a one-sd fall raises volatility about 3%", exp(-f["theta"]) - 1, 0.03, 0.005)
+    check("sec06: seven tenths of the push to the fast part", f["theta fast share"], 0.7, 0.05)
+    check("sec06: kappa = 0.63", f["kick down"], 0.63, 0.005)
+    check("sec06: a down jump nearly doubles volatility", exp(f["kick down"]), 1.9, 0.05)
+    left = (f["kick fast share"] * 2 ** (-20 / tf) + (1 - f["kick fast share"]) * 2 ** (-20 / ts))
+    check("sec06: two thirds of the kick gone within four weeks", 1 - left, 2 / 3, 0.02)
+    check("sec06: six or seven down jumps a year", f["lambda down"] * yr, 6.5, 0.5)
+    check("sec06: one or two up jumps a year", f["lambda up"] * yr, 1.5, 0.5)
+    check("sec06: earnings each quarter", VP.SESSIONS / VP.EARNINGS_EVERY, 4.0, 0)
+    try:
+        import numpy  # noqa: F401
+        import lattice
+        import fairprice as FP
+        import model as mo
+    except ImportError:
+        print("  skipped: the variance's split needs numpy")
+        return
+    run = mo._vol_run(Config(vol="fitted"))
+    check("sec06: 17 x 24 = 408 volatility nodes",
+          float(len(lattice.HF_GRID) * len(lattice.HS_GRID)), 408.0, 0)
+    check("sec06: 200,000 paths from every node", float(lattice.PATHS), 200000.0, 0)
+    check("sec06: eight million exact sales",
+          float(lattice.EXACT_PATHS * lattice.EXACT_READS), 8e6, 0)
+    if not lattice.cached(run):
+        print("  skipped: the fitted lattice is not built (python code/lattice.py)")
+        return
+    mom = FP.moments(True, True)
+    p = VP.Process(1.0, True, True)
+    var_j = p.pu * 2 * p.au ** 2 + p.pd * 2 * p.ad ** 2 - (p.pu * p.au - p.pd * p.ad) ** 2
+    var_e = (p.pe * 2 * p.aeu ** 2 + (1 - p.pe) * 2 * p.aed ** 2
+             - (p.pe * p.aeu - (1 - p.pe) * p.aed) ** 2)
+    parts = (mom["e2H"], var_j * mom["e2bH"], var_e / VP.EARNINGS_EVERY * mom["e2bEH"])
+    total = sum(parts)
+    for name, part, quoted in zip(("diffusion", "unscheduled jumps", "earnings"), parts,
+                                  (0.81, 0.07, 0.12)):
+        check(f"sec06: {name} carries {quoted:.0%} of the variance", part / total, quoted, 0.005)
+    sb = FP.sig_bar(run["sigma"], mom)
+    q = mom["H quantiles"]
+    for label, key, quoted in (("5%", "5%", 0.09), ("typical", "50%", 0.14), ("95%", "95%", 0.31)):
+        check(f"sec06: the diffusion's volatility at {label}, {quoted:.0%}",
+              sb * sqrt(VP.SESSIONS) * exp(q[key]), quoted, 0.005)
+    data = lattice.load(run, verbose=False)
+    own = run["sigma"] * sqrt(lattice.TC * VP.DT / float(data["pi"] @ data["V"]))
+    check("sec06: the chain's own law sets sigma-bar about half a percent lower",
+          1 - own / float(data["sig bar"]), 0.005, 0.001)
+
+
 def _check_moving_volatility():
     """The lattice behind Config.vol, on what the cache holds (see main()).
 
@@ -1415,6 +1474,8 @@ def main():
     # minutes each to build, so this reads them from the cache and says so when
     # one is missing (python code/lattice.py builds the running example's) rather
     # than building it here; the walks themselves are cached once run.
+    print("--- Section 06: the volatility that moves ---")
+    _check_volatility_process()
     print("--- Structural: the moving volatility's lattice ---")
     _check_moving_volatility()
 

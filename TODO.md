@@ -602,6 +602,12 @@ as one current way to rebuild it), and committed **unreviewed**. To do:
   to a fifth (as drafted) or at the larger one-year blocks; and whether the fair-prices
   subsection's link to §09's eq:delta-return is acceptable in an appendix meant to stand alone
   on §00's notation. Then §06's structure subsection, which cites it.
+- **Its symbols against §00** (found 2026-11-27, writing §06's "A volatility that moves", which
+  registers ℓ_f, ℓ_s, σ_t, σ̄, η, κ, z̃ and D there): the appendix writes the log volatility H
+  (§00's horizon and weighted-law H), the move's push θ (§00's tail exponent), the jumps' growth
+  β (the overshoot constant), the jump rates λ↑, λ↓ (the arrival rate), the jump J (call
+  periods lived), the persistence φ (the normal density) and the shares w (the withholding
+  fraction). Align it with §06's ℓ, η and κ, and give the rest symbols §00 does not hold.
 
 ## Part III — Many assets
 

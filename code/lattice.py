@@ -25,7 +25,7 @@ sigma-bar, so the nodes' transition is built first and its stationary law found,
 weights the put's sale states. sigma-bar, the scale at which the year's total variance --
 diffusion, jumps and earnings -- averages sigma^2, is the process's own, measured by
 `fairprice.moments` from 1.6 million independent stationary reads and shared with the
-simulator (decision 9). The lattice's own law would put it 0.65% lower, its grid's spread
+simulator (decision 9). The lattice's own law would put it 0.56% lower, its grid's spread
 being a little wide (decision 2, test 2).
 
 **What each node gives** (for every grid the model runs, `GRIDS`), as means over its paths:
